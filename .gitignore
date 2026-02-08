@@ -1,0 +1,135 @@
+# ============================================================
+# MomVibe — .gitignore (Best Practices)
+# ============================================================
+
+# ──────────────────────────────────────────────────────────────
+# Backend (.NET)
+# ──────────────────────────────────────────────────────────────
+backend/**/bin/
+backend/**/obj/
+backend/.vs/
+backend/**/*.user
+backend/**/*.suo
+backend/**/*.cache
+backend/**/appsettings*.Local.json
+backend/**/appsettings.Development.json
+backend/**/Properties/launchSettings.json
+
+# NuGet
+backend/**/packages/
+backend/**/*.nupkg
+
+# EF Core migrations snapshot (keep migrations, ignore snapshots if needed)
+# backend/**/Migrations/*.Designer.cs
+
+# Build results
+backend/**/*.dll
+backend/**/*.exe
+backend/**/*.pdb
+
+# Publish output
+backend/**/publish/
+
+# ──────────────────────────────────────────────────────────────
+# Seed Data & User Uploads (NEVER commit to repo)
+# ──────────────────────────────────────────────────────────────
+backend/**/Persistence/Seed/
+backend/**/wwwroot/uploads/demo/
+backend/**/wwwroot/uploads/items/
+backend/**/wwwroot/uploads/avatars/
+
+# ──────────────────────────────────────────────────────────────
+# Frontend (Node / Vite / React)
+# ──────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/.vite/
+frontend/.eslintcache
+frontend/.tsbuildinfo
+frontend/*.tsbuildinfo
+
+# ──────────────────────────────────────────────────────────────
+# Secrets & Credentials (NEVER commit)
+# ──────────────────────────────────────────────────────────────
+**/*.pfx
+**/*.key
+**/*.pem
+**/credentials.json
+**/secrets.json
+**/.env
+**/.env.*
+!**/.env.example
+
+# ──────────────────────────────────────────────────────────────
+# IDE & Editors
+# ──────────────────────────────────────────────────────────────
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.iml
+
+# ──────────────────────────────────────────────────────────────
+# OS Generated
+# ──────────────────────────────────────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+
+# ──────────────────────────────────────────────────────────────
+# Logs & Temp
+# ──────────────────────────────────────────────────────────────
+**/*.log
+**/logs/
+**/tmp/
+**/temp/
+
+# ──────────────────────────────────────────────────────────────
+# Test & Coverage
+# ──────────────────────────────────────────────────────────────
+**/TestResults/
+**/coverage/
+**/*.coverage
+**/lcov.info
+
+# ──────────────────────────────────────────────────────────────
+# Misc
+# ──────────────────────────────────────────────────────────────
+*.swp
+*.swo
+*.bak
+*.orig
+*.patch
