@@ -7,7 +7,7 @@ A full-stack marketplace platform where families can donate or sell baby items â
 ### Backend
 - **Runtime:** .NET 8 / ASP.NET Core Web API
 - **Architecture:** Clean Architecture (Domain &rarr; Application &rarr; Infrastructure &rarr; WebApi)
-- **Database:** PostgreSQL with EF Core (Code-First migrations)
+- **Database:** SQL Server with EF Core (Code-First migrations)
 - **Auth:** ASP.NET Core Identity, JWT + Refresh Tokens, Google OAuth
 - **Real-time:** SignalR (chat messaging)
 - **Payments:** Stripe Checkout
@@ -57,7 +57,7 @@ MomVibe/
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Node.js 20+](https://nodejs.org/) and npm
-- [PostgreSQL 15+](https://www.postgresql.org/)
+- [SQL Server 2019+](https://www.microsoft.com/sql-server) (or LocalDB via Visual Studio)
 
 ## Getting Started
 
@@ -110,7 +110,7 @@ The app starts at `http://localhost:5173` by default.
 
 | Key | Description |
 |-----|-------------|
-| `ConnectionStrings:DefaultConnection` | PostgreSQL connection string |
+| `ConnectionStrings:DefaultConnection` | SQL Server connection string |
 | `Jwt:Secret` | JWT signing key |
 | `Jwt:Issuer` / `Jwt:Audience` | JWT token configuration |
 | `Google:ClientId` / `Google:ClientSecret` | Google OAuth credentials |
