@@ -70,8 +70,14 @@ public class ItemsController : ControllerBase
     {
         var item = await this._itemService.GetByIdAsync(id, this._currentUserService.UserId);
         if (item == null) return NotFound();
-        await this._itemService.IncrementViewCountAsync(id);
         return Ok(item);
+    }
+
+    [HttpPost("{id:guid}/view")]
+    public async Task<IActionResult> IncrementView(Guid id)
+    {
+        await this._itemService.IncrementViewCountAsync(id);
+        return NoContent();
     }
 
     /// <summary>

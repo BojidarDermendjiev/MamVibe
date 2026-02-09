@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { itemsApi } from '../api/itemsApi';
 import { type Item, ListingType } from '../types/item';
 import { useAuthStore } from '../store/authStore';
+import { getCategoryImage } from '../utils/categoryImages';
 import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
@@ -19,6 +20,7 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
+  const viewCounted = useRef(false);
 
   useEffect(() => {
     if (!id) return;
@@ -26,6 +28,10 @@ export default function ItemDetailPage() {
       try {
         const { data } = await itemsApi.getById(id);
         setItem(data);
+        if (!viewCounted.current) {
+          viewCounted.current = true;
+          itemsApi.incrementView(id).catch(() => {});
+        }
       } catch {
         toast.error('Item not found');
         navigate('/browse');
@@ -70,15 +76,11 @@ export default function ItemDetailPage() {
         {/* Photo gallery */}
         <div>
           <div className="aspect-square rounded-xl overflow-hidden bg-cream-dark mb-4">
-            {item.photos.length > 0 ? (
-              <img
-                src={item.photos[activePhoto]?.url}
-                alt={item.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-6xl">📦</div>
-            )}
+            <img
+              src={item.photos.length > 0 ? item.photos[activePhoto]?.url : getCategoryImage(item.categoryName)}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
           </div>
           {item.photos.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">

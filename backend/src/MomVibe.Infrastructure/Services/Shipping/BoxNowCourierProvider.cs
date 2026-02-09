@@ -6,8 +6,8 @@ using Microsoft.Extensions.Options;
 
 using Domain.Enums;
 using Configuration;
-using Application.DTOs.Shipping;
 using Application.Interfaces;
+using Application.DTOs.Shipping;
 
 /// <summary>
 /// Box Now courier provider implementation.

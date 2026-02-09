@@ -12,8 +12,8 @@ using MomVibe.Infrastructure.Persistence;
 namespace MomVibe.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260202194412_InitalDatabase")]
-    partial class InitalDatabase
+    [Migration("20260208190755_InitialDatabase")]
+    partial class InitialDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -198,6 +198,11 @@ namespace MomVibe.Infrastructure.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Iban")
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)")
+                        .HasComment("IBAN for receiving card payments.");
 
                     b.Property<bool>("IsBlocked")
                         .ValueGeneratedOnAdd()
@@ -614,6 +619,11 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasComment("Payment method (domain-specific enumeration).");
 
+                    b.Property<string>("ReceiptUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
+                        .HasComment("URL to the digital receipt from Take a NAP.");
+
                     b.Property<string>("SellerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)")
@@ -694,6 +704,124 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.Shipment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasComment("City name for delivery destination.");
+
+                    b.Property<decimal>("CodAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasComment("Cash on delivery amount to collect from recipient.");
+
+                    b.Property<int>("CourierProvider")
+                        .HasColumnType("int")
+                        .HasComment("Courier provider used for this shipment (Econt, Speedy).");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasComment("Street address for address-based delivery.");
+
+                    b.Property<int>("DeliveryType")
+                        .HasColumnType("int")
+                        .HasComment("Delivery type (Office, Address, Locker).");
+
+                    b.Property<decimal>("InsuredAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasComment("Declared value for shipment insurance.");
+
+                    b.Property<bool>("IsCod")
+                        .HasColumnType("bit")
+                        .HasComment("Whether cash on delivery is enabled.");
+
+                    b.Property<bool>("IsInsured")
+                        .HasColumnType("bit")
+                        .HasComment("Whether the shipment has additional insurance.");
+
+                    b.Property<string>("LabelUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasComment("URL or path to the generated shipping label PDF.");
+
+                    b.Property<string>("OfficeId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasComment("Courier office or locker identifier.");
+
+                    b.Property<string>("OfficeName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasComment("Courier office or locker display name.");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasComment("Foreign key referencing the associated payment.");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasComment("Full name of the shipment recipient.");
+
+                    b.Property<string>("RecipientPhone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasComment("Phone number of the shipment recipient.");
+
+                    b.Property<decimal>("ShippingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasComment("Shipping price charged for this shipment.");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasComment("Current shipment lifecycle status.");
+
+                    b.Property<string>("TrackingNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasComment("Courier tracking number for package lookup.");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WaybillId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasComment("Courier waybill identifier for API operations.");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("decimal(10,3)")
+                        .HasComment("Package weight in kilograms.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourierProvider");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TrackingNumber");
+
+                    b.ToTable("Shipments");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -862,6 +990,17 @@ namespace MomVibe.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.Shipment", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.ApplicationUser", b =>

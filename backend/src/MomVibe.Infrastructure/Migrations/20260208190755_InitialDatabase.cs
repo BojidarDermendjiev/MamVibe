@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MomVibe.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitalDatabase : Migration
+    public partial class InitialDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,6 +39,7 @@ namespace MomVibe.Infrastructure.Migrations
                     Bio = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "User-provided short biography."),
                     LanguagePreference = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "en", comment: "Preferred language or locale (e.g., en or en-US)."),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()", comment: "UTC timestamp when the user account was created."),
+                    Iban = table.Column<string>(type: "nvarchar(34)", maxLength: 34, nullable: true, comment: "IBAN for receiving card payments."),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -350,6 +351,7 @@ namespace MomVibe.Infrastructure.Migrations
                     PaymentMethod = table.Column<int>(type: "int", nullable: false, comment: "Payment method (domain-specific enumeration)."),
                     StripeSessionId = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Stripe checkout session identifier, if applicable."),
                     Status = table.Column<int>(type: "int", nullable: false, comment: "Current payment status (e.g., Pending, Succeeded, Failed)."),
+                    ReceiptUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true, comment: "URL to the digital receipt from Take a NAP."),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -370,6 +372,43 @@ namespace MomVibe.Infrastructure.Migrations
                         name: "FK_Payments_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Shipments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PaymentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the associated payment."),
+                    CourierProvider = table.Column<int>(type: "int", nullable: false, comment: "Courier provider used for this shipment (Econt, Speedy)."),
+                    DeliveryType = table.Column<int>(type: "int", nullable: false, comment: "Delivery type (Office, Address, Locker)."),
+                    Status = table.Column<int>(type: "int", nullable: false, comment: "Current shipment lifecycle status."),
+                    TrackingNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Courier tracking number for package lookup."),
+                    WaybillId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Courier waybill identifier for API operations."),
+                    RecipientName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false, comment: "Full name of the shipment recipient."),
+                    RecipientPhone = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, comment: "Phone number of the shipment recipient."),
+                    DeliveryAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Street address for address-based delivery."),
+                    City = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true, comment: "City name for delivery destination."),
+                    OfficeId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "Courier office or locker identifier."),
+                    OfficeName = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true, comment: "Courier office or locker display name."),
+                    ShippingPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Shipping price charged for this shipment."),
+                    IsCod = table.Column<bool>(type: "bit", nullable: false, comment: "Whether cash on delivery is enabled."),
+                    CodAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Cash on delivery amount to collect from recipient."),
+                    IsInsured = table.Column<bool>(type: "bit", nullable: false, comment: "Whether the shipment has additional insurance."),
+                    InsuredAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Declared value for shipment insurance."),
+                    Weight = table.Column<decimal>(type: "decimal(10,3)", precision: 10, scale: 3, nullable: false, comment: "Package weight in kilograms."),
+                    LabelUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true, comment: "URL or path to the generated shipping label PDF."),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Shipments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Shipments_Payments_PaymentId",
+                        column: x => x.PaymentId,
+                        principalTable: "Payments",
                         principalColumn: "Id");
                 });
 
@@ -563,6 +602,31 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_CourierProvider",
+                table: "Shipments",
+                column: "CourierProvider");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_CreatedAt",
+                table: "Shipments",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_PaymentId",
+                table: "Shipments",
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_Status",
+                table: "Shipments",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_TrackingNumber",
+                table: "Shipments",
+                column: "TrackingNumber");
         }
 
         /// <inheritdoc />
@@ -596,13 +660,16 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Messages");
 
             migrationBuilder.DropTable(
-                name: "Payments");
-
-            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
+                name: "Shipments");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Items");

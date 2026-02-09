@@ -20,6 +20,9 @@ export const itemsApi = {
   toggleLike: (id: string) =>
     axiosClient.post(`/items/${id}/like`),
 
+  incrementView: (id: string) =>
+    axiosClient.post(`/items/${id}/view`),
+
   getCategories: () =>
     axiosClient.get<Category[]>('/categories'),
 

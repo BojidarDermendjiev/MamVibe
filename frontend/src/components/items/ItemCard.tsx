@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { HiEye } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
 import { type Item, ListingType } from '../../types/item';
+import { getCategoryImage } from '../../utils/categoryImages';
 import LikeButton from './LikeButton';
 
 interface ItemCardProps {
@@ -17,17 +18,11 @@ export default function ItemCard({ item, onLikeToggle }: ItemCardProps) {
     <div className="bg-white rounded-xl shadow-sm border border-lavender/30 hover-lift hover-glow group animate-fade-in">
       <Link to={`/items/${item.id}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-cream-dark">
-          {photo ? (
-            <img
-              src={photo.url}
-              alt={item.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-lavender">
-              <span className="text-4xl">📦</span>
-            </div>
-          )}
+          <img
+            src={photo ? photo.url : getCategoryImage(item.categoryName)}
+            alt={item.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
           <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${
             item.listingType === ListingType.Donate ? 'bg-green-500' : 'bg-mauve'
           }`}>
