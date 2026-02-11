@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MomVibe.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDatabase : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,10 +18,10 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,29 +32,29 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false, comment: "Public display name shown to other users."),
-                    ProfileType = table.Column<int>(type: "int", nullable: false, comment: "Type/category of the user's profile."),
-                    AvatarUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Absolute URL to the user's avatar image."),
-                    IsBlocked = table.Column<bool>(type: "bit", nullable: false, defaultValue: false, comment: "Indicates whether the account is blocked from interacting."),
-                    Bio = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "User-provided short biography."),
-                    LanguagePreference = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "en", comment: "Preferred language or locale (e.g., en or en-US)."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()", comment: "UTC timestamp when the user account was created."),
-                    Iban = table.Column<string>(type: "nvarchar(34)", maxLength: 34, nullable: true, comment: "IBAN for receiving card payments."),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Public display name shown to other users."),
+                    ProfileType = table.Column<int>(type: "integer", nullable: false, comment: "Type/category of the user's profile."),
+                    AvatarUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "Absolute URL to the user's avatar image."),
+                    IsBlocked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Indicates whether the account is blocked from interacting."),
+                    Bio = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "User-provided short biography."),
+                    LanguagePreference = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false, defaultValue: "en", comment: "Preferred language or locale (e.g., en or en-US)."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW() AT TIME ZONE 'UTC'", comment: "UTC timestamp when the user account was created."),
+                    Iban = table.Column<string>(type: "character varying(34)", maxLength: 34, nullable: true, comment: "IBAN for receiving card payments."),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,12 +65,12 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false, comment: "Human-readable category name."),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Optional description of the category."),
-                    Slug = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false, comment: "URL-friendly unique identifier for the category."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Human-readable category name."),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "Optional description of the category."),
+                    Slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "URL-friendly unique identifier for the category."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -80,11 +81,11 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -101,11 +102,11 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -122,10 +123,10 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -142,8 +143,8 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,10 +167,10 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -186,14 +187,14 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Feedbacks",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the user who submitted the feedback (FK to ApplicationUser.Id)."),
-                    Rating = table.Column<int>(type: "int", nullable: false, comment: "Feedback rating from 1 (lowest) to 5 (highest)."),
-                    Category = table.Column<int>(type: "int", nullable: false, comment: "Category/type of the feedback (e.g., bug, feature request, general)."),
-                    Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false, comment: "Textual content of the feedback."),
-                    IsContactable = table.Column<bool>(type: "bit", nullable: false, comment: "Whether the user consents to being contacted regarding this feedback."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the user who submitted the feedback (FK to ApplicationUser.Id)."),
+                    Rating = table.Column<int>(type: "integer", nullable: false, comment: "Feedback rating from 1 (lowest) to 5 (highest)."),
+                    Category = table.Column<int>(type: "integer", nullable: false, comment: "Category/type of the feedback (e.g., bug, feature request, general)."),
+                    Content = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false, comment: "Textual content of the feedback."),
+                    IsContactable = table.Column<bool>(type: "boolean", nullable: false, comment: "Whether the user consents to being contacted regarding this feedback."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -210,13 +211,13 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Messages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the sending user (FK to ApplicationUser.Id)."),
-                    ReceiverId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the receiving user (FK to ApplicationUser.Id)."),
-                    Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false, comment: "Textual content of the message."),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false, comment: "Indicates whether the message has been read by the receiver."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the sending user (FK to ApplicationUser.Id)."),
+                    ReceiverId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the receiving user (FK to ApplicationUser.Id)."),
+                    Content = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false, comment: "Textual content of the message."),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Indicates whether the message has been read by the receiver."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -237,14 +238,14 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "RefreshTokens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false, comment: "Raw or hashed refresh token string."),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the user to whom the token belongs (FK to ApplicationUser.Id)."),
-                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "UTC timestamp when the token expires."),
-                    RevokedAt = table.Column<DateTime>(type: "datetime2", nullable: true, comment: "UTC timestamp when the token was revoked; null if still valid."),
-                    ReplacedByToken = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Token that replaced this one in a rotation flow; null if not replaced."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Token = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false, comment: "Raw or hashed refresh token string."),
+                    UserId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the user to whom the token belongs (FK to ApplicationUser.Id)."),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "UTC timestamp when the token expires."),
+                    RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "UTC timestamp when the token was revoked; null if still valid."),
+                    ReplacedByToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "Token that replaced this one in a rotation flow; null if not replaced."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -261,18 +262,18 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Items",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false, comment: "Human-readable item title."),
-                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 5000, nullable: false, comment: "Detailed description of the item."),
-                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the item's category."),
-                    ListingType = table.Column<int>(type: "int", nullable: false, comment: "Listing type (domain-specific enumeration)."),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true, comment: "Item price in currency units; null if not applicable."),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Foreign key referencing the owning user's identifier."),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true, comment: "Indicates whether the listing is active/visible."),
-                    ViewCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Total number of views for this item."),
-                    LikeCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Total number of likes for this item."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false, comment: "Human-readable item title."),
+                    Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false, comment: "Detailed description of the item."),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false, comment: "Foreign key referencing the item's category."),
+                    ListingType = table.Column<int>(type: "integer", nullable: false, comment: "Listing type (domain-specific enumeration)."),
+                    Price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true, comment: "Item price in currency units; null if not applicable."),
+                    UserId = table.Column<string>(type: "text", nullable: false, comment: "Foreign key referencing the owning user's identifier."),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true, comment: "Indicates whether the listing is active/visible."),
+                    ViewCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0, comment: "Total number of views for this item."),
+                    LikeCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0, comment: "Total number of likes for this item."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -295,12 +296,12 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "ItemPhotos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false, comment: "Absolute URL to the photo resource."),
-                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the owning item."),
-                    DisplayOrder = table.Column<int>(type: "int", nullable: false, comment: "Zero-based display order among the item's photos."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false, comment: "Absolute URL to the photo resource."),
+                    ItemId = table.Column<Guid>(type: "uuid", nullable: false, comment: "Foreign key referencing the owning item."),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: false, comment: "Zero-based display order among the item's photos."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -317,11 +318,11 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Likes",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the user who liked the item (FK to ApplicationUser.Id)."),
-                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the liked item."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the user who liked the item (FK to ApplicationUser.Id)."),
+                    ItemId = table.Column<Guid>(type: "uuid", nullable: false, comment: "Foreign key referencing the liked item."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -343,17 +344,17 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the purchased item."),
-                    BuyerId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the buying user (FK to ApplicationUser.Id)."),
-                    SellerId = table.Column<string>(type: "nvarchar(450)", nullable: false, comment: "Identifier of the selling user (FK to ApplicationUser.Id)."),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Monetary amount for the payment."),
-                    PaymentMethod = table.Column<int>(type: "int", nullable: false, comment: "Payment method (domain-specific enumeration)."),
-                    StripeSessionId = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Stripe checkout session identifier, if applicable."),
-                    Status = table.Column<int>(type: "int", nullable: false, comment: "Current payment status (e.g., Pending, Succeeded, Failed)."),
-                    ReceiptUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true, comment: "URL to the digital receipt from Take a NAP."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ItemId = table.Column<Guid>(type: "uuid", nullable: false, comment: "Foreign key referencing the purchased item."),
+                    BuyerId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the buying user (FK to ApplicationUser.Id)."),
+                    SellerId = table.Column<string>(type: "text", nullable: false, comment: "Identifier of the selling user (FK to ApplicationUser.Id)."),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, comment: "Monetary amount for the payment."),
+                    PaymentMethod = table.Column<int>(type: "integer", nullable: false, comment: "Payment method (domain-specific enumeration)."),
+                    StripeSessionId = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "Stripe checkout session identifier, if applicable."),
+                    Status = table.Column<int>(type: "integer", nullable: false, comment: "Current payment status (e.g., Pending, Succeeded, Failed)."),
+                    ReceiptUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true, comment: "URL to the digital receipt from Take a NAP."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -379,28 +380,28 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "Shipments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PaymentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Foreign key referencing the associated payment."),
-                    CourierProvider = table.Column<int>(type: "int", nullable: false, comment: "Courier provider used for this shipment (Econt, Speedy)."),
-                    DeliveryType = table.Column<int>(type: "int", nullable: false, comment: "Delivery type (Office, Address, Locker)."),
-                    Status = table.Column<int>(type: "int", nullable: false, comment: "Current shipment lifecycle status."),
-                    TrackingNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Courier tracking number for package lookup."),
-                    WaybillId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Courier waybill identifier for API operations."),
-                    RecipientName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false, comment: "Full name of the shipment recipient."),
-                    RecipientPhone = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, comment: "Phone number of the shipment recipient."),
-                    DeliveryAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Street address for address-based delivery."),
-                    City = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true, comment: "City name for delivery destination."),
-                    OfficeId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "Courier office or locker identifier."),
-                    OfficeName = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true, comment: "Courier office or locker display name."),
-                    ShippingPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Shipping price charged for this shipment."),
-                    IsCod = table.Column<bool>(type: "bit", nullable: false, comment: "Whether cash on delivery is enabled."),
-                    CodAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Cash on delivery amount to collect from recipient."),
-                    IsInsured = table.Column<bool>(type: "bit", nullable: false, comment: "Whether the shipment has additional insurance."),
-                    InsuredAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, comment: "Declared value for shipment insurance."),
-                    Weight = table.Column<decimal>(type: "decimal(10,3)", precision: 10, scale: 3, nullable: false, comment: "Package weight in kilograms."),
-                    LabelUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true, comment: "URL or path to the generated shipping label PDF."),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PaymentId = table.Column<Guid>(type: "uuid", nullable: false, comment: "Foreign key referencing the associated payment."),
+                    CourierProvider = table.Column<int>(type: "integer", nullable: false, comment: "Courier provider used for this shipment (Econt, Speedy)."),
+                    DeliveryType = table.Column<int>(type: "integer", nullable: false, comment: "Delivery type (Office, Address, Locker)."),
+                    Status = table.Column<int>(type: "integer", nullable: false, comment: "Current shipment lifecycle status."),
+                    TrackingNumber = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "Courier tracking number for package lookup."),
+                    WaybillId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true, comment: "Courier waybill identifier for API operations."),
+                    RecipientName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false, comment: "Full name of the shipment recipient."),
+                    RecipientPhone = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false, comment: "Phone number of the shipment recipient."),
+                    DeliveryAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true, comment: "Street address for address-based delivery."),
+                    City = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true, comment: "City name for delivery destination."),
+                    OfficeId = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true, comment: "Courier office or locker identifier."),
+                    OfficeName = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true, comment: "Courier office or locker display name."),
+                    ShippingPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, comment: "Shipping price charged for this shipment."),
+                    IsCod = table.Column<bool>(type: "boolean", nullable: false, comment: "Whether cash on delivery is enabled."),
+                    CodAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, comment: "Cash on delivery amount to collect from recipient."),
+                    IsInsured = table.Column<bool>(type: "boolean", nullable: false, comment: "Whether the shipment has additional insurance."),
+                    InsuredAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, comment: "Declared value for shipment insurance."),
+                    Weight = table.Column<decimal>(type: "numeric(10,3)", precision: 10, scale: 3, nullable: false, comment: "Package weight in kilograms."),
+                    LabelUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "URL or path to the generated shipping label PDF."),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -434,8 +435,7 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
-                unique: true,
-                filter: "[NormalizedName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
@@ -461,8 +461,7 @@ namespace MomVibe.Infrastructure.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
-                unique: true,
-                filter: "[NormalizedUserName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_Slug",

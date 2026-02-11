@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { itemsApi } from '../api/itemsApi';
 import { type Item, ListingType } from '../types/item';
 import { useAuthStore } from '../store/authStore';
+import { useCartStore } from '../store/cartStore';
 import { getCategoryImage } from '../utils/categoryImages';
 import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
@@ -17,6 +18,7 @@ export default function ItemDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const addItem = useCartStore((s) => s.addItem);
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
@@ -159,13 +161,25 @@ export default function ItemDetailPage() {
                   <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                 </Button>
               </Link>
-              <Link to={`/payment/${item.id}`} className="flex-1">
-                {item.listingType === ListingType.Donate ? (
-                  <Button fullWidth className="bg-green-500 hover:bg-green-600">{t('items.book_now')}</Button>
-                ) : (
-                  <Button fullWidth>{t('items.buy_now')}</Button>
-                )}
-              </Link>
+              <Button
+                fullWidth
+                className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
+                onClick={() => {
+                  addItem({
+                    id: item.id,
+                    title: item.title,
+                    price: item.price ?? 0,
+                    imageUrl: item.photos[0]?.url,
+                    listingType: item.listingType,
+                    sellerId: item.userId,
+                    categoryName: item.categoryName,
+                  });
+                  toast.success(t('cart.added'));
+                  navigate('/browse');
+                }}
+              >
+                {item.listingType === ListingType.Donate ? t('items.book_now') : t('items.buy_now')}
+              </Button>
             </div>
           )}
         </div>

@@ -31,6 +31,8 @@ const AdminDashboardPage = lazy(
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminItemsPage = lazy(() => import("./pages/admin/AdminItemsPage"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const AdminShippingPage = lazy(
   () => import("./pages/admin/AdminShippingPage"),
 );
@@ -88,6 +90,8 @@ function AppRoutes() {
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/cancel" element={<PaymentCancelPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/shipments/:shipmentId" element={<ShipmentDetailPage />} />
           </Route>
 

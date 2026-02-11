@@ -11,7 +11,8 @@
     "login": "Sign In",
     "register": "Sign Up",
     "logout": "Sign Out",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "cart": "Cart"
   },
   "home": {
     "hero_title": "Give Baby Items a Second Life",
@@ -281,6 +282,21 @@
     "status_delivered": "Delivered",
     "status_returned": "Returned",
     "status_cancelled": "Cancelled"
+  },
+  "cart": {
+    "title": "My Cart",
+    "empty": "Your cart is empty",
+    "total": "Total",
+    "clear": "Clear Cart",
+    "checkout": "Continue Shopping",
+    "proceed_checkout": "Proceed to Checkout",
+    "added": "Item added to cart!"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "order_summary": "Order Summary",
+    "place_order": "Place Order",
+    "success": "Order placed successfully!"
   },
   "footer": {
     "about": "About MomVibe",

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using Application.Interfaces;
+using Application.DTOs.Payments;
 
 /// <summary>
 /// API controller for payment operations:
@@ -155,6 +156,86 @@ public class PaymentsController : ControllerBase
     /// <returns>
     /// 200 OK after successfully handling the event.
     /// </returns>
+    /// <summary>
+    /// Creates a Stripe checkout session for multiple items (bulk cart checkout).
+    /// </summary>
+    [Authorize]
+    [HttpPost("bulk-checkout")]
+    public async Task<IActionResult> BulkCheckout([FromBody] BulkCheckoutRequest request)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
+            var sessionUrl = await this._paymentService.CreateBulkCheckoutSessionAsync(
+                request.ItemIds, userId,
+                $"{frontendUrl}/payment/success",
+                $"{frontendUrl}/payment/cancel");
+            return Ok(new { sessionUrl });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Payment service error.", details = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Creates booking records for multiple donated items.
+    /// </summary>
+    [Authorize]
+    [HttpPost("bulk-booking")]
+    public async Task<IActionResult> BulkBooking([FromBody] BulkCheckoutRequest request)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            var payments = await this._paymentService.CreateBulkBookingAsync(request.ItemIds, userId);
+            return Ok(payments);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Creates on-spot payment records for multiple items.
+    /// </summary>
+    [Authorize]
+    [HttpPost("bulk-onspot")]
+    public async Task<IActionResult> BulkOnSpot([FromBody] BulkCheckoutRequest request)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            var payments = await this._paymentService.CreateBulkOnSpotPaymentAsync(request.ItemIds, userId);
+            return Ok(payments);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpPost("webhook")]
     public async Task<IActionResult> Webhook()
     {

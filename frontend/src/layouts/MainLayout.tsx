@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HiMenu, HiX, HiChat, HiPlusCircle } from "react-icons/hi";
+import { HiMenu, HiX, HiChat, HiPlusCircle, HiShoppingCart } from "react-icons/hi";
 import { useAuthStore } from "../store/authStore";
+import { useCartStore } from "../store/cartStore";
 import { useNotification } from "../contexts/NotificationContext";
 import LanguageSwitcher from "../components/common/LanguageSwitcher";
 import Avatar from "../components/common/Avatar";
@@ -13,6 +14,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { unreadCount } = useNotification();
+  const cartItems = useCartStore((s) => s.items);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -36,90 +38,98 @@ export default function MainLayout() {
               <span className="text-xl font-bold text-primary">MomVibe</span>
             </Link>
 
-            {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-6 ">
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/create"
-                    className="text-text hover:text-primary-dark transition-colors duration-200 font-medium flex items-center gap-1"
-                  >
-                    <HiPlusCircle className="h-5 w-5" />
-                    {t("nav.create")}
-                  </Link>
-                  <Link
-                    to="/chat"
-                    className="text-text hover:text-primary-dark transition-colors duration-200 font-medium flex items-center gap-1 relative"
-                  >
-                    <HiChat className="h-5 w-5" />
-                    {t("nav.chat")}
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-3 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
-                        {unreadCount > 99 ? "99+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-                  <Link
-                    to="/dashboard"
-                    className="text-text hover:text-primary-dark transition-colors duration-200 font-medium"
-                  >
-                    {t("nav.dashboard")}
-                  </Link>
-                  <Link
-                    to="/feedback"
-                    className="text-text hover:text-primary-dark transition-colors duration-200 font-medium"
-                  >
-                    {t("nav.feedback")}
-                  </Link>
-                </>
-              )}
-            </div>
-
             {/* Right side */}
             <div className="hidden md:flex items-center gap-3">
               <LanguageSwitcher />
               {isAuthenticated ? (
-                <div className="relative group">
-                  <button className="flex items-center gap-2 p-1 rounded-full hover:bg-cream-dark transition-colors">
-                    <Avatar
-                      src={user?.avatarUrl}
-                      profileType={user?.profileType}
-                      size="sm"
-                    />
-                    <span className="text-sm font-medium text-primary">
-                      {user?.displayName}
-                    </span>
-                  </button>
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-lavender/30 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
-                    >
-                      {t("nav.profile")}
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
-                    >
-                      {t("nav.settings")}
-                    </Link>
-                    {user?.roles.includes("Admin") && (
-                      <Link
-                        to="/admin"
-                        className="block px-4 py-2 text-sm text-mauve font-medium hover:bg-cream-dark"
-                      >
-                        {t("nav.admin")}
-                      </Link>
+                <>
+                  {/* Cart icon */}
+                  <Link
+                    to="/cart"
+                    className="relative p-2 rounded-full hover:bg-cream-dark transition-colors"
+                  >
+                    <HiShoppingCart className="h-6 w-6 text-primary" />
+                    {cartItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                        {cartItems.length > 99 ? "99+" : cartItems.length}
+                      </span>
                     )}
-                    <hr className="my-1 border-lavender/30" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-cream-dark"
-                    >
-                      {t("nav.logout")}
+                  </Link>
+                  {/* User menu */}
+                  <div className="relative group">
+                    <button className="flex items-center gap-2 p-1 rounded-full hover:bg-cream-dark transition-colors">
+                      <Avatar
+                        src={user?.avatarUrl}
+                        profileType={user?.profileType}
+                        size="sm"
+                      />
+                      <span className="text-sm font-medium text-primary">
+                        {user?.displayName}
+                      </span>
                     </button>
+                    <div className="absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-lavender/30 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                      <Link
+                        to="/create"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        <HiPlusCircle className="h-4 w-4" />
+                        {t("nav.create")}
+                      </Link>
+                      <Link
+                        to="/chat"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        <HiChat className="h-4 w-4" />
+                        {t("nav.chat")}
+                        {unreadCount > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        )}
+                      </Link>
+                      <Link
+                        to="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        {t("nav.dashboard")}
+                      </Link>
+                      <Link
+                        to="/feedback"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        {t("nav.feedback")}
+                      </Link>
+                      <hr className="my-1 border-lavender/30" />
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        {t("nav.profile")}
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                      >
+                        {t("nav.settings")}
+                      </Link>
+                      {user?.roles.includes("Admin") && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-mauve font-medium hover:bg-cream-dark"
+                        >
+                          {t("nav.admin")}
+                        </Link>
+                      )}
+                      <hr className="my-1 border-lavender/30" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-cream-dark"
+                      >
+                        {t("nav.logout")}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </>
               ) : (
                 <div className="flex items-center gap-2">
                   <Link
@@ -164,6 +174,19 @@ export default function MainLayout() {
             </Link>
             {isAuthenticated ? (
               <>
+                <Link
+                  to="/cart"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 py-2 text-text font-medium"
+                >
+                  <HiShoppingCart className="h-5 w-5" />
+                  {t("nav.cart")}
+                  {cartItems.length > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
                 <Link
                   to="/create"
                   onClick={() => setMenuOpen(false)}

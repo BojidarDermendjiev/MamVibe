@@ -28,6 +28,6 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(u => u.AvatarUrl).HasMaxLength(500);
         builder.Property(u => u.LanguagePreference).HasMaxLength(10).HasDefaultValue("en");
         builder.Property(u => u.IsBlocked).HasDefaultValue(false);
-        builder.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+        builder.Property(u => u.CreatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
     }
 }

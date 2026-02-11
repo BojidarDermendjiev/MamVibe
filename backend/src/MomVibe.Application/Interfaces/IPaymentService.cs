@@ -18,4 +18,7 @@ public interface IPaymentService
     Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId);
     Task<List<PaymentDto>> GetAllPaymentsAsync();
     Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId);
+    Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl);
+    Task<List<PaymentDto>> CreateBulkBookingAsync(List<Guid> itemIds, string buyerId);
+    Task<List<PaymentDto>> CreateBulkOnSpotPaymentAsync(List<Guid> itemIds, string buyerId);
 }

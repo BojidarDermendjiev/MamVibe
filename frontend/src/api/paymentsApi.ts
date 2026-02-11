@@ -16,4 +16,13 @@ export const paymentsApi = {
 
   createPaymentIntent: (itemId: string) =>
     axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`),
+
+  bulkCheckout: (itemIds: string[]) =>
+    axiosClient.post<{ sessionUrl: string }>('/payments/bulk-checkout', { itemIds }),
+
+  bulkBooking: (itemIds: string[]) =>
+    axiosClient.post<Payment[]>('/payments/bulk-booking', { itemIds }),
+
+  bulkOnSpot: (itemIds: string[]) =>
+    axiosClient.post<Payment[]>('/payments/bulk-onspot', { itemIds }),
 };

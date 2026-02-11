@@ -5,14 +5,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Application.Interfaces;
-using Infrastructure.Configuration;
 using Infrastructure.Services;
-using Infrastructure.Services.Shipping;
 using Infrastructure.Persistence;
+using Infrastructure.Configuration;
+using Infrastructure.Services.Shipping;
 
 /// <summary>
 /// Configures infrastructure dependencies:
-/// - Registers ApplicationDbContext with SQL Server and migrations assembly.
+/// - Registers ApplicationDbContext with PostgreSQL and migrations assembly.
 /// - Binds IApplicationDbContext to ApplicationDbContext.
 /// - Adds scoped services for tokens, auth, current user, items, messages, photos, payments,
 ///   admin operations, feedback, Cloudflare Turnstile verification, and shipping (Econt, Speedy).
@@ -23,7 +23,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(
+            options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 

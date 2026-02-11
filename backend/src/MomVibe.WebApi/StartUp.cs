@@ -2,6 +2,7 @@ using Serilog;
 using System.Text;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -180,7 +181,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
+    await dbContext.Database.MigrateAsync();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await DataSeeder.SeedRolesAsync(roleManager);
@@ -234,6 +235,7 @@ app.UseAuthorization();
 
 app.UseMiddleware<BlockedUserMiddleware>();
 
+app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("ActiveUser");
     

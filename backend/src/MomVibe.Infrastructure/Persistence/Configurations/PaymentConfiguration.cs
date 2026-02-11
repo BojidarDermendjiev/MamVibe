@@ -25,7 +25,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     /// <param name="builder">The entity type builder for <see cref="Payment"/>.</param>
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        builder.Property(p => p.Amount).HasColumnType("decimal(18,2)");
+        builder.Property(p => p.Amount).HasColumnType("numeric(18,2)");
         builder.Property(p => p.StripeSessionId).HasMaxLength(500);
 
         builder.HasOne(p => p.Item)

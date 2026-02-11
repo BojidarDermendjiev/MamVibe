@@ -22,10 +22,10 @@ public class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
     /// <param name="builder">The entity type builder for <see cref="Shipment"/>.</param>
     public void Configure(EntityTypeBuilder<Shipment> builder)
     {
-        builder.Property(s => s.ShippingPrice).HasColumnType("decimal(18,2)");
-        builder.Property(s => s.CodAmount).HasColumnType("decimal(18,2)");
-        builder.Property(s => s.InsuredAmount).HasColumnType("decimal(18,2)");
-        builder.Property(s => s.Weight).HasColumnType("decimal(10,3)");
+        builder.Property(s => s.ShippingPrice).HasColumnType("numeric(18,2)");
+        builder.Property(s => s.CodAmount).HasColumnType("numeric(18,2)");
+        builder.Property(s => s.InsuredAmount).HasColumnType("numeric(18,2)");
+        builder.Property(s => s.Weight).HasColumnType("numeric(10,3)");
 
         builder.HasOne(s => s.Payment)
             .WithMany()

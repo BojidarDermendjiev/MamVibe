@@ -26,7 +26,7 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
     {
         builder.Property(i => i.Title).HasMaxLength(200).IsRequired();
         builder.Property(i => i.Description).HasMaxLength(5000).IsRequired();
-        builder.Property(i => i.Price).HasColumnType("decimal(18,2)");
+        builder.Property(i => i.Price).HasColumnType("numeric(18,2)");
         builder.Property(i => i.IsActive).HasDefaultValue(true);
         builder.Property(i => i.ViewCount).HasDefaultValue(0);
         builder.Property(i => i.LikeCount).HasDefaultValue(0);
