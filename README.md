@@ -57,6 +57,19 @@ MomVibe/
 │       ├── pages/                   # Route pages
 │       ├── store/                   # Zustand stores
 │       └── types/                   # TypeScript type definitions
+├── n8n-workflows/                   # Importable n8n workflow definitions
+│   ├── user-registered.json
+│   ├── payment-completed.json
+│   ├── payment-failed.json
+│   ├── shipment-created.json
+│   ├── shipment-delivered.json
+│   ├── shipment-stuck.json
+│   ├── user-blocked.json
+│   ├── item-sold.json
+│   ├── new-chat-message.json
+│   ├── stale-items.json
+│   ├── daily-summary.json
+│   └── feedback-prompt.json
 ├── docker-compose.yml
 ├── .env / .env.example
 ├── .gitignore
@@ -244,6 +257,32 @@ MomVibe includes a lightweight webhook dispatcher that fires business events to 
 ```
 
 Set `Enabled` to `false` to disable all webhook calls without removing code.
+
+### n8n Workflow Setup
+
+Pre-built workflow JSON files are available in the `n8n-workflows/` directory. To import:
+
+1. Go to your n8n dashboard
+2. Click **Add workflow** → **...** → **Import from file**
+3. Select any workflow JSON from `n8n-workflows/`
+4. Configure SMTP credentials in each email node (replace `REPLACE_WITH_SMTP_CREDENTIAL_ID`)
+5. Update `admin@momvibe.com` to your actual admin email in admin-facing workflows
+6. Toggle the workflow **Active** (top right)
+
+| Workflow File | Description |
+|--------------|-------------|
+| `user-registered.json` | Welcome email (BG/EN) + admin notification |
+| `payment-completed.json` | Buyer confirmation + seller sale notification |
+| `payment-failed.json` | Buyer retry prompt |
+| `shipment-created.json` | Buyer shipping notification with tracking |
+| `shipment-delivered.json` | Buyer delivery + feedback CTA, seller confirmation |
+| `shipment-stuck.json` | Admin alert: shipments InTransit 7+ days |
+| `user-blocked.json` | Suspension notice to user + admin log |
+| `item-sold.json` | Seller congratulations + shipping CTA |
+| `new-chat-message.json` | Offline user email with message preview |
+| `stale-items.json` | Per-seller email for items listed 30+ days |
+| `daily-summary.json` | Admin dashboard: daily counts |
+| `feedback-prompt.json` | Buyer email for deliveries without feedback |
 
 ## Branching Strategy (GitFlow)
 
