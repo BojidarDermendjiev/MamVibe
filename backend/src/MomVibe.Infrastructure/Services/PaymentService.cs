@@ -7,9 +7,12 @@ using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
 
+using Microsoft.Extensions.Options;
+
 using Domain.Enums;
 using Application.Interfaces;
 using Application.DTOs.Payments;
+using Infrastructure.Configuration;
 using PaymentEntity = Domain.Entities.Payment;
 
 /// <summary>
@@ -24,13 +27,23 @@ public class PaymentService : IPaymentService
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly ITakeANapService _takeANapService;
+    private readonly IN8nWebhookService _webhook;
+    private readonly N8nSettings _n8nSettings;
 
-    public PaymentService(IApplicationDbContext context, IMapper mapper, IConfiguration configuration, ITakeANapService takeANapService)
+    public PaymentService(
+        IApplicationDbContext context,
+        IMapper mapper,
+        IConfiguration configuration,
+        ITakeANapService takeANapService,
+        IN8nWebhookService webhook,
+        IOptions<N8nSettings> n8nSettings)
     {
         this._context = context;
         this._mapper = mapper;
         this._configuration = configuration;
         this._takeANapService = takeANapService;
+        this._webhook = webhook;
+        this._n8nSettings = n8nSettings.Value;
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
@@ -118,6 +131,32 @@ public class PaymentService : IPaymentService
                 }
 
                 await this._context.SaveChangesAsync();
+
+                // Fire webhook for each bulk payment
+                try
+                {
+                    var buyer = await this._context.Payments
+                        .Where(p => p.BuyerId == buyerId)
+                        .Select(p => p.Buyer)
+                        .FirstOrDefaultAsync();
+
+                    foreach (var item in items)
+                    {
+                        this._webhook.Send(this._n8nSettings.PaymentCompleted, new
+                        {
+                            Event = "payment.completed",
+                            Timestamp = DateTime.UtcNow,
+                            ItemId = item.Id,
+                            ItemTitle = item.Title,
+                            BuyerEmail = buyer?.Email,
+                            BuyerName = buyer?.DisplayName,
+                            SellerEmail = item.User?.Email,
+                            SellerName = item.User?.DisplayName,
+                            Amount = item.Price ?? 0
+                        });
+                    }
+                }
+                catch { /* Webhook failure must not break payment flow */ }
             }
             else
             {
@@ -134,6 +173,32 @@ public class PaymentService : IPaymentService
 
                 this._context.Payments.Add(payment);
                 await this._context.SaveChangesAsync();
+
+                // Fire webhook for single payment
+                try
+                {
+                    var paidItem = await this._context.Items.Include(i => i.User).FirstOrDefaultAsync(i => i.Id == payment.ItemId);
+                    var payBuyer = await this._context.Payments
+                        .Include(p => p.Buyer)
+                        .Where(p => p.Id == payment.Id)
+                        .Select(p => p.Buyer)
+                        .FirstOrDefaultAsync();
+
+                    this._webhook.Send(this._n8nSettings.PaymentCompleted, new
+                    {
+                        Event = "payment.completed",
+                        Timestamp = DateTime.UtcNow,
+                        PaymentId = payment.Id,
+                        ItemId = payment.ItemId,
+                        ItemTitle = paidItem?.Title,
+                        BuyerEmail = payBuyer?.Email,
+                        BuyerName = payBuyer?.DisplayName,
+                        SellerEmail = paidItem?.User?.Email,
+                        SellerName = paidItem?.User?.DisplayName,
+                        payment.Amount
+                    });
+                }
+                catch { /* Webhook failure must not break payment flow */ }
 
                 // Create digital receipt via Take a NAP (non-blocking on failure)
                 try

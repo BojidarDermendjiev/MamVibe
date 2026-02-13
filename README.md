@@ -173,6 +173,8 @@ The app starts at `http://localhost:5173` by default.
 | `Speedy:Username` / `Speedy:Password` | Speedy courier API credentials |
 | `BoxNow:ApiKey` | Box Now API key |
 | `Cloudflare:TurnstileSecretKey` | Cloudflare Turnstile secret |
+| `N8n:BaseUrl` | n8n webhook base URL |
+| `N8n:Enabled` | Enable/disable webhook dispatching (`true`/`false`) |
 
 ### Frontend (`.env.local`)
 
@@ -197,6 +199,51 @@ The app starts at `http://localhost:5173` by default.
 - Profile types (Mom / Dad / Family) with custom avatars
 - Cloudflare Turnstile bot protection
 - Platform feedback system with star ratings
+- n8n webhook integration for automated notifications and alerts
+
+## n8n Webhook Integration
+
+MomVibe includes a lightweight webhook dispatcher that fires business events to an [n8n](https://n8n.io/) instance, enabling automated email notifications, seller alerts, and admin dashboards without adding complexity to the core codebase.
+
+### Architecture
+
+| Component | Role |
+|-----------|------|
+| `IN8nWebhookService` | Fire-and-forget interface — `void Send(path, payload)` |
+| `N8nWebhookService` | `BackgroundService` draining a bounded `Channel<T>` (capacity 500), POSTs JSON to n8n |
+| `N8nScheduledService` | Daily 8:00 AM UTC background job for time-based checks |
+| `UserPresenceTracker` | Singleton tracking SignalR connections (used by MessageService + ChatHub) |
+
+### Supported Events
+
+| Event | Trigger | Key Payload Fields |
+|-------|---------|-------------------|
+| `payment.completed` | Stripe checkout or bulk payment succeeds | PaymentId, ItemTitle, BuyerEmail, SellerEmail, Amount |
+| `shipment.created` | New shipment created | ShipmentId, TrackingNumber, CourierProvider, ItemTitle |
+| `shipment.delivered` | Status sync detects delivery | ShipmentId, TrackingNumber, BuyerEmail, SellerEmail |
+| `shipment.stuck` | Daily check: InTransit 7+ days | Shipments[] with DaysInTransit |
+| `user.registered` | New user registration | Email, DisplayName, ProfileType, LanguagePreference |
+| `user.blocked` | Admin blocks a user | UserId, Email, DisplayName |
+| `chat.message_offline` | Message sent to offline user | SenderName, ReceiverEmail, ContentPreview |
+| `stale_items` | Daily check: active items listed 30+ days | Items[] with Title, Price, DaysListed, ViewCount |
+| `daily_summary` | Daily summary at 8:00 AM UTC | NewItems, NewPayments, NewShipments, ActiveShipments |
+| `feedback_prompt` | Daily check: delivered 2+ days without feedback | Deliveries[] with ItemTitle, BuyerEmail |
+
+### Configuration (`appsettings.json`)
+
+```json
+"N8n": {
+  "BaseUrl": "https://mamvibe.app.n8n.cloud/webhook/",
+  "Enabled": true,
+  "PaymentCompleted": "payment-completed",
+  "ShipmentCreated": "shipment-created",
+  "ShipmentDelivered": "shipment-delivered",
+  "UserRegistered": "user-registered",
+  ...
+}
+```
+
+Set `Enabled` to `false` to disable all webhook calls without removing code.
 
 ## Branching Strategy (GitFlow)
 

@@ -7,10 +7,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
+using Microsoft.Extensions.Options;
+
 using Domain.Entities;
 using Application.DTOs.Auth;
 using Application.DTOs.Users;
 using Application.Interfaces;
+using Infrastructure.Configuration;
 
 /// <summary>
 /// Authentication service for user registration, login, Google sign-in, JWT issuance and refresh,
@@ -25,6 +28,8 @@ public class AuthService : IAuthService
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IN8nWebhookService _webhook;
+    private readonly N8nSettings _n8nSettings;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -32,7 +37,9 @@ public class AuthService : IAuthService
         IApplicationDbContext context,
         IMapper mapper,
         IConfiguration configuration,
-        IEmailService emailService)
+        IEmailService emailService,
+        IN8nWebhookService webhook,
+        IOptions<N8nSettings> n8nSettings)
     {
         this._userManager = userManager;
         this._tokenService = tokenService;
@@ -40,6 +47,8 @@ public class AuthService : IAuthService
         this._mapper = mapper;
         this._configuration = configuration;
         this._emailService = emailService;
+        this._webhook = webhook;
+        this._n8nSettings = n8nSettings.Value;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -63,6 +72,21 @@ public class AuthService : IAuthService
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await this._userManager.AddToRoleAsync(user, "User");
+
+        try
+        {
+            this._webhook.Send(this._n8nSettings.UserRegistered, new
+            {
+                Event = "user.registered",
+                Timestamp = DateTime.UtcNow,
+                Email = user.Email,
+                user.DisplayName,
+                ProfileType = user.ProfileType.ToString(),
+                user.LanguagePreference
+            });
+        }
+        catch { /* Webhook failure must not break registration flow */ }
+
         return await GenerateAuthResponseAsync(user);
     }
 

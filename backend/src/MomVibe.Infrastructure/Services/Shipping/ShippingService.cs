@@ -2,11 +2,13 @@ namespace MomVibe.Infrastructure.Services.Shipping;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using Domain.Enums;
 using Domain.Entities;
 using Application.Interfaces;
 using Application.DTOs.Shipping;
+using Infrastructure.Configuration;
 
 
 /// <summary>
@@ -19,12 +21,21 @@ public class ShippingService : IShippingService
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly CourierProviderFactory _factory;
+    private readonly IN8nWebhookService _webhook;
+    private readonly N8nSettings _n8nSettings;
 
-    public ShippingService(IApplicationDbContext context, IMapper mapper, CourierProviderFactory factory)
+    public ShippingService(
+        IApplicationDbContext context,
+        IMapper mapper,
+        CourierProviderFactory factory,
+        IN8nWebhookService webhook,
+        IOptions<N8nSettings> n8nSettings)
     {
         this._context = context;
         this._mapper = mapper;
         this._factory = factory;
+        this._webhook = webhook;
+        this._n8nSettings = n8nSettings.Value;
     }
 
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
@@ -83,6 +94,29 @@ public class ShippingService : IShippingService
 
         this._context.Shipments.Add(shipment);
         await this._context.SaveChangesAsync();
+
+        // Fire shipment.created webhook
+        try
+        {
+            var buyer = await this._context.Payments
+                .Include(p => p.Buyer)
+                .Where(p => p.Id == payment.Id)
+                .Select(p => p.Buyer)
+                .FirstOrDefaultAsync();
+
+            this._webhook.Send(this._n8nSettings.ShipmentCreated, new
+            {
+                Event = "shipment.created",
+                Timestamp = DateTime.UtcNow,
+                ShipmentId = shipment.Id,
+                shipment.TrackingNumber,
+                shipment.CourierProvider,
+                ItemTitle = payment.Item?.Title,
+                BuyerEmail = buyer?.Email,
+                RecipientName = shipment.RecipientName
+            });
+        }
+        catch { /* Webhook failure must not break shipment flow */ }
 
         shipment.Payment = payment;
         return this._mapper.Map<ShipmentDto>(shipment);
@@ -163,14 +197,20 @@ public class ShippingService : IShippingService
     public async Task SyncShipmentStatusesAsync()
     {
         var activeShipments = await this._context.Shipments
+            .Include(s => s.Payment).ThenInclude(p => p.Item)
+            .Include(s => s.Payment).ThenInclude(p => p.Buyer)
+            .Include(s => s.Payment).ThenInclude(p => p.Seller)
             .Where(s => s.Status != ShipmentStatus.Delivered
                      && s.Status != ShipmentStatus.Cancelled
                      && s.Status != ShipmentStatus.Returned
                      && !string.IsNullOrEmpty(s.TrackingNumber))
             .ToListAsync();
 
+        var newlyDelivered = new List<Shipment>();
+
         foreach (var shipment in activeShipments)
         {
+            var previousStatus = shipment.Status;
             var provider = this._factory.GetProvider(shipment.CourierProvider);
             var events = await provider.TrackAsync(shipment.TrackingNumber!);
 
@@ -190,8 +230,30 @@ public class ShippingService : IShippingService
                 else if (description.Contains("return"))
                     shipment.Status = ShipmentStatus.Returned;
             }
+
+            if (previousStatus != ShipmentStatus.Delivered && shipment.Status == ShipmentStatus.Delivered)
+                newlyDelivered.Add(shipment);
         }
 
         await this._context.SaveChangesAsync();
+
+        // Fire shipment.delivered webhook for newly delivered shipments
+        foreach (var shipment in newlyDelivered)
+        {
+            try
+            {
+                this._webhook.Send(this._n8nSettings.ShipmentDelivered, new
+                {
+                    Event = "shipment.delivered",
+                    Timestamp = DateTime.UtcNow,
+                    ShipmentId = shipment.Id,
+                    shipment.TrackingNumber,
+                    ItemTitle = shipment.Payment?.Item?.Title,
+                    BuyerEmail = shipment.Payment?.Buyer?.Email,
+                    SellerEmail = shipment.Payment?.Seller?.Email
+                });
+            }
+            catch { /* Webhook failure must not break sync flow */ }
+        }
     }
 }

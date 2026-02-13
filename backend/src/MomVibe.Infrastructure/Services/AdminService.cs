@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,8 +9,9 @@ using Domain.Enums;
 using Domain.Entities;
 using Application.Interfaces;
 using Application.DTOs.Admin;
-using Application.DTOs.Common;
 using Application.DTOs.Items;
+using Application.DTOs.Common;
+using Infrastructure.Configuration;
 
 /// <summary>
 /// Administrative service for user management, moderation, and dashboard statistics.
@@ -20,12 +22,21 @@ public class AdminService : IAdminService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IN8nWebhookService _webhook;
+    private readonly N8nSettings _n8nSettings;
 
-    public AdminService(UserManager<ApplicationUser> userManager, IApplicationDbContext context, IMapper mapper)
+    public AdminService(
+        UserManager<ApplicationUser> userManager,
+        IApplicationDbContext context,
+        IMapper mapper,
+        IN8nWebhookService webhook,
+        IOptions<N8nSettings> n8nSettings)
     {
         this._userManager = userManager;
         this._context = context;
         this._mapper = mapper;
+        this._webhook = webhook;
+        this._n8nSettings = n8nSettings.Value;
     }
 
     public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(int page = 1, int pageSize = 20, string? search = null)
@@ -68,6 +79,19 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = true;
         await this._userManager.UpdateAsync(user);
+
+        try
+        {
+            this._webhook.Send(this._n8nSettings.UserBlocked, new
+            {
+                Event = "user.blocked",
+                Timestamp = DateTime.UtcNow,
+                UserId = user.Id,
+                Email = user.Email,
+                user.DisplayName
+            });
+        }
+        catch { /* Webhook failure must not break admin flow */ }
     }
 
     public async Task UnblockUserAsync(string userId)

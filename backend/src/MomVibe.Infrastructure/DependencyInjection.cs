@@ -3,6 +3,7 @@ namespace MomVibe.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using Application.Interfaces;
 using Infrastructure.Services;
@@ -64,6 +65,22 @@ public static class DependencyInjection
         services.AddScoped<ICourierProvider, BoxNowCourierProvider>();
         services.AddScoped<CourierProviderFactory>();
         services.AddScoped<IShippingService, ShippingService>();
+
+        // n8n Webhook integration
+        services.Configure<N8nSettings>(configuration.GetSection("N8n"));
+        services.AddHttpClient("N8n", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
+        services.AddSingleton<N8nWebhookService>();
+        services.AddSingleton<IN8nWebhookService>(sp => sp.GetRequiredService<N8nWebhookService>());
+        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<N8nWebhookService>());
+
+        // User presence tracking (singleton shared between ChatHub and MessageService)
+        services.AddSingleton<UserPresenceTracker>();
+
+        // n8n scheduled daily checks
+        services.AddHostedService<N8nScheduledService>();
 
         return services;
     }
