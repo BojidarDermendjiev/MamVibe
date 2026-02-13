@@ -13,9 +13,9 @@ using Application.Interfaces;
 /// <summary>
 /// Econt Express courier provider implementation.
 /// Maps application DTOs to Econt REST API endpoints:
-/// - /Shipments/LabelService/CreateLabel — create shipment and get label.
-/// - /Nomenclatures/NomenclaturesService/GetOffices — list offices.
-/// - /Shipments/LabelService/DeleteLabel — cancel shipment.
+/// - /Shipments/LabelService.createLabel.json — create shipment and get label.
+/// - /Nomenclatures/NomenclaturesService.getOffices.json — list offices.
+/// - /Shipments/LabelService.deleteLabels.json — cancel shipment.
 /// Uses basic auth via credentials from EcontSettings.
 /// </summary>
 public class EcontCourierProvider : ICourierProvider
@@ -56,7 +56,10 @@ public class EcontCourierProvider : ICourierProvider
             mode = "calculate"
         };
 
-        var response = await PostEcontAsync("/Shipments/LabelService/CreateLabel", body);
+        var response = await PostEcontAsync("/Shipments/LabelService.createLabel.json", body);
+        if (string.IsNullOrWhiteSpace(response))
+            throw new InvalidOperationException("Econt API returned an empty response. Please verify Econt credentials are configured.");
+
         var result = JsonSerializer.Deserialize<JsonElement>(response);
 
         var price = 0m;
@@ -98,7 +101,10 @@ public class EcontCourierProvider : ICourierProvider
             mode = "create"
         };
 
-        var response = await PostEcontAsync("/Shipments/LabelService/CreateLabel", body);
+        var response = await PostEcontAsync("/Shipments/LabelService.createLabel.json", body);
+        if (string.IsNullOrWhiteSpace(response))
+            throw new InvalidOperationException("Econt API returned an empty response. Please verify Econt credentials are configured.");
+
         var result = JsonSerializer.Deserialize<JsonElement>(response);
 
         var shipmentNumber = "";
@@ -117,7 +123,7 @@ public class EcontCourierProvider : ICourierProvider
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         AddAuth(content);
 
-        var response = await _httpClient.PostAsync($"{this._settings.BaseUrl}/Shipments/LabelService/GetLabel", content);
+        var response = await _httpClient.PostAsync($"{this._settings.BaseUrl}/Shipments/LabelService.createLabel.json", content);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
@@ -125,7 +131,10 @@ public class EcontCourierProvider : ICourierProvider
     public async Task<List<TrackingEventDto>> TrackAsync(string trackingNumber)
     {
         var body = new { shipmentNumbers = new[] { trackingNumber } };
-        var response = await PostEcontAsync("/Shipments/ShipmentService/GetShipmentStatuses", body);
+        var response = await PostEcontAsync("/Shipments/ShipmentService.getShipmentStatuses.json", body);
+        if (string.IsNullOrWhiteSpace(response))
+            return new List<TrackingEventDto>();
+
         var result = JsonSerializer.Deserialize<JsonElement>(response);
 
         var events = new List<TrackingEventDto>();
@@ -154,14 +163,17 @@ public class EcontCourierProvider : ICourierProvider
     public async Task CancelShipmentAsync(string waybillId)
     {
         var body = new { shipmentNumber = waybillId };
-        await PostEcontAsync("/Shipments/LabelService/DeleteLabel", body);
+        await PostEcontAsync("/Shipments/LabelService.deleteLabels.json", body);
     }
 
     public async Task<List<CourierOfficeDto>> GetOfficesAsync(string? city = null)
     {
         var body = new { countryCode = "BGR", cityName = city ?? "" };
 
-        var response = await PostEcontAsync("/Nomenclatures/NomenclaturesService/GetOffices", body);
+        var response = await PostEcontAsync("/Nomenclatures/NomenclaturesService.getOffices.json", body);
+        if (string.IsNullOrWhiteSpace(response))
+            return new List<CourierOfficeDto>();
+
         var result = JsonSerializer.Deserialize<JsonElement>(response);
 
         var offices = new List<CourierOfficeDto>();
@@ -175,9 +187,9 @@ public class EcontCourierProvider : ICourierProvider
                     Name = office.TryGetProperty("name", out var name) ? name.GetString()! : "",
                     City = office.TryGetProperty("address", out var addr) && addr.TryGetProperty("city", out var c) && c.TryGetProperty("name", out var cn) ? cn.GetString() : null,
                     Address = office.TryGetProperty("address", out var addr2) && addr2.TryGetProperty("fullAddress", out var fa) ? fa.GetString() : null,
-                    Lat = office.TryGetProperty("address", out var addr3) && addr3.TryGetProperty("location", out var loc) && loc.TryGetProperty("latitude", out var lat) ? lat.GetDouble() : null,
-                    Lng = office.TryGetProperty("address", out var addr4) && addr4.TryGetProperty("location", out var loc2) && loc2.TryGetProperty("longitude", out var lng) ? lng.GetDouble() : null,
-                    IsLocker = office.TryGetProperty("isAPS", out var isAps) && isAps.GetBoolean()
+                    Lat = office.TryGetProperty("address", out var addr3) && addr3.TryGetProperty("location", out var loc) && loc.TryGetProperty("latitude", out var lat) && lat.ValueKind == JsonValueKind.Number ? lat.GetDouble() : null,
+                    Lng = office.TryGetProperty("address", out var addr4) && addr4.TryGetProperty("location", out var loc2) && loc2.TryGetProperty("longitude", out var lng) && lng.ValueKind == JsonValueKind.Number ? lng.GetDouble() : null,
+                    IsLocker = office.TryGetProperty("isAPS", out var isAps) && isAps.ValueKind == JsonValueKind.True
                 });
             }
         }

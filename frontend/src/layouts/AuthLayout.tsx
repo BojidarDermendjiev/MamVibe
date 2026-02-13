@@ -8,10 +8,10 @@ export default function AuthLayout() {
           <Link to="/" className="inline-flex items-center gap-2">
             <img
               src="/logo.png"
-              alt="MomVibe"
+              alt="MamVibe"
               className="h-24 w-24 object-contain"
             />
-            <span className="text-2xl font-bold text-primary">MomVibe</span>
+            <span className="text-2xl font-bold text-primary">MamVibe</span>
           </Link>
         </div>
         <div className="bg-white rounded-2xl shadow-md border border-lavender/30 p-8 transition-shadow duration-300 hover:shadow-lg">

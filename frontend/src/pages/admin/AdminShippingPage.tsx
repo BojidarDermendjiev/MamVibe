@@ -158,8 +158,8 @@ export default function AdminShippingPage() {
           </select>
         </div>
 
-        <CourierSelector value={courier} onChange={setCourier} />
-        <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+        <CourierSelector value={courier} onChange={(v) => { setCourier(v); setOfficeId(''); setOfficeName(''); }} />
+        <DeliveryTypeSelector value={deliveryType} onChange={(v) => { setDeliveryType(v); setOfficeId(''); setOfficeName(''); }} />
 
         {/* Recipient info */}
         <div className="grid grid-cols-2 gap-4">
@@ -217,6 +217,7 @@ export default function AdminShippingPage() {
               setOfficeId(id);
               setOfficeName(name);
             }}
+            lockersOnly={deliveryType === DeliveryType.Locker}
           />
         )}
 

@@ -197,8 +197,8 @@ public class SpeedyCourierProvider : ICourierProvider
                     Name = office.TryGetProperty("name", out var name) ? name.GetString()! : "",
                     City = office.TryGetProperty("address", out var addr) && addr.TryGetProperty("siteName", out var sn) ? sn.GetString() : null,
                     Address = office.TryGetProperty("address", out var addr2) && addr2.TryGetProperty("localAddressString", out var las) ? las.GetString() : null,
-                    Lat = office.TryGetProperty("address", out var addr3) && addr3.TryGetProperty("x", out var x) ? x.GetDouble() : null,
-                    Lng = office.TryGetProperty("address", out var addr4) && addr4.TryGetProperty("y", out var y) ? y.GetDouble() : null,
+                    Lat = office.TryGetProperty("address", out var addr3) && addr3.TryGetProperty("x", out var x) && x.ValueKind == JsonValueKind.Number ? x.GetDouble() : null,
+                    Lng = office.TryGetProperty("address", out var addr4) && addr4.TryGetProperty("y", out var y) && y.ValueKind == JsonValueKind.Number ? y.GetDouble() : null,
                     IsLocker = office.TryGetProperty("type", out var type) && type.GetString() == "APT"
                 });
             }
@@ -214,6 +214,16 @@ public class SpeedyCourierProvider : ICourierProvider
 
         var response = await _httpClient.PostAsync($"{this._settings.BaseUrl}{endpoint}", content);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        // Speedy returns HTTP 200 even on auth errors — check for error in JSON body
+        var doc = JsonSerializer.Deserialize<JsonElement>(responseBody);
+        if (doc.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.Object)
+        {
+            var message = error.TryGetProperty("message", out var msg) ? msg.GetString() : "Unknown Speedy API error";
+            throw new InvalidOperationException($"Speedy API error: {message}");
+        }
+
+        return responseBody;
     }
 }

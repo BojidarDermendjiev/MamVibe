@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { HiMenu, HiX, HiChat, HiPlusCircle, HiShoppingCart } from "react-icons/hi";
+import {
+  HiMenu,
+  HiX,
+  HiChat,
+  HiPlusCircle,
+  HiShoppingCart,
+} from "react-icons/hi";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
 import { useNotification } from "../contexts/NotificationContext";
@@ -35,7 +41,7 @@ export default function MainLayout() {
                 alt="MomVibe"
                 className="h-24 w-24 object-contain"
               />
-              <span className="text-xl font-bold text-primary">MomVibe</span>
+              <span className="text-xl font-bold text-primary">MamVibe</span>
             </Link>
 
             {/* Right side */}

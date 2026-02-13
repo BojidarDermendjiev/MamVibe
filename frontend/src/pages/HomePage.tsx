@@ -33,6 +33,27 @@ export default function HomePage() {
     load();
   }, []);
 
+  const handleLikeToggle = async (id: string) => {
+    try {
+      await itemsApi.toggleLike(id);
+      setFeatured((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                isLikedByCurrentUser: !item.isLikedByCurrentUser,
+                likesCount: item.isLikedByCurrentUser
+                  ? item.likesCount - 1
+                  : item.likesCount + 1,
+              }
+            : item
+        )
+      );
+    } catch {
+      /* ignore */
+    }
+  };
+
   const steps = [
     {
       icon: HiCamera,
@@ -140,7 +161,7 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featured.map((item) => (
-              <ItemCard key={item.id} item={item} />
+              <ItemCard key={item.id} item={item} onLikeToggle={handleLikeToggle} />
             ))}
           </div>
         )}

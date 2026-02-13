@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>(DeliveryType.Office);
   const [officeId, setOfficeId] = useState('');
+  const [officeName, setOfficeName] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [recipientName, setRecipientName] = useState('');
@@ -163,15 +164,19 @@ export default function CheckoutPage() {
       <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-6 space-y-5">
         <h3 className="text-lg font-semibold text-primary">{t('payment.delivery')}</h3>
 
-        <CourierSelector value={courier} onChange={setCourier} />
-        <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+        <CourierSelector value={courier} onChange={(v) => { setCourier(v); setOfficeId(''); setOfficeName(''); }} />
+        <DeliveryTypeSelector value={deliveryType} onChange={(v) => { setDeliveryType(v); setOfficeId(''); setOfficeName(''); }} />
 
         {deliveryType !== DeliveryType.Address ? (
           <OfficePicker
             provider={courier}
             city={city || undefined}
             value={officeId}
-            onChange={(id) => setOfficeId(id)}
+            onChange={(id, name) => {
+              setOfficeId(id);
+              setOfficeName(name);
+            }}
+            lockersOnly={deliveryType === DeliveryType.Locker}
           />
         ) : (
           <div className="space-y-3">

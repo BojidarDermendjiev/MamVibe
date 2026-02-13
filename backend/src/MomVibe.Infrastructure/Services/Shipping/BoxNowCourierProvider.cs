@@ -136,8 +136,13 @@ public class BoxNowCourierProvider : ICourierProvider
         AddAuth(request);
 
         var response = await this._httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            return new List<TrackingEventDto>();
+
         var responseStr = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(responseStr))
+            return new List<TrackingEventDto>();
+
         var result = JsonSerializer.Deserialize<JsonElement>(responseStr);
 
         var events = new List<TrackingEventDto>();
@@ -184,8 +189,13 @@ public class BoxNowCourierProvider : ICourierProvider
         AddAuth(request);
 
         var response = await this._httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            return new List<CourierOfficeDto>();
+
         var responseStr = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(responseStr))
+            return new List<CourierOfficeDto>();
+
         var result = JsonSerializer.Deserialize<JsonElement>(responseStr);
 
         var offices = new List<CourierOfficeDto>();
@@ -206,10 +216,10 @@ public class BoxNowCourierProvider : ICourierProvider
                     Name = locker.TryGetProperty("name", out var name) ? name.GetString()! : "",
                     City = locker.TryGetProperty("city", out var c) ? c.GetString() : null,
                     Address = locker.TryGetProperty("address", out var addr) ? addr.GetString() : null,
-                    Lat = locker.TryGetProperty("latitude", out var lat) ? lat.GetDouble() :
-                          locker.TryGetProperty("lat", out var lat2) ? lat2.GetDouble() : null,
-                    Lng = locker.TryGetProperty("longitude", out var lng) ? lng.GetDouble() :
-                          locker.TryGetProperty("lng", out var lng2) ? lng2.GetDouble() : null,
+                    Lat = locker.TryGetProperty("latitude", out var lat) && lat.ValueKind == JsonValueKind.Number ? lat.GetDouble() :
+                          locker.TryGetProperty("lat", out var lat2) && lat2.ValueKind == JsonValueKind.Number ? lat2.GetDouble() : null,
+                    Lng = locker.TryGetProperty("longitude", out var lng) && lng.ValueKind == JsonValueKind.Number ? lng.GetDouble() :
+                          locker.TryGetProperty("lng", out var lng2) && lng2.ValueKind == JsonValueKind.Number ? lng2.GetDouble() : null,
                     IsLocker = locker.TryGetProperty("type", out var type)
                         ? type.GetString()?.Contains("locker", StringComparison.OrdinalIgnoreCase) == true
                         : true
@@ -230,7 +240,9 @@ public class BoxNowCourierProvider : ICourierProvider
         AddAuth(request);
 
         var response = await this._httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException($"BoxNow API returned {(int)response.StatusCode}. Please verify BoxNow API key is configured.");
+
         return await response.Content.ReadAsStringAsync();
     }
 
