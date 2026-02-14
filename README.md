@@ -211,7 +211,8 @@ The app starts at `http://localhost:5173` by default.
 - Like/favorite items
 - Real-time chat between buyers and sellers (SignalR)
 - Unread message notifications with badge
-- Stripe card payments + pay-on-spot option
+- Stripe card payments + pay-on-spot option (test mode when Stripe is not configured)
+- Dedicated card input page with animated credit card preview
 - Shipping integration (Econt, Speedy, Box Now) with label download and tracking
 - Admin panel (user management, item approval, shipping overview)
 - Multi-language support (English / Bulgarian)
@@ -219,6 +220,24 @@ The app starts at `http://localhost:5173` by default.
 - Cloudflare Turnstile bot protection
 - Platform feedback system with star ratings
 - n8n webhook integration for automated notifications and alerts
+
+## Payment Test Mode
+
+When Stripe keys are not configured (or contain the placeholder `YOUR_STRIPE`), the payment system automatically switches to **test mode**:
+
+- Card payments are simulated — no real charges are made
+- Payment records are created with `Completed` status and a `test_*` session ID
+- The checkout flow works end-to-end: `/checkout` → `/checkout/card` (card input page) → `/payment/success`
+- n8n webhooks fire with `TestMode: true` so you can distinguish test events
+
+To enable real Stripe payments, set valid keys in `appsettings.json`:
+
+```json
+"Stripe": {
+  "SecretKey": "sk_live_...",
+  "WebhookSecret": "whsec_..."
+}
+```
 
 ## n8n Webhook Integration
 
