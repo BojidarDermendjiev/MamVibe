@@ -47,16 +47,52 @@ public class PaymentService : IPaymentService
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl)
+    private bool IsStripeConfigured()
     {
         var stripeKey = this._configuration["Stripe:SecretKey"];
-        if (string.IsNullOrWhiteSpace(stripeKey) || stripeKey.Contains("YOUR_STRIPE"))
-            throw new InvalidOperationException("Stripe is not configured. Please set a valid Stripe SecretKey in appsettings.json.");
+        return !string.IsNullOrWhiteSpace(stripeKey) && !stripeKey.Contains("YOUR_STRIPE");
+    }
 
+    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl)
+    {
         var item = await this._context.Items.Include(i => i.Photos).FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
         if (item.ListingType != ListingType.Sell)
             throw new InvalidOperationException("This item is not for sale.");
+
+        // Test mode: simulate payment when Stripe is not configured
+        if (!IsStripeConfigured())
+        {
+            var payment = new PaymentEntity
+            {
+                ItemId = itemId,
+                BuyerId = buyerId,
+                SellerId = item.UserId,
+                Amount = item.Price ?? 0,
+                PaymentMethod = Domain.Enums.PaymentMethod.Card,
+                StripeSessionId = $"test_{Guid.NewGuid()}",
+                Status = PaymentStatus.Completed
+            };
+            this._context.Payments.Add(payment);
+            await this._context.SaveChangesAsync();
+
+            try
+            {
+                this._webhook.Send(this._n8nSettings.PaymentCompleted, new
+                {
+                    Event = "payment.completed",
+                    Timestamp = DateTime.UtcNow,
+                    PaymentId = payment.Id,
+                    ItemId = item.Id,
+                    ItemTitle = item.Title,
+                    Amount = payment.Amount,
+                    TestMode = true
+                });
+            }
+            catch { /* Webhook failure must not break payment flow */ }
+
+            return successUrl + "?session_id=test_simulated";
+        }
 
         var options = new SessionCreateOptions
         {
@@ -287,10 +323,6 @@ public class PaymentService : IPaymentService
 
     public async Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl)
     {
-        var stripeKey = this._configuration["Stripe:SecretKey"];
-        if (string.IsNullOrWhiteSpace(stripeKey) || stripeKey.Contains("YOUR_STRIPE"))
-            throw new InvalidOperationException("Stripe is not configured. Please set a valid Stripe SecretKey in appsettings.json.");
-
         var items = await this._context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
         if (items.Count != itemIds.Count)
             throw new KeyNotFoundException("One or more items not found.");
@@ -298,6 +330,46 @@ public class PaymentService : IPaymentService
         var saleItems = items.Where(i => i.ListingType == ListingType.Sell).ToList();
         if (saleItems.Count == 0)
             throw new InvalidOperationException("No sale items in the cart.");
+
+        // Test mode: simulate bulk payment when Stripe is not configured
+        if (!IsStripeConfigured())
+        {
+            var testSessionId = $"test_{Guid.NewGuid()}";
+            foreach (var item in saleItems)
+            {
+                var payment = new PaymentEntity
+                {
+                    ItemId = item.Id,
+                    BuyerId = buyerId,
+                    SellerId = item.UserId,
+                    Amount = item.Price ?? 0,
+                    PaymentMethod = Domain.Enums.PaymentMethod.Card,
+                    StripeSessionId = testSessionId,
+                    Status = PaymentStatus.Completed
+                };
+                this._context.Payments.Add(payment);
+            }
+            await this._context.SaveChangesAsync();
+
+            try
+            {
+                foreach (var item in saleItems)
+                {
+                    this._webhook.Send(this._n8nSettings.PaymentCompleted, new
+                    {
+                        Event = "payment.completed",
+                        Timestamp = DateTime.UtcNow,
+                        ItemId = item.Id,
+                        ItemTitle = item.Title,
+                        Amount = item.Price ?? 0,
+                        TestMode = true
+                    });
+                }
+            }
+            catch { /* Webhook failure must not break payment flow */ }
+
+            return successUrl + "?session_id=test_simulated";
+        }
 
         var lineItems = saleItems.Select(item => new SessionLineItemOptions
         {
@@ -392,9 +464,8 @@ public class PaymentService : IPaymentService
 
     public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId)
     {
-        var stripeKey = this._configuration["Stripe:SecretKey"];
-        if (string.IsNullOrWhiteSpace(stripeKey) || stripeKey.Contains("YOUR_STRIPE"))
-            throw new InvalidOperationException("Stripe is not configured. Please set a valid Stripe SecretKey in appsettings.json.");
+        if (!IsStripeConfigured())
+            return "test_simulated_client_secret";
 
         var item = await this._context.Items.FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");

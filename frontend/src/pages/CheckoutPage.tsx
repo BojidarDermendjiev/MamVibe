@@ -69,6 +69,12 @@ export default function CheckoutPage() {
       return;
     }
 
+    // If card payment selected, navigate to card input page
+    if (hasSaleItems && method === 'card') {
+      navigate('/checkout/card');
+      return;
+    }
+
     setProcessing(true);
     try {
       // Book all donation items
@@ -76,16 +82,9 @@ export default function CheckoutPage() {
         await paymentsApi.bulkBooking(donateItems.map((i) => String(i.id)));
       }
 
-      // Handle sale items
+      // Handle sale items (on-spot)
       if (hasSaleItems) {
-        if (method === 'card') {
-          const { data } = await paymentsApi.bulkCheckout(saleItems.map((i) => String(i.id)));
-          clearCart();
-          window.location.href = data.sessionUrl;
-          return;
-        } else {
-          await paymentsApi.bulkOnSpot(saleItems.map((i) => String(i.id)));
-        }
+        await paymentsApi.bulkOnSpot(saleItems.map((i) => String(i.id)));
       }
 
       clearCart();

@@ -153,6 +153,7 @@
     "card": "Pay by Card",
     "on_spot": "Pay on Spot",
     "card_desc": "Secure payment via Stripe",
+    "card_unavailable": "Card payments coming soon",
     "on_spot_desc": "Arrange payment at meetup",
     "delivery": "Delivery Options",
     "confirm_booking": "Confirm Booking",
