@@ -125,8 +125,8 @@ export default function CloudflareGate({ children }: CloudflareGateProps) {
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="text-center">
         <div className="mb-8">
-          <img src="/logo.png" alt="MomVibe" className="h-12 w-12 object-contain mx-auto" />
-          <h1 className="text-3xl font-bold text-primary mt-2">MomVibe</h1>
+          <img src="/logo.png" alt="MamVibe" className="h-12 w-12 object-contain mx-auto" />
+          <h1 className="text-3xl font-bold text-primary mt-2">MamVibe</h1>
         </div>
 
         <h2 className="text-xl font-semibold text-primary mb-2">

@@ -12,6 +12,7 @@ using Application.DTOs.Admin;
 using Application.DTOs.Items;
 using Application.DTOs.Common;
 using Infrastructure.Configuration;
+using MomVibe.Infrastructure.Persistence;
 
 /// <summary>
 /// Administrative service for user management, moderation, and dashboard statistics.
@@ -21,6 +22,7 @@ public class AdminService : IAdminService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IApplicationDbContext _context;
+    private readonly ApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
@@ -28,12 +30,14 @@ public class AdminService : IAdminService
     public AdminService(
         UserManager<ApplicationUser> userManager,
         IApplicationDbContext context,
+        ApplicationDbContext dbContext,
         IMapper mapper,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings)
     {
         this._userManager = userManager;
         this._context = context;
+        this._dbContext = dbContext;
         this._mapper = mapper;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
@@ -41,7 +45,7 @@ public class AdminService : IAdminService
 
     public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(int page = 1, int pageSize = 20, string? search = null)
     {
-        var query = this._userManager.Users.Include(u => u.Items).AsQueryable();
+        var query = this._userManager.Users.AsNoTracking().Include(u => u.Items).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -56,11 +60,23 @@ public class AdminService : IAdminService
             .Take(pageSize)
             .ToListAsync();
 
+        // Batch load roles to avoid N+1 queries
+        var userIds = users.Select(u => u.Id).ToList();
+        var userRoles = await this._dbContext.UserRoles
+            .Where(ur => userIds.Contains(ur.UserId))
+            .Join(this._dbContext.Roles,
+                ur => ur.RoleId,
+                r => r.Id,
+                (ur, r) => new { ur.UserId, RoleName = r.Name! })
+            .ToListAsync();
+        var rolesByUser = userRoles.GroupBy(x => x.UserId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.RoleName).ToList());
+
         var adminUsers = new List<AdminUserDto>();
         foreach (var user in users)
         {
             var dto = this._mapper.Map<AdminUserDto>(user);
-            dto.Roles = (await this._userManager.GetRolesAsync(user)).ToList();
+            dto.Roles = rolesByUser.GetValueOrDefault(user.Id, []);
             adminUsers.Add(dto);
         }
 
@@ -130,6 +146,7 @@ public class AdminService : IAdminService
     public async Task<List<ItemDto>> GetPendingItemsAsync()
     {
         var items = await this._context.Items
+            .AsNoTracking()
             .Where(i => !i.IsActive)
             .Include(i => i.Photos)
             .Include(i => i.User)

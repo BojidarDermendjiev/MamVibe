@@ -64,6 +64,8 @@ public class AdminController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
     {
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        page = Math.Max(1, page);
         var result = await this._adminService.GetAllUsersAsync(page, pageSize, search);
         return Ok(result);
     }
@@ -141,7 +143,7 @@ public class AdminController : ControllerBase
     [HttpGet("shipments/{id:guid}/track")]
     public async Task<IActionResult> TrackShipment(Guid id)
     {
-        var events = await this._shippingService.TrackShipmentAsync(id);
+        var events = await this._shippingService.TrackShipmentAsync(id, userId: "", isAdmin: true);
         return Ok(events);
     }
 

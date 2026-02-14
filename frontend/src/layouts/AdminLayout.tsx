@@ -23,7 +23,7 @@ export default function AdminLayout() {
       <aside className="w-64 bg-primary text-white flex-shrink-0 hidden md:flex flex-col">
         <div className="p-6">
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <img src="/logo.png" alt="MomVibe" className="h-7 w-7 object-contain" /> MomVibe Admin
+            <img src="/logo.png" alt="MamVibe" className="h-7 w-7 object-contain" /> MamVibe Admin
           </h2>
         </div>
         <nav className="flex-1 px-4 space-y-1">

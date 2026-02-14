@@ -1,0 +1,61 @@
+{
+  "name": "MamVibe — Shipment Out for Delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shipment-out-for-delivery",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Out for Delivery",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "shipment-out-for-delivery"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "={{ $('Webhook: Out for Delivery').item.json.body.buyerEmail }}",
+        "subject": "Your order is out for delivery today!",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #27ae60; margin-top: 0;\">Out for Delivery!</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Great news! Your item <strong>{{ $('Webhook: Out for Delivery').item.json.body.itemTitle }}</strong> is out for delivery and should arrive today.</p>\n    <div style=\"background: #f0fff4; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;\">\n      <div style=\"font-size: 40px; margin-bottom: 8px;\">&#x1F69A;</div>\n      <div style=\"color: #333; font-weight: 600; font-size: 18px;\">On its way to you!</div>\n      <div style=\"color: #888; font-size: 14px; margin-top: 4px;\">Tracking: {{ $('Webhook: Out for Delivery').item.json.body.trackingNumber }}</div>\n      <div style=\"color: #888; font-size: 14px;\">Courier: {{ $('Webhook: Out for Delivery').item.json.body.courierProvider }}</div>\n    </div>\n    <p style=\"color: #555; font-size: 14px;\">Make sure someone is available to receive the package.</p>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-buyer",
+      "name": "Email Buyer",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Out for Delivery": {
+      "main": [
+        [
+          {
+            "node": "Email Buyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Shipping" }
+  ]
+}

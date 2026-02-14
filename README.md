@@ -1,4 +1,4 @@
-# MomVibe
+# MamVibe
 
 A full-stack marketplace platform where families can donate or sell baby items — clothes, strollers, toys, and more.
 
@@ -32,17 +32,17 @@ A full-stack marketplace platform where families can donate or sell baby items �
 ## Project Structure
 
 ```
-MomVibe/
+MamVibe/
 ├── backend/
 │   ├── Dockerfile
 │   ├── src/
-│   │   ├── MomVibe.Domain/          # Entities, Enums, Constants
-│   │   ├── MomVibe.Application/     # DTOs, Interfaces, Validators, Mapping
-│   │   ├── MomVibe.Infrastructure/  # EF Core, Services, Persistence, Config
-│   │   └── MomVibe.WebApi/          # Controllers, Hubs, Middleware, Startup
+│   │   ├── MamVibe.Domain/          # Entities, Enums, Constants
+│   │   ├── MamVibe.Application/     # DTOs, Interfaces, Validators, Mapping
+│   │   ├── MamVibe.Infrastructure/  # EF Core, Services, Persistence, Config
+│   │   └── MamVibe.WebApi/          # Controllers, Hubs, Middleware, Startup
 │   └── tests/
-│       ├── MomVibe.UnitTests/
-│       └── MomVibe.IntegrationTests/
+│       ├── MamVibe.UnitTests/
+│       └── MamVibe.IntegrationTests/
 ├── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -69,7 +69,13 @@ MomVibe/
 │   ├── new-chat-message.json
 │   ├── stale-items.json
 │   ├── daily-summary.json
-│   └── feedback-prompt.json
+│   ├── feedback-prompt.json
+│   ├── weekly-seller-report.json
+│   ├── new-item-approval-request.json
+│   ├── welcome-series-day3.json
+│   ├── payment-receipt.json
+│   ├── shipment-tracking-update.json
+│   └── admin-new-user-milestone.json
 ├── docker-compose.yml
 ├── .env / .env.example
 ├── .gitignore
@@ -89,8 +95,8 @@ For local development without Docker:
 
 ```bash
 # Clone the repository
-git clone https://github.com/BojidarDermendjiev/MomVibe.git
-cd MomVibe
+git clone https://github.com/BojidarDermendjiev/MamVibe.git
+cd MamVibe
 
 # Copy and configure environment variables
 cp .env.example .env
@@ -115,7 +121,7 @@ docker compose up --build
 ```
 
 Access pgAdmin at http://localhost:5050 with:
-- Email: `admin@momvibe.com`
+- Email: `admin@mamvibe.com`
 - Password: `admin`
 
 Connect to the database with host `postgres`, port `5432`, and the credentials from your `.env` file.
@@ -124,8 +130,8 @@ Connect to the database with host `postgres`, port `5432`, and the credentials f
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `POSTGRES_DB` | `MomVibeDb` | PostgreSQL database name |
-| `POSTGRES_USER` | `momvibe` | PostgreSQL username |
+| `POSTGRES_DB` | `MamVibeDb` | PostgreSQL database name |
+| `POSTGRES_USER` | `mamvibe` | PostgreSQL username |
 | `POSTGRES_PASSWORD` | `changeme` | PostgreSQL password |
 | `POSTGRES_PORT` | `5432` | PostgreSQL host port |
 | `JWT_SECRET` | (dev default) | JWT signing key (min 32 chars) |
@@ -136,15 +142,15 @@ Connect to the database with host `postgres`, port `5432`, and the credentials f
 ### 1. Backend setup
 
 ```bash
-cd backend/src/MomVibe.WebApi
+cd backend/src/MamVibe.WebApi
 
 # Copy and configure settings
 cp appsettings.json appsettings.Development.json
 # Edit appsettings.Development.json with your PostgreSQL connection string, JWT secret, etc.
 
 # Generate and apply EF Core migrations
-dotnet ef migrations add InitialPostgres --project ../MomVibe.Infrastructure --startup-project .
-dotnet ef database update --project ../MomVibe.Infrastructure --startup-project .
+dotnet ef migrations add InitialPostgres --project ../MamVibe.Infrastructure --startup-project .
+dotnet ef database update --project ../MamVibe.Infrastructure --startup-project .
 
 # Run the API
 dotnet run
@@ -216,7 +222,7 @@ The app starts at `http://localhost:5173` by default.
 
 ## n8n Webhook Integration
 
-MomVibe includes a lightweight webhook dispatcher that fires business events to an [n8n](https://n8n.io/) instance, enabling automated email notifications, seller alerts, and admin dashboards without adding complexity to the core codebase.
+MamVibe includes a lightweight webhook dispatcher that fires business events to an [n8n](https://n8n.io/) instance, enabling automated email notifications, seller alerts, and admin dashboards without adding complexity to the core codebase.
 
 ### Architecture
 
@@ -266,7 +272,7 @@ Pre-built workflow JSON files are available in the `n8n-workflows/` directory. T
 2. Click **Add workflow** → **...** → **Import from file**
 3. Select any workflow JSON from `n8n-workflows/`
 4. Configure SMTP credentials in each email node (replace `REPLACE_WITH_SMTP_CREDENTIAL_ID`)
-5. Update `admin@momvibe.com` to your actual admin email in admin-facing workflows
+5. Update `admin@mamvibe.com` to your actual admin email in admin-facing workflows
 6. Toggle the workflow **Active** (top right)
 
 | Workflow File | Description |
@@ -283,6 +289,12 @@ Pre-built workflow JSON files are available in the `n8n-workflows/` directory. T
 | `stale-items.json` | Per-seller email for items listed 30+ days |
 | `daily-summary.json` | Admin dashboard: daily counts |
 | `feedback-prompt.json` | Buyer email for deliveries without feedback |
+| `weekly-seller-report.json` | Weekly seller performance stats (Monday 9AM) |
+| `new-item-approval-request.json` | Admin alert when new item needs approval |
+| `welcome-series-day3.json` | Day-3 onboarding email (BG/EN) with feature guide |
+| `payment-receipt.json` | HTML receipt generation + email to buyer |
+| `shipment-tracking-update.json` | Buyer notification when order is out for delivery |
+| `admin-new-user-milestone.json` | Admin celebration email at user milestones (10, 25, 50, 100...) |
 
 ## Branching Strategy (GitFlow)
 
@@ -298,11 +310,11 @@ Pre-built workflow JSON files are available in the `n8n-workflows/` directory. T
 
 ```bash
 # Unit tests
-cd backend/tests/MomVibe.UnitTests
+cd backend/tests/MamVibe.UnitTests
 dotnet test
 
 # Integration tests
-cd backend/tests/MomVibe.IntegrationTests
+cd backend/tests/MamVibe.IntegrationTests
 dotnet test
 
 # Frontend lint

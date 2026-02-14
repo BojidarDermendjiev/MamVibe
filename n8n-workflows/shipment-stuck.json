@@ -1,0 +1,62 @@
+{
+  "name": "MamVibe — Shipment Stuck",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shipment-stuck",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Shipment Stuck",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "shipment-stuck"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "admin@mamvibe.com",
+        "subject": "ALERT: {{ $('Webhook: Shipment Stuck').item.json.body.shipments.length }} stuck shipments detected",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe Admin</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #e67e22; margin-top: 0;\">Stuck Shipments Alert \u26a0\ufe0f</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">The following shipments have been <strong>InTransit for 7+ days</strong> and may need attention:</p>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;\">\n      <thead>\n        <tr style=\"background: #f8f8f8;\">\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0;\">Tracking</th>\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0;\">Item</th>\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0;\">Courier</th>\n          <th style=\"padding: 10px; text-align: center; border-bottom: 2px solid #e0e0e0;\">Days</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{#each $('Webhook: Shipment Stuck').item.json.body.shipments}}\n        <tr>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; font-weight: 600;\">{{ trackingNumber }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0;\">{{ itemTitle }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0;\">{{ courierProvider }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #e67e22; font-weight: 600;\">{{ daysInTransit }}</td>\n        </tr>\n        {{/each}}\n      </tbody>\n    </table>\n    <p style=\"color: #888; font-size: 14px;\">Please contact the respective courier providers to investigate.</p>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-admin",
+      "name": "Email Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Shipment Stuck": {
+      "main": [
+        [
+          {
+            "node": "Email Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Shipping" },
+    { "name": "Admin Alerts" }
+  ]
+}

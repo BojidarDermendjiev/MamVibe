@@ -1,0 +1,61 @@
+{
+  "name": "MamVibe — Item Sold",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "item-sold",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Item Sold",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "item-sold"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "={{ $('Webhook: Item Sold').item.json.body.sellerEmail }}",
+        "subject": "Your item has been sold! — {{ $('Webhook: Item Sold').item.json.body.itemTitle }}",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #27ae60; margin-top: 0;\">Item Sold! \ud83c\udf89</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Hi <strong>{{ $('Webhook: Item Sold').item.json.body.sellerName }}</strong>,</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Congratulations! Your item has been sold.</p>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 15px; margin: 20px 0;\">\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Item</td>\n        <td style=\"padding: 10px; color: #333; font-weight: 600; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Sold').item.json.body.itemTitle }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Price</td>\n        <td style=\"padding: 10px; color: #333; font-weight: 600; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Sold').item.json.body.amount }} BGN</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888;\">Buyer</td>\n        <td style=\"padding: 10px; color: #333;\">{{ $('Webhook: Item Sold').item.json.body.buyerName }}</td>\n      </tr>\n    </table>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Please arrange shipping as soon as possible.</p>\n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://mamvibe.com/my-sales\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">View Sale</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-seller",
+      "name": "Email Seller",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Item Sold": {
+      "main": [
+        [
+          {
+            "node": "Email Seller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Payments" }
+  ]
+}

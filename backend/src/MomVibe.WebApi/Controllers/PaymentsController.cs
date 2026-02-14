@@ -66,9 +66,9 @@ public class PaymentsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "Payment service error. Please check Stripe configuration.", details = ex.Message });
+            return StatusCode(500, new { error = "Payment service error. Please try again later." });
         }
     }
 
@@ -141,9 +141,9 @@ public class PaymentsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "Payment service error. Please check Stripe configuration.", details = ex.Message });
+            return StatusCode(500, new { error = "Payment service error. Please try again later." });
         }
     }
 
@@ -182,9 +182,9 @@ public class PaymentsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "Payment service error.", details = ex.Message });
+            return StatusCode(500, new { error = "Payment service error. Please try again later." });
         }
     }
 
@@ -237,9 +237,11 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost("webhook")]
+    [RequestSizeLimit(65_536)] // 64KB max for webhook payloads
     public async Task<IActionResult> Webhook()
     {
-        var json = await new StreamReader(this.HttpContext.Request.Body).ReadToEndAsync();
+        using var reader = new StreamReader(this.HttpContext.Request.Body);
+        var json = await reader.ReadToEndAsync();
         var signature = this.Request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
         await this._paymentService.HandleWebhookAsync(json, signature);
         return Ok();

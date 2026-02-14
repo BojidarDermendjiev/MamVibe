@@ -1,11 +1,13 @@
 using Serilog;
 using System.Text;
+using System.Threading.RateLimiting;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 
 using MomVibe.Application;
 using MomVibe.WebApi.Hubs;
@@ -110,7 +112,7 @@ builder.Services.AddAuthorization(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("MomVibePolicy", policy =>
+    options.AddPolicy("MamVibePolicy", policy =>
     {
         policy.WithOrigins(
                 builder.Configuration["FrontendUrl"] ?? "https://localhost:5173")
@@ -119,6 +121,51 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
               .WithExposedHeaders("X-Pagination");
     });
+});
+
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Global rate limit: 100 requests per minute per IP
+    options.AddPolicy("global", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Strict rate limit for auth endpoints: 10 requests per minute per IP
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Upload rate limit: 20 uploads per minute per IP
+    options.AddPolicy("upload", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
+// Request body size limit (10MB max)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
 });
 
 // Controllers
@@ -140,7 +187,7 @@ builder.Services.AddResponseCaching();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "MomVibe API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "MamVibe API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer {token}'",
@@ -198,6 +245,11 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseHsts();
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+        await next();
+    });
 }
 
 app.UseSerilogRequestLogging(options =>
@@ -228,7 +280,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRequestLocalization();
 app.UseResponseCaching();
-app.UseCors("MomVibePolicy");
+app.UseRateLimiter();
+app.UseCors("MamVibePolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -39,6 +39,7 @@ public class MessageService : IMessageService
     public async Task<List<ConversationDto>> GetConversationsAsync(string userId)
     {
         var messages = await this._context.Messages
+            .AsNoTracking()
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
             .Where(m => m.SenderId == userId || m.ReceiverId == userId)
@@ -71,6 +72,7 @@ public class MessageService : IMessageService
     public async Task<List<MessageDto>> GetMessagesAsync(string userId, string otherUserId, int page = 1, int pageSize = 50)
     {
         var messages = await this._context.Messages
+            .AsNoTracking()
             .Include(m => m.Sender)
             .Where(m => (m.SenderId == userId && m.ReceiverId == otherUserId) ||
                         (m.SenderId == otherUserId && m.ReceiverId == userId))
@@ -85,6 +87,16 @@ public class MessageService : IMessageService
 
     public async Task<MessageDto> SendMessageAsync(string senderId, string receiverId, string content)
     {
+        if (senderId == receiverId)
+            throw new InvalidOperationException("You cannot send a message to yourself.");
+
+        if (string.IsNullOrWhiteSpace(content))
+            throw new ArgumentException("Message content cannot be empty.");
+
+        content = content.Trim();
+        if (content.Length > 2000)
+            content = content[..2000];
+
         var message = new Message
         {
             SenderId = senderId,

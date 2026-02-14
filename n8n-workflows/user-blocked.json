@@ -1,0 +1,88 @@
+{
+  "name": "MamVibe — User Blocked",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user-blocked",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: User Blocked",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "user-blocked"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "={{ $('Webhook: User Blocked').item.json.body.email }}",
+        "subject": "Your MamVibe account has been suspended",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #cc0000; margin-top: 0;\">Account Suspended</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Hi <strong>{{ $('Webhook: User Blocked').item.json.body.displayName }}</strong>,</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Your MamVibe account has been suspended due to a violation of our community guidelines.</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">While your account is suspended, you will not be able to log in or use the platform.</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">If you believe this was a mistake, please contact our support team by replying to this email.</p>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-user",
+      "name": "Email Blocked User",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 200],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "admin@mamvibe.com",
+        "subject": "User blocked: {{ $('Webhook: User Blocked').item.json.body.displayName }}",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">User Blocked Confirmation</h2>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 15px;\">\n      <tr>\n        <td style=\"padding: 8px 0; color: #888; width: 120px;\">User ID</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.userId }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Name</td>\n        <td style=\"padding: 8px 0; color: #333; font-weight: 600;\">{{ $('Webhook: User Blocked').item.json.body.displayName }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Email</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.email }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Blocked At</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.timestamp }}</td>\n      </tr>\n    </table>\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "email-admin",
+      "name": "Log to Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 420],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: User Blocked": {
+      "main": [
+        [
+          {
+            "node": "Email Blocked User",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log to Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "User Events" },
+    { "name": "Admin Alerts" }
+  ]
+}

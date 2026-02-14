@@ -128,9 +128,9 @@ public class ItemsController : ControllerBase
         {
             return NotFound();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = ex.Message, inner = ex.InnerException?.Message });
+            return StatusCode(500, new { error = "An unexpected error occurred." });
         }
     }
 

@@ -1,0 +1,124 @@
+{
+  "name": "MamVibe — User Milestone Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user-registered",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: User Registered",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "user-milestone"
+    },
+    {
+      "parameters": {
+        "functionCode": "// This workflow checks if total users hit a milestone\n// You'd replace this with an actual API call or DB query in production\nconst milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];\nconst totalUsers = $input.first().json.body.totalUsers || 0;\nconst isMilestone = milestones.includes(totalUsers);\nreturn [{ json: { ...($input.first().json.body), totalUsers, isMilestone } }];"
+      },
+      "id": "check-milestone",
+      "name": "Check Milestone",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-milestone",
+              "leftValue": "={{ $json.isMilestone }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "is-milestone",
+      "name": "Is Milestone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "admin@mamvibe.com",
+        "subject": "MamVibe hit {{ $json.totalUsers }} users!",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 40px; border: 1px solid #f0f0f0; text-align: center;\">\n    <div style=\"font-size: 60px; margin-bottom: 16px;\">&#x1F389;</div>\n    <h2 style=\"color: #e91e8c; margin: 0; font-size: 28px;\">{{ $json.totalUsers }} Users!</h2>\n    <p style=\"color: #555; font-size: 18px; margin-top: 12px;\">MamVibe just reached a new milestone.</p>\n    <p style=\"color: #888; font-size: 14px; margin-top: 8px;\">Latest signup: <strong>{{ $json.displayName }}</strong> ({{ $json.email }})</p>\n    <div style=\"margin: 30px 0;\">\n      <a href=\"https://mamvibe.com/admin\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Open Dashboard</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-admin",
+      "name": "Celebrate Milestone",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [940, 200],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: User Registered": {
+      "main": [
+        [
+          {
+            "node": "Check Milestone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Milestone": {
+      "main": [
+        [
+          {
+            "node": "Is Milestone?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Milestone?": {
+      "main": [
+        [
+          {
+            "node": "Celebrate Milestone",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Admin Alerts" },
+    { "name": "Milestones" }
+  ]
+}

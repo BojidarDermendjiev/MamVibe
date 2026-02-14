@@ -2,11 +2,13 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using Domain.Entities;
 using Application.DTOs.Items;
 using Application.Interfaces;
 using Application.DTOs.Common;
+using Configuration;
 
 /// <summary>
 /// Service for managing marketplace items: filtered and paginated listing, detailed retrieval,
@@ -18,16 +20,25 @@ public class ItemService : IItemService
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IN8nWebhookService _webhook;
+    private readonly N8nSettings _n8nSettings;
 
-    public ItemService(IApplicationDbContext context, IMapper mapper)
+    public ItemService(
+        IApplicationDbContext context,
+        IMapper mapper,
+        IN8nWebhookService webhook,
+        IOptions<N8nSettings> n8nSettings)
     {
         this._context = context;
         this._mapper = mapper;
+        this._webhook = webhook;
+        this._n8nSettings = n8nSettings.Value;
     }
 
     public async Task<PagedResult<ItemDto>> GetAllAsync(ItemFilterDto filter, string? currentUserId = null)
     {
         var query = this._context.Items
+            .AsNoTracking()
             .Include(i => i.Photos)
             .Include(i => i.User)
             .Include(i => i.Category)
@@ -89,6 +100,7 @@ public class ItemService : IItemService
     public async Task<ItemDto?> GetByIdAsync(Guid id, string? currentUserId = null)
     {
         var item = await this._context.Items
+            .AsNoTracking()
             .Include(i => i.Photos.OrderBy(p => p.DisplayOrder))
             .Include(i => i.User)
             .Include(i => i.Category)
@@ -126,6 +138,29 @@ public class ItemService : IItemService
 
         this._context.Items.Add(item);
         await this._context.SaveChangesAsync();
+
+        // Fire item.pending_approval webhook for admin review
+        var createdItem = await this._context.Items
+            .Include(i => i.User)
+            .Include(i => i.Category)
+            .FirstOrDefaultAsync(i => i.Id == item.Id);
+        try
+        {
+            this._webhook.Send(this._n8nSettings.ItemPendingApproval, new
+            {
+                Event = "item.pending_approval",
+                Timestamp = DateTime.UtcNow,
+                ItemId = item.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Category = createdItem?.Category?.Name,
+                ListingType = dto.ListingType.ToString(),
+                Price = dto.Price,
+                SellerName = createdItem?.User?.DisplayName,
+                SellerEmail = createdItem?.User?.Email
+            });
+        }
+        catch { /* Webhook failure must not break item creation */ }
 
         return (await GetByIdAsync(item.Id))!;
     }
@@ -222,6 +257,7 @@ public class ItemService : IItemService
     public async Task<List<ItemDto>> GetUserItemsAsync(string userId)
     {
         var items = await this._context.Items
+            .AsNoTracking()
             .Include(i => i.Photos)
             .Include(i => i.User)
             .Include(i => i.Category)
@@ -248,6 +284,7 @@ public class ItemService : IItemService
     public async Task<List<ItemDto>> GetLikedItemsAsync(string userId)
     {
         var items = await this._context.Likes
+            .AsNoTracking()
             .Where(l => l.UserId == userId)
             .Include(l => l.Item)
                 .ThenInclude(i => i.Photos)

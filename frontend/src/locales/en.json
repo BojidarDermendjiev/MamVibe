@@ -32,7 +32,7 @@
   "auth": {
     "login_title": "Welcome Back",
     "login_subtitle": "Sign in to your account",
-    "register_title": "Join MomVibe",
+    "register_title": "Join MamVibe",
     "register_subtitle": "Create your account to start sharing",
     "email": "Email",
     "password": "Password",
@@ -201,7 +201,7 @@
   },
   "feedback": {
     "title": "Platform Feedback",
-    "subtitle": "Help us improve MomVibe! Share what you love and what we can do better.",
+    "subtitle": "Help us improve MamVibe! Share what you love and what we can do better.",
     "share": "Share Your Experience",
     "rating_label": "How would you rate your experience?",
     "category_label": "What type of feedback?",
@@ -210,7 +210,7 @@
     "cat_feature": "Feature Request",
     "cat_bug": "Bug Report",
     "content_label": "Tell us more",
-    "content_placeholder": "Share your thoughts about MomVibe... What went well? What could be better?",
+    "content_placeholder": "Share your thoughts about MamVibe... What went well? What could be better?",
     "content_required": "Please write your feedback before submitting.",
     "contactable": "You may contact me about this feedback",
     "submit": "Submit Feedback",
@@ -224,7 +224,7 @@
   },
   "turnstile": {
     "title": "Security Check",
-    "subtitle": "Please verify you are human to continue to MomVibe.",
+    "subtitle": "Please verify you are human to continue to MamVibe.",
     "verifying": "Verifying...",
     "error": "Verification failed. Please try again."
   },
@@ -299,8 +299,8 @@
     "success": "Order placed successfully!"
   },
   "footer": {
-    "about": "About MomVibe",
-    "about_text": "MomVibe is a platform dedicated to helping families share and find baby items.",
+    "about": "About MamVibe",
+    "about_text": "MamVibe is a platform dedicated to helping families share and find baby items.",
     "links": "Quick Links",
     "contact": "Contact",
     "rights": "All rights reserved."

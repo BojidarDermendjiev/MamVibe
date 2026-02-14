@@ -64,6 +64,8 @@ public class MessagesController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        page = Math.Max(1, page);
         var messages = await this._messageService.GetMessagesAsync(userId, otherUserId, page, pageSize);
         return Ok(messages);
     }
@@ -113,5 +115,7 @@ public class SendMessageRequest
     public required string ReceiverId { get; set; }
 
     /// <summary>Text content of the message to send.</summary>
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.MaxLength(2000)]
     public required string Content { get; set; }
 }

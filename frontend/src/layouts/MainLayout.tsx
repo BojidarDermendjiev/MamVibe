@@ -38,7 +38,7 @@ export default function MainLayout() {
             <Link to="/" className="flex items-center gap-2">
               <img
                 src="/logo.png"
-                alt="MomVibe"
+                alt="MamVibe"
                 className="h-24 w-24 object-contain"
               />
               <span className="text-xl font-bold text-primary">MamVibe</span>
@@ -297,7 +297,7 @@ export default function MainLayout() {
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                 <img
                   src="/logo.png"
-                  alt="MomVibe"
+                  alt="MamVibe"
                   className="h-6 w-6 object-contain"
                 />{" "}
                 {t("footer.about")}
@@ -325,11 +325,11 @@ export default function MainLayout() {
             </div>
             <div>
               <h3 className="text-lg font-bold mb-3">{t("footer.contact")}</h3>
-              <p className="text-peach-light text-sm">support@momvibe.com</p>
+              <p className="text-peach-light text-sm">support@mamvibe.com</p>
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-peach-light">
-            &copy; {new Date().getFullYear()} MomVibe. {t("footer.rights")}
+            &copy; {new Date().getFullYear()} MamVibe. {t("footer.rights")}
           </div>
         </div>
       </footer>

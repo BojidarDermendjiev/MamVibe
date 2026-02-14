@@ -122,30 +122,42 @@ public class ShippingService : IShippingService
         return this._mapper.Map<ShipmentDto>(shipment);
     }
 
-    public async Task<byte[]> GetLabelAsync(Guid shipmentId)
+    public async Task<byte[]> GetLabelAsync(Guid shipmentId, string userId)
     {
-        var shipment = await this._context.Shipments.FindAsync(shipmentId);
+        var shipment = await this._context.Shipments
+            .Include(s => s.Payment)
+            .FirstOrDefaultAsync(s => s.Id == shipmentId);
         if (shipment == null) throw new KeyNotFoundException("Shipment not found.");
+        if (shipment.Payment.BuyerId != userId && shipment.Payment.SellerId != userId)
+            throw new UnauthorizedAccessException("You do not have access to this shipment.");
         if (string.IsNullOrEmpty(shipment.WaybillId)) throw new InvalidOperationException("No waybill ID for this shipment.");
 
         var provider = this._factory.GetProvider(shipment.CourierProvider);
         return await provider.GetLabelAsync(shipment.WaybillId);
     }
 
-    public async Task<List<TrackingEventDto>> TrackShipmentAsync(Guid shipmentId)
+    public async Task<List<TrackingEventDto>> TrackShipmentAsync(Guid shipmentId, string userId, bool isAdmin = false)
     {
-        var shipment = await this._context.Shipments.FindAsync(shipmentId);
+        var shipment = await this._context.Shipments
+            .Include(s => s.Payment)
+            .FirstOrDefaultAsync(s => s.Id == shipmentId);
         if (shipment == null) throw new KeyNotFoundException("Shipment not found.");
+        if (!isAdmin && shipment.Payment.BuyerId != userId && shipment.Payment.SellerId != userId)
+            throw new UnauthorizedAccessException("You do not have access to this shipment.");
         if (string.IsNullOrEmpty(shipment.TrackingNumber)) throw new InvalidOperationException("No tracking number for this shipment.");
 
         var provider = this._factory.GetProvider(shipment.CourierProvider);
         return await provider.TrackAsync(shipment.TrackingNumber);
     }
 
-    public async Task CancelShipmentAsync(Guid shipmentId)
+    public async Task CancelShipmentAsync(Guid shipmentId, string userId)
     {
-        var shipment = await this._context.Shipments.FindAsync(shipmentId);
+        var shipment = await this._context.Shipments
+            .Include(s => s.Payment)
+            .FirstOrDefaultAsync(s => s.Id == shipmentId);
         if (shipment == null) throw new KeyNotFoundException("Shipment not found.");
+        if (shipment.Payment.SellerId != userId)
+            throw new UnauthorizedAccessException("Only the seller can cancel a shipment.");
         if (string.IsNullOrEmpty(shipment.WaybillId)) throw new InvalidOperationException("No waybill ID for this shipment.");
 
         var provider = this._factory.GetProvider(shipment.CourierProvider);
@@ -161,19 +173,24 @@ public class ShippingService : IShippingService
         return await courierProvider.GetOfficesAsync(city);
     }
 
-    public async Task<ShipmentDto?> GetShipmentByPaymentIdAsync(Guid paymentId)
+    public async Task<ShipmentDto?> GetShipmentByPaymentIdAsync(Guid paymentId, string userId)
     {
         var shipment = await this._context.Shipments
             .Include(s => s.Payment)
                 .ThenInclude(p => p.Item)
             .FirstOrDefaultAsync(s => s.PaymentId == paymentId);
 
-        return shipment != null ? this._mapper.Map<ShipmentDto>(shipment) : null;
+        if (shipment == null) return null;
+        if (shipment.Payment.BuyerId != userId && shipment.Payment.SellerId != userId)
+            throw new UnauthorizedAccessException("You do not have access to this shipment.");
+
+        return this._mapper.Map<ShipmentDto>(shipment);
     }
 
     public async Task<List<ShipmentDto>> GetShipmentsByUserAsync(string userId)
     {
         var shipments = await this._context.Shipments
+            .AsNoTracking()
             .Include(s => s.Payment)
                 .ThenInclude(p => p.Item)
             .Where(s => s.Payment.BuyerId == userId || s.Payment.SellerId == userId)
@@ -186,6 +203,7 @@ public class ShippingService : IShippingService
     public async Task<List<ShipmentDto>> GetAllShipmentsAsync()
     {
         var shipments = await this._context.Shipments
+            .AsNoTracking()
             .Include(s => s.Payment)
                 .ThenInclude(p => p.Item)
             .OrderByDescending(s => s.CreatedAt)
@@ -207,6 +225,7 @@ public class ShippingService : IShippingService
             .ToListAsync();
 
         var newlyDelivered = new List<Shipment>();
+        var newlyOutForDelivery = new List<Shipment>();
 
         foreach (var shipment in activeShipments)
         {
@@ -233,6 +252,9 @@ public class ShippingService : IShippingService
 
             if (previousStatus != ShipmentStatus.Delivered && shipment.Status == ShipmentStatus.Delivered)
                 newlyDelivered.Add(shipment);
+
+            if (previousStatus != ShipmentStatus.OutForDelivery && shipment.Status == ShipmentStatus.OutForDelivery)
+                newlyOutForDelivery.Add(shipment);
         }
 
         await this._context.SaveChangesAsync();
@@ -251,6 +273,26 @@ public class ShippingService : IShippingService
                     ItemTitle = shipment.Payment?.Item?.Title,
                     BuyerEmail = shipment.Payment?.Buyer?.Email,
                     SellerEmail = shipment.Payment?.Seller?.Email
+                });
+            }
+            catch { /* Webhook failure must not break sync flow */ }
+        }
+
+        // Fire shipment.out_for_delivery webhook
+        foreach (var shipment in newlyOutForDelivery)
+        {
+            try
+            {
+                this._webhook.Send(this._n8nSettings.ShipmentOutForDelivery, new
+                {
+                    Event = "shipment.out_for_delivery",
+                    Timestamp = DateTime.UtcNow,
+                    ShipmentId = shipment.Id,
+                    shipment.TrackingNumber,
+                    CourierProvider = shipment.CourierProvider.ToString(),
+                    ItemTitle = shipment.Payment?.Item?.Title,
+                    BuyerEmail = shipment.Payment?.Buyer?.Email,
+                    RecipientName = shipment.RecipientName
                 });
             }
             catch { /* Webhook failure must not break sync flow */ }

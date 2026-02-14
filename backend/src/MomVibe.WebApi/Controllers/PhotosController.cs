@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Application.Interfaces;
 
@@ -15,6 +16,7 @@ using Application.Interfaces;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[EnableRateLimiting("upload")]
 public class PhotosController : ControllerBase
 {
     private readonly IPhotoService _photoService;

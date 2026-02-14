@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Application.DTOs.Auth;
 using Application.Interfaces;
@@ -18,6 +19,7 @@ using Application.Interfaces;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

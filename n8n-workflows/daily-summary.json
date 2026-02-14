@@ -1,0 +1,62 @@
+{
+  "name": "MamVibe — Daily Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "daily-summary",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Daily Summary",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "daily-summary"
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "admin@mamvibe.com",
+        "subject": "MamVibe Daily Summary — {{ $('Webhook: Daily Summary').item.json.body.timestamp.substring(0, 10) }}",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n    <p style=\"color: #888; margin: 5px 0 0;\">Daily Summary</p>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">Last 24 Hours \ud83d\udcca</h2>\n    <div style=\"display: flex; flex-wrap: wrap; gap: 16px; margin: 24px 0;\">\n      <div style=\"flex: 1; min-width: 120px; background: #f8f4ff; border-radius: 12px; padding: 20px; text-align: center;\">\n        <div style=\"font-size: 32px; font-weight: 700; color: #e91e8c;\">{{ $('Webhook: Daily Summary').item.json.body.newItems }}</div>\n        <div style=\"font-size: 14px; color: #888; margin-top: 4px;\">New Items</div>\n      </div>\n      <div style=\"flex: 1; min-width: 120px; background: #f0fff4; border-radius: 12px; padding: 20px; text-align: center;\">\n        <div style=\"font-size: 32px; font-weight: 700; color: #27ae60;\">{{ $('Webhook: Daily Summary').item.json.body.newPayments }}</div>\n        <div style=\"font-size: 14px; color: #888; margin-top: 4px;\">Payments</div>\n      </div>\n      <div style=\"flex: 1; min-width: 120px; background: #fff8f0; border-radius: 12px; padding: 20px; text-align: center;\">\n        <div style=\"font-size: 32px; font-weight: 700; color: #e67e22;\">{{ $('Webhook: Daily Summary').item.json.body.newShipments }}</div>\n        <div style=\"font-size: 14px; color: #888; margin-top: 4px;\">New Shipments</div>\n      </div>\n      <div style=\"flex: 1; min-width: 120px; background: #f0f4ff; border-radius: 12px; padding: 20px; text-align: center;\">\n        <div style=\"font-size: 32px; font-weight: 700; color: #3498db;\">{{ $('Webhook: Daily Summary').item.json.body.activeShipments }}</div>\n        <div style=\"font-size: 14px; color: #888; margin-top: 4px;\">Active Shipments</div>\n      </div>\n    </div>\n    <div style=\"text-align: center; margin: 20px 0;\">\n      <a href=\"https://mamvibe.com/admin\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Open Dashboard</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {}
+      },
+      "id": "email-admin",
+      "name": "Email Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Daily Summary": {
+      "main": [
+        [
+          {
+            "node": "Email Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Daily Checks" },
+    { "name": "Admin Alerts" }
+  ]
+}

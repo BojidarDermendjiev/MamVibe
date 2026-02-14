@@ -20,4 +20,6 @@ public class N8nSettings
     public string StaleItems { get; set; } = "stale-items";
     public string DailySummary { get; set; } = "daily-summary";
     public string FeedbackPrompt { get; set; } = "feedback-prompt";
+    public string ItemPendingApproval { get; set; } = "item-pending-approval";
+    public string ShipmentOutForDelivery { get; set; } = "shipment-out-for-delivery";
 }

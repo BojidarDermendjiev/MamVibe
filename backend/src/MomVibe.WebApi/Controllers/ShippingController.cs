@@ -68,7 +68,9 @@ public class ShippingController : ControllerBase
     [HttpGet("{id:guid}/label")]
     public async Task<IActionResult> GetLabel(Guid id)
     {
-        var pdf = await this._shippingService.GetLabelAsync(id);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var pdf = await this._shippingService.GetLabelAsync(id, userId);
         return File(pdf, "application/pdf", "label.pdf");
     }
 
@@ -81,7 +83,9 @@ public class ShippingController : ControllerBase
     [HttpGet("{id:guid}/track")]
     public async Task<IActionResult> TrackShipment(Guid id)
     {
-        var events = await this._shippingService.TrackShipmentAsync(id);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var events = await this._shippingService.TrackShipmentAsync(id, userId);
         return Ok(events);
     }
 
@@ -94,7 +98,9 @@ public class ShippingController : ControllerBase
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> CancelShipment(Guid id)
     {
-        await this._shippingService.CancelShipmentAsync(id);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        await this._shippingService.CancelShipmentAsync(id, userId);
         return Ok();
     }
 
@@ -121,7 +127,9 @@ public class ShippingController : ControllerBase
     [HttpGet("payment/{paymentId:guid}")]
     public async Task<IActionResult> GetShipmentByPayment(Guid paymentId)
     {
-        var shipment = await this._shippingService.GetShipmentByPaymentIdAsync(paymentId);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var shipment = await this._shippingService.GetShipmentByPaymentIdAsync(paymentId, userId);
         if (shipment == null) return NotFound();
         return Ok(shipment);
     }

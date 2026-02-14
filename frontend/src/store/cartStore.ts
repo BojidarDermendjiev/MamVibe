@@ -33,6 +33,6 @@ export const useCartStore = create<CartState>()(
       clearCart: () => set({ items: [] }),
       itemCount: () => get().items.length,
     }),
-    { name: 'momvibe-cart' }
+    { name: 'mamvibe-cart' }
   )
 );

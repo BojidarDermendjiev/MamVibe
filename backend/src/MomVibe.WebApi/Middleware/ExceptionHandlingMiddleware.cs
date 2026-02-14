@@ -56,8 +56,8 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, message) = exception switch
         {
-            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, exception.Message),
-            KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
+            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Access denied."),
+            KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
             InvalidOperationException => (HttpStatusCode.BadRequest, exception.Message),
             ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
             _ => (HttpStatusCode.InternalServerError, "An internal server error occurred.")

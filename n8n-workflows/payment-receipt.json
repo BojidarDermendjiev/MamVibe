@@ -1,0 +1,108 @@
+{
+  "name": "MamVibe — Payment Receipt PDF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "payment-completed",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Payment Completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "payment-receipt"
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = $input.first().json.body;\nconst date = new Date(body.timestamp).toLocaleDateString('en-GB');\nconst html = `\n<html>\n<head><style>\n  body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #333; }\n  .header { text-align: center; border-bottom: 2px solid #e91e8c; padding-bottom: 20px; margin-bottom: 30px; }\n  .header h1 { color: #e91e8c; margin: 0; }\n  .receipt-id { color: #888; font-size: 14px; }\n  table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n  th { background: #f8f4ff; text-align: left; padding: 12px; font-size: 13px; color: #888; text-transform: uppercase; }\n  td { padding: 12px; border-bottom: 1px solid #f0f0f0; }\n  .total-row td { font-weight: 700; font-size: 18px; border-top: 2px solid #e91e8c; border-bottom: none; }\n  .footer { text-align: center; margin-top: 40px; color: #aaa; font-size: 12px; }\n</style></head>\n<body>\n  <div class=\"header\">\n    <h1>MamVibe</h1>\n    <p class=\"receipt-id\">Receipt #${body.paymentId?.substring(0, 8) || 'N/A'}</p>\n    <p class=\"receipt-id\">${date}</p>\n  </div>\n  <h2>Payment Receipt</h2>\n  <table>\n    <tr><th>Item</th><th>Amount</th></tr>\n    <tr><td>${body.itemTitle}</td><td>${body.amount} BGN</td></tr>\n    <tr class=\"total-row\"><td>Total</td><td>${body.amount} BGN</td></tr>\n  </table>\n  <table>\n    <tr><td style=\"color:#888;width:120px\">Buyer</td><td>${body.buyerName} (${body.buyerEmail})</td></tr>\n    <tr><td style=\"color:#888\">Seller</td><td>${body.sellerName} (${body.sellerEmail})</td></tr>\n    <tr><td style=\"color:#888\">Date</td><td>${date}</td></tr>\n  </table>\n  <div class=\"footer\">This is an automatically generated receipt from MamVibe.</div>\n</body>\n</html>`;\nreturn [{ json: { html, buyerEmail: body.buyerEmail, buyerName: body.buyerName, itemTitle: body.itemTitle } }];"
+      },
+      "id": "generate-html",
+      "name": "Generate Receipt HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "operation": "toFile",
+        "sourceProperty": "html",
+        "fileName": "receipt.html",
+        "mimeType": "text/html"
+      },
+      "id": "html-to-file",
+      "name": "HTML to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@mamvibe.com",
+        "toEmail": "={{ $('Generate Receipt HTML').item.json.buyerEmail }}",
+        "subject": "Your MamVibe receipt — {{ $('Generate Receipt HTML').item.json.itemTitle }}",
+        "emailType": "html",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">Your Receipt</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Hi <strong>{{ $('Generate Receipt HTML').item.json.buyerName }}</strong>,</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Your payment receipt for <strong>{{ $('Generate Receipt HTML').item.json.itemTitle }}</strong> is attached to this email.</p>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "id": "email-buyer",
+      "name": "Email Receipt",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 300],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
+          "name": "MamVibe SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Payment Completed": {
+      "main": [
+        [
+          {
+            "node": "Generate Receipt HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Receipt HTML": {
+      "main": [
+        [
+          {
+            "node": "HTML to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML to File": {
+      "main": [
+        [
+          {
+            "node": "Email Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "MamVibe" },
+    { "name": "Payments" }
+  ]
+}
