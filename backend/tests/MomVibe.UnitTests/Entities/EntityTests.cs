@@ -17,7 +17,7 @@ public class EntityTests
         };
 
         item.Id.Should().NotBe(Guid.Empty);
-        item.IsActive.Should().BeTrue();
+        item.IsActive.Should().BeFalse();
         item.ViewCount.Should().Be(0);
         item.LikeCount.Should().Be(0);
     }

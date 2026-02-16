@@ -42,9 +42,9 @@ export default function HomePage() {
             ? {
                 ...item,
                 isLikedByCurrentUser: !item.isLikedByCurrentUser,
-                likesCount: item.isLikedByCurrentUser
-                  ? item.likesCount - 1
-                  : item.likesCount + 1,
+                likeCount: item.isLikedByCurrentUser
+                  ? item.likeCount - 1
+                  : item.likeCount + 1,
               }
             : item
         )
