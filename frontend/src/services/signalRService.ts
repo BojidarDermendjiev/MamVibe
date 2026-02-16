@@ -13,6 +13,7 @@ class SignalRService {
   private typingHandlers: TypingHandler[] = [];
   private onlineHandlers: OnlineHandler[] = [];
   private offlineHandlers: OnlineHandler[] = [];
+  private reconnectHandlers: (() => void)[] = [];
 
   async connect(accessToken: string): Promise<void> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -26,6 +27,11 @@ class SignalRService {
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Warning)
       .build();
+
+    this.connection.onreconnected(() => {
+      // Notify handlers that reconnection happened so they can resync
+      this.reconnectHandlers.forEach((h) => h());
+    });
 
     this.connection.on('ReceiveMessage', (message: Message) => {
       this.messageHandlers.forEach((h) => h(message));
@@ -102,6 +108,13 @@ class SignalRService {
     this.offlineHandlers.push(handler);
     return () => {
       this.offlineHandlers = this.offlineHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onReconnect(handler: () => void): () => void {
+    this.reconnectHandlers.push(handler);
+    return () => {
+      this.reconnectHandlers = this.reconnectHandlers.filter((h) => h !== handler);
     };
   }
 }

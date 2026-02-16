@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using MomVibe.Infrastructure.Persistence;
-
 namespace MomVibe.IntegrationTests;
+
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+
+using Infrastructure.Persistence;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<StartUp>
 {

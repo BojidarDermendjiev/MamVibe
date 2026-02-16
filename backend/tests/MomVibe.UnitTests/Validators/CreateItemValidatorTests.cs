@@ -1,9 +1,10 @@
-using FluentValidation.TestHelper;
-using MomVibe.Application.DTOs.Items;
-using MomVibe.Application.Validators;
-using MomVibe.Domain.Enums;
-
 namespace MomVibe.UnitTests.Validators;
+
+using FluentValidation.TestHelper;
+
+using Domain.Enums;
+using Application.DTOs.Items;
+using Application.Validators;
 
 public class CreateItemValidatorTests
 {

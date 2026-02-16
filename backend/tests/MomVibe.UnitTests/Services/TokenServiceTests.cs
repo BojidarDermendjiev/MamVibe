@@ -1,11 +1,11 @@
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using MomVibe.Domain.Entities;
-using MomVibe.Domain.Enums;
-using MomVibe.Infrastructure.Services;
-
 namespace MomVibe.UnitTests.Services;
 
+using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+
+using Domain.Enums;
+using Domain.Entities;
+using Infrastructure.Services;
 public class TokenServiceTests
 {
     private readonly TokenService _tokenService;

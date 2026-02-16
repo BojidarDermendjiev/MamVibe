@@ -1,8 +1,9 @@
-using FluentAssertions;
-using MomVibe.Domain.Entities;
-using MomVibe.Domain.Enums;
-
 namespace MomVibe.UnitTests.Entities;
+
+using FluentAssertions;
+
+using Domain.Enums;
+using Domain.Entities;
 
 public class EntityTests
 {

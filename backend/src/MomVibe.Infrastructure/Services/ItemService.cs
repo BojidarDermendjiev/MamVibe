@@ -4,11 +4,11 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+using Configuration;
 using Domain.Entities;
 using Application.DTOs.Items;
 using Application.Interfaces;
 using Application.DTOs.Common;
-using Configuration;
 
 /// <summary>
 /// Service for managing marketplace items: filtered and paginated listing, detailed retrieval,
