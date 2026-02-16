@@ -37,7 +37,7 @@ export default function ChatPage() {
   const { userId } = useParams<{ userId?: string }>();
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { sendMessage, sendTyping, onMessage, onTyping, onReconnect } = useSignalR();
+  const { sendMessage, sendTyping, onMessage, onTyping } = useSignalR();
   const { markConversationRead, setActiveChatUserId } = useNotification();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,25 +59,6 @@ export default function ChatPage() {
     return () => setActiveChatUserId(null);
   }, [activeChat, setActiveChatUserId]);
 
-  // Reload conversations and messages after SignalR reconnection
-  useEffect(() => {
-    const unsub = onReconnect(() => {
-      messagesApi.getConversations().then((res) => setConversations(res.data)).catch(() => {});
-      if (activeChat) {
-        messagesApi.getMessages(activeChat).then(({ data }) => {
-          setMessages((prev) => {
-            const loadedIds = new Set(data.map((m: Message) => m.id));
-            const realtimeOnly = prev.filter((m) => !loadedIds.has(m.id));
-            return [...data, ...realtimeOnly].sort(
-              (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-            );
-          });
-        }).catch(() => {});
-      }
-    });
-    return unsub;
-  }, [activeChat, onReconnect]);
-
   useEffect(() => {
     messagesApi.getConversations().then((res) => {
       setConversations(res.data);
@@ -91,11 +72,7 @@ export default function ChatPage() {
       const isSentToActiveChat = msg.receiverId === activeChat;
 
       if (isFromActiveChat || isSentToActiveChat) {
-        setMessages((prev) => {
-          // Deduplicate — skip if already present (from invoke return)
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          return [...prev, msg];
-        });
+        setMessages((prev) => [...prev, msg]);
         setTimeout(scrollToBottom, 100);
       }
 
@@ -106,12 +83,12 @@ export default function ChatPage() {
       }
 
       setConversations((prev) => {
-        const otherUserId = msg.senderId === user?.id ? msg.receiverId : msg.senderId;
-        const existing = prev.find((c) => c.userId === otherUserId);
+        const existing = prev.find((c) => c.userId === msg.senderId || c.userId === msg.receiverId);
         if (existing) {
           return prev.map((c) => {
-            if (c.userId !== otherUserId) return c;
-            const shouldIncrementUnread = msg.senderId !== user?.id && msg.senderId !== activeChat;
+            if (c.userId !== msg.senderId && c.userId !== msg.receiverId) return c;
+            // Only increment unread if this message is NOT from the active chat
+            const shouldIncrementUnread = c.userId === msg.senderId && msg.senderId !== activeChat;
             return {
               ...c,
               lastMessage: msg.content,
@@ -120,15 +97,7 @@ export default function ChatPage() {
             };
           });
         }
-        // New conversation — add it to the list
-        return [{
-          userId: otherUserId,
-          displayName: msg.senderDisplayName || otherUserId,
-          avatarUrl: msg.senderAvatarUrl || null,
-          lastMessage: msg.content,
-          lastMessageTime: msg.timestamp,
-          unreadCount: msg.senderId !== user?.id && msg.senderId !== activeChat ? 1 : 0,
-        }, ...prev];
+        return prev;
       });
     });
 
@@ -148,14 +117,7 @@ export default function ChatPage() {
     const loadMessages = async () => {
       try {
         const { data } = await messagesApi.getMessages(activeChat);
-        // Merge with any messages that arrived via SignalR while loading
-        setMessages((prev) => {
-          const loadedIds = new Set(data.map((m: Message) => m.id));
-          const realtimeOnly = prev.filter((m) => !loadedIds.has(m.id));
-          return [...data, ...realtimeOnly].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
-        });
+        setMessages(data);
         setTimeout(scrollToBottom, 100);
         await messagesApi.markAsRead(activeChat);
         markConversationRead(activeChat);

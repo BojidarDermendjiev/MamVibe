@@ -1,10 +1,11 @@
+using FluentAssertions;
+using FluentValidation.TestHelper;
+using MomVibe.Application.DTOs.Auth;
+using MomVibe.Application.Validators;
+using MomVibe.Domain.Enums;
+
 namespace MomVibe.UnitTests.Validators;
 
-using FluentValidation.TestHelper;
-
-using Domain.Enums;
-using Application.DTOs.Auth;
-using Application.Validators;
 public class RegisterRequestValidatorTests
 {
     private readonly RegisterRequestValidator _validator = new();
