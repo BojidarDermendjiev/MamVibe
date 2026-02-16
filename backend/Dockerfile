@@ -2,13 +2,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS restore
 WORKDIR /src
 
-COPY MomVibe.sln ./
 COPY src/MomVibe.Domain/MomVibe.Domain.csproj              src/MomVibe.Domain/
 COPY src/MomVibe.Application/MomVibe.Application.csproj    src/MomVibe.Application/
 COPY src/MomVibe.Infrastructure/MomVibe.Infrastructure.csproj src/MomVibe.Infrastructure/
 COPY src/MomVibe.WebApi/MomVibe.WebApi.csproj              src/MomVibe.WebApi/
 
-RUN dotnet restore
+RUN dotnet restore src/MomVibe.WebApi/MomVibe.WebApi.csproj
 
 # ---------- build ----------
 FROM restore AS build
