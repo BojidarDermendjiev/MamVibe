@@ -26,7 +26,7 @@ export default function ShipmentDetailPage() {
       })
       .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, [shipmentId]);
+  }, [shipmentId, t]);
 
   const handleDownloadLabel = async () => {
     if (!shipmentId) return;

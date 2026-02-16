@@ -47,7 +47,7 @@ export default function PaymentPage() {
       toast.error('Item not found');
       navigate('/browse');
     });
-  }, [itemId]);
+  }, [itemId, navigate]);
 
   const shippingRequest: CalculateShippingRequest | null =
     recipientName && recipientPhone

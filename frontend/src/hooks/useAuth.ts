@@ -21,7 +21,7 @@ export function useAuth() {
       }
     };
     initAuth();
-  }, []);
+  }, [accessToken, logout, setLoading, setUser]);
 
   return { isLoading };
 }

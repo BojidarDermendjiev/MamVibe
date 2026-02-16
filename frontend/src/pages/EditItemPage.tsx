@@ -54,7 +54,7 @@ export default function EditItemPage() {
       }
     };
     load();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleRemoveExisting = async (photoId: string) => {
     const photo = existingPhotos.find((p) => p.id === photoId);

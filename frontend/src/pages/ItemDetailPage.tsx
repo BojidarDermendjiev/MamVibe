@@ -42,7 +42,7 @@ export default function ItemDetailPage() {
       }
     };
     load();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleDelete = async () => {
     if (!item || !confirm(t('common.confirm') + '?')) return;

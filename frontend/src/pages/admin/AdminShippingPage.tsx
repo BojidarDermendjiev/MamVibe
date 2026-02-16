@@ -54,7 +54,7 @@ export default function AdminShippingPage() {
       })
       .catch(() => toast.error(t('common.error')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const priceRequest = useMemo(() => {
     if (!weight) return null;

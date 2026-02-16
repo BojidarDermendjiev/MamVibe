@@ -12,21 +12,34 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (query?: string) => {
     setLoading(true);
     try {
-      const { data } = await adminApi.getUsers(search || undefined);
+      const { data } = await adminApi.getUsers(query || undefined);
       setUsers(data.items);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    // Initial load — no search query needed
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await adminApi.getUsers();
+        if (!cancelled) setUsers(data.items);
+      } catch { /* ignore */ } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchUsers();
+    fetchUsers(search);
   };
 
   const toggleBlock = async (userId: string, isBlocked: boolean) => {
