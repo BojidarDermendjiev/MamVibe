@@ -1,7 +1,9 @@
+using System.Net;
+using System.Net.Http.Json;
+using FluentAssertions;
+
 namespace MomVibe.IntegrationTests;
 
-using System.Net;
-using FluentAssertions;
 public class CategoriesEndpointTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;

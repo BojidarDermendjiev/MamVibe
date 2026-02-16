@@ -1,11 +1,11 @@
+using System.Net;
+using System.Net.Http.Json;
+using FluentAssertions;
+using MomVibe.Application.DTOs.Auth;
+using MomVibe.Domain.Enums;
+
 namespace MomVibe.IntegrationTests;
 
-using System.Net;
-using FluentAssertions;
-using System.Net.Http.Json;
-
-using Domain.Enums;
-using Application.DTOs.Auth;
 public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;

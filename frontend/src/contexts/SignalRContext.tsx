@@ -18,7 +18,6 @@ interface SignalRContextValue {
   onRead: (handler: ReadHandler) => () => void;
   onOnline: (handler: OnlineHandler) => () => void;
   onOffline: (handler: OnlineHandler) => () => void;
-  onReconnect: (handler: () => void) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue>({
@@ -31,7 +30,6 @@ const SignalRContext = createContext<SignalRContextValue>({
   onRead: () => () => {},
   onOnline: () => () => {},
   onOffline: () => () => {},
-  onReconnect: () => () => {},
 });
 
 export function SignalRProvider({ children }: { children: ReactNode }) {
@@ -94,20 +92,16 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const onReconnect = useCallback(
-    (handler: () => void) => signalRService.onReconnect(handler),
-    []
-  );
-
   return (
     <SignalRContext.Provider
-      value={{ isConnected, sendMessage, sendTyping, markAsRead, onMessage, onTyping, onRead, onOnline, onOffline, onReconnect }}
+      value={{ isConnected, sendMessage, sendTyping, markAsRead, onMessage, onTyping, onRead, onOnline, onOffline }}
     >
       {children}
     </SignalRContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSignalR(): SignalRContextValue {
   return useContext(SignalRContext);
 }

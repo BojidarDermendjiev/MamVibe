@@ -13,33 +13,27 @@ export default function ShippingPricePreview({ request }: ShippingPricePreviewPr
   const [result, setResult] = useState<ShippingPriceResult | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const requestKey = request
+    ? `${request.courierProvider}-${request.deliveryType}-${request.toCity}-${request.officeId}-${request.weight}-${request.isCod}-${request.codAmount}-${request.isInsured}-${request.insuredAmount}`
+    : '';
+
   useEffect(() => {
     if (!request || !request.weight) {
-      setResult(null);
       return;
     }
 
+    let cancelled = false;
     const timer = setTimeout(() => {
-      setLoading(true);
       shippingApi
         .calculatePrice(request)
-        .then((res) => setResult(res.data))
-        .catch(() => setResult(null))
-        .finally(() => setLoading(false));
+        .then((res) => { if (!cancelled) setResult(res.data); })
+        .catch(() => { if (!cancelled) setResult(null); })
+        .finally(() => { if (!cancelled) setLoading(false); });
     }, 500);
 
-    return () => clearTimeout(timer);
-  }, [
-    request?.courierProvider,
-    request?.deliveryType,
-    request?.toCity,
-    request?.officeId,
-    request?.weight,
-    request?.isCod,
-    request?.codAmount,
-    request?.isInsured,
-    request?.insuredAmount,
-  ]);
+    return () => { cancelled = true; clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestKey]);
 
   if (loading) {
     return (
@@ -50,7 +44,7 @@ export default function ShippingPricePreview({ request }: ShippingPricePreviewPr
     );
   }
 
-  if (!result) return null;
+  if (!result || !request || !request.weight) return null;
 
   return (
     <div className="bg-lavender/10 rounded-xl p-4">

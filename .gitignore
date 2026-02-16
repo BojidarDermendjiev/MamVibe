@@ -31,9 +31,8 @@ backend/**/*.pdb
 backend/**/publish/
 
 # ──────────────────────────────────────────────────────────────
-# Seed Data & User Uploads (NEVER commit to repo)
+# User Uploads (NEVER commit to repo)
 # ──────────────────────────────────────────────────────────────
-backend/**/Persistence/Seed/
 backend/**/wwwroot/uploads/demo/
 backend/**/wwwroot/uploads/items/
 backend/**/wwwroot/uploads/avatars/

@@ -27,10 +27,10 @@ jobs:
           restore-keys: nuget-
 
       - name: Restore dependencies
-        run: dotnet restore backend/MamVibe.sln
+        run: dotnet restore backend/MomVibe.sln
 
       - name: Build
-        run: dotnet build backend/MamVibe.sln --no-restore
+        run: dotnet build backend/MomVibe.sln --no-restore
 
       - name: Run unit tests
         run: dotnet test backend/tests/MomVibe.UnitTests --no-build --verbosity normal

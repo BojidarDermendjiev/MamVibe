@@ -18,17 +18,18 @@ export default function OfficePicker({ provider, city, value, onChange, lockersO
   const { t } = useTranslation();
   const [offices, setOffices] = useState<CourierOffice[]>([]);
   const [filter, setFilter] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     shippingApi
       .getOffices(provider, city || undefined)
-      .then((res) => setOffices(res.data))
-      .catch(() => setOffices([]))
-      .finally(() => setLoading(false));
+      .then((res) => { if (!cancelled) setOffices(res.data); })
+      .catch(() => { if (!cancelled) setOffices([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [provider, city]);
 
   // Close dropdown on outside click

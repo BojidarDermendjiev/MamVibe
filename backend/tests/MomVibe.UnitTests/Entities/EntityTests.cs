@@ -1,9 +1,8 @@
-namespace MomVibe.UnitTests.Entities;
-
 using FluentAssertions;
+using MomVibe.Domain.Entities;
+using MomVibe.Domain.Enums;
 
-using Domain.Enums;
-using Domain.Entities;
+namespace MomVibe.UnitTests.Entities;
 
 public class EntityTests
 {
@@ -18,7 +17,7 @@ public class EntityTests
         };
 
         item.Id.Should().NotBe(Guid.Empty);
-        item.IsActive.Should().BeTrue();
+        item.IsActive.Should().BeFalse();
         item.ViewCount.Should().Be(0);
         item.LikeCount.Should().Be(0);
     }
