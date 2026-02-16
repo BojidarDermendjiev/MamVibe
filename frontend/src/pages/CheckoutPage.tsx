@@ -24,7 +24,7 @@ export default function CheckoutPage() {
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>(DeliveryType.Office);
   const [officeId, setOfficeId] = useState('');
-  const [officeName, setOfficeName] = useState('');
+  const [, setOfficeName] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [recipientName, setRecipientName] = useState('');

@@ -31,6 +31,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCategories(): CategoriesContextValue {
   return useContext(CategoriesContext);
 }

@@ -21,20 +21,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
 
-  // Load initial unread count from conversations
+  // Reset unread count on logout
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on auth change
       setUnreadCount(0);
       return;
     }
 
+    let cancelled = false;
     messagesApi
       .getConversations()
       .then((res) => {
-        const total = res.data.reduce((sum, c) => sum + c.unreadCount, 0);
-        setUnreadCount(total);
+        if (!cancelled) {
+          const total = res.data.reduce((sum, c) => sum + c.unreadCount, 0);
+          setUnreadCount(total);
+        }
       })
       .catch(() => {});
+    return () => { cancelled = true; };
   }, [isAuthenticated]);
 
   // Increment unread count on new messages from others,
@@ -76,6 +81,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNotification(): NotificationContextValue {
   return useContext(NotificationContext);
 }
