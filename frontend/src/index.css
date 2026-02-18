@@ -23,7 +23,7 @@
   /* neutrals */
   --color-cream: #c9a797;
   --color-cream-dark: #f5f0e8;
-
+  --color-cream-light: #e4ddbb;
   /* text */
   --color-text: #945c67;
 }
@@ -188,6 +188,40 @@ a:hover {
   box-shadow: 0 20px 40px rgba(147, 112, 219, 0.3);
   border-color: rgb(147, 112, 219);
 }
+/* ─── Ripple ─── */
+@keyframes rippling {
+  0% { opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.animate-rippling {
+  animation: rippling 600ms ease-out;
+}
+
+/* ─── Marquee ─── */
+/*
+  True infinite marquee: the animated strip contains exactly 2 identical
+  copies of the content. -50% = exactly one copy's width, so on reset
+  the second copy sits exactly where the first began — no visible jump.
+*/
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+@keyframes marquee-reverse {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse var(--duration, 40s) linear infinite;
+}
+
 /* ─── Animations ─── */
 @keyframes fade-in {
   from {
@@ -324,4 +358,125 @@ a:hover {
   .container-main {
     padding: 2rem;
   }
+}
+
+/* ─── Auth Slide Layout ─────────────────────────────────────────────────── */
+.auth-wrapper {
+  position: relative;
+  background-color: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 60px rgba(63, 75, 127, 0.25);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+/* Form slot — full-width on mobile, left-half on desktop */
+.auth-form-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  transition: all 0.6s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  z-index: 2;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .auth-form-slot {
+    width: 50%;
+    padding: 2rem 2.5rem;
+  }
+
+  .auth-wrapper.active .auth-form-slot {
+    transform: translateX(100%);
+  }
+}
+
+/* Toggle container — hidden on mobile, sliding colored panel on desktop */
+.auth-toggle-container {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .auth-toggle-container {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.6s ease-in-out;
+    border-radius: 150px 0 0 100px;
+    z-index: 1000;
+  }
+
+  .auth-wrapper.active .auth-toggle-container {
+    transform: translateX(-100%);
+    border-radius: 0 150px 100px 0;
+  }
+}
+
+/* Inner 200%-wide gradient div — counter-translates to keep gradient stationary */
+.auth-toggle-inner {
+  background: linear-gradient(160deg, #945c67 0%, #3f4b7f 100%);
+  color: #fff;
+  position: relative;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: all 0.6s ease-in-out;
+}
+
+.auth-wrapper.active .auth-toggle-inner {
+  transform: translateX(50%);
+}
+
+/* Promo panels inside the inner div */
+.auth-toggle-panel {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 2rem;
+  text-align: center;
+  top: 0;
+  transition: all 0.6s ease-in-out;
+}
+
+/* Left panel: "One of us?" — hidden when not active, visible when active */
+.auth-toggle-panel-left {
+  left: 0;
+  transform: translateX(-200%);
+}
+
+.auth-wrapper.active .auth-toggle-panel-left {
+  transform: translateX(0);
+}
+
+/* Right panel: "New here?" — visible when not active, hidden when active */
+.auth-toggle-panel-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.auth-wrapper.active .auth-toggle-panel-right {
+  transform: translateX(200%);
+}
+
+/* Mobile switch link */
+.auth-mobile-switch {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
 }

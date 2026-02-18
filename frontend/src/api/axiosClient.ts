@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const axiosClient = axios.create({
   baseURL: '/api',
@@ -60,16 +61,26 @@ axiosClient.interceptors.response.use(
         }
 
         const { data } = await axios.post('/api/auth/refresh', { accessToken, refreshToken });
+
+        // Persist new tokens
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
+
+        // Keep Zustand store in sync so SignalR reconnect and other consumers see the fresh token
+        useAuthStore.setState({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        });
+
         axiosClient.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
         processQueue(null, data.accessToken);
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+
+        // Clear everything — store, localStorage, and redirect
+        useAuthStore.getState().logout();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

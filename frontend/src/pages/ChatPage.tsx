@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiPaperAirplane, HiSearch } from 'react-icons/hi';
@@ -47,11 +47,11 @@ export default function ChatPage() {
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const typingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   // Sync active chat to NotificationContext so it knows not to increment badge
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function ChatPage() {
     });
 
     return () => { unsub1(); unsub2(); };
-  }, [onMessage, onTyping, activeChat]);
+  }, [onMessage, onTyping, activeChat, user?.id]);
 
   useEffect(() => {
     if (!activeChat) return;

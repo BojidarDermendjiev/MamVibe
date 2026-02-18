@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { FaGoogle, FaFacebook, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ProfileType } from '../types/auth';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
 import ProfileTypeSelector from '../components/user/ProfileTypeSelector';
 
 export default function RegisterPage() {
@@ -28,18 +28,15 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (form.password.length < 8) {
-      errs.password = t('auth.password_min_length');
-    } else if (!/[A-Z]/.test(form.password)) {
-      errs.password = t('auth.password_uppercase');
-    } else if (!/[a-z]/.test(form.password)) {
-      errs.password = t('auth.password_lowercase');
-    } else if (!/[0-9]/.test(form.password)) {
-      errs.password = t('auth.password_digit');
-    }
+    if (form.password.length < 8) errs.password = t('auth.password_min_length');
+    else if (!/[A-Z]/.test(form.password)) errs.password = t('auth.password_uppercase');
+    else if (!/[a-z]/.test(form.password)) errs.password = t('auth.password_lowercase');
+    else if (!/[0-9]/.test(form.password)) errs.password = t('auth.password_digit');
     if (form.password !== form.confirmPassword) errs.confirmPassword = t('auth.passwords_no_match');
     if (!form.displayName.trim()) errs.displayName = t('auth.display_name_required');
     setErrors(errs);
@@ -64,56 +61,141 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="animate-fade-in">
-      <h1 className="text-2xl font-bold text-primary-dark text-center">{t('auth.register_title')}</h1>
-      <p className="text-gray-500 text-center mt-1 mb-6">{t('auth.register_subtitle')}</p>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 text-center mb-5">Sign up</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label={t('auth.display_name')}
-          value={form.displayName}
-          onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-          error={errors.displayName}
-          required
-        />
-        <Input
-          label={t('auth.email')}
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <Input
-          label={t('auth.password')}
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          error={errors.password}
-          required
-        />
-        <Input
-          label={t('auth.confirm_password')}
-          type="password"
-          value={form.confirmPassword}
-          onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-          error={errors.confirmPassword}
-          required
-        />
+      <form onSubmit={handleSubmit} className="space-y-2.5">
+        {/* Display name */}
+        <div>
+          <div className="relative">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              value={form.displayName}
+              onChange={(e) => setForm({ ...form, displayName: e.target.value })}
+              placeholder={t('auth.display_name')}
+              required
+              className="w-full pl-11 pr-4 py-3 rounded-full bg-gray-100 border-none text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
+            />
+          </div>
+          {errors.displayName && <p className="mt-1 text-xs text-red-500 pl-4">{errors.displayName}</p>}
+        </div>
+
+        {/* Email */}
+        <div className="relative">
+          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder={t('auth.email')}
+            required
+            className="w-full pl-11 pr-4 py-3 rounded-full bg-gray-100 border-none text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
+          />
+        </div>
+
+        {/* Password */}
+        <div>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder={t('auth.password')}
+              required
+              className="w-full pl-11 pr-11 py-3 rounded-full bg-gray-100 border-none text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+          </div>
+          {errors.password && <p className="mt-1 text-xs text-red-500 pl-4">{errors.password}</p>}
+        </div>
+
+        {/* Confirm password */}
+        <div>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              value={form.confirmPassword}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+              placeholder={t('auth.confirm_password')}
+              required
+              className="w-full pl-11 pr-11 py-3 rounded-full bg-gray-100 border-none text-gray-700 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              tabIndex={-1}
+            >
+              {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+          </div>
+          {errors.confirmPassword && <p className="mt-1 text-xs text-red-500 pl-4">{errors.confirmPassword}</p>}
+        </div>
+
+        {/* Profile type */}
         <ProfileTypeSelector
           value={form.profileType}
           onChange={(profileType) => setForm({ ...form, profileType })}
         />
-        <Button type="submit" fullWidth isLoading={loading}>
-          {t('auth.register_btn')}
-        </Button>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 rounded-full font-bold text-sm text-white uppercase tracking-widest transition-all duration-300 hover:opacity-90 hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: 'linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)' }}
+        >
+          {loading ? 'Creating account…' : 'Sign Up'}
+        </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
-        {t('auth.has_account')}{' '}
-        <Link to="/login" className="text-primary font-medium hover:underline">
-          {t('nav.login')}
-        </Link>
-      </p>
+      {/* Social */}
+      <div className="mt-5 text-center">
+        <p className="text-xs text-gray-400 mb-3">Or sign up with social platforms</p>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            type="button"
+            disabled
+            title="Google (coming soon)"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
+          >
+            <FaGoogle className="w-4 h-4 text-[#EA4335]" />
+          </button>
+          <button
+            type="button"
+            disabled
+            title="Facebook (coming soon)"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
+          >
+            <FaFacebook className="w-4 h-4 text-[#1877F2]" />
+          </button>
+          <button
+            type="button"
+            disabled
+            title="Twitter (coming soon)"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
+          >
+            <FaTwitter className="w-4 h-4 text-[#1DA1F2]" />
+          </button>
+          <button
+            type="button"
+            disabled
+            title="LinkedIn (coming soon)"
+            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
+          >
+            <FaLinkedinIn className="w-4 h-4 text-[#0A66C2]" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

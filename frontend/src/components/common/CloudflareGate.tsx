@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { turnstileApi } from "../../api/turnstileApi";
 import LoadingSpinner from "./LoadingSpinner";
 
-const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+const TURNSTILE_SITE_KEY =
+  import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
 const SESSION_KEY = "cf_verified";
 
 declare global {
