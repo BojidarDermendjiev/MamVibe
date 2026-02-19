@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { FaGoogle, FaFacebook, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import { ProfileType } from '../types/auth';
@@ -158,44 +157,6 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      {/* Social */}
-      <div className="mt-5 text-center">
-        <p className="text-xs text-gray-400 mb-3">Or sign up with social platforms</p>
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            disabled
-            title="Google (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaGoogle className="w-4 h-4 text-[#EA4335]" />
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Facebook (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaFacebook className="w-4 h-4 text-[#1877F2]" />
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Twitter (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaTwitter className="w-4 h-4 text-[#1DA1F2]" />
-          </button>
-          <button
-            type="button"
-            disabled
-            title="LinkedIn (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaLinkedinIn className="w-4 h-4 text-[#0A66C2]" />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

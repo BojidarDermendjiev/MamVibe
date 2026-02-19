@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* ─── Dark Mode (class-based, Tailwind v4) ─── */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─── Design Tokens ─── */
 @theme {
   /* primary background & accents */
@@ -480,3 +483,56 @@ a:hover {
   font-size: 0.8rem;
   color: #9ca3af;
 }
+
+/* ─── Dark Mode Global Overrides ─── */
+.dark body {
+  background-color: #1a1825;
+  color: #f0ece8;
+  color-scheme: dark;
+}
+
+/* Backgrounds */
+.dark .bg-white          { background-color: #2d2a42 !important; }
+.dark .bg-gray-50        { background-color: #201d30 !important; }
+.dark .bg-gray-100       { background-color: #2a2740 !important; }
+.dark .bg-peach          { background-color: #201d30 !important; }
+
+/* Sections with inline cream bg (#FAF3EE) — override via class */
+.dark .dark-section      { background-color: #201d30 !important; }
+
+/* Text */
+.dark .text-gray-800     { color: #f0ece8 !important; }
+.dark .text-gray-700     { color: #e0dce8 !important; }
+.dark .text-gray-600     { color: #c8c4d8 !important; }
+.dark .text-gray-500     { color: #a8a4c0 !important; }
+.dark .text-gray-400     { color: #8884a0 !important; }
+
+/* Borders */
+.dark .border-gray-100   { border-color: rgba(193,196,227,0.12) !important; }
+.dark .border-gray-200   { border-color: rgba(193,196,227,0.18) !important; }
+
+/* Nav pill */
+.dark .bg-white\/90      { background-color: rgba(45,42,66,0.92) !important; }
+.dark .bg-white\/10      { background-color: rgba(255,255,255,0.06) !important; }
+.dark .border-white\/20  { border-color: rgba(193,196,227,0.15) !important; }
+.dark .border-lavender\/40 { border-color: rgba(193,196,227,0.15) !important; }
+
+/* Dropdown */
+.dark .bg-white.rounded-xl { background-color: #2d2a42 !important; }
+
+/* Cards */
+.dark .card              { background-color: #2d2a42; border-color: rgba(193,196,227,0.12); }
+
+/* Auth wrapper */
+.dark .auth-wrapper      { background-color: #2d2a42; }
+
+/* Inputs */
+.dark input:not([type="checkbox"]),
+.dark textarea,
+.dark select {
+  background-color: #2a2740 !important;
+  color: #f0ece8 !important;
+  border-color: rgba(193,196,227,0.2) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #8884a0 !important; }

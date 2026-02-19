@@ -28,6 +28,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    // Tell the browser the user signed out so the credential picker
+    // (+ Windows Hello) is shown on the next login attempt.
+    if ('credentials' in navigator) {
+      navigator.credentials.preventSilentAccess?.();
+    }
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isLoading: false });
   },
   setLoading: (loading) => set({ isLoading: loading }),

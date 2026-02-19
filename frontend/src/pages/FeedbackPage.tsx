@@ -122,8 +122,8 @@ export default function FeedbackPage() {
             </div>
 
             {/* Gradient fades */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-peach sm:block" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-32 bg-gradient-to-l from-peach sm:block" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-peach dark:from-[#201d30] sm:block" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-32 bg-gradient-to-l from-peach dark:from-[#201d30] sm:block" />
           </div>
         </section>
       )}
@@ -187,14 +187,14 @@ export default function FeedbackPage() {
                 {t('feedback.content_label')}
               </label>
 
-              <div className="relative rounded-lg border border-lavender/50 bg-white focus-within:ring-1 focus-within:ring-primary-dark/30 focus-within:border-primary-dark transition-shadow p-1">
+              <div className="relative rounded-lg border border-lavender/50 bg-white dark:bg-[#2a2740] focus-within:ring-1 focus-within:ring-primary-dark/30 focus-within:border-primary-dark transition-shadow p-1">
                 {/* Textarea */}
                 <textarea
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
                   placeholder={t('feedback.content_placeholder')}
                   maxLength={2000}
-                  className="min-h-[80px] max-h-48 w-full resize-none rounded-lg bg-white border-0 px-3 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-0 shadow-none"
+                  className="min-h-[80px] max-h-48 w-full resize-none rounded-lg bg-white dark:bg-[#2a2740] dark:text-gray-200 dark:placeholder:text-gray-500 border-0 px-3 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-0 shadow-none"
                 />
 
                 {/* Toolbar */}
@@ -269,7 +269,7 @@ function FeedbackMarqueeCard({
   const date = new Date(feedback.createdAt).toLocaleDateString();
 
   return (
-    <div className="flex flex-col rounded-xl border border-lavender/30 bg-white p-5 max-w-[300px] min-w-[280px] transition-shadow duration-300 hover:shadow-md">
+    <div className="flex flex-col rounded-xl border border-lavender/30 bg-white dark:bg-[#2d2a42] p-5 max-w-[300px] min-w-[280px] transition-shadow duration-300 hover:shadow-md">
       <div className="flex items-center gap-3 mb-3">
         {feedback.userAvatarUrl ? (
           <img

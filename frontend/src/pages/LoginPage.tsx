@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { FaGoogle, FaFacebook, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 
@@ -16,11 +15,6 @@ declare global {
           callback: (response: { credential: string }) => void;
           use_fedcm_for_prompt?: boolean;
         }) => void;
-        prompt: (momentListener?: (notification: {
-          isNotDisplayed: () => boolean;
-          isSkippedMoment: () => boolean;
-          getMomentType: () => string;
-        }) => void) => void;
         renderButton: (
           parent: HTMLElement,
           options: {
@@ -28,6 +22,9 @@ declare global {
             theme?: 'outline' | 'filled_blue' | 'filled_black';
             size?: 'large' | 'medium' | 'small';
             shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+            width?: number;
+            text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+            logo_alignment?: 'left' | 'center';
           },
         ) => void;
         cancel: () => void;
@@ -45,13 +42,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
 
-  // Fallback container for Google's renderButton (hidden, used to trigger clicks when prompt() is suppressed)
-  const googleFallbackRef = useRef<HTMLDivElement>(null);
-  // Stable ref so the GSI callback always sees the latest navigate/setAuth without re-initializing
-  const credentialHandlerRef = useRef<((credential: string) => void) | null>(null);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+  const googleCredentialHandlerRef = useRef<((credential: string) => void) | null>(null);
 
-  credentialHandlerRef.current = useCallback(
+  googleCredentialHandlerRef.current = useCallback(
     async (credential: string) => {
       setGoogleLoading(true);
       try {
@@ -70,58 +66,55 @@ export default function LoginPage() {
     [setAuth, navigate],
   );
 
-  // Initialize Google Identity Services once on mount
+  // ── Google Identity Services ──
+  // Waits for the GSI script (loaded in index.html) to be ready,
+  // then renders the official Google Sign-In button.
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || typeof google === 'undefined') return;
+    if (!clientId) return;
 
-    google.accounts.id.initialize({
-      client_id: clientId,
-      // Route through the stable ref so re-renders never cause stale closures
-      callback: (response) => credentialHandlerRef.current?.(response.credential),
-      use_fedcm_for_prompt: false, // use legacy One Tap, not FedCM (more compatible)
-    });
+    const renderGoogleButton = () => {
+      if (typeof google === 'undefined' || !googleButtonRef.current) return;
 
-    // Render a real Google button into the hidden container as fallback
-    if (googleFallbackRef.current) {
-      google.accounts.id.renderButton(googleFallbackRef.current, {
-        type: 'icon',
-        size: 'large',
-        shape: 'circle',
-        theme: 'outline',
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => googleCredentialHandlerRef.current?.(response.credential),
+        use_fedcm_for_prompt: false,
       });
+
+      const containerWidth = googleButtonRef.current.offsetWidth || 320;
+      google.accounts.id.renderButton(googleButtonRef.current, {
+        type: 'standard',
+        size: 'large',
+        theme: 'outline',
+        shape: 'rectangular',
+        width: containerWidth,
+        text: 'signin_with',
+        logo_alignment: 'center',
+      });
+
+      setGoogleReady(true);
+    };
+
+    if (typeof google !== 'undefined') {
+      renderGoogleButton();
+    } else {
+      const interval = setInterval(() => {
+        if (typeof google !== 'undefined') {
+          clearInterval(interval);
+          renderGoogleButton();
+        }
+      }, 100);
+      return () => {
+        clearInterval(interval);
+        if (typeof google !== 'undefined') google.accounts.id.cancel();
+      };
     }
 
     return () => {
-      if (typeof google !== 'undefined') {
-        google.accounts.id.cancel();
-      }
+      if (typeof google !== 'undefined') google.accounts.id.cancel();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleGoogleLogin = () => {
-    if (typeof google === 'undefined') {
-      toast.error('Google Sign-In is not available. Please refresh the page.');
-      return;
-    }
-
-    google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // One Tap was suppressed (cookie block, prior dismissal, FedCM, etc.)
-        // Fall back to clicking the actual Google-rendered button
-        const btn = googleFallbackRef.current?.querySelector(
-          'div[role="button"]',
-        ) as HTMLElement | null;
-        if (btn) {
-          btn.click();
-        } else {
-          toast.error(
-            'Google Sign-In could not be shown. Please allow pop-ups or try again.',
-          );
-        }
-      }
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +122,23 @@ export default function LoginPage() {
     try {
       const { data } = await authApi.login({ email, password });
       setAuth(data.user, data.accessToken, data.refreshToken);
+
+      // Save to Chrome's secure vault — this is what enables Windows Hello
+      // on the next visit: Chrome sees autocomplete="username/current-password",
+      // prompts "Making sure it's you", then fills the form automatically.
+      if ('credentials' in navigator && (window as any).PasswordCredential) {
+        try {
+          const cred = new (window as any).PasswordCredential({
+            id: email,
+            password,
+            name: email,
+          });
+          await navigator.credentials.store(cred);
+        } catch {
+          // Credential Management API unavailable — fail silently
+        }
+      }
+
       toast.success('Welcome back!');
       navigate('/');
     } catch (err: unknown) {
@@ -142,17 +152,19 @@ export default function LoginPage() {
 
   return (
     <div>
-      {/* Hidden Google renderButton container — fallback when prompt() is suppressed */}
-      <div ref={googleFallbackRef} className="hidden" aria-hidden="true" />
-
       <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">Sign in</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {/* autoComplete="on" + name/id/autocomplete attributes tell Chrome
+          to save and restore credentials via Windows Hello automatically */}
+      <form onSubmit={handleSubmit} className="space-y-3" autoComplete="on">
         {/* Email */}
         <div className="relative">
           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             type="email"
+            id="email"
+            name="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('auth.email')}
@@ -166,6 +178,9 @@ export default function LoginPage() {
           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             type={showPassword ? 'text' : 'password'}
+            id="password"
+            name="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('auth.password')}
@@ -183,7 +198,7 @@ export default function LoginPage() {
         </div>
 
         {/* Forgot */}
-        <div className="text-right pr-1">
+        <div className="flex justify-end pr-1">
           <Link
             to="/forgot-password"
             className="text-xs text-gray-400 hover:text-primary transition-colors"
@@ -203,47 +218,29 @@ export default function LoginPage() {
         </button>
       </form>
 
-      {/* Social */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-gray-400 mb-4">Or sign in with social platforms</p>
-        <div className="flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading}
-            title="Sign in with Google"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:border-primary hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {googleLoading ? (
+      {/* Google Sign-In */}
+      <div className="mt-5">
+        <div className="relative flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400 shrink-0">or continue with</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        <div className="flex justify-center">
+          {googleLoading && (
+            <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
               <span className="w-4 h-4 border-2 border-[#EA4335] border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <FaGoogle className="w-4 h-4 text-[#EA4335]" />
-            )}
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Facebook (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaFacebook className="w-4 h-4 text-[#1877F2]" />
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Twitter (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaTwitter className="w-4 h-4 text-[#1DA1F2]" />
-          </button>
-          <button
-            type="button"
-            disabled
-            title="LinkedIn (coming soon)"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center opacity-50 cursor-not-allowed"
-          >
-            <FaLinkedinIn className="w-4 h-4 text-[#0A66C2]" />
-          </button>
+              Signing in with Google…
+            </div>
+          )}
+          <div
+            ref={googleButtonRef}
+            className={`w-full ${googleLoading ? 'hidden' : ''}`}
+            style={{ minHeight: googleReady ? undefined : '44px' }}
+          />
+          {!googleReady && !googleLoading && (
+            <div className="w-full h-11 rounded-md bg-gray-100 animate-pulse" />
+          )}
         </div>
       </div>
     </div>

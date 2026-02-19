@@ -12,7 +12,10 @@ import {
   MessageSquare,
   ShoppingCart,
   LogIn,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
 import { useNotification } from "../contexts/NotificationContext";
@@ -31,6 +34,7 @@ export default function MainLayout() {
   const { unreadCount } = useNotification();
   const cartItems = useCartStore((s) => s.items);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Hide header on scroll-down, reveal on scroll-up
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -153,6 +157,14 @@ export default function MainLayout() {
   /* ─── Auth controls (shared) ─── */
   const AuthControls = () => (
     <div className="flex items-center gap-2">
+      {/* Dark mode toggle */}
+      <button
+        onClick={toggleTheme}
+        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors text-gray-700 dark:text-gray-200"
+      >
+        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
       <LanguageSwitcher />
 
       {isAuthenticated ? (
@@ -174,8 +186,7 @@ export default function MainLayout() {
           <div className="relative">
             <button
               onClick={() => setDropdownOpen((v) => !v)}
-              onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
-              className="flex items-center gap-1.5 p-1 pr-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors"
+              className="flex items-center gap-1.5 p-1 pr-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors relative z-50"
             >
               <Avatar src={user?.avatarUrl} profileType={user?.profileType} size="sm" />
               <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">
@@ -184,7 +195,7 @@ export default function MainLayout() {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-lavender/30 py-2 z-50">
+              <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#2d2a42] rounded-xl shadow-lg border border-lavender/30 py-2 z-50">
                 <Link
                   to="/profile"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
@@ -234,7 +245,16 @@ export default function MainLayout() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-peach">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#1a1825] transition-colors duration-300">
+
+      {/* Full-screen overlay — closes dropdown when clicking anywhere on the page */}
+      {dropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setDropdownOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/* ══════════════════════════════════════════════════════
           DESKTOP  ≥ md
