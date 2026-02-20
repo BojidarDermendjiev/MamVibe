@@ -6,31 +6,40 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 
+interface GoogleAccountsId {
+  initialize: (config: {
+    client_id: string;
+    callback: (response: { credential: string }) => void;
+    use_fedcm_for_prompt?: boolean;
+  }) => void;
+  renderButton: (
+    parent: HTMLElement,
+    options: {
+      type?: 'standard' | 'icon';
+      theme?: 'outline' | 'filled_blue' | 'filled_black';
+      size?: 'large' | 'medium' | 'small';
+      shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+      width?: number;
+      text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+      logo_alignment?: 'left' | 'center';
+    },
+  ) => void;
+  cancel: () => void;
+}
+
+interface PasswordCredentialInit {
+  id: string;
+  password: string;
+  name?: string;
+}
+
 declare global {
-  const google: {
-    accounts: {
-      id: {
-        initialize: (config: {
-          client_id: string;
-          callback: (response: { credential: string }) => void;
-          use_fedcm_for_prompt?: boolean;
-        }) => void;
-        renderButton: (
-          parent: HTMLElement,
-          options: {
-            type?: 'standard' | 'icon';
-            theme?: 'outline' | 'filled_blue' | 'filled_black';
-            size?: 'large' | 'medium' | 'small';
-            shape?: 'rectangular' | 'pill' | 'circle' | 'square';
-            width?: number;
-            text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
-            logo_alignment?: 'left' | 'center';
-          },
-        ) => void;
-        cancel: () => void;
-      };
-    };
-  };
+  // var (not const) so TypeScript allows `typeof google === 'undefined'` narrowing
+  var google: { accounts: { id: GoogleAccountsId } } | undefined;
+
+  interface Window {
+    PasswordCredential?: new (init: PasswordCredentialInit) => Credential;
+  }
 }
 
 export default function LoginPage() {
@@ -114,7 +123,7 @@ export default function LoginPage() {
     return () => {
       if (typeof google !== 'undefined') google.accounts.id.cancel();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,13 +135,9 @@ export default function LoginPage() {
       // Save to Chrome's secure vault — this is what enables Windows Hello
       // on the next visit: Chrome sees autocomplete="username/current-password",
       // prompts "Making sure it's you", then fills the form automatically.
-      if ('credentials' in navigator && (window as any).PasswordCredential) {
+      if ('credentials' in navigator && window.PasswordCredential) {
         try {
-          const cred = new (window as any).PasswordCredential({
-            id: email,
-            password,
-            name: email,
-          });
+          const cred = new window.PasswordCredential({ id: email, password, name: email });
           await navigator.credentials.store(cred);
         } catch {
           // Credential Management API unavailable — fail silently

@@ -9,22 +9,21 @@ export default function AuthLayout() {
   const isLogin = location.pathname === "/login";
   const showSwitch = SWITCH_ROUTES.includes(location.pathname);
 
-  // active = register mode (colored panel on the left)
-  const [isActive, setIsActive] = useState(!isLogin);
+  // null = follow the URL; true/false = animation in progress
+  const [transitionOverride, setTransitionOverride] = useState<boolean | null>(null);
+  const isActive = transitionOverride ?? !isLogin;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Sync with direct browser navigation (back/forward)
-  useEffect(() => {
-    setIsActive(!isLogin);
-  }, [isLogin]);
 
   // Cleanup on unmount
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   const switchTo = (path: string, active: boolean) => {
-    setIsActive(active);
+    setTransitionOverride(active);
     // Navigate after animation finishes so the form swap is hidden by the panel
-    timerRef.current = setTimeout(() => navigate(path), 650);
+    timerRef.current = setTimeout(() => {
+      navigate(path);
+      setTransitionOverride(null);
+    }, 650);
   };
 
   return (

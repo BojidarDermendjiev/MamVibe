@@ -110,7 +110,7 @@ export default function ChatPage() {
     });
 
     return () => { unsub1(); unsub2(); };
-  }, [onMessage, onTyping, activeChat, user?.id]);
+  }, [onMessage, onTyping, activeChat, user?.id, scrollToBottom]);
 
   useEffect(() => {
     if (!activeChat) return;
@@ -127,7 +127,7 @@ export default function ChatPage() {
       } catch { /* ignore */ }
     };
     loadMessages();
-  }, [activeChat, markConversationRead]);
+  }, [activeChat, markConversationRead, scrollToBottom]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
