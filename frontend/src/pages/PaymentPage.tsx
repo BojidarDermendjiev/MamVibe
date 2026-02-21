@@ -89,6 +89,8 @@ export default function PaymentPage() {
         navigate('/payment/success');
       } else if (method === 'card') {
         const { data } = await paymentsApi.createCheckout(itemId);
+        const parsed = new URL(data.sessionUrl);
+        if (parsed.origin !== 'https://checkout.stripe.com') throw new Error('Invalid redirect');
         window.location.href = data.sessionUrl;
       } else {
         await paymentsApi.createOnSpot(itemId);

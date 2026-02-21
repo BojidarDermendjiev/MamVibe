@@ -233,25 +233,36 @@ public class ItemService : IItemService
 
     public async Task<bool> ToggleLikeAsync(Guid itemId, string userId)
     {
-        var existingLike = await this._context.Likes
-            .FirstOrDefaultAsync(l => l.ItemId == itemId && l.UserId == userId);
-
-        var item = await this._context.Items.FindAsync(itemId);
-        if (item == null)
-            throw new KeyNotFoundException("Item not found.");
-
-        if (existingLike != null)
+        await using var transaction = await this._context.Database.BeginTransactionAsync();
+        try
         {
-            this._context.Likes.Remove(existingLike);
-            item.LikeCount = Math.Max(0, item.LikeCount - 1);
-            await this._context.SaveChangesAsync();
-            return false;
-        }
+            var existingLike = await this._context.Likes
+                .FirstOrDefaultAsync(l => l.ItemId == itemId && l.UserId == userId);
 
-        this._context.Likes.Add(new Like { ItemId = itemId, UserId = userId });
-        item.LikeCount++;
-        await this._context.SaveChangesAsync();
-        return true;
+            var item = await this._context.Items.FindAsync(itemId);
+            if (item == null)
+                throw new KeyNotFoundException("Item not found.");
+
+            if (existingLike != null)
+            {
+                this._context.Likes.Remove(existingLike);
+                item.LikeCount = Math.Max(0, item.LikeCount - 1);
+                await this._context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return false;
+            }
+
+            this._context.Likes.Add(new Like { ItemId = itemId, UserId = userId });
+            item.LikeCount++;
+            await this._context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<List<ItemDto>> GetUserItemsAsync(string userId)

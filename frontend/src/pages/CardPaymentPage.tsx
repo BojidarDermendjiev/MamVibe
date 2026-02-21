@@ -28,6 +28,8 @@ export default function CardPaymentPage() {
 
       // Process card payment for sale items
       const { data } = await paymentsApi.bulkCheckout(saleItems.map((i) => String(i.id)));
+      const parsed = new URL(data.sessionUrl);
+      if (parsed.origin !== 'https://checkout.stripe.com') throw new Error('Invalid redirect');
       clearCart();
       window.location.href = data.sessionUrl;
     } catch (err: unknown) {

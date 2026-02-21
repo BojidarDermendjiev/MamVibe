@@ -50,6 +50,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequiredLength = 8;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
     options.User.RequireUniqueEmail = true;
 
     // Lockout
@@ -64,6 +65,10 @@ var jwtSecret = builder.Configuration["JwtSettings:Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret))
 {
     throw new InvalidOperationException("JwtSettings:Secret is not configured.");
+}
+if (jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException("JwtSettings:Secret must be at least 32 characters for adequate security.");
 }
 
 builder.Services.AddAuthentication(options =>

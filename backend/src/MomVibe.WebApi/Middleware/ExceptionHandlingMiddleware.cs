@@ -59,7 +59,7 @@ public class ExceptionHandlingMiddleware
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Access denied."),
             KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
             InvalidOperationException => (HttpStatusCode.BadRequest, exception.Message),
-            ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
+            ArgumentException => (HttpStatusCode.BadRequest, "Invalid request."),
             _ => (HttpStatusCode.InternalServerError, "An internal server error occurred.")
         };
 
