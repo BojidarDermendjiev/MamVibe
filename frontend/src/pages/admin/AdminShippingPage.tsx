@@ -18,6 +18,11 @@ import ShipmentCard from '../../components/shipping/ShipmentCard';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
+const inputCls =
+  'w-full px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-[#2a2740] text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-primary dark:placeholder-gray-500';
+
+const labelCls = 'block text-sm font-medium text-[#364153] dark:text-[#bdb9bc] mb-1';
+
 export default function AdminShippingPage() {
   const { t } = useTranslation();
   const [payments, setPayments] = useState<PaymentType[]>([]);
@@ -112,7 +117,6 @@ export default function AdminShippingPage() {
 
   const handleTrack = async (shipmentId: string) => {
     if (trackingData[shipmentId]) {
-      // Toggle off
       setTrackingData((prev) => {
         const next = { ...prev };
         delete next[shipmentId];
@@ -135,19 +139,23 @@ export default function AdminShippingPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-primary mb-6">{t('shipping.admin_title')}</h1>
+      <h1 className="text-3xl font-bold text-[#364153] dark:text-[#bdb9bc] mb-6">
+        {t('shipping.admin_title')}
+      </h1>
 
       {/* Create shipment form */}
-      <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-8 space-y-6">
-        <h2 className="text-xl font-semibold text-primary">{t('shipping.create_shipment')}</h2>
+      <div className="bg-white dark:bg-[#2d2a42] rounded-xl p-6 border border-lavender/30 dark:border-white/10 mb-8 space-y-6">
+        <h2 className="text-xl font-semibold text-[#364153] dark:text-[#bdb9bc]">
+          {t('shipping.create_shipment')}
+        </h2>
 
         {/* Payment selector */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">{t('shipping.select_payment')}</label>
+          <label className={labelCls}>{t('shipping.select_payment')}</label>
           <select
             value={selectedPaymentId}
             onChange={(e) => setSelectedPaymentId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className={inputCls}
           >
             <option value="">{t('shipping.choose_payment')}</option>
             {payments.map((p) => (
@@ -164,21 +172,21 @@ export default function AdminShippingPage() {
         {/* Recipient info */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-primary mb-1">{t('shipping.recipient_name')}</label>
+            <label className={labelCls}>{t('shipping.recipient_name')}</label>
             <input
               type="text"
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className={inputCls}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-primary mb-1">{t('shipping.recipient_phone')}</label>
+            <label className={labelCls}>{t('shipping.recipient_phone')}</label>
             <input
               type="text"
               value={recipientPhone}
               onChange={(e) => setRecipientPhone(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className={inputCls}
             />
           </div>
         </div>
@@ -187,21 +195,21 @@ export default function AdminShippingPage() {
         {deliveryType === DeliveryType.Address && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-1">{t('shipping.city')}</label>
+              <label className={labelCls}>{t('shipping.city')}</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-primary mb-1">{t('shipping.address')}</label>
+              <label className={labelCls}>{t('shipping.address')}</label>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className={inputCls}
               />
             </div>
           </div>
@@ -223,14 +231,14 @@ export default function AdminShippingPage() {
 
         {/* Weight */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">{t('shipping.weight')} (kg)</label>
+          <label className={labelCls}>{t('shipping.weight')} (kg)</label>
           <input
             type="number"
             step="0.1"
             min="0.1"
             value={weight}
             onChange={(e) => setWeight(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className={inputCls}
           />
         </div>
 
@@ -238,7 +246,7 @@ export default function AdminShippingPage() {
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={isCod} onChange={(e) => setIsCod(e.target.checked)} />
-            <span className="text-sm font-medium text-primary">{t('shipping.cod')}</span>
+            <span className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">{t('shipping.cod')}</span>
           </label>
           {isCod && (
             <input
@@ -248,7 +256,7 @@ export default function AdminShippingPage() {
               value={codAmount}
               onChange={(e) => setCodAmount(Number(e.target.value))}
               placeholder={t('shipping.cod_amount')}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-[#2a2740] text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-primary"
             />
           )}
         </div>
@@ -257,7 +265,7 @@ export default function AdminShippingPage() {
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={isInsured} onChange={(e) => setIsInsured(e.target.checked)} />
-            <span className="text-sm font-medium text-primary">{t('shipping.insurance')}</span>
+            <span className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">{t('shipping.insurance')}</span>
           </label>
           {isInsured && (
             <input
@@ -267,7 +275,7 @@ export default function AdminShippingPage() {
               value={insuredAmount}
               onChange={(e) => setInsuredAmount(Number(e.target.value))}
               placeholder={t('shipping.insured_amount')}
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className="px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-white dark:bg-[#2a2740] text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-primary"
             />
           )}
         </div>
@@ -280,9 +288,11 @@ export default function AdminShippingPage() {
       </div>
 
       {/* Existing shipments */}
-      <h2 className="text-xl font-semibold text-primary mb-4">{t('admin.all_shipments')}</h2>
+      <h2 className="text-xl font-semibold text-[#364153] dark:text-[#bdb9bc] mb-4">
+        {t('admin.all_shipments')}
+      </h2>
       {shipments.length === 0 ? (
-        <p className="text-gray-500">{t('shipping.no_shipments')}</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('shipping.no_shipments')}</p>
       ) : (
         <div className="space-y-3">
           {shipments.map((shipment) => (
@@ -301,20 +311,22 @@ export default function AdminShippingPage() {
                 </Button>
               </div>
               {trackingData[shipment.id] && (
-                <div className="ml-4 mt-2 mb-4 bg-cream rounded-lg p-4 border border-lavender/20">
-                  <h4 className="text-sm font-medium text-primary mb-2">{t('shipping.tracking')}</h4>
+                <div className="ml-4 mt-2 mb-4 bg-cream dark:bg-[#2a2740] rounded-lg p-4 border border-lavender/20 dark:border-white/10">
+                  <h4 className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc] mb-2">
+                    {t('shipping.tracking')}
+                  </h4>
                   {trackingData[shipment.id].length === 0 ? (
-                    <p className="text-sm text-gray-500">{t('shipping.no_tracking')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('shipping.no_tracking')}</p>
                   ) : (
                     <div className="space-y-2">
                       {trackingData[shipment.id].map((event, idx) => (
                         <div key={idx} className="flex gap-3 text-sm">
-                          <span className="text-gray-400 whitespace-nowrap">
+                          <span className="text-gray-400 dark:text-gray-500 whitespace-nowrap">
                             {new Date(event.timestamp).toLocaleString()}
                           </span>
-                          <span className="text-primary">{event.description}</span>
+                          <span className="text-[#364153] dark:text-[#bdb9bc]">{event.description}</span>
                           {event.location && (
-                            <span className="text-gray-400">({event.location})</span>
+                            <span className="text-gray-400 dark:text-gray-500">({event.location})</span>
                           )}
                         </div>
                       ))}
