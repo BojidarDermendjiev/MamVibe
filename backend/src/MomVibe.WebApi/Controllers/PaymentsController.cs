@@ -165,11 +165,18 @@ public class PaymentsController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
+
+        if (request.ItemIds == null || request.ItemIds.Count == 0)
+            return BadRequest(new { error = "No items provided." });
+        if (request.ItemIds.Count > 50)
+            return BadRequest(new { error = "Cannot process more than 50 items at once." });
+        var itemIds = request.ItemIds.Distinct().ToList();
+
         try
         {
             var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
             var sessionUrl = await this._paymentService.CreateBulkCheckoutSessionAsync(
-                request.ItemIds, userId,
+                itemIds, userId,
                 $"{frontendUrl}/payment/success",
                 $"{frontendUrl}/payment/cancel");
             return Ok(new { sessionUrl });

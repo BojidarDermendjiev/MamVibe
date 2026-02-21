@@ -59,7 +59,6 @@ public class UsersController : ControllerBase
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,
             CreatedAt = user.CreatedAt,
-            Iban = user.Iban
         });
     }
 

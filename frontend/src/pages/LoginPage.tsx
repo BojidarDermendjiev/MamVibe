@@ -27,19 +27,9 @@ interface GoogleAccountsId {
   cancel: () => void;
 }
 
-interface PasswordCredentialInit {
-  id: string;
-  password: string;
-  name?: string;
-}
-
 declare global {
   // var (not const) so TypeScript allows `typeof google === 'undefined'` narrowing
   var google: { accounts: { id: GoogleAccountsId } } | undefined;
-
-  interface Window {
-    PasswordCredential?: new (init: PasswordCredentialInit) => Credential;
-  }
 }
 
 export default function LoginPage() {
@@ -131,18 +121,6 @@ export default function LoginPage() {
     try {
       const { data } = await authApi.login({ email, password });
       setAuth(data.user, data.accessToken, data.refreshToken);
-
-      // Save to Chrome's secure vault — this is what enables Windows Hello
-      // on the next visit: Chrome sees autocomplete="username/current-password",
-      // prompts "Making sure it's you", then fills the form automatically.
-      if ('credentials' in navigator && window.PasswordCredential) {
-        try {
-          const cred = new window.PasswordCredential({ id: email, password, name: email });
-          await navigator.credentials.store(cred);
-        } catch {
-          // Credential Management API unavailable — fail silently
-        }
-      }
 
       toast.success('Welcome back!');
       navigate('/');

@@ -95,7 +95,7 @@ public class MessageService : IMessageService
 
         content = content.Trim();
         if (content.Length > 2000)
-            content = content[..2000];
+            throw new ArgumentException("Message cannot exceed 2000 characters.");
 
         var message = new Message
         {

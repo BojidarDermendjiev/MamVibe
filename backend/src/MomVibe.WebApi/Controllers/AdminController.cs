@@ -143,7 +143,7 @@ public class AdminController : ControllerBase
     [HttpGet("shipments/{id:guid}/track")]
     public async Task<IActionResult> TrackShipment(Guid id)
     {
-        var events = await this._shippingService.TrackShipmentAsync(id, userId: "", isAdmin: true);
+        var events = await this._shippingService.TrackShipmentAsync(id, userId: this._currentUserService.UserId ?? "", isAdmin: true);
         return Ok(events);
     }
 

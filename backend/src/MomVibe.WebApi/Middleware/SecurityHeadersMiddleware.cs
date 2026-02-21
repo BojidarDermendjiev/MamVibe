@@ -29,6 +29,7 @@ public class SecurityHeadersMiddleware
             "form-action 'self'");
         context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
         context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+        context.Response.Headers.Append("X-Permitted-Cross-Domain-Policies", "none");
 
         await this._next(context);
     }
