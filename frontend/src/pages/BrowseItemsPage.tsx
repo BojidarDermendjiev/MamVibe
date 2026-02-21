@@ -40,7 +40,7 @@ export default function BrowseItemsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
-      <h1 className="text-3xl font-bold text-primary-dark mb-6">{t('nav.browse')}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-[#364153] dark:text-[#bdb9bc]">{t('nav.browse')}</h1>
 
       <form onSubmit={handleSearch} className="mb-6">
         <Input

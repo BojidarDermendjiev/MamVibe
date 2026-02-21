@@ -27,7 +27,7 @@ public class SecurityHeadersMiddleware
             "object-src 'none'; " +
             "base-uri 'self'; " +
             "form-action 'self'");
-        context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+        context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
         context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
 
         await this._next(context);

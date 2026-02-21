@@ -28,7 +28,7 @@
   --color-cream-dark: #f5f0e8;
   --color-cream-light: #e4ddbb;
   /* text */
-  --color-text: #945c67;
+  --color-text: #364153;
 }
 
 /* ─── Reset & Base ─── */
@@ -36,6 +36,15 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* ─── Hide scrollbar globally ─── */
+* {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+*::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Opera */
 }
 
 body {
@@ -484,6 +493,15 @@ a:hover {
   color: #9ca3af;
 }
 
+/* ─── Light Mode Text Overrides ─── */
+/* Remap pink/mauve text classes → dark slate in light mode */
+.text-primary     { color: #364153; }
+.text-mauve       { color: #364153; }
+
+.text-sub {
+  color: #364153;
+}
+
 /* ─── Dark Mode Global Overrides ─── */
 .dark body {
   background-color: #1a1825;
@@ -506,6 +524,12 @@ a:hover {
 .dark .text-gray-600     { color: #c8c4d8 !important; }
 .dark .text-gray-500     { color: #a8a4c0 !important; }
 .dark .text-gray-400     { color: #8884a0 !important; }
+
+/* Primary/mauve text → neutral tone in dark mode */
+.dark .text-primary      { color: #bdb9bc !important; }
+.dark .text-mauve        { color: #bdb9bc !important; }
+.dark .text-body         { color: #bdb9bc !important; }
+.dark .text-text         { color: #bdb9bc !important; }
 
 /* Borders */
 .dark .border-gray-100   { border-color: rgba(193,196,227,0.12) !important; }

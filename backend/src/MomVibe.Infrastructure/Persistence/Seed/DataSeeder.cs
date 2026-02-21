@@ -28,25 +28,32 @@ public static class DataSeeder
     }
 
     /// <summary>
-    /// Creates the default admin user if it does not already exist.
+    /// Creates the default admin user if it does not already exist,
+    /// and ensures the Admin role is assigned even if the user already exists.
     /// </summary>
     public static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager)
     {
         const string adminEmail = "admin@mamvibe.com";
 
-        if (await userManager.FindByEmailAsync(adminEmail) is not null)
-            return;
+        var admin = await userManager.FindByEmailAsync(adminEmail);
 
-        var admin = new ApplicationUser
+        if (admin is null)
         {
-            UserName = adminEmail,
-            Email = adminEmail,
-            DisplayName = "Admin",
-            EmailConfirmed = true,
-        };
+            admin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                DisplayName = "Admin",
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow,
+            };
 
-        var result = await userManager.CreateAsync(admin, "Admin123!");
-        if (result.Succeeded)
+            var result = await userManager.CreateAsync(admin, "Admin123!");
+            if (!result.Succeeded)
+                return;
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
         {
             await userManager.AddToRoleAsync(admin, "Admin");
         }

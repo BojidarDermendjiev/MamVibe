@@ -127,12 +127,6 @@ export default function HomePage() {
 
         <div className="relative z-10 container mx-auto px-4 w-full">
           <div className="flex gap-8 py-20 lg:py-32 items-center justify-center flex-col">
-            <Link to="/browse">
-              <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/40 backdrop-blur-sm text-white text-sm font-medium hover:bg-white/30 transition-colors">
-                {t("home.browse_btn")} <MoveRight className="w-4 h-4" />
-              </button>
-            </Link>
-
             <div className="flex gap-4 flex-col items-center">
               <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tight text-center font-bold drop-shadow-lg">
                 <span className="text-white">{t("home.hero_title")} </span>
@@ -206,7 +200,7 @@ export default function HomePage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="dark-section py-40 px-4" style={{ backgroundColor: "#FAF3EE" }}>
+      <section className="dark-section pt-40 pb-[6.5rem] px-4" style={{ backgroundColor: "#FAF3EE" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
@@ -244,7 +238,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Shop by Age ── */}
-      <section className="dark-section py-40 px-4" style={{ backgroundColor: "#FAF3EE" }}>
+      <section className="dark-section pt-[6.5rem] pb-40 px-4" style={{ backgroundColor: "#FAF3EE" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">

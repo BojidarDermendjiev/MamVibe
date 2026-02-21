@@ -60,15 +60,27 @@ export default function MainLayout() {
     { name: t("nav.browse") || "Browse", url: "/browse", icon: Search },
     ...(isAuthenticated
       ? [
-          { name: t("nav.create") || "Create", url: "/create", icon: PlusCircle },
+          {
+            name: t("nav.create") || "Create",
+            url: "/create",
+            icon: PlusCircle,
+          },
           {
             name: t("nav.chat") || "Chat",
             url: "/chat",
             icon: MessageCircle,
             badge: unreadCount > 0 ? unreadCount : undefined,
           },
-          { name: t("nav.dashboard") || "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-          { name: t("nav.feedback") || "Feedback", url: "/feedback", icon: MessageSquare },
+          {
+            name: t("nav.dashboard") || "Dashboard",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+          },
+          {
+            name: t("nav.feedback") || "Feedback",
+            url: "/feedback",
+            icon: MessageSquare,
+          },
         ]
       : []),
   ];
@@ -77,7 +89,7 @@ export default function MainLayout() {
     const match = navItems.find(
       (item) =>
         (item.url === "/" && location.pathname === "/") ||
-        (item.url !== "/" && location.pathname.startsWith(item.url))
+        (item.url !== "/" && location.pathname.startsWith(item.url)),
     );
     return match?.name ?? navItems[0].name;
   };
@@ -86,7 +98,7 @@ export default function MainLayout() {
 
   useEffect(() => {
     setActiveTab(getActive());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, isAuthenticated]);
 
   const handleLogout = () => {
@@ -110,11 +122,13 @@ export default function MainLayout() {
               "relative cursor-pointer text-sm font-semibold rounded-full transition-colors",
               mobile ? "px-4 py-2" : "px-6 py-2",
               "text-gray-500 hover:text-gray-900",
-              isActive && "text-gray-900"
+              isActive && "text-gray-900",
             )}
           >
             {/* Desktop: text label */}
-            <span className={mobile ? "hidden" : "hidden md:inline"}>{item.name}</span>
+            <span className={mobile ? "hidden" : "hidden md:inline"}>
+              {item.name}
+            </span>
 
             {/* Icon (always on mobile pill, md:hidden on desktop) */}
             <span className={clsx("relative", mobile ? "block" : "md:hidden")}>
@@ -160,10 +174,12 @@ export default function MainLayout() {
       {/* Dark mode toggle */}
       <button
         onClick={toggleTheme}
-        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={
+          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        }
         className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors text-gray-700 dark:text-gray-200"
       >
-        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
       </button>
       <LanguageSwitcher />
 
@@ -188,7 +204,11 @@ export default function MainLayout() {
               onClick={() => setDropdownOpen((v) => !v)}
               className="flex items-center gap-1.5 p-1 pr-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors relative z-50"
             >
-              <Avatar src={user?.avatarUrl} profileType={user?.profileType} size="sm" />
+              <Avatar
+                src={user?.avatarUrl}
+                profileType={user?.profileType}
+                size="sm"
+              />
               <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[90px] truncate">
                 {user?.displayName}
               </span>
@@ -221,7 +241,10 @@ export default function MainLayout() {
                 )}
                 <hr className="my-1 border-lavender/30" />
                 <button
-                  onClick={() => { handleLogout(); setDropdownOpen(false); }}
+                  onClick={() => {
+                    handleLogout();
+                    setDropdownOpen(false);
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-cream-dark"
                 >
                   {t("nav.logout")}
@@ -238,7 +261,9 @@ export default function MainLayout() {
           className="rounded-full gap-1.5"
         >
           <LogIn size={14} />
-          <span className="hidden sm:inline">{t("nav.login") || "Sign In"}</span>
+          <span className="hidden sm:inline">
+            {t("nav.login") || "Sign In"}
+          </span>
         </Button>
       )}
     </div>
@@ -246,7 +271,6 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#1a1825] transition-colors duration-300">
-
       {/* Full-screen overlay — closes dropdown when clicking anywhere on the page */}
       {dropdownOpen && (
         <div
@@ -266,17 +290,20 @@ export default function MainLayout() {
         className={clsx(
           "hidden md:block fixed top-0 left-0 right-0 z-50 pointer-events-none",
           "transition-transform duration-300 ease-in-out",
-          headerVisible ? "translate-y-0" : "-translate-y-full"
+          headerVisible ? "translate-y-0" : "-translate-y-full",
         )}
       >
         <div className="relative flex items-start px-8 pt-6">
-
           {/* Logo — top left */}
           <Link
             to="/"
             className="pointer-events-auto flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-lg rounded-full px-4 py-2 shadow-lg hover:bg-white/20 transition-colors"
           >
-            <img src="/logo.png" alt="MamVibe" className="h-6 w-6 object-contain" />
+            <img
+              src="/logo.png"
+              alt="MamVibe"
+              className="h-7 w-7 object-contain"
+            />
             <span className="text-sm font-bold text-gray-800">MamVibe</span>
           </Link>
 
@@ -289,7 +316,6 @@ export default function MainLayout() {
           <div className="pointer-events-auto ml-auto">
             <AuthControls />
           </div>
-
         </div>
       </div>
 
@@ -303,11 +329,15 @@ export default function MainLayout() {
           "bg-white/90 backdrop-blur-md border-b border-gray-100",
           "flex items-center justify-between px-4",
           "transition-transform duration-300 ease-in-out",
-          headerVisible ? "translate-y-0" : "-translate-y-full"
+          headerVisible ? "translate-y-0" : "-translate-y-full",
         )}
       >
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="MamVibe" className="h-8 w-8 object-contain" />
+          <img
+            src="/logo.png"
+            alt="MamVibe"
+            className="h-[38px] w-[38px] object-contain"
+          />
           <span className="text-base font-bold text-gray-800">MamVibe</span>
         </Link>
         <AuthControls />
@@ -331,33 +361,47 @@ export default function MainLayout() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="bg-primary text-white py-10 mt-auto">
+      <footer className="bg-white dark:bg-[#1a1825] border-t border-gray-200 dark:border-gray-700/60 py-10 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-                <img src="/logo.png" alt="MamVibe" className="h-6 w-6 object-contain" />
+              <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                <img
+                  src="/logo.png"
+                  alt="MamVibe"
+                  className="h-6 w-6 object-contain"
+                />
                 {t("footer.about")}
               </h3>
-              <p className="text-peach-light text-sm">{t("footer.about_text")}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {t("footer.about_text")}
+              </p>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-3">{t("footer.links")}</h3>
+              <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">{t("footer.links")}</h3>
               <div className="space-y-2 text-sm">
-                <Link to="/browse" className="block text-peach-light hover:text-white transition-colors">
+                <Link
+                  to="/browse"
+                  className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
+                >
                   {t("nav.browse")}
                 </Link>
-                <Link to="/register" className="block text-peach-light hover:text-white transition-colors">
-                  {t("nav.register")}
-                </Link>
+                {!isAuthenticated && (
+                  <Link
+                    to="/register"
+                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
+                  >
+                    {t("nav.register")}
+                  </Link>
+                )}
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-3">{t("footer.contact")}</h3>
-              <p className="text-peach-light text-sm">support@mamvibe.com</p>
+              <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">{t("footer.contact")}</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">support@mamvibe.com</p>
             </div>
           </div>
-          <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-peach-light">
+          <div className="border-t border-gray-200 dark:border-gray-700/60 mt-8 pt-6 text-center text-sm text-gray-400 dark:text-gray-500">
             &copy; {new Date().getFullYear()} MamVibe. {t("footer.rights")}
           </div>
         </div>
