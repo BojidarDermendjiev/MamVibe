@@ -23,7 +23,6 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    // Initial load — no search query needed
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -60,42 +59,42 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-primary mb-6">{t('admin.users')}</h1>
+      <h1 className="text-3xl font-bold text-[#364153] dark:text-[#bdb9bc] mb-6">{t('admin.users')}</h1>
 
       <form onSubmit={handleSearch} className="mb-6">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('admin.search_users')}
-          className="w-full max-w-md px-4 py-2.5 rounded-lg border border-lavender bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full max-w-md px-4 py-2.5 rounded-lg border border-lavender bg-white dark:bg-[#2a2740] dark:border-white/10 dark:text-gray-100 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </form>
 
       {loading ? (
         <LoadingSpinner size="lg" className="py-20" />
       ) : (
-        <div className="bg-white rounded-xl border border-lavender/30 overflow-hidden">
+        <div className="bg-white dark:bg-[#2d2a42] rounded-xl border border-lavender/30 dark:border-white/10 overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="bg-cream-dark text-left">
-                <th className="px-4 py-3 text-sm font-medium text-primary">User</th>
-                <th className="px-4 py-3 text-sm font-medium text-primary">Email</th>
-                <th className="px-4 py-3 text-sm font-medium text-primary">Roles</th>
-                <th className="px-4 py-3 text-sm font-medium text-primary">Status</th>
-                <th className="px-4 py-3 text-sm font-medium text-primary">Actions</th>
+              <tr className="bg-cream-dark dark:bg-[#3a3758] text-left">
+                <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">User</th>
+                <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Email</th>
+                <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Roles</th>
+                <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Status</th>
+                <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-lavender/20">
+            <tbody className="divide-y divide-lavender/20 dark:divide-white/10">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-cream/50">
+                <tr key={u.id} className="hover:bg-cream/50 dark:hover:bg-white/5">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar src={u.avatarUrl} size="sm" />
-                      <span className="text-sm font-medium text-primary">{u.displayName}</span>
+                      <span className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">{u.displayName}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{u.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{u.roles.join(', ')}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{u.email}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{u.roles.join(', ')}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       u.isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'

@@ -20,23 +20,25 @@ export default function AdminDashboardPage() {
   if (!stats) return null;
 
   const cards = [
-    { label: t('admin.total_users'), value: stats.totalUsers, icon: HiUsers, color: 'bg-lavender/20 text-primary' },
-    { label: t('admin.total_items'), value: stats.totalItems, icon: HiCollection, color: 'bg-peach/20 text-mauve' },
-    { label: t('admin.total_donations'), value: stats.totalDonations, icon: HiGift, color: 'bg-green-100 text-green-600' },
-    { label: t('admin.total_sales'), value: `$${stats.totalRevenue.toFixed(2)}`, icon: HiCurrencyDollar, color: 'bg-mauve/10 text-mauve' },
+    { label: t('admin.total_users'),     value: stats.totalUsers,                    icon: HiUsers,         color: 'bg-lavender/20 text-primary' },
+    { label: t('admin.total_items'),     value: stats.totalItems,                    icon: HiCollection,    color: 'bg-peach/20 text-mauve' },
+    { label: t('admin.total_donations'), value: stats.totalDonations,                icon: HiGift,          color: 'bg-green-100 text-green-600' },
+    { label: t('admin.total_sales'),     value: `$${stats.totalRevenue.toFixed(2)}`, icon: HiCurrencyDollar, color: 'bg-mauve/10 text-mauve' },
   ];
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-primary mb-8">{t('admin.dashboard')}</h1>
+      <h1 className="text-3xl font-bold text-[#364153] dark:text-[#bdb9bc] mb-8">
+        {t('admin.dashboard')}
+      </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card, i) => (
-          <div key={i} className="bg-white rounded-xl p-6 border border-lavender/30">
+          <div key={i} className="bg-white dark:bg-[#2d2a42] rounded-xl p-6 border border-lavender/30 dark:border-white/10">
             <div className={`w-12 h-12 rounded-xl ${card.color} flex items-center justify-center mb-4`}>
               <card.icon className="h-6 w-6" />
             </div>
-            <p className="text-sm text-gray-500">{card.label}</p>
-            <p className="text-2xl font-bold text-primary mt-1">{card.value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>
+            <p className="text-2xl font-bold text-[#364153] dark:text-[#bdb9bc] mt-1">{card.value}</p>
           </div>
         ))}
       </div>
