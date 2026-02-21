@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Persistence.Seed;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using MomVibe.Domain.Entities;
@@ -28,27 +29,44 @@ public static class DataSeeder
     }
 
     /// <summary>
-    /// Creates the default admin user if it does not already exist,
-    /// and ensures the Admin role is assigned even if the user already exists.
+    /// Creates the admin user from configuration if seeding is enabled,
+    /// and ensures the Admin role is always assigned.
+    ///
+    /// Production: set AdminSeed__Enabled=true and supply credentials
+    /// via environment variables or a secrets manager — never commit
+    /// real credentials to source control.
     /// </summary>
-    public static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager)
+    public static async Task SeedAdminAsync(
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration)
     {
-        const string adminEmail = "admin@mamvibe.com";
+        // Opt-in: seeding is disabled by default in appsettings.json
+        // and enabled only in appsettings.Development.json (or via env vars).
+        var enabled = configuration.GetValue<bool>("AdminSeed:Enabled");
+        if (!enabled)
+            return;
 
-        var admin = await userManager.FindByEmailAsync(adminEmail);
+        var email = configuration["AdminSeed:Email"];
+        var password = configuration["AdminSeed:Password"];
+        var displayName = configuration["AdminSeed:DisplayName"] ?? "Admin";
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            return;
+
+        var admin = await userManager.FindByEmailAsync(email);
 
         if (admin is null)
         {
             admin = new ApplicationUser
             {
-                UserName = adminEmail,
-                Email = adminEmail,
-                DisplayName = "Admin",
+                UserName = email,
+                Email = email,
+                DisplayName = displayName,
                 EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
             };
 
-            var result = await userManager.CreateAsync(admin, "Admin123!");
+            var result = await userManager.CreateAsync(admin, password);
             if (!result.Succeeded)
                 return;
         }
