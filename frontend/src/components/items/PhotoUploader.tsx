@@ -73,6 +73,7 @@ export default function PhotoUploader({
               <img src={photo.url} alt="" className="w-full h-full object-cover" />
               {onRemoveExisting && (
                 <button
+                  type="button"
                   onClick={() => onRemoveExisting(photo.id)}
                   className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5"
                 >
@@ -85,6 +86,7 @@ export default function PhotoUploader({
             <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden">
               <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
               <button
+                type="button"
                 onClick={() => removePhoto(index)}
                 className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5"
               >

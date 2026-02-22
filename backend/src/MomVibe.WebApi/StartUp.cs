@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 
 using MomVibe.Application;
 using MomVibe.WebApi.Hubs;
@@ -279,7 +278,7 @@ else
         context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
         await next();
     });
-}
+} 
 
 app.UseSerilogRequestLogging(options =>
 {

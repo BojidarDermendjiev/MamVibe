@@ -514,6 +514,7 @@ a:hover {
 .dark .bg-gray-50        { background-color: #201d30 !important; }
 .dark .bg-gray-100       { background-color: #2a2740 !important; }
 .dark .bg-peach          { background-color: #201d30 !important; }
+.dark .bg-peach-light    { background-color: #3a3755 !important; }
 
 /* Sections with inline cream bg (#FAF3EE) — override via class */
 .dark .dark-section      { background-color: #201d30 !important; }

@@ -17,6 +17,7 @@ export default function EditItemPage() {
   const navigate = useNavigate();
   const { categories } = useCategories();
   const [existingPhotos, setExistingPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [photosToDelete, setPhotosToDelete] = useState<{ id: string; url: string }[]>([]);
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,21 +57,21 @@ export default function EditItemPage() {
     load();
   }, [id, navigate]);
 
-  const handleRemoveExisting = async (photoId: string) => {
+  const handleRemoveExisting = (photoId: string) => {
     const photo = existingPhotos.find((p) => p.id === photoId);
     if (!photo) return;
-    try {
-      await photosApi.delete(photo.url);
-      setExistingPhotos((prev) => prev.filter((p) => p.id !== photoId));
-    } catch {
-      toast.error(t('common.error'));
-    }
+    setPhotosToDelete((prev) => [...prev, photo]);
+    setExistingPhotos((prev) => prev.filter((p) => p.id !== photoId));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      // Delete photos marked for removal
+      for (const photo of photosToDelete) {
+        await photosApi.delete(photo.url);
+      }
       // Upload new photos first to get URLs
       const newPhotoUrls: string[] = [];
       for (const file of newPhotos) {
