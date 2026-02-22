@@ -1,5 +1,6 @@
 namespace MomVibe.WebApi.Controllers;
 
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -19,16 +20,22 @@ public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IValidator<CreateFeedbackDto> _validator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FeedbackController"/>.
     /// </summary>
     /// <param name="feedbackService">Service for feedback operations.</param>
     /// <param name="currentUserService">Service providing current user context.</param>
-    public FeedbackController(IFeedbackService feedbackService, ICurrentUserService currentUserService)
+    /// <param name="validator">FluentValidation validator for feedback creation requests.</param>
+    public FeedbackController(
+        IFeedbackService feedbackService,
+        ICurrentUserService currentUserService,
+        IValidator<CreateFeedbackDto> validator)
     {
         this._feedbackService = feedbackService;
         this._currentUserService = currentUserService;
+        this._validator = validator;
     }
 
     /// <summary>
@@ -60,6 +67,11 @@ public class FeedbackController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
+
+        var validation = await this._validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         var feedback = await this._feedbackService.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetAll), feedback);
     }

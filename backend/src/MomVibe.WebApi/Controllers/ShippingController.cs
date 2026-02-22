@@ -1,5 +1,6 @@
 namespace MomVibe.WebApi.Controllers;
 
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -21,16 +22,26 @@ public class ShippingController : ControllerBase
 {
     private readonly IShippingService _shippingService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IValidator<CreateShipmentDto> _createShipmentValidator;
+    private readonly IValidator<CalculateShippingDto> _calculateShippingValidator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ShippingController"/>.
     /// </summary>
     /// <param name="shippingService">Service handling shipping logic.</param>
     /// <param name="currentUserService">Service providing current user context.</param>
-    public ShippingController(IShippingService shippingService, ICurrentUserService currentUserService)
+    /// <param name="createShipmentValidator">Validator for shipment creation requests.</param>
+    /// <param name="calculateShippingValidator">Validator for shipping price calculation requests.</param>
+    public ShippingController(
+        IShippingService shippingService,
+        ICurrentUserService currentUserService,
+        IValidator<CreateShipmentDto> createShipmentValidator,
+        IValidator<CalculateShippingDto> calculateShippingValidator)
     {
         this._shippingService = shippingService;
         this._currentUserService = currentUserService;
+        this._createShipmentValidator = createShipmentValidator;
+        this._calculateShippingValidator = calculateShippingValidator;
     }
 
     /// <summary>
@@ -42,6 +53,10 @@ public class ShippingController : ControllerBase
     [HttpPost("calculate")]
     public async Task<IActionResult> CalculatePrice([FromBody] CalculateShippingDto request)
     {
+        var validation = await this._calculateShippingValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         var result = await this._shippingService.CalculatePriceAsync(request);
         return Ok(result);
     }
@@ -55,6 +70,10 @@ public class ShippingController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateShipment([FromBody] CreateShipmentDto request)
     {
+        var validation = await this._createShipmentValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         var result = await this._shippingService.CreateShipmentAsync(request);
         return Ok(result);
     }

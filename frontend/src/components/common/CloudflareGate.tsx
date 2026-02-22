@@ -6,6 +6,15 @@ import LoadingSpinner from "./LoadingSpinner";
 const TURNSTILE_SITE_KEY =
   import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
 const SESSION_KEY = "cf_verified";
+const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Returns true only if a valid, non-expired verification timestamp is stored. */
+function isSessionVerified(): boolean {
+  const stored = sessionStorage.getItem(SESSION_KEY);
+  if (!stored) return false;
+  const expiry = parseInt(stored, 10);
+  return !isNaN(expiry) && Date.now() < expiry;
+}
 
 declare global {
   interface Window {
@@ -31,9 +40,7 @@ interface CloudflareGateProps {
 
 export default function CloudflareGate({ children }: CloudflareGateProps) {
   const { t } = useTranslation();
-  const [verified, setVerified] = useState(() => {
-    return sessionStorage.getItem(SESSION_KEY) === "true";
-  });
+  const [verified, setVerified] = useState(() => isSessionVerified());
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -80,7 +87,7 @@ export default function CloudflareGate({ children }: CloudflareGateProps) {
     try {
       const { data } = await turnstileApi.verify(token);
       if (data.verified) {
-        sessionStorage.setItem(SESSION_KEY, "true");
+        sessionStorage.setItem(SESSION_KEY, String(Date.now() + SESSION_TTL_MS));
         setVerified(true);
       } else {
         setError(true);

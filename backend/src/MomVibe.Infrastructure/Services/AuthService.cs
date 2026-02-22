@@ -5,8 +5,9 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 
 using Domain.Entities;
 using Application.DTOs.Auth;
@@ -107,8 +108,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
     {
+        var tokenHash = HashToken(refreshToken);
         var storedToken = await this._context.RefreshTokens
-            .FirstOrDefaultAsync(t => t.Token == refreshToken);
+            .FirstOrDefaultAsync(t => t.Token == tokenHash);
 
         if (storedToken == null || !storedToken.IsActive)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
@@ -229,6 +231,16 @@ public class AuthService : IAuthService
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
+    /// <summary>
+    /// Returns a lowercase hex-encoded SHA-256 hash of the given token.
+    /// Used so plaintext refresh tokens are never stored in the database.
+    /// </summary>
+    private static string HashToken(string token)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(ApplicationUser user)
     {
         var roles = await this._userManager.GetRolesAsync(user);
@@ -237,7 +249,7 @@ public class AuthService : IAuthService
 
         var refreshTokenEntity = new RefreshToken
         {
-            Token = refreshToken,
+            Token = HashToken(refreshToken),   // Store SHA-256 hash; plaintext goes to httpOnly cookie only
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(
                 int.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7"))

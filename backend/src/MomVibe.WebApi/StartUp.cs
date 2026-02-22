@@ -133,7 +133,22 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Global rate limit: 100 requests per minute per IP
+    // Global limiter: user-aware (by userId for authenticated, by IP for anonymous)
+    // This applies to ALL requests before any named policy.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var key = userId ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 200,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    // Named policy retained for AuthController's stricter limit: 10 requests per minute per IP
     options.AddPolicy("global", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -234,7 +249,11 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     if (dbContext.Database.IsRelational())
-        await dbContext.Database.MigrateAsync();
+    {
+        // Only auto-migrate outside production — in production apply migrations via CI/CD pipeline
+        if (!app.Environment.IsProduction())
+            await dbContext.Database.MigrateAsync();
+    }
     else
         await dbContext.Database.EnsureCreatedAsync();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

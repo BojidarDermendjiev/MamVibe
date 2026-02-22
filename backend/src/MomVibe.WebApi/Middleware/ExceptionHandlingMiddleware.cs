@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Middleware;
 
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 
 
 /// <summary>
@@ -56,6 +57,8 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, message) = exception switch
         {
+            ValidationException ve => (HttpStatusCode.BadRequest,
+                string.Join(" ", ve.Errors.Select(e => e.ErrorMessage))),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Access denied."),
             KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
             InvalidOperationException => (HttpStatusCode.BadRequest, exception.Message),
