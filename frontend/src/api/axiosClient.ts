@@ -49,6 +49,14 @@ axiosClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If the refresh endpoint itself returned 401, the cookie is gone/invalid.
+      // Do NOT attempt another refresh — that causes a double-refresh loop.
+      // Silently log out; useAuth's catch block will handle UI state.
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        useAuthStore.getState().logout();
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -78,7 +86,14 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         useAuthStore.getState().logout();
-        window.location.href = '/login';
+        // Only hard-navigate if not already on a public auth page.
+        // Navigating to /login while already there causes a full-page reload loop
+        // through the Cloudflare gate.
+        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
+        const onPublicPage = publicPaths.some((p) => window.location.pathname.startsWith(p));
+        if (!onPublicPage) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
