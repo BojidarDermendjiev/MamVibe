@@ -32,6 +32,8 @@ public class MappingProfile : Profile
 
         CreateMap<Item, ItemDto>()
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null))
+            .ForMember(d => d.UserDisplayName, opt => opt.MapFrom(s => s.User != null ? s.User.DisplayName : null))
+            .ForMember(d => d.UserAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null))
             .ForMember(d => d.User, opt => opt.MapFrom(s => s.User));
 
         CreateMap<ItemPhoto, ItemPhotoDto>();
