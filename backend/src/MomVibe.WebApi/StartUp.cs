@@ -159,13 +159,15 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Strict rate limit for auth endpoints: 10 requests per minute per IP
+    // Auth endpoint rate limit: 30 req/min per IP.
+    // Sufficient brute-force protection; /auth/refresh is called on every page load
+    // so 10/min was too tight when multiple tabs or hot-reloads are in use.
     options.AddPolicy("auth", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = 30,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
