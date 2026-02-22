@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiPaperAirplane, HiSearch } from 'react-icons/hi';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -35,6 +35,8 @@ function formatMessageTime(timestamp: string) {
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId?: string }>();
+  const location = useLocation();
+  const navState = location.state as { displayName?: string; avatarUrl?: string } | null;
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { sendMessage, sendTyping, onMessage, onTyping } = useSignalR();
@@ -137,13 +139,28 @@ export default function ChatPage() {
       setNewMessage('');
       if (msg) {
         setMessages((prev) => [...prev, msg]);
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.userId === activeChat
-              ? { ...c, lastMessage: msg.content, lastMessageTime: msg.timestamp }
-              : c
-          )
-        );
+        setConversations((prev) => {
+          const existing = prev.find((c) => c.userId === activeChat);
+          if (existing) {
+            return prev.map((c) =>
+              c.userId === activeChat
+                ? { ...c, lastMessage: msg.content, lastMessageTime: msg.timestamp }
+                : c
+            );
+          }
+          // First message to a new contact — add them to the sidebar
+          return [
+            {
+              userId: activeChat!,
+              displayName: activePeerName,
+              avatarUrl: activePeerAvatarUrl,
+              lastMessage: msg.content,
+              lastMessageTime: msg.timestamp,
+              unreadCount: 0,
+            },
+            ...prev,
+          ];
+        });
         setTimeout(scrollToBottom, 100);
       }
     } catch { /* ignore */ }
@@ -156,6 +173,13 @@ export default function ChatPage() {
   };
 
   const activeConversation = conversations.find((c) => c.userId === activeChat);
+  // Fallback chain for new chats not yet in the conversations list
+  const activePeerName =
+    activeConversation?.displayName ||
+    navState?.displayName ||
+    messages.find((m) => m.senderId === activeChat)?.senderDisplayName ||
+    'User';
+  const activePeerAvatarUrl = activeConversation?.avatarUrl ?? navState?.avatarUrl ?? null;
 
   const filteredConversations = searchQuery
     ? conversations.filter((c) =>
@@ -241,7 +265,7 @@ export default function ChatPage() {
           <div className={`flex gap-2.5 mb-4 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
             <div className="flex-shrink-0 mt-1">
               <Avatar
-                src={isMine ? user?.avatarUrl : activeConversation?.avatarUrl}
+                src={isMine ? user?.avatarUrl : activePeerAvatarUrl}
                 profileType={isMine ? user?.profileType : undefined}
                 size="sm"
               />
@@ -249,7 +273,7 @@ export default function ChatPage() {
             <div className={`max-w-[65%] ${isMine ? 'items-end' : 'items-start'} flex flex-col`}>
               <div className={`flex items-center gap-2 mb-1 ${isMine ? 'flex-row-reverse' : ''}`}>
                 <span className="text-xs font-semibold text-gray-600">
-                  {isMine ? t('chat.you') : (msg.senderDisplayName || activeConversation?.displayName)}
+                  {isMine ? t('chat.you') : (msg.senderDisplayName || activePeerName)}
                 </span>
                 <span className="text-[10px] text-gray-400">
                   {format(new Date(msg.timestamp), 'HH:mm')}
@@ -315,11 +339,9 @@ export default function ChatPage() {
               {/* Chat header */}
               <div className="px-6 py-4 bg-white border-b border-lavender/20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar src={activeConversation?.avatarUrl} size="md" />
+                  <Avatar src={activePeerAvatarUrl} size="md" />
                   <div>
-                    <p className="font-semibold text-primary-dark">
-                      {activeConversation?.displayName || 'User'}
-                    </p>
+                    <p className="font-semibold text-primary-dark">{activePeerName}</p>
                     {typingUser ? (
                       <p className="text-xs text-primary animate-pulse">{t('chat.typing')}</p>
                     ) : (

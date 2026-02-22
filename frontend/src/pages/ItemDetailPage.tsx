@@ -156,7 +156,11 @@ export default function ItemDetailPage() {
           {/* Actions */}
           {!isOwner && user && (
             <div className="flex gap-3">
-              <Link to={`/chat/${item.userId}`} className="flex-1">
+              <Link
+                to={`/chat/${item.userId}`}
+                state={{ displayName: item.userDisplayName, avatarUrl: item.userAvatarUrl }}
+                className="flex-1"
+              >
                 <Button fullWidth variant="secondary">
                   <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                 </Button>

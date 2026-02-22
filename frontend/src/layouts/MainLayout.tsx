@@ -86,16 +86,16 @@ export default function MainLayout() {
       : []),
   ];
 
-  const getActive = () => {
+  const getActive = (): string | null => {
     const match = navItems.find(
       (item) =>
         (item.url === "/" && location.pathname === "/") ||
         (item.url !== "/" && location.pathname.startsWith(item.url)),
     );
-    return match?.name ?? navItems[0].name;
+    return match?.name ?? null;
   };
 
-  const [activeTab, setActiveTab] = useState(getActive);
+  const [activeTab, setActiveTab] = useState<string | null>(getActive);
 
   useEffect(() => {
     setActiveTab(getActive());
