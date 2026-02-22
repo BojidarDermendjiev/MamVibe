@@ -24,6 +24,12 @@ export default defineConfig(({ mode }) => {
       headers: {
         "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
         "Cross-Origin-Embedder-Policy": "unsafe-none",
+        // Security headers for the Vite dev server
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-XSS-Protection": "0",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
       },
       proxy: {
         "/api": {
