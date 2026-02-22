@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 using Domain.Entities;
+using Domain.Exceptions;
 using Application.DTOs.Auth;
 using Application.DTOs.Users;
 using Application.Interfaces;
@@ -55,7 +56,7 @@ public class AuthService : IAuthService
     {
         var existingUser = await this._userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
-            throw new InvalidOperationException("A user with this email already exists.");
+            throw new DomainException("A user with this email already exists.");
 
         var user = new ApplicationUser
         {
@@ -69,7 +70,7 @@ public class AuthService : IAuthService
 
         var result = await this._userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new DomainException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await this._userManager.AddToRoleAsync(user, "User");
 
@@ -79,7 +80,7 @@ public class AuthService : IAuthService
             {
                 Event = "user.registered",
                 Timestamp = DateTime.UtcNow,
-                Email = user.Email,
+                Email = MaskEmail(user.Email),
                 user.DisplayName,
                 ProfileType = user.ProfileType.ToString(),
                 user.LanguagePreference
@@ -149,7 +150,7 @@ public class AuthService : IAuthService
 
             var result = await this._userManager.CreateAsync(user);
             if (!result.Succeeded)
-                throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new DomainException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
             await this._userManager.AddToRoleAsync(user, "User");
         }
@@ -229,6 +230,20 @@ public class AuthService : IAuthService
         var result = await this._userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
         if (!result.Succeeded)
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    /// <summary>
+    /// Returns a masked email for logging/webhook payloads to avoid exposing PII.
+    /// e.g. "john.doe@example.com" → "jo***@example.com"
+    /// </summary>
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "***";
+        var at = email.IndexOf('@');
+        if (at <= 0) return "***";
+        var local = email[..at];
+        var domain = email[at..];
+        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
     }
 
     /// <summary>

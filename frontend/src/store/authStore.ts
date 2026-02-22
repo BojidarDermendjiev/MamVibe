@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { User } from '../types/auth';
+import { useCartStore } from './cartStore';
 
 interface AuthState {
   user: User | null;
@@ -22,6 +23,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   setUser: (user) => set({ user }),
   logout: () => {
+    // Clear persisted cart data so it doesn't leak to the next session
+    useCartStore.getState().clearCart();
     set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false });
   },
   setLoading: (loading) => set({ isLoading: loading }),

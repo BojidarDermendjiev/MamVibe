@@ -35,6 +35,16 @@ public class ItemService : IItemService
         this._n8nSettings = n8nSettings.Value;
     }
 
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "***";
+        var at = email.IndexOf('@');
+        if (at <= 0) return "***";
+        var local = email[..at];
+        var domain = email[at..];
+        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
+    }
+
     public async Task<PagedResult<ItemDto>> GetAllAsync(ItemFilterDto filter, string? currentUserId = null)
     {
         var query = this._context.Items
@@ -157,7 +167,7 @@ public class ItemService : IItemService
                 ListingType = dto.ListingType.ToString(),
                 Price = dto.Price,
                 SellerName = createdItem?.User?.DisplayName,
-                SellerEmail = createdItem?.User?.Email
+                SellerEmail = MaskEmail(createdItem?.User?.Email)
             });
         }
         catch { /* Webhook failure must not break item creation */ }

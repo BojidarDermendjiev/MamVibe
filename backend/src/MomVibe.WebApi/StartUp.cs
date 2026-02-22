@@ -121,8 +121,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 builder.Configuration["FrontendUrl"] ?? "https://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
+              .WithHeaders("Content-Type", "Authorization", "X-Language", "Cache-Control")
+              .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
               .AllowCredentials()
               .WithExposedHeaders("X-Pagination");
     });

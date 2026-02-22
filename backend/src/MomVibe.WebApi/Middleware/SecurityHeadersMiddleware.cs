@@ -19,7 +19,7 @@ public class SecurityHeadersMiddleware
         context.Response.Headers.Append("Content-Security-Policy",
             "default-src 'self'; " +
             "script-src 'self' https://challenges.cloudflare.com https://js.stripe.com https://accounts.google.com; " +
-            "style-src 'self' 'unsafe-inline'; " +
+            "style-src 'self'; " +
             "img-src 'self' data: blob: https:; " +
             "font-src 'self'; " +
             "connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com; " +

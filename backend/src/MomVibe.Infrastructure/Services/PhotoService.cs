@@ -58,6 +58,10 @@ public class PhotoService : IPhotoService
                 throw new ArgumentException("File content does not match its extension.");
         }
 
+        // Validate image dimensions to prevent memory-exhaustion via huge images
+        headerStream.Position = 0;
+        ValidateImageDimensions(extension, headerStream);
+
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "items");
         Directory.CreateDirectory(uploadsDir);
 
@@ -69,6 +73,51 @@ public class PhotoService : IPhotoService
         await headerStream.CopyToAsync(fileStream);
 
         return $"/uploads/items/{fileName}";
+    }
+
+    private const int MaxImageDimension = 8000;
+
+    /// <summary>
+    /// Reads image dimensions from the file stream header without fully decoding the image.
+    /// Throws if width or height exceeds <see cref="MaxImageDimension"/> pixels.
+    /// </summary>
+    private static void ValidateImageDimensions(string extension, MemoryStream stream)
+    {
+        try
+        {
+            if (extension is ".png")
+            {
+                // PNG spec: IHDR chunk starts at byte 8; width at bytes 16-19, height at 20-23 (big-endian)
+                if (stream.Length < 24) return;
+                stream.Position = 16;
+                var buf = new byte[8];
+                stream.ReadExactly(buf, 0, 8);
+                var width  = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+                var height = (buf[4] << 24) | (buf[5] << 16) | (buf[6] << 8) | buf[7];
+                if (width > MaxImageDimension || height > MaxImageDimension)
+                    throw new ArgumentException($"Image dimensions must not exceed {MaxImageDimension}×{MaxImageDimension} pixels.");
+            }
+            else if (extension is ".jpg" or ".jpeg")
+            {
+                // Scan for SOF0/SOF1/SOF2 markers (0xFF 0xC0-0xC2) which carry image height/width
+                var bytes = stream.ToArray();
+                for (var i = 0; i < bytes.Length - 8; i++)
+                {
+                    if (bytes[i] != 0xFF) continue;
+                    var marker = bytes[i + 1];
+                    if (marker is 0xC0 or 0xC1 or 0xC2)
+                    {
+                        var height = (bytes[i + 5] << 8) | bytes[i + 6];
+                        var width  = (bytes[i + 7] << 8) | bytes[i + 8];
+                        if (width > MaxImageDimension || height > MaxImageDimension)
+                            throw new ArgumentException($"Image dimensions must not exceed {MaxImageDimension}×{MaxImageDimension} pixels.");
+                        break;
+                    }
+                }
+            }
+        }
+        catch (ArgumentException) { throw; }
+        catch { /* If we can't parse dimensions, allow the upload — size limit still applies */ }
     }
 
     public Task DeletePhotoAsync(string url)

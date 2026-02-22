@@ -42,6 +42,12 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Suppress 5xx error details — replace response body with a safe generic message
+    // so server implementation details are never exposed in UI toasts/alerts.
+    if (error.response?.status >= 500) {
+      error.response.data = { error: 'A server error occurred. Please try again later.' };
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

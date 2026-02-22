@@ -36,6 +36,16 @@ public class MessageService : IMessageService
         this._presenceTracker = presenceTracker;
     }
 
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "***";
+        var at = email.IndexOf('@');
+        if (at <= 0) return "***";
+        var local = email[..at];
+        var domain = email[at..];
+        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
+    }
+
     public async Task<List<ConversationDto>> GetConversationsAsync(string userId)
     {
         var messages = await this._context.Messages
@@ -124,7 +134,7 @@ public class MessageService : IMessageService
                     SenderId = senderId,
                     SenderName = saved.Sender?.DisplayName,
                     ReceiverId = receiverId,
-                    ReceiverEmail = saved.Receiver?.Email,
+                    ReceiverEmail = MaskEmail(saved.Receiver?.Email),
                     ContentPreview = content.Length > 100 ? content[..100] + "..." : content
                 });
             }

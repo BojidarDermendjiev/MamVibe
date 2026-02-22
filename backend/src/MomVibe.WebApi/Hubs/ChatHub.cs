@@ -32,9 +32,18 @@ public class ChatHub : Hub<IChatClient>
 
     public async Task<MessageDto> SendMessage(string receiverId, string content)
     {
-        var senderId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-        var message = await this._messageService.SendMessageAsync(senderId, receiverId, content);
+        if (string.IsNullOrWhiteSpace(receiverId))
+            throw new HubException("ReceiverId is required.");
+        if (string.IsNullOrWhiteSpace(content))
+            throw new HubException("Message content cannot be empty.");
+        if (content.Length > 2000)
+            throw new HubException("Message cannot exceed 2000 characters.");
 
+        var senderId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        if (senderId == receiverId)
+            throw new HubException("Cannot send a message to yourself.");
+
+        var message = await this._messageService.SendMessageAsync(senderId, receiverId, content);
         await Clients.Group($"user_{receiverId}").ReceiveMessage(message);
         return message;
     }

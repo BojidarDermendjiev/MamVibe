@@ -47,6 +47,16 @@ public class PaymentService : IPaymentService
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email)) return "***";
+        var at = email.IndexOf('@');
+        if (at <= 0) return "***";
+        var local = email[..at];
+        var domain = email[at..];
+        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
+    }
+
     private bool IsStripeConfigured()
     {
         var stripeKey = this._configuration["Stripe:SecretKey"];
@@ -184,9 +194,9 @@ public class PaymentService : IPaymentService
                             Timestamp = DateTime.UtcNow,
                             ItemId = item.Id,
                             ItemTitle = item.Title,
-                            BuyerEmail = buyer?.Email,
+                            BuyerEmail = MaskEmail(buyer?.Email),
                             BuyerName = buyer?.DisplayName,
-                            SellerEmail = item.User?.Email,
+                            SellerEmail = MaskEmail(item.User?.Email),
                             SellerName = item.User?.DisplayName,
                             Amount = item.Price ?? 0
                         });
@@ -227,9 +237,9 @@ public class PaymentService : IPaymentService
                         PaymentId = payment.Id,
                         ItemId = payment.ItemId,
                         ItemTitle = paidItem?.Title,
-                        BuyerEmail = payBuyer?.Email,
+                        BuyerEmail = MaskEmail(payBuyer?.Email),
                         BuyerName = payBuyer?.DisplayName,
-                        SellerEmail = paidItem?.User?.Email,
+                        SellerEmail = MaskEmail(paidItem?.User?.Email),
                         SellerName = paidItem?.User?.DisplayName,
                         payment.Amount
                     });
