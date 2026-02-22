@@ -11,8 +11,8 @@ export const authApi = {
   googleLogin: (data: GoogleLoginRequest) =>
     axiosClient.post<AuthResponse>('/auth/google', data),
 
-  refresh: (refreshToken: string) =>
-    axiosClient.post<AuthResponse>('/auth/refresh', { refreshToken }),
+  refresh: () =>
+    axiosClient.post<AuthResponse>('/auth/refresh', null),
 
   revoke: () =>
     axiosClient.post('/auth/revoke'),

@@ -4,10 +4,9 @@ import type { User } from '../types/auth';
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  setAuth: (user: User, accessToken: string) => void;
   setUser: (user: User) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
@@ -15,25 +14,15 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  accessToken: null,      // Memory only — never persisted to localStorage
+  isAuthenticated: false, // Resolved by silent refresh on app load
   isLoading: true,
-  setAuth: (user, accessToken, refreshToken) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    set({ user, accessToken, refreshToken, isAuthenticated: true, isLoading: false });
+  setAuth: (user, accessToken) => {
+    set({ user, accessToken, isAuthenticated: true, isLoading: false });
   },
   setUser: (user) => set({ user }),
   logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    // Tell the browser the user signed out so the credential picker
-    // (+ Windows Hello) is shown on the next login attempt.
-    if ('credentials' in navigator) {
-      navigator.credentials.preventSilentAccess?.();
-    }
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, isLoading: false });
+    set({ user: null, accessToken: null, isAuthenticated: false, isLoading: false });
   },
   setLoading: (loading) => set({ isLoading: loading }),
 }));

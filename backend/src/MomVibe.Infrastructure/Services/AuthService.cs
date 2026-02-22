@@ -2,7 +2,6 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Google.Apis.Auth;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -106,25 +105,17 @@ public class AuthService : IAuthService
         return await GenerateAuthResponseAsync(user);
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
+    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
     {
-        var principal = this._tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
-        if (principal == null)
-            throw new UnauthorizedAccessException("Invalid token.");
-
-        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-            throw new UnauthorizedAccessException("Invalid token.");
-
         var storedToken = await this._context.RefreshTokens
-            .FirstOrDefaultAsync(t => t.Token == request.RefreshToken && t.UserId == userId);
+            .FirstOrDefaultAsync(t => t.Token == refreshToken);
 
         if (storedToken == null || !storedToken.IsActive)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
         storedToken.RevokedAt = DateTime.UtcNow;
 
-        var user = await this._userManager.FindByIdAsync(userId);
+        var user = await this._userManager.FindByIdAsync(storedToken.UserId);
         if (user == null || user.IsBlocked)
             throw new UnauthorizedAccessException("User not found or blocked.");
 

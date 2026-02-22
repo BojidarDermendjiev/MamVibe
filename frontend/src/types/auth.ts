@@ -34,7 +34,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Now delivered as httpOnly cookie, not in body
   user: User;
 }
 

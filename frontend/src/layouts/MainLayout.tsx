@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useAuthStore } from "../store/authStore";
+import { authApi } from "../api/authApi";
 import { useCartStore } from "../store/cartStore";
 import { useNotification } from "../contexts/NotificationContext";
 import { type NavItem } from "../components/common/TubelightNavBar";
@@ -101,7 +102,8 @@ export default function MainLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, isAuthenticated]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await authApi.revoke(); } catch { /* best effort */ }
     logout();
     navigate("/");
   };

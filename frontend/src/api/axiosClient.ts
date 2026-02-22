@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 
 const axiosClient = axios.create({
   baseURL: '/api',
+  withCredentials: true, // Send the httpOnly refresh-token cookie automatically
 });
 
 let isRefreshing = false;
@@ -20,7 +21,8 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
+  // Read the short-lived access token from in-memory store (never localStorage)
+  const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -54,22 +56,13 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const accessToken = localStorage.getItem('accessToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
+        // The httpOnly cookie is sent automatically — no token in the body
+        const { data } = await axios.post('/api/auth/refresh', null, { withCredentials: true });
 
-        const { data } = await axios.post('/api/auth/refresh', { accessToken, refreshToken });
-
-        // Persist new tokens
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-
-        // Keep Zustand store in sync so SignalR reconnect and other consumers see the fresh token
         useAuthStore.setState({
           accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
+          user: data.user,
+          isAuthenticated: true,
         });
 
         axiosClient.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
@@ -78,8 +71,6 @@ axiosClient.interceptors.response.use(
         return axiosClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-
-        // Clear everything — store, localStorage, and redirect
         useAuthStore.getState().logout();
         window.location.href = '/login';
         return Promise.reject(refreshError);

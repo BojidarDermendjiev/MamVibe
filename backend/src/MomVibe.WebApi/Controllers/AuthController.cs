@@ -3,6 +3,7 @@ namespace MomVibe.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 
 using Application.DTOs.Auth;
 using Application.Interfaces;
@@ -24,17 +25,36 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _configuration;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AuthController"/>.
-    /// </summary>
-    /// <param name="authService">Service handling authentication workflows.</param>
-    /// <param name="currentUserService">Service providing context about the current user.</param>
-    public AuthController(IAuthService authService, ICurrentUserService currentUserService)
+    public AuthController(
+        IAuthService authService,
+        ICurrentUserService currentUserService,
+        IWebHostEnvironment env,
+        IConfiguration configuration)
     {
         this._authService = authService;
         this._currentUserService = currentUserService;
+        this._env = env;
+        this._configuration = configuration;
     }
+
+    private void SetRefreshTokenCookie(string token)
+    {
+        var days = int.Parse(this._configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7");
+        this.Response.Cookies.Append("refreshToken", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !this._env.IsDevelopment(),
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(days),
+            Path = "/api/auth"
+        });
+    }
+
+    private void ClearRefreshTokenCookie() =>
+        this.Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/api/auth" });
 
     /// <summary>
     /// Registers a new user account.
@@ -50,7 +70,8 @@ public class AuthController : ControllerBase
         try
         {
             var result = await this._authService.RegisterAsync(request);
-            return Ok(result);
+            this.SetRefreshTokenCookie(result.RefreshToken);
+            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -71,8 +92,9 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await this.    _authService.LoginAsync(request);
-            return Ok(result);
+            var result = await this._authService.LoginAsync(request);
+            this.SetRefreshTokenCookie(result.RefreshToken);
+            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -89,16 +111,22 @@ public class AuthController : ControllerBase
     /// 400 Bad Request with an error message on invalid or expired refresh token.
     /// </returns>
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+    public async Task<IActionResult> RefreshToken()
     {
+        var refreshToken = this.Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return Unauthorized(new { message = "No refresh token." });
+
         try
         {
-            var result = await this._authService.RefreshTokenAsync(request);
-            return Ok(result);
+            var result = await this._authService.RefreshTokenAsync(refreshToken);
+            this.SetRefreshTokenCookie(result.RefreshToken);
+            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            this.ClearRefreshTokenCookie();
+            return Unauthorized(new { message = ex.Message });
         }
     }
 
@@ -116,7 +144,8 @@ public class AuthController : ControllerBase
         try
         {
             var result = await this._authService.GoogleLoginAsync(request);
-            return Ok(result);
+            this.SetRefreshTokenCookie(result.RefreshToken);
+            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -138,6 +167,7 @@ public class AuthController : ControllerBase
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         await this._authService.RevokeTokenAsync(userId);
+        this.ClearRefreshTokenCookie();
         return NoContent();
     }
 
