@@ -1,13 +1,14 @@
 ﻿namespace MomVibe.Application.Interfaces;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 using Domain.Entities;
 
 /// <summary>
 /// Application data context abstraction over EF Core.
 /// Exposes DbSets for core entities (Items, ItemPhotos, Categories, Likes, Messages, Payments,
-/// RefreshTokens, Feedbacks, Shipments) and SaveChangesAsync for committing changes.
+/// RefreshTokens, Feedbacks, Shipments, PurchaseRequests) and SaveChangesAsync for committing changes.
 /// Facilitates testability and layering by decoupling services from the concrete DbContext.
 /// </summary>
 public interface IApplicationDbContext
@@ -21,5 +22,7 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Feedback> Feedbacks { get; }
     DbSet<Shipment> Shipments { get; }
+    DbSet<PurchaseRequest> PurchaseRequests { get; }
+    DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

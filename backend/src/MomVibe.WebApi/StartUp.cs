@@ -10,9 +10,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 using MomVibe.Application;
 using MomVibe.WebApi.Hubs;
+using MomVibe.WebApi.Services;
 using MomVibe.Infrastructure;
 using MomVibe.Domain.Entities;
 using MomVibe.WebApi.Middleware;
+using MomVibe.Application.Interfaces;
 using MomVibe.Infrastructure.Persistence;
 using MomVibe.Infrastructure.Persistence.Seed;
 
@@ -32,6 +34,9 @@ builder.Host.UseSerilog((context, config) =>
 // Add layers
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// SignalR-backed purchase-request notifier (registered here because it depends on IHubContext from WebApi)
+builder.Services.AddScoped<IPurchaseRequestNotifier, SignalRPurchaseRequestNotifier>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();

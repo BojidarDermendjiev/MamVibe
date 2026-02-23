@@ -32,7 +32,7 @@ export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { unreadCount } = useNotification();
+  const { unreadCount, pendingRequestCount } = useNotification();
   const cartItems = useCartStore((s) => s.items);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -76,6 +76,7 @@ export default function MainLayout() {
             name: t("nav.dashboard") || "Dashboard",
             url: "/dashboard",
             icon: LayoutDashboard,
+            badge: pendingRequestCount > 0 ? pendingRequestCount : undefined,
           },
           {
             name: t("nav.feedback") || "Feedback",

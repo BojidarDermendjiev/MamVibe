@@ -2,11 +2,15 @@ import { createContext, useContext, useEffect, useRef, useState, useCallback, ty
 import { signalRService } from '../services/signalRService';
 import { useAuthStore } from '../store/authStore';
 import type { Message } from '../types/message';
+import type { PurchaseRequest } from '../types/purchaseRequest';
 
 type MessageHandler = (message: Message) => void;
 type TypingHandler = (userId: string) => void;
 type ReadHandler = (senderId: string) => void;
 type OnlineHandler = (userId: string) => void;
+type PurchaseRequestHandler = (request: PurchaseRequest) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PaymentChosenHandler = (notification: any) => void;
 
 interface SignalRContextValue {
   isConnected: boolean;
@@ -18,6 +22,9 @@ interface SignalRContextValue {
   onRead: (handler: ReadHandler) => () => void;
   onOnline: (handler: OnlineHandler) => () => void;
   onOffline: (handler: OnlineHandler) => () => void;
+  onPurchaseRequest: (handler: PurchaseRequestHandler) => () => void;
+  onPurchaseRequestUpdated: (handler: PurchaseRequestHandler) => () => void;
+  onPaymentChosen: (handler: PaymentChosenHandler) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue>({
@@ -30,6 +37,9 @@ const SignalRContext = createContext<SignalRContextValue>({
   onRead: () => () => {},
   onOnline: () => () => {},
   onOffline: () => () => {},
+  onPurchaseRequest: () => () => {},
+  onPurchaseRequestUpdated: () => () => {},
+  onPaymentChosen: () => () => {},
 });
 
 export function SignalRProvider({ children }: { children: ReactNode }) {
@@ -92,9 +102,37 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const onPurchaseRequest = useCallback(
+    (handler: PurchaseRequestHandler) => signalRService.onPurchaseRequest(handler),
+    []
+  );
+
+  const onPurchaseRequestUpdated = useCallback(
+    (handler: PurchaseRequestHandler) => signalRService.onPurchaseRequestUpdated(handler),
+    []
+  );
+
+  const onPaymentChosen = useCallback(
+    (handler: PaymentChosenHandler) => signalRService.onPaymentChosen(handler),
+    []
+  );
+
   return (
     <SignalRContext.Provider
-      value={{ isConnected, sendMessage, sendTyping, markAsRead, onMessage, onTyping, onRead, onOnline, onOffline }}
+      value={{
+        isConnected,
+        sendMessage,
+        sendTyping,
+        markAsRead,
+        onMessage,
+        onTyping,
+        onRead,
+        onOnline,
+        onOffline,
+        onPurchaseRequest,
+        onPurchaseRequestUpdated,
+        onPaymentChosen,
+      }}
     >
       {children}
     </SignalRContext.Provider>

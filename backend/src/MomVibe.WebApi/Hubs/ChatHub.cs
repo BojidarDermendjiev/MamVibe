@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 using Application.Interfaces;
 using Application.DTOs.Messages;
+using Application.DTOs.PurchaseRequests;
 using Infrastructure.Services;
 
 /// <summary>
@@ -87,7 +88,7 @@ public class ChatHub : Hub<IChatClient>
 }
 
 /// <summary>
-/// Strongly-typed SignalR client contract for chat events.
+/// Strongly-typed SignalR client contract for chat and purchase-request events.
 /// </summary>
 public interface IChatClient
 {
@@ -96,4 +97,9 @@ public interface IChatClient
     Task UserTyping(string userId);
     Task UserOnline(string userId);
     Task UserOffline(string userId);
+
+    // Purchase-request events
+    Task ReceivePurchaseRequest(PurchaseRequestDto request);
+    Task PurchaseRequestUpdated(PurchaseRequestDto request);
+    Task PaymentMethodChosen(object notification);
 }

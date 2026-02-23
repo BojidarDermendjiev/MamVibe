@@ -23,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
+    public DbSet<PurchaseRequest> PurchaseRequests => Set<PurchaseRequest>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

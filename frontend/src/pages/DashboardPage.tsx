@@ -1,12 +1,18 @@
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import { itemsApi } from '../api/itemsApi';
+import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
+import { PurchaseRequestStatus } from '../types/purchaseRequest';
+import { useNotification } from '../contexts/NotificationContext';
 import ItemCard from '../components/items/ItemCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import Avatar from '../components/common/Avatar';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { tab, setTab, myItems, likedItems, payments, loading, removeLikedItem, refreshTab } = useDashboard();
+  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, loading, removeLikedItem, refreshTab } = useDashboard();
+  const { decrementPendingRequestCount } = useNotification();
 
   const handleListingLikeToggle = async (id: string) => {
     try {
@@ -22,10 +28,41 @@ export default function DashboardPage() {
     } catch { /* ignore */ }
   };
 
+  const handleAccept = async (requestId: string) => {
+    try {
+      await purchaseRequestsApi.accept(requestId);
+      decrementPendingRequestCount();
+      toast.success('Request accepted!');
+      refreshTab();
+    } catch {
+      toast.error('Could not accept request.');
+    }
+  };
+
+  const handleDecline = async (requestId: string) => {
+    try {
+      await purchaseRequestsApi.decline(requestId);
+      decrementPendingRequestCount();
+      toast.success('Request declined.');
+      refreshTab();
+    } catch {
+      toast.error('Could not decline request.');
+    }
+  };
+
+  const statusLabel = (status: number) => {
+    if (status === PurchaseRequestStatus.Pending) return { text: 'Pending', cls: 'bg-yellow-100 text-yellow-800' };
+    if (status === PurchaseRequestStatus.Accepted) return { text: 'Accepted', cls: 'bg-green-100 text-green-800' };
+    if (status === PurchaseRequestStatus.Declined) return { text: 'Declined', cls: 'bg-red-100 text-red-800' };
+    return { text: 'Cancelled', cls: 'bg-gray-100 text-gray-600' };
+  };
+
   const tabs: { key: DashboardTab; label: string }[] = [
     { key: 'listings', label: t('dashboard.my_listings') },
     { key: 'liked', label: t('dashboard.liked_items') },
     { key: 'purchases', label: t('dashboard.purchases') },
+    { key: 'incoming-requests', label: 'Incoming Requests' },
+    { key: 'my-requests', label: 'My Requests' },
   ];
 
   return (
@@ -85,6 +122,85 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )
+          )}
+
+          {/* ── Incoming Requests (seller view) ── */}
+          {tab === 'incoming-requests' && (
+            incomingRequests.length === 0 ? (
+              <p className="text-center py-20 text-gray-400">No incoming requests yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {incomingRequests.map((r) => {
+                  const { text, cls } = statusLabel(r.status);
+                  return (
+                    <div key={r.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
+                      {r.itemPhotoUrl ? (
+                        <img src={r.itemPhotoUrl} alt={r.itemTitle ?? ''} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-lavender/20 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary truncate">{r.itemTitle}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Avatar src={r.buyerAvatarUrl} size="sm" />
+                          <p className="text-sm text-gray-500">{r.buyerDisplayName}</p>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{text}</span>
+                        {r.status === PurchaseRequestStatus.Pending && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(r.id)}
+                              className="px-3 py-1.5 text-sm font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleDecline(r.id)}
+                              className="px-3 py-1.5 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Decline
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* ── My Requests (buyer view) ── */}
+          {tab === 'my-requests' && (
+            myRequests.length === 0 ? (
+              <p className="text-center py-20 text-gray-400">You have not sent any requests yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {myRequests.map((r) => {
+                  const { text, cls } = statusLabel(r.status);
+                  return (
+                    <div key={r.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
+                      {r.itemPhotoUrl ? (
+                        <img src={r.itemPhotoUrl} alt={r.itemTitle ?? ''} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-lavender/20 flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary truncate">{r.itemTitle}</p>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {r.price != null && r.price > 0 ? `$${r.price.toFixed(2)}` : 'Free'}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${cls}`}>{text}</span>
+                    </div>
+                  );
+                })}
               </div>
             )
           )}

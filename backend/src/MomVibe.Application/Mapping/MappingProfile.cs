@@ -9,6 +9,7 @@ using DTOs.Messages;
 using DTOs.Payments;
 using DTOs.Feedbacks;
 using DTOs.Shipping;
+using DTOs.PurchaseRequests;
 using Domain.Entities;
 
 /// <summary>
@@ -52,5 +53,16 @@ public class MappingProfile : Profile
 
         CreateMap<Shipment, ShipmentDto>()
             .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Payment != null && s.Payment.Item != null ? s.Payment.Item.Title : null));
+
+        CreateMap<PurchaseRequest, PurchaseRequestDto>()
+            .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Item != null ? s.Item.Title : null))
+            .ForMember(d => d.ItemPhotoUrl, opt => opt.MapFrom(s =>
+                s.Item != null && s.Item.Photos != null && s.Item.Photos.Count > 0
+                    ? s.Item.Photos.OrderBy(p => p.DisplayOrder).First().Url
+                    : null))
+            .ForMember(d => d.ListingType, opt => opt.MapFrom(s => s.Item != null ? s.Item.ListingType : default))
+            .ForMember(d => d.Price, opt => opt.MapFrom(s => s.Item != null ? s.Item.Price : null))
+            .ForMember(d => d.BuyerDisplayName, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.DisplayName : null))
+            .ForMember(d => d.BuyerAvatarUrl, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.AvatarUrl : null));
     }
 }

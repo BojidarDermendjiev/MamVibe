@@ -1,10 +1,14 @@
 import * as signalR from '@microsoft/signalr';
 import type { Message } from '../types/message';
+import type { PurchaseRequest } from '../types/purchaseRequest';
 
 type MessageHandler = (message: Message) => void;
 type ReadHandler = (senderId: string) => void;
 type TypingHandler = (userId: string) => void;
 type OnlineHandler = (userId: string) => void;
+type PurchaseRequestHandler = (request: PurchaseRequest) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PaymentChosenHandler = (notification: any) => void;
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -13,6 +17,9 @@ class SignalRService {
   private typingHandlers: TypingHandler[] = [];
   private onlineHandlers: OnlineHandler[] = [];
   private offlineHandlers: OnlineHandler[] = [];
+  private purchaseRequestHandlers: PurchaseRequestHandler[] = [];
+  private purchaseRequestUpdatedHandlers: PurchaseRequestHandler[] = [];
+  private paymentChosenHandlers: PaymentChosenHandler[] = [];
 
   async connect(accessToken: string): Promise<void> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -45,6 +52,19 @@ class SignalRService {
 
     this.connection.on('UserOffline', (userId: string) => {
       this.offlineHandlers.forEach((h) => h(userId));
+    });
+
+    this.connection.on('ReceivePurchaseRequest', (request: PurchaseRequest) => {
+      this.purchaseRequestHandlers.forEach((h) => h(request));
+    });
+
+    this.connection.on('PurchaseRequestUpdated', (request: PurchaseRequest) => {
+      this.purchaseRequestUpdatedHandlers.forEach((h) => h(request));
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.connection.on('PaymentMethodChosen', (notification: any) => {
+      this.paymentChosenHandlers.forEach((h) => h(notification));
     });
 
     await this.connection.start();
@@ -102,6 +122,27 @@ class SignalRService {
     this.offlineHandlers.push(handler);
     return () => {
       this.offlineHandlers = this.offlineHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onPurchaseRequest(handler: PurchaseRequestHandler): () => void {
+    this.purchaseRequestHandlers.push(handler);
+    return () => {
+      this.purchaseRequestHandlers = this.purchaseRequestHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onPurchaseRequestUpdated(handler: PurchaseRequestHandler): () => void {
+    this.purchaseRequestUpdatedHandlers.push(handler);
+    return () => {
+      this.purchaseRequestUpdatedHandlers = this.purchaseRequestUpdatedHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onPaymentChosen(handler: PaymentChosenHandler): () => void {
+    this.paymentChosenHandlers.push(handler);
+    return () => {
+      this.paymentChosenHandlers = this.paymentChosenHandlers.filter((h) => h !== handler);
     };
   }
 }

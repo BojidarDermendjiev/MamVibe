@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import { itemsApi } from '../api/itemsApi';
+import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { type Item, ListingType } from '../types/item';
 import { useAuthStore } from '../store/authStore';
-import { useCartStore } from '../store/cartStore';
 import { getCategoryImage } from '../utils/categoryImages';
 import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
@@ -18,10 +18,11 @@ export default function ItemDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const addItem = useCartStore((s) => s.addItem);
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
+  const [requestPending, setRequestPending] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
   const viewCounted = useRef(false);
 
   useEffect(() => {
@@ -52,6 +53,23 @@ export default function ItemDetailPage() {
       navigate('/dashboard');
     } catch {
       toast.error(t('common.error'));
+    }
+  };
+
+  const handleRequestPurchase = async () => {
+    if (!item) return;
+    setRequestPending(true);
+    try {
+      await purchaseRequestsApi.create(item.id);
+      setRequestSent(true);
+      toast.success('Request sent to seller!');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Could not send request. The item may already be reserved.';
+      toast.error(msg);
+    } finally {
+      setRequestPending(false);
     }
   };
 
@@ -165,25 +183,31 @@ export default function ItemDetailPage() {
                   <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                 </Button>
               </Link>
-              <Button
-                fullWidth
-                className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
-                onClick={() => {
-                  addItem({
-                    id: item.id,
-                    title: item.title,
-                    price: item.price ?? 0,
-                    imageUrl: item.photos[0]?.url,
-                    listingType: item.listingType,
-                    sellerId: item.userId,
-                    categoryName: item.categoryName,
-                  });
-                  toast.success(t('cart.added'));
-                  navigate('/browse');
-                }}
-              >
-                {item.listingType === ListingType.Donate ? t('items.book_now') : t('items.buy_now')}
-              </Button>
+
+              {/* Item is available — show Request Purchase button */}
+              {item.isActive && (
+                <Button
+                  fullWidth
+                  disabled={requestSent || requestPending}
+                  className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
+                  onClick={handleRequestPurchase}
+                >
+                  {requestSent
+                    ? 'Pending Approval'
+                    : requestPending
+                    ? 'Sending…'
+                    : item.listingType === ListingType.Donate
+                    ? 'Request Booking'
+                    : 'Request Purchase'}
+                </Button>
+              )}
+
+              {/* Item is reserved by someone else */}
+              {!item.isActive && (
+                <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl px-4 py-2 text-sm font-medium text-gray-500">
+                  Not Available
+                </div>
+              )}
             </div>
           )}
         </div>

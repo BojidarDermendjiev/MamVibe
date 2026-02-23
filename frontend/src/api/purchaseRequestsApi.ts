@@ -1,0 +1,22 @@
+import axiosClient from './axiosClient';
+import type { PurchaseRequest } from '../types/purchaseRequest';
+
+export const purchaseRequestsApi = {
+  create: (itemId: string) =>
+    axiosClient.post<PurchaseRequest>('/purchase-requests', { itemId }),
+
+  accept: (id: string) =>
+    axiosClient.post<PurchaseRequest>(`/purchase-requests/${id}/accept`),
+
+  decline: (id: string) =>
+    axiosClient.post<PurchaseRequest>(`/purchase-requests/${id}/decline`),
+
+  paymentChosen: (id: string, paymentMethod: string) =>
+    axiosClient.post<PurchaseRequest>(`/purchase-requests/${id}/payment-chosen`, { paymentMethod }),
+
+  getAsSeller: () =>
+    axiosClient.get<PurchaseRequest[]>('/purchase-requests/as-seller'),
+
+  getAsBuyer: () =>
+    axiosClient.get<PurchaseRequest[]>('/purchase-requests/as-buyer'),
+};

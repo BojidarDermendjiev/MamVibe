@@ -2,34 +2,44 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, ty
 import { useSignalR } from './SignalRContext';
 import { useAuthStore } from '../store/authStore';
 import { messagesApi } from '../api/messagesApi';
+import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
+import { PurchaseRequestStatus } from '../types/purchaseRequest';
 
 interface NotificationContextValue {
   unreadCount: number;
+  pendingRequestCount: number;
   markConversationRead: (userId: string) => void;
   setActiveChatUserId: (userId: string | null) => void;
+  decrementPendingRequestCount: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextValue>({
   unreadCount: 0,
+  pendingRequestCount: 0,
   markConversationRead: () => {},
   setActiveChatUserId: () => {},
+  decrementPendingRequestCount: () => {},
 });
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
-  const { onMessage } = useSignalR();
+  const { onMessage, onPurchaseRequest } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
 
-  // Reset unread count on logout
+  // Reset counts on logout; fetch initial counts on login
   useEffect(() => {
     if (!isAuthenticated) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on auth change
       setUnreadCount(0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on auth change
+      setPendingRequestCount(0);
       return;
     }
 
     let cancelled = false;
+
     messagesApi
       .getConversations()
       .then((res) => {
@@ -39,6 +49,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {});
+
+    purchaseRequestsApi
+      .getAsSeller()
+      .then((res) => {
+        if (!cancelled) {
+          const pending = res.data.filter((r) => r.status === PurchaseRequestStatus.Pending).length;
+          setPendingRequestCount(pending);
+        }
+      })
+      .catch(() => {});
+
     return () => { cancelled = true; };
   }, [isAuthenticated]);
 
@@ -55,6 +76,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
     return unsub;
   }, [onMessage, user?.id]);
+
+  // Increment pending request count when seller receives a new request
+  useEffect(() => {
+    const unsub = onPurchaseRequest(() => {
+      setPendingRequestCount((prev) => prev + 1);
+    });
+    return unsub;
+  }, [onPurchaseRequest]);
 
   const setActiveChatUserId = useCallback((userId: string | null) => {
     activeChatRef.current = userId;
@@ -74,8 +103,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated]);
 
+  const decrementPendingRequestCount = useCallback(() => {
+    setPendingRequestCount((prev) => Math.max(0, prev - 1));
+  }, []);
+
   return (
-    <NotificationContext.Provider value={{ unreadCount, markConversationRead, setActiveChatUserId }}>
+    <NotificationContext.Provider
+      value={{ unreadCount, pendingRequestCount, markConversationRead, setActiveChatUserId, decrementPendingRequestCount }}
+    >
       {children}
     </NotificationContext.Provider>
   );
