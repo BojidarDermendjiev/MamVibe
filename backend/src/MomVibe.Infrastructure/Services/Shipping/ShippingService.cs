@@ -23,19 +23,22 @@ public class ShippingService : IShippingService
     private readonly CourierProviderFactory _factory;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly IShipmentNotifier _notifier;
 
     public ShippingService(
         IApplicationDbContext context,
         IMapper mapper,
         CourierProviderFactory factory,
         IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings)
+        IOptions<N8nSettings> n8nSettings,
+        IShipmentNotifier notifier)
     {
         this._context = context;
         this._mapper = mapper;
         this._factory = factory;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._notifier = notifier;
     }
 
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
@@ -119,7 +122,9 @@ public class ShippingService : IShippingService
         catch { /* Webhook failure must not break shipment flow */ }
 
         shipment.Payment = payment;
-        return this._mapper.Map<ShipmentDto>(shipment);
+        var dto = this._mapper.Map<ShipmentDto>(shipment);
+        try { await this._notifier.NotifyShipmentCreatedAsync(payment.BuyerId, dto); } catch { /* notification failure must not break shipment creation */ }
+        return dto;
     }
 
     public async Task<byte[]> GetLabelAsync(Guid shipmentId, string userId)
@@ -226,6 +231,7 @@ public class ShippingService : IShippingService
 
         var newlyDelivered = new List<Shipment>();
         var newlyOutForDelivery = new List<Shipment>();
+        var newlyPickedUp = new List<Shipment>();
 
         foreach (var shipment in activeShipments)
         {
@@ -255,6 +261,9 @@ public class ShippingService : IShippingService
 
             if (previousStatus != ShipmentStatus.OutForDelivery && shipment.Status == ShipmentStatus.OutForDelivery)
                 newlyOutForDelivery.Add(shipment);
+
+            if (previousStatus != ShipmentStatus.PickedUp && shipment.Status == ShipmentStatus.PickedUp)
+                newlyPickedUp.Add(shipment);
         }
 
         await this._context.SaveChangesAsync();
@@ -296,6 +305,17 @@ public class ShippingService : IShippingService
                 });
             }
             catch { /* Webhook failure must not break sync flow */ }
+        }
+
+        // Push real-time SignalR notification for newly picked-up shipments
+        foreach (var shipment in newlyPickedUp)
+        {
+            try
+            {
+                var dto = _mapper.Map<ShipmentDto>(shipment);
+                await _notifier.NotifyShipmentStatusChangedAsync(shipment.Payment.BuyerId, dto);
+            }
+            catch { /* Notification failure must not break sync flow */ }
         }
     }
 }

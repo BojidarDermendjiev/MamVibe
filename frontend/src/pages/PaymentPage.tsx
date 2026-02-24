@@ -7,14 +7,13 @@ import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { type Item, ListingType } from '../types/item';
 import { CourierProvider, DeliveryType } from '../types/shipping';
-import type { CalculateShippingRequest } from '../types/shipping';
+import type { CalculateShippingRequest, PaymentDeliveryRequest } from '../types/shipping';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import CourierSelector from '../components/shipping/CourierSelector';
 import DeliveryTypeSelector from '../components/shipping/DeliveryTypeSelector';
 import OfficePicker from '../components/shipping/OfficePicker';
 import ShippingPricePreview from '../components/shipping/ShippingPricePreview';
-import PaymentCardForm from '../components/payment/PaymentCardForm';
 
 export default function PaymentPage() {
   const { itemId } = useParams<{ itemId: string }>();
@@ -28,6 +27,7 @@ export default function PaymentPage() {
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>(DeliveryType.Office);
   const [officeId, setOfficeId] = useState('');
+  const [officeName, setOfficeName] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [recipientName, setRecipientName] = useState('');
@@ -81,19 +81,32 @@ export default function PaymentPage() {
       return;
     }
 
+    const delivery: PaymentDeliveryRequest = {
+      courierProvider: courier,
+      deliveryType,
+      recipientName,
+      recipientPhone,
+      city: city || undefined,
+      address: address || undefined,
+      officeId: officeId || undefined,
+      officeName: officeName || undefined,
+      weight: 1,
+    };
+
+    // Card payment → go to dedicated card page, passing delivery in state
+    if (!isDonate && method === 'card') {
+      navigate(`/payment/${itemId}/card`, { state: { delivery } });
+      return;
+    }
+
     setProcessing(true);
     try {
       if (isDonate) {
-        await paymentsApi.createBooking(itemId);
+        await paymentsApi.createBooking(itemId, delivery);
         toast.success(t('payment.booking_success'));
         navigate('/payment/success');
-      } else if (method === 'card') {
-        const { data } = await paymentsApi.createCheckout(itemId);
-        const parsed = new URL(data.sessionUrl);
-        if (parsed.origin !== 'https://checkout.stripe.com') throw new Error('Invalid redirect');
-        window.location.href = data.sessionUrl;
       } else {
-        await paymentsApi.createOnSpot(itemId);
+        await paymentsApi.createOnSpot(itemId, delivery);
         toast.success('On-spot payment registered!');
         navigate('/payment/success');
       }
@@ -134,7 +147,7 @@ export default function PaymentPage() {
             provider={courier}
             city={city || undefined}
             value={officeId}
-            onChange={(id) => setOfficeId(id)}
+            onChange={(id, name) => { setOfficeId(id); setOfficeName(name); }}
           />
         ) : (
           <div className="space-y-3">
@@ -218,21 +231,16 @@ export default function PaymentPage() {
             </button>
           </div>
 
-          {/* Animated card form when card is selected */}
-          {method === 'card' && (
-            <div className="bg-white rounded-xl p-6 border border-lavender/30 mt-4">
-              <PaymentCardForm onSubmit={handleSubmit} isLoading={processing} />
-            </div>
-          )}
         </div>
       )}
 
-      {/* Submit (for on-spot or donate only) */}
-      {(isDonate || method === 'onspot') && (
-        <Button fullWidth size="lg" isLoading={processing} onClick={handleSubmit}>
-          {isDonate ? t('payment.confirm_booking') : t('payment.proceed')}
-        </Button>
-      )}
+      <Button fullWidth size="lg" isLoading={processing} onClick={handleSubmit}>
+        {isDonate
+          ? t('payment.confirm_booking')
+          : method === 'card'
+          ? t('payment.continue_to_card')
+          : t('payment.proceed')}
+      </Button>
     </div>
   );
 }

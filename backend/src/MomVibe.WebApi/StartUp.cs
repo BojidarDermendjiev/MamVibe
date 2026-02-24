@@ -35,8 +35,9 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// SignalR-backed purchase-request notifier (registered here because it depends on IHubContext from WebApi)
+// SignalR-backed notifiers (registered here because they depend on IHubContext from WebApi)
 builder.Services.AddScoped<IPurchaseRequestNotifier, SignalRPurchaseRequestNotifier>();
+builder.Services.AddScoped<IShipmentNotifier, SignalRShipmentNotifier>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();

@@ -3,6 +3,7 @@ import { signalRService } from '../services/signalRService';
 import { useAuthStore } from '../store/authStore';
 import type { Message } from '../types/message';
 import type { PurchaseRequest } from '../types/purchaseRequest';
+import type { Shipment } from '../types/shipping';
 
 type MessageHandler = (message: Message) => void;
 type TypingHandler = (userId: string) => void;
@@ -11,6 +12,7 @@ type OnlineHandler = (userId: string) => void;
 type PurchaseRequestHandler = (request: PurchaseRequest) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaymentChosenHandler = (notification: any) => void;
+type ShipmentHandler = (shipment: Shipment) => void;
 
 interface SignalRContextValue {
   isConnected: boolean;
@@ -25,6 +27,8 @@ interface SignalRContextValue {
   onPurchaseRequest: (handler: PurchaseRequestHandler) => () => void;
   onPurchaseRequestUpdated: (handler: PurchaseRequestHandler) => () => void;
   onPaymentChosen: (handler: PaymentChosenHandler) => () => void;
+  onShipmentCreated: (handler: ShipmentHandler) => () => void;
+  onShipmentStatusChanged: (handler: ShipmentHandler) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue>({
@@ -40,6 +44,8 @@ const SignalRContext = createContext<SignalRContextValue>({
   onPurchaseRequest: () => () => {},
   onPurchaseRequestUpdated: () => () => {},
   onPaymentChosen: () => () => {},
+  onShipmentCreated: () => () => {},
+  onShipmentStatusChanged: () => () => {},
 });
 
 export function SignalRProvider({ children }: { children: ReactNode }) {
@@ -117,6 +123,16 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const onShipmentCreated = useCallback(
+    (handler: ShipmentHandler) => signalRService.onShipmentCreated(handler),
+    []
+  );
+
+  const onShipmentStatusChanged = useCallback(
+    (handler: ShipmentHandler) => signalRService.onShipmentStatusChanged(handler),
+    []
+  );
+
   return (
     <SignalRContext.Provider
       value={{
@@ -132,6 +148,8 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
         onPurchaseRequest,
         onPurchaseRequestUpdated,
         onPaymentChosen,
+        onShipmentCreated,
+        onShipmentStatusChanged,
       }}
     >
       {children}

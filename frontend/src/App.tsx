@@ -23,6 +23,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
+const PaymentItemCardPage = lazy(() => import("./pages/PaymentItemCardPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PaymentCancelPage = lazy(() => import("./pages/PaymentCancelPage"));
 const AdminDashboardPage = lazy(
@@ -31,9 +32,6 @@ const AdminDashboardPage = lazy(
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminItemsPage = lazy(() => import("./pages/admin/AdminItemsPage"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
-const CartPage = lazy(() => import("./pages/CartPage"));
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const CardPaymentPage = lazy(() => import("./pages/CardPaymentPage"));
 const AdminShippingPage = lazy(
   () => import("./pages/admin/AdminShippingPage"),
 );
@@ -119,12 +117,10 @@ function AppRoutes() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:userId" element={<ChatPage />} />
             <Route path="/payment/:itemId" element={<PaymentPage />} />
+            <Route path="/payment/:itemId/card" element={<PaymentItemCardPage />} />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/cancel" element={<PaymentCancelPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/checkout/card" element={<CardPaymentPage />} />
             <Route path="/shipments/:shipmentId" element={<ShipmentDetailPage />} />
           </Route>
 

@@ -1,6 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 import type { Message } from '../types/message';
 import type { PurchaseRequest } from '../types/purchaseRequest';
+import type { Shipment } from '../types/shipping';
 
 type MessageHandler = (message: Message) => void;
 type ReadHandler = (senderId: string) => void;
@@ -9,6 +10,7 @@ type OnlineHandler = (userId: string) => void;
 type PurchaseRequestHandler = (request: PurchaseRequest) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaymentChosenHandler = (notification: any) => void;
+type ShipmentHandler = (shipment: Shipment) => void;
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -20,6 +22,8 @@ class SignalRService {
   private purchaseRequestHandlers: PurchaseRequestHandler[] = [];
   private purchaseRequestUpdatedHandlers: PurchaseRequestHandler[] = [];
   private paymentChosenHandlers: PaymentChosenHandler[] = [];
+  private shipmentCreatedHandlers: ShipmentHandler[] = [];
+  private shipmentStatusChangedHandlers: ShipmentHandler[] = [];
 
   async connect(accessToken: string): Promise<void> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -65,6 +69,14 @@ class SignalRService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.connection.on('PaymentMethodChosen', (notification: any) => {
       this.paymentChosenHandlers.forEach((h) => h(notification));
+    });
+
+    this.connection.on('ShipmentCreated', (shipment: Shipment) => {
+      this.shipmentCreatedHandlers.forEach((h) => h(shipment));
+    });
+
+    this.connection.on('ShipmentStatusChanged', (shipment: Shipment) => {
+      this.shipmentStatusChangedHandlers.forEach((h) => h(shipment));
     });
 
     await this.connection.start();
@@ -143,6 +155,20 @@ class SignalRService {
     this.paymentChosenHandlers.push(handler);
     return () => {
       this.paymentChosenHandlers = this.paymentChosenHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onShipmentCreated(handler: ShipmentHandler): () => void {
+    this.shipmentCreatedHandlers.push(handler);
+    return () => {
+      this.shipmentCreatedHandlers = this.shipmentCreatedHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onShipmentStatusChanged(handler: ShipmentHandler): () => void {
+    this.shipmentStatusChangedHandlers.push(handler);
+    return () => {
+      this.shipmentStatusChangedHandlers = this.shipmentStatusChangedHandlers.filter((h) => h !== handler);
     };
   }
 }

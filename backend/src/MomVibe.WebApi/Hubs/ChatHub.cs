@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Interfaces;
 using Application.DTOs.Messages;
 using Application.DTOs.PurchaseRequests;
+using Application.DTOs.Shipping;
 using Infrastructure.Services;
 
 /// <summary>
@@ -102,4 +103,8 @@ public interface IChatClient
     Task ReceivePurchaseRequest(PurchaseRequestDto request);
     Task PurchaseRequestUpdated(PurchaseRequestDto request);
     Task PaymentMethodChosen(object notification);
+
+    // Shipment events
+    Task ShipmentCreated(ShipmentDto shipment);
+    Task ShipmentStatusChanged(ShipmentDto shipment);
 }

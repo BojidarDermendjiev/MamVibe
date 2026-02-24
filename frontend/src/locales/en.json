@@ -134,7 +134,13 @@
     "purchases": "My Purchases",
     "no_listings": "You haven't listed any items yet",
     "no_liked": "You haven't liked any items yet",
-    "no_purchases": "No purchases yet"
+    "no_purchases": "No purchases yet",
+    "incoming_requests": "Incoming Requests",
+    "my_requests": "My Requests",
+    "no_incoming_requests": "No incoming requests yet.",
+    "no_my_requests": "You have not sent any requests yet.",
+    "my_shipments": "My Shipments",
+    "no_shipments": "No shipments yet."
   },
   "profile": {
     "title": "Profile",
@@ -181,6 +187,7 @@
     "recipient_name": "Recipient Name",
     "recipient_phone": "Recipient Phone",
     "proceed": "Proceed to Payment",
+    "continue_to_card": "Continue to Card Payment",
     "success_title": "Payment Successful!",
     "success_msg": "Your payment has been processed successfully.",
     "cancel_title": "Payment Cancelled",

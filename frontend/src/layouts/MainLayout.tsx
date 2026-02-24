@@ -10,7 +10,6 @@ import {
   MessageCircle,
   LayoutDashboard,
   MessageSquare,
-  ShoppingCart,
   LogIn,
   Sun,
   Moon,
@@ -18,7 +17,6 @@ import {
 import { useTheme } from "../contexts/ThemeContext";
 import { useAuthStore } from "../store/authStore";
 import { authApi } from "../api/authApi";
-import { useCartStore } from "../store/cartStore";
 import { useNotification } from "../contexts/NotificationContext";
 import { type NavItem } from "../components/common/TubelightNavBar";
 import LanguageSwitcher from "../components/common/LanguageSwitcher";
@@ -33,7 +31,6 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { unreadCount, pendingRequestCount } = useNotification();
-  const cartItems = useCartStore((s) => s.items);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
@@ -188,19 +185,6 @@ export default function MainLayout() {
 
       {isAuthenticated ? (
         <>
-          {/* Cart */}
-          <Link
-            to="/cart"
-            className="relative p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors"
-          >
-            <ShoppingCart className="h-4 w-4 text-gray-700" />
-            {cartItems.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-0.5 leading-none">
-                {cartItems.length > 99 ? "99+" : cartItems.length}
-              </span>
-            )}
-          </Link>
-
           {/* Avatar dropdown */}
           <div className="relative">
             <button

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Domain.Enums;
 using Application.Interfaces;
 using Application.DTOs.Payments;
+using Application.DTOs.Shipping;
 using Infrastructure.Configuration;
 using PaymentEntity = Domain.Entities.Payment;
 
@@ -29,6 +30,7 @@ public class PaymentService : IPaymentService
     private readonly ITakeANapService _takeANapService;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly IShippingService _shippingService;
 
     public PaymentService(
         IApplicationDbContext context,
@@ -36,7 +38,8 @@ public class PaymentService : IPaymentService
         IConfiguration configuration,
         ITakeANapService takeANapService,
         IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings)
+        IOptions<N8nSettings> n8nSettings,
+        IShippingService shippingService)
     {
         this._context = context;
         this._mapper = mapper;
@@ -44,6 +47,7 @@ public class PaymentService : IPaymentService
         this._takeANapService = takeANapService;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._shippingService = shippingService;
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
@@ -63,7 +67,7 @@ public class PaymentService : IPaymentService
         return !string.IsNullOrWhiteSpace(stripeKey) && !stripeKey.Contains("YOUR_STRIPE");
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl)
+    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl, PaymentDeliveryRequest? delivery = null)
     {
         var item = await this._context.Items.Include(i => i.Photos).FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
@@ -101,7 +105,54 @@ public class PaymentService : IPaymentService
             }
             catch { /* Webhook failure must not break payment flow */ }
 
+            // Auto-create shipment in test mode if delivery info provided
+            if (delivery != null)
+            {
+                try
+                {
+                    await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+                    {
+                        PaymentId = payment.Id,
+                        CourierProvider = delivery.CourierProvider,
+                        DeliveryType = delivery.DeliveryType,
+                        RecipientName = delivery.RecipientName,
+                        RecipientPhone = delivery.RecipientPhone,
+                        City = delivery.City,
+                        DeliveryAddress = delivery.Address,
+                        OfficeId = delivery.OfficeId,
+                        OfficeName = delivery.OfficeName,
+                        Weight = delivery.Weight,
+                        IsCod = false,
+                        CodAmount = 0,
+                        IsInsured = false,
+                        InsuredAmount = 0
+                    });
+                }
+                catch { /* Shipment creation failure must not break payment flow */ }
+            }
+
             return successUrl + "?session_id=test_simulated";
+        }
+
+        var metadata = new Dictionary<string, string>
+        {
+            { "itemId", item.Id.ToString() },
+            { "buyerId", buyerId },
+            { "sellerId", item.UserId }
+        };
+
+        // Embed delivery info as Stripe metadata so the webhook can reconstruct it
+        if (delivery != null)
+        {
+            metadata["delivery_courier"] = delivery.CourierProvider.ToString();
+            metadata["delivery_type"] = delivery.DeliveryType.ToString();
+            metadata["delivery_name"] = delivery.RecipientName;
+            metadata["delivery_phone"] = delivery.RecipientPhone;
+            metadata["delivery_city"] = delivery.City ?? "";
+            metadata["delivery_address"] = delivery.Address ?? "";
+            metadata["delivery_office_id"] = delivery.OfficeId ?? "";
+            metadata["delivery_office_name"] = delivery.OfficeName ?? "";
+            metadata["delivery_weight"] = delivery.Weight.ToString();
         }
 
         var options = new SessionCreateOptions
@@ -127,12 +178,7 @@ public class PaymentService : IPaymentService
             Mode = "payment",
             SuccessUrl = successUrl + "?session_id={CHECKOUT_SESSION_ID}",
             CancelUrl = cancelUrl,
-            Metadata = new Dictionary<string, string>
-            {
-                { "itemId", item.Id.ToString() },
-                { "buyerId", buyerId },
-                { "sellerId", item.UserId }
-            }
+            Metadata = metadata
         };
 
         var service = new SessionService();
@@ -220,6 +266,32 @@ public class PaymentService : IPaymentService
                 this._context.Payments.Add(payment);
                 await this._context.SaveChangesAsync();
 
+                // Auto-create shipment if delivery metadata was embedded at checkout
+                if (session.Metadata.ContainsKey("delivery_name") && !string.IsNullOrEmpty(session.Metadata["delivery_name"]))
+                {
+                    try
+                    {
+                        await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+                        {
+                            PaymentId = payment.Id,
+                            CourierProvider = Enum.Parse<Domain.Enums.CourierProvider>(session.Metadata["delivery_courier"]),
+                            DeliveryType = Enum.Parse<Domain.Enums.DeliveryType>(session.Metadata["delivery_type"]),
+                            RecipientName = session.Metadata["delivery_name"],
+                            RecipientPhone = session.Metadata["delivery_phone"],
+                            City = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_city")) ? null : session.Metadata["delivery_city"],
+                            DeliveryAddress = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_address")) ? null : session.Metadata["delivery_address"],
+                            OfficeId = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_office_id")) ? null : session.Metadata["delivery_office_id"],
+                            OfficeName = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_office_name")) ? null : session.Metadata["delivery_office_name"],
+                            Weight = decimal.TryParse(session.Metadata.GetValueOrDefault("delivery_weight"), out var w) ? w : 1m,
+                            IsCod = false,
+                            CodAmount = 0,
+                            IsInsured = false,
+                            InsuredAmount = 0
+                        });
+                    }
+                    catch { /* Shipment creation failure must not break webhook flow */ }
+                }
+
                 // Fire webhook for single payment
                 try
                 {
@@ -266,7 +338,7 @@ public class PaymentService : IPaymentService
         }
     }
 
-    public async Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId)
+    public async Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null)
     {
         var item = await this._context.Items.FindAsync(itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
@@ -284,10 +356,35 @@ public class PaymentService : IPaymentService
         this._context.Payments.Add(payment);
         await this._context.SaveChangesAsync();
 
+        if (delivery != null)
+        {
+            try
+            {
+                await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+                {
+                    PaymentId = payment.Id,
+                    CourierProvider = delivery.CourierProvider,
+                    DeliveryType = delivery.DeliveryType,
+                    RecipientName = delivery.RecipientName,
+                    RecipientPhone = delivery.RecipientPhone,
+                    City = delivery.City,
+                    DeliveryAddress = delivery.Address,
+                    OfficeId = delivery.OfficeId,
+                    OfficeName = delivery.OfficeName,
+                    Weight = delivery.Weight,
+                    IsCod = false,
+                    CodAmount = 0,
+                    IsInsured = false,
+                    InsuredAmount = 0
+                });
+            }
+            catch { /* Shipment creation failure must not break payment flow */ }
+        }
+
         return this._mapper.Map<PaymentDto>(payment);
     }
 
-    public async Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId)
+    public async Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null)
     {
         var item = await this._context.Items.FindAsync(itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
@@ -306,6 +403,31 @@ public class PaymentService : IPaymentService
 
         this._context.Payments.Add(payment);
         await this._context.SaveChangesAsync();
+
+        if (delivery != null)
+        {
+            try
+            {
+                await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+                {
+                    PaymentId = payment.Id,
+                    CourierProvider = delivery.CourierProvider,
+                    DeliveryType = delivery.DeliveryType,
+                    RecipientName = delivery.RecipientName,
+                    RecipientPhone = delivery.RecipientPhone,
+                    City = delivery.City,
+                    DeliveryAddress = delivery.Address,
+                    OfficeId = delivery.OfficeId,
+                    OfficeName = delivery.OfficeName,
+                    Weight = delivery.Weight,
+                    IsCod = false,
+                    CodAmount = 0,
+                    IsInsured = false,
+                    InsuredAmount = 0
+                });
+            }
+            catch { /* Shipment creation failure must not break payment flow */ }
+        }
 
         return this._mapper.Map<PaymentDto>(payment);
     }

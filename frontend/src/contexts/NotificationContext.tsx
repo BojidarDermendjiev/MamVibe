@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
+import toast from 'react-hot-toast';
 import { useSignalR } from './SignalRContext';
 import { useAuthStore } from '../store/authStore';
 import { messagesApi } from '../api/messagesApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
+import { CourierProvider } from '../types/shipping';
 
 interface NotificationContextValue {
   unreadCount: number;
@@ -23,7 +25,7 @@ const NotificationContext = createContext<NotificationContextValue>({
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
-  const { onMessage, onPurchaseRequest } = useSignalR();
+  const { onMessage, onPurchaseRequest, onShipmentCreated, onShipmentStatusChanged } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
@@ -84,6 +86,71 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
     return unsub;
   }, [onPurchaseRequest]);
+
+  // Notify buyer when their shipment waybill is created (item has been shipped)
+  useEffect(() => {
+    const unsub = onShipmentCreated((shipment) => {
+      const courierNames: Record<number, string> = {
+        [CourierProvider.Econt]: 'Econt',
+        [CourierProvider.Speedy]: 'Speedy',
+        [CourierProvider.BoxNow]: 'Box Now',
+      };
+      const courier = courierNames[shipment.courierProvider] ?? '';
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold text-primary">📦 Your order has been shipped!</p>
+            <p className="text-sm text-gray-600">
+              {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}
+              via {courier}
+              {shipment.trackingNumber && <span> · #{shipment.trackingNumber}</span>}
+            </p>
+            <a
+              href={`/shipments/${shipment.id}`}
+              onClick={() => toast.dismiss(t.id)}
+              className="text-sm font-medium text-primary underline mt-1"
+            >
+              Track shipment →
+            </a>
+          </div>
+        ),
+        { duration: 10000 }
+      );
+    });
+    return unsub;
+  }, [onShipmentCreated]);
+
+  // Notify buyer when courier picks up the package
+  useEffect(() => {
+    const unsub = onShipmentStatusChanged((shipment) => {
+      const courierNames: Record<number, string> = {
+        [CourierProvider.Econt]: 'Econt',
+        [CourierProvider.Speedy]: 'Speedy',
+        [CourierProvider.BoxNow]: 'Box Now',
+      };
+      const courier = courierNames[shipment.courierProvider] ?? '';
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold text-primary">🚚 Package picked up!</p>
+            <p className="text-sm text-gray-600">
+              {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}
+              is on its way via {courier}.
+            </p>
+            <a
+              href={`/shipments/${shipment.id}`}
+              onClick={() => toast.dismiss(t.id)}
+              className="text-sm font-medium text-primary underline mt-1"
+            >
+              Track shipment →
+            </a>
+          </div>
+        ),
+        { duration: 8000 }
+      );
+    });
+    return unsub;
+  }, [onShipmentStatusChanged]);
 
   const setActiveChatUserId = useCallback((userId: string | null) => {
     activeChatRef.current = userId;

@@ -45,7 +45,7 @@ public class PaymentsController : ControllerBase
     /// </returns>
     [Authorize]
     [HttpPost("checkout/{itemId:guid}")]
-    public async Task<IActionResult> CreateCheckout(Guid itemId)
+    public async Task<IActionResult> CreateCheckout(Guid itemId, [FromBody] PaymentDeliveryRequest? delivery = null)
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
@@ -55,7 +55,8 @@ public class PaymentsController : ControllerBase
             var sessionUrl = await this._paymentService.CreateCheckoutSessionAsync(
                 itemId, userId,
                 $"{frontendUrl}/payment/success",
-                $"{frontendUrl}/payment/cancel");
+                $"{frontendUrl}/payment/cancel",
+                delivery);
             return Ok(new { sessionUrl });
         }
         catch (KeyNotFoundException ex)
@@ -82,11 +83,11 @@ public class PaymentsController : ControllerBase
     /// </returns>
     [Authorize]
     [HttpPost("onspot/{itemId:guid}")]
-    public async Task<IActionResult> CreateOnSpotPayment(Guid itemId)
+    public async Task<IActionResult> CreateOnSpotPayment(Guid itemId, [FromBody] PaymentDeliveryRequest? delivery = null)
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        var payment = await this._paymentService.CreateOnSpotPaymentAsync(itemId, userId);
+        var payment = await this._paymentService.CreateOnSpotPaymentAsync(itemId, userId, delivery);
         return Ok(payment);
     }
 
@@ -96,13 +97,13 @@ public class PaymentsController : ControllerBase
     /// <param name="itemId">The GUID of the donate item to book.</param>
     [Authorize]
     [HttpPost("booking/{itemId:guid}")]
-    public async Task<IActionResult> CreateBooking(Guid itemId)
+    public async Task<IActionResult> CreateBooking(Guid itemId, [FromBody] PaymentDeliveryRequest? delivery = null)
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         try
         {
-            var payment = await this._paymentService.CreateBookingAsync(itemId, userId);
+            var payment = await this._paymentService.CreateBookingAsync(itemId, userId, delivery);
             return Ok(payment);
         }
         catch (KeyNotFoundException ex)

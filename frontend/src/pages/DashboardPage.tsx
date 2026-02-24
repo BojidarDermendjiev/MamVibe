@@ -8,12 +8,13 @@ import { PurchaseRequestStatus } from '../types/purchaseRequest';
 import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
 import ItemCard from '../components/items/ItemCard';
+import ShipmentCard from '../components/shipping/ShipmentCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Avatar from '../components/common/Avatar';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, loading, removeLikedItem, refreshTab } = useDashboard();
+  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, loading, removeLikedItem, refreshTab } = useDashboard();
   const { decrementPendingRequestCount } = useNotification();
 
   const handleListingLikeToggle = async (id: string) => {
@@ -63,8 +64,9 @@ export default function DashboardPage() {
     { key: 'listings', label: t('dashboard.my_listings') },
     { key: 'liked', label: t('dashboard.liked_items') },
     { key: 'purchases', label: t('dashboard.purchases') },
-    { key: 'incoming-requests', label: 'Incoming Requests' },
-    { key: 'my-requests', label: 'My Requests' },
+    { key: 'incoming-requests', label: t('dashboard.incoming_requests') },
+    { key: 'my-requests', label: t('dashboard.my_requests') },
+    { key: 'shipments', label: t('dashboard.my_shipments') },
   ];
 
   return (
@@ -131,7 +133,7 @@ export default function DashboardPage() {
           {/* ── Incoming Requests (seller view) ── */}
           {tab === 'incoming-requests' && (
             incomingRequests.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">No incoming requests yet.</p>
+              <p className="text-center py-20 text-gray-400">{t('dashboard.no_incoming_requests')}</p>
             ) : (
               <div className="space-y-3">
                 {incomingRequests.map((r) => {
@@ -177,10 +179,21 @@ export default function DashboardPage() {
             )
           )}
 
+          {/* ── My Shipments ── */}
+          {tab === 'shipments' && (
+            shipments.length === 0 ? (
+              <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>
+            ) : (
+              <div className="space-y-3">
+                {shipments.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
+              </div>
+            )
+          )}
+
           {/* ── My Requests (buyer view) ── */}
           {tab === 'my-requests' && (
             myRequests.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">You have not sent any requests yet.</p>
+              <p className="text-center py-20 text-gray-400">{t('dashboard.no_my_requests')}</p>
             ) : (
               <div className="space-y-3">
                 {myRequests.map((r) => {

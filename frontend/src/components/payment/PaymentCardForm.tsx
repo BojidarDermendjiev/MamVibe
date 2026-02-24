@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from 'react';
-import { useTranslation } from 'react-i18next';
-import Input from '../common/Input';
-import Button from '../common/Button';
-import PaymentCard from './PaymentCard';
+import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
+import Input from "../common/Input";
+import Button from "../common/Button";
+import PaymentCard from "./PaymentCard";
 
 interface PaymentCardFormProps {
   onSubmit: () => void;
@@ -10,24 +10,27 @@ interface PaymentCardFormProps {
 }
 
 function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(.{4})/g, '$1 ').trim();
+  const digits = value.replace(/\D/g, "").slice(0, 16);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
 }
 
 function formatExpiration(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 4);
+  const digits = value.replace(/\D/g, "").slice(0, 4);
   if (digits.length >= 3) {
-    return digits.slice(0, 2) + '/' + digits.slice(2);
+    return digits.slice(0, 2) + "/" + digits.slice(2);
   }
   return digits;
 }
 
-export default function PaymentCardForm({ onSubmit, isLoading = false }: PaymentCardFormProps) {
+export default function PaymentCardForm({
+  onSubmit,
+  isLoading = false,
+}: PaymentCardFormProps) {
   const { t } = useTranslation();
-  const [name, setName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiration, setExpiration] = useState('');
-  const [securityCode, setSecurityCode] = useState('');
+  const [name, setName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
   const [isFlipped, setIsFlipped] = useState(false);
 
   const handleCardNumberChange = (value: string) => {
@@ -39,7 +42,7 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
   };
 
   const handleSecurityCodeChange = (value: string) => {
-    setSecurityCode(value.replace(/\D/g, '').slice(0, 4));
+    setSecurityCode(value.replace(/\D/g, "").slice(0, 4));
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -48,7 +51,7 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PaymentCard
         name={name}
         cardNumber={cardNumber}
@@ -57,9 +60,9 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
         isFlipped={isFlipped}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
         <Input
-          label={t('card.card_number')}
+          label={t("card.card_number")}
           placeholder="0000 0000 0000 0000"
           value={cardNumber}
           onChange={(e) => handleCardNumberChange(e.target.value)}
@@ -68,8 +71,8 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
         />
 
         <Input
-          label={t('card.name')}
-          placeholder={t('card.cardholder_name')}
+          label={t("card.name")}
+          placeholder={t("card.cardholder_name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={26}
@@ -77,7 +80,7 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
 
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label={t('card.expiration')}
+            label={t("card.expiration")}
             placeholder="MM/YY"
             value={expiration}
             onChange={(e) => handleExpirationChange(e.target.value)}
@@ -86,7 +89,7 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
           />
 
           <Input
-            label={t('card.cvv')}
+            label={t("card.cvv")}
             placeholder="***"
             value={securityCode}
             onChange={(e) => handleSecurityCodeChange(e.target.value)}
@@ -99,7 +102,7 @@ export default function PaymentCardForm({ onSubmit, isLoading = false }: Payment
         </div>
 
         <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-          {t('card.pay_now')}
+          {t("card.pay_now")}
         </Button>
       </form>
     </div>

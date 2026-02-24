@@ -1,15 +1,16 @@
 import axiosClient from './axiosClient';
 import type { Payment } from '../types/payment';
+import type { PaymentDeliveryRequest } from '../types/shipping';
 
 export const paymentsApi = {
-  createCheckout: (itemId: string) =>
-    axiosClient.post<{ sessionUrl: string }>(`/payments/checkout/${itemId}`),
+  createCheckout: (itemId: string, delivery: PaymentDeliveryRequest) =>
+    axiosClient.post<{ sessionUrl: string }>(`/payments/checkout/${itemId}`, delivery),
 
-  createOnSpot: (itemId: string) =>
-    axiosClient.post<Payment>(`/payments/onspot/${itemId}`),
+  createOnSpot: (itemId: string, delivery: PaymentDeliveryRequest) =>
+    axiosClient.post<Payment>(`/payments/onspot/${itemId}`, delivery),
 
-  createBooking: (itemId: string) =>
-    axiosClient.post<Payment>(`/payments/booking/${itemId}`),
+  createBooking: (itemId: string, delivery: PaymentDeliveryRequest) =>
+    axiosClient.post<Payment>(`/payments/booking/${itemId}`, delivery),
 
   getMyPayments: () =>
     axiosClient.get<Payment[]>('/payments/my-payments'),
@@ -17,12 +18,5 @@ export const paymentsApi = {
   createPaymentIntent: (itemId: string) =>
     axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`),
 
-  bulkCheckout: (itemIds: string[]) =>
-    axiosClient.post<{ sessionUrl: string }>('/payments/bulk-checkout', { itemIds }),
 
-  bulkBooking: (itemIds: string[]) =>
-    axiosClient.post<Payment[]>('/payments/bulk-booking', { itemIds }),
-
-  bulkOnSpot: (itemIds: string[]) =>
-    axiosClient.post<Payment[]>('/payments/bulk-onspot', { itemIds }),
 };

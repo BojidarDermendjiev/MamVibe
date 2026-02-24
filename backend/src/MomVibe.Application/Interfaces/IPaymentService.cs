@@ -11,10 +11,10 @@ using DTOs.Payments;
 /// </summary>
 public interface IPaymentService
 {
-    Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl);
+    Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl, PaymentDeliveryRequest? delivery = null);
     Task HandleWebhookAsync(string json, string stripeSignature);
-    Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId);
-    Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId);
+    Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null);
+    Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null);
     Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId);
     Task<List<PaymentDto>> GetAllPaymentsAsync();
     Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId);

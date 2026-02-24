@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
+import { shippingApi } from '../api/shippingApi';
 import type { Item } from '../types/item';
 import type { Payment } from '../types/payment';
 import type { PurchaseRequest } from '../types/purchaseRequest';
+import type { Shipment } from '../types/shipping';
 
-export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests';
+export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests' | 'shipments';
 
 interface UseDashboardReturn {
   tab: DashboardTab;
@@ -16,6 +18,7 @@ interface UseDashboardReturn {
   payments: Payment[];
   incomingRequests: PurchaseRequest[];
   myRequests: PurchaseRequest[];
+  shipments: Shipment[];
   loading: boolean;
   removeLikedItem: (id: string) => void;
   refreshTab: () => void;
@@ -28,6 +31,7 @@ export function useDashboard(): UseDashboardReturn {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<PurchaseRequest[]>([]);
   const [myRequests, setMyRequests] = useState<PurchaseRequest[]>([]);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -54,6 +58,9 @@ export function useDashboard(): UseDashboardReturn {
         } else if (tab === 'my-requests') {
           const { data } = await purchaseRequestsApi.getAsBuyer();
           setMyRequests(data);
+        } else if (tab === 'shipments') {
+          const { data } = await shippingApi.getMyShipments();
+          setShipments(data);
         }
       } catch {
         /* ignore */
@@ -68,5 +75,5 @@ export function useDashboard(): UseDashboardReturn {
     setLikedItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, loading, removeLikedItem, refreshTab };
+  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, loading, removeLikedItem, refreshTab };
 }

@@ -84,6 +84,18 @@ export interface CalculateShippingRequest {
   insuredAmount: number;
 }
 
+export interface PaymentDeliveryRequest {
+  courierProvider: CourierProvider;
+  deliveryType: DeliveryType;
+  recipientName: string;
+  recipientPhone: string;
+  city?: string;
+  address?: string;
+  officeId?: string;
+  officeName?: string;
+  weight: number;
+}
+
 export interface CreateShipmentRequest {
   paymentId: string;
   courierProvider: CourierProvider;
