@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
+import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
 import ItemCard from '../components/items/ItemCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -197,7 +199,22 @@ export default function DashboardPage() {
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${cls}`}>{text}</span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{text}</span>
+                        {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Sell && (
+                          <Link
+                            to={`/payment/${r.itemId}`}
+                            className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
+                          >
+                            Complete Purchase
+                          </Link>
+                        )}
+                        {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Donate && (
+                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg">
+                            Booking Confirmed
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
