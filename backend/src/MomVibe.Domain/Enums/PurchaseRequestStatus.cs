@@ -15,5 +15,8 @@ public enum PurchaseRequestStatus
     Declined = 2,
 
     /// <summary>Buyer cancelled before a decision was made.</summary>
-    Cancelled = 3
+    Cancelled = 3,
+
+    /// <summary>Buyer completed payment — transaction fully closed.</summary>
+    Completed = 4
 }

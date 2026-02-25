@@ -5,6 +5,7 @@ export const PurchaseRequestStatus = {
   Accepted: 1,
   Declined: 2,
   Cancelled: 3,
+  Completed: 4,
 } as const;
 export type PurchaseRequestStatus = (typeof PurchaseRequestStatus)[keyof typeof PurchaseRequestStatus];
 

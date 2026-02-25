@@ -57,6 +57,7 @@ export default function DashboardPage() {
     if (status === PurchaseRequestStatus.Pending) return { text: 'Pending', cls: 'bg-yellow-100 text-yellow-800' };
     if (status === PurchaseRequestStatus.Accepted) return { text: 'Accepted', cls: 'bg-green-100 text-green-800' };
     if (status === PurchaseRequestStatus.Declined) return { text: 'Declined', cls: 'bg-red-100 text-red-800' };
+    if (status === PurchaseRequestStatus.Completed) return { text: 'Completed', cls: 'bg-blue-100 text-blue-800' };
     return { text: 'Cancelled', cls: 'bg-gray-100 text-gray-600' };
   };
 
@@ -225,6 +226,11 @@ export default function DashboardPage() {
                         {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Donate && (
                           <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg">
                             Booking Confirmed
+                          </span>
+                        )}
+                        {r.status === PurchaseRequestStatus.Completed && (
+                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
+                            Order Complete
                           </span>
                         )}
                       </div>

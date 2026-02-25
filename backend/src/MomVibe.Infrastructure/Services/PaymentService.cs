@@ -131,6 +131,8 @@ public class PaymentService : IPaymentService
                 catch { /* Shipment creation failure must not break payment flow */ }
             }
 
+            try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
+
             return successUrl + "?session_id=test_simulated";
         }
 
@@ -334,6 +336,8 @@ public class PaymentService : IPaymentService
                 {
                     // Receipt failure should not break payment flow
                 }
+
+                try { await CompletePurchaseRequestAsync(payment.ItemId, payment.BuyerId); } catch { }
             }
         }
     }
@@ -380,6 +384,8 @@ public class PaymentService : IPaymentService
             }
             catch { /* Shipment creation failure must not break payment flow */ }
         }
+
+        try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
 
         return this._mapper.Map<PaymentDto>(payment);
     }
@@ -429,7 +435,26 @@ public class PaymentService : IPaymentService
             catch { /* Shipment creation failure must not break payment flow */ }
         }
 
+        try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
+
         return this._mapper.Map<PaymentDto>(payment);
+    }
+
+    /// <summary>
+    /// Finds the accepted PurchaseRequest for this item+buyer and marks it Completed.
+    /// Called after any successful payment so the buyer's "My Requests" tab reflects the true state.
+    /// </summary>
+    private async Task CompletePurchaseRequestAsync(Guid itemId, string buyerId)
+    {
+        var request = await this._context.PurchaseRequests
+            .FirstOrDefaultAsync(r => r.ItemId == itemId
+                                   && r.BuyerId == buyerId
+                                   && r.Status == PurchaseRequestStatus.Accepted);
+        if (request != null)
+        {
+            request.Status = PurchaseRequestStatus.Completed;
+            await this._context.SaveChangesAsync();
+        }
     }
 
     public async Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId)
