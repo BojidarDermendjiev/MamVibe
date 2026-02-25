@@ -140,7 +140,18 @@
     "no_incoming_requests": "No incoming requests yet.",
     "no_my_requests": "You have not sent any requests yet.",
     "my_shipments": "My Shipments",
-    "no_shipments": "No shipments yet."
+    "no_shipments": "No shipments yet.",
+    "req_status_pending": "Pending",
+    "req_status_accepted": "Accepted",
+    "req_status_declined": "Declined",
+    "req_status_completed": "Completed",
+    "req_status_cancelled": "Cancelled",
+    "req_order_complete": "Order Complete",
+    "req_booking_confirmed": "Booking Confirmed",
+    "req_accept": "Accept",
+    "req_decline": "Decline",
+    "req_complete_purchase": "Complete Purchase",
+    "req_view_waybill": "View Waybill"
   },
   "profile": {
     "title": "Profile",

@@ -54,11 +54,11 @@ export default function DashboardPage() {
   };
 
   const statusLabel = (status: number) => {
-    if (status === PurchaseRequestStatus.Pending) return { text: 'Pending', cls: 'bg-yellow-100 text-yellow-800' };
-    if (status === PurchaseRequestStatus.Accepted) return { text: 'Accepted', cls: 'bg-green-100 text-green-800' };
-    if (status === PurchaseRequestStatus.Declined) return { text: 'Declined', cls: 'bg-red-100 text-red-800' };
-    if (status === PurchaseRequestStatus.Completed) return { text: 'Completed', cls: 'bg-blue-100 text-blue-800' };
-    return { text: 'Cancelled', cls: 'bg-gray-100 text-gray-600' };
+    if (status === PurchaseRequestStatus.Pending) return { text: t('dashboard.req_status_pending'), cls: 'bg-yellow-100 text-yellow-800' };
+    if (status === PurchaseRequestStatus.Accepted) return { text: t('dashboard.req_status_accepted'), cls: 'bg-green-100 text-green-800' };
+    if (status === PurchaseRequestStatus.Declined) return { text: t('dashboard.req_status_declined'), cls: 'bg-red-100 text-red-800' };
+    if (status === PurchaseRequestStatus.Completed) return { text: t('dashboard.req_status_completed'), cls: 'bg-blue-100 text-blue-800' };
+    return { text: t('dashboard.req_status_cancelled'), cls: 'bg-gray-100 text-gray-600' };
   };
 
   const tabs: { key: DashboardTab; label: string }[] = [
@@ -162,13 +162,13 @@ export default function DashboardPage() {
                               onClick={() => handleAccept(r.id)}
                               className="px-3 py-1.5 text-sm font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                             >
-                              Accept
+                              {t('dashboard.req_accept')}
                             </button>
                             <button
                               onClick={() => handleDecline(r.id)}
                               className="px-3 py-1.5 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
-                              Decline
+                              {t('dashboard.req_decline')}
                             </button>
                           </>
                         )}
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                             to={`/shipments/${r.shipmentId}`}
                             className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
                           >
-                            View Waybill
+                            {t('dashboard.req_view_waybill')}
                           </Link>
                         )}
                       </div>
@@ -228,17 +228,17 @@ export default function DashboardPage() {
                             to={`/payment/${r.itemId}`}
                             className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
                           >
-                            Complete Purchase
+                            {t('dashboard.req_complete_purchase')}
                           </Link>
                         )}
                         {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Donate && (
                           <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg">
-                            Booking Confirmed
+                            {t('dashboard.req_booking_confirmed')}
                           </span>
                         )}
                         {r.status === PurchaseRequestStatus.Completed && (
                           <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
-                            Order Complete
+                            {t('dashboard.req_order_complete')}
                           </span>
                         )}
                       </div>

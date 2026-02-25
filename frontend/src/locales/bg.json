@@ -140,7 +140,18 @@
     "no_incoming_requests": "Все още няма входящи заявки.",
     "no_my_requests": "Все още не сте изпратили заявки.",
     "my_shipments": "Моите пратки",
-    "no_shipments": "Все още нямате пратки."
+    "no_shipments": "Все още нямате пратки.",
+    "req_status_pending": "Изчакване",
+    "req_status_accepted": "Прието",
+    "req_status_declined": "Отказано",
+    "req_status_completed": "Завършено",
+    "req_status_cancelled": "Отменено",
+    "req_order_complete": "Поръчката е завършена",
+    "req_booking_confirmed": "Резервацията е потвърдена",
+    "req_accept": "Приеми",
+    "req_decline": "Откажи",
+    "req_complete_purchase": "Завърши покупката",
+    "req_view_waybill": "Виж товарителница"
   },
   "profile": {
     "title": "Профил",
