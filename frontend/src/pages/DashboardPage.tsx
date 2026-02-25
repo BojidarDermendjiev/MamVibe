@@ -172,6 +172,14 @@ export default function DashboardPage() {
                             </button>
                           </>
                         )}
+                        {r.status === PurchaseRequestStatus.Completed && r.shipmentId && (
+                          <Link
+                            to={`/shipments/${r.shipmentId}`}
+                            className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
+                          >
+                            View Waybill
+                          </Link>
+                        )}
                       </div>
                     </div>
                   );

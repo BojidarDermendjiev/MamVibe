@@ -25,7 +25,7 @@ const NotificationContext = createContext<NotificationContextValue>({
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
-  const { onMessage, onPurchaseRequest, onShipmentCreated, onShipmentStatusChanged } = useSignalR();
+  const { onMessage, onPurchaseRequest, onSellerShipmentReady, onShipmentStatusChanged } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
@@ -87,9 +87,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, [onPurchaseRequest]);
 
-  // Notify buyer when their shipment waybill is created (item has been shipped)
+  // Notify SELLER when waybill is generated — they need to print it and ship the package
   useEffect(() => {
-    const unsub = onShipmentCreated((shipment) => {
+    const unsub = onSellerShipmentReady((shipment) => {
       const courierNames: Record<number, string> = {
         [CourierProvider.Econt]: 'Econt',
         [CourierProvider.Speedy]: 'Speedy',
@@ -99,28 +99,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       toast(
         (t) => (
           <div className="flex flex-col gap-1">
-            <p className="font-semibold text-primary">📦 Your order has been shipped!</p>
+            <p className="font-semibold text-primary">🖨️ Waybill ready to print!</p>
             <p className="text-sm text-gray-600">
-              {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}
-              via {courier}
+              {shipment.itemTitle && <span>"{shipment.itemTitle}" via {courier}</span>}
               {shipment.trackingNumber && <span> · #{shipment.trackingNumber}</span>}
             </p>
+            <p className="text-xs text-gray-500">Print the label, attach it to the package and hand it to the courier.</p>
             <a
               href={`/shipments/${shipment.id}`}
               onClick={() => toast.dismiss(t.id)}
               className="text-sm font-medium text-primary underline mt-1"
             >
-              Track shipment →
+              View waybill & download label →
             </a>
           </div>
         ),
-        { duration: 10000 }
+        { duration: 12000 }
       );
     });
     return unsub;
-  }, [onShipmentCreated]);
+  }, [onSellerShipmentReady]);
 
-  // Notify buyer when courier picks up the package
+  // Notify BUYER when courier picks up the package — their order is on its way
   useEffect(() => {
     const unsub = onShipmentStatusChanged((shipment) => {
       const courierNames: Record<number, string> = {
@@ -132,21 +132,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       toast(
         (t) => (
           <div className="flex flex-col gap-1">
-            <p className="font-semibold text-primary">🚚 Package picked up!</p>
+            <p className="font-semibold text-primary">🚚 Your order is on its way!</p>
             <p className="text-sm text-gray-600">
               {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}
-              is on its way via {courier}.
+              is being shipped via {courier}.
+              {shipment.trackingNumber && <span> Track: #{shipment.trackingNumber}</span>}
             </p>
             <a
               href={`/shipments/${shipment.id}`}
               onClick={() => toast.dismiss(t.id)}
               className="text-sm font-medium text-primary underline mt-1"
             >
-              Track shipment →
+              Track your package →
             </a>
           </div>
         ),
-        { duration: 8000 }
+        { duration: 10000 }
       );
     });
     return unsub;

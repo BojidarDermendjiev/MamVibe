@@ -22,4 +22,5 @@ export interface PurchaseRequest {
   sellerId: string;
   status: PurchaseRequestStatus;
   createdAt: string;
+  shipmentId?: string;
 }

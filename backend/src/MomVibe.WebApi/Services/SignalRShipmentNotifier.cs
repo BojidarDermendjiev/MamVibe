@@ -20,8 +20,8 @@ public class SignalRShipmentNotifier : IShipmentNotifier
         this._hub = hub;
     }
 
-    public Task NotifyShipmentCreatedAsync(string buyerId, ShipmentDto shipment)
-        => this._hub.Clients.Group($"user_{buyerId}").ShipmentCreated(shipment);
+    public Task NotifySellerShipmentReadyAsync(string sellerId, ShipmentDto shipment)
+        => this._hub.Clients.Group($"user_{sellerId}").ShipmentCreated(shipment);
 
     public Task NotifyShipmentStatusChangedAsync(string buyerId, ShipmentDto shipment)
         => this._hub.Clients.Group($"user_{buyerId}").ShipmentStatusChanged(shipment);

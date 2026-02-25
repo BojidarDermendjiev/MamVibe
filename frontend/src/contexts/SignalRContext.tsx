@@ -27,7 +27,7 @@ interface SignalRContextValue {
   onPurchaseRequest: (handler: PurchaseRequestHandler) => () => void;
   onPurchaseRequestUpdated: (handler: PurchaseRequestHandler) => () => void;
   onPaymentChosen: (handler: PaymentChosenHandler) => () => void;
-  onShipmentCreated: (handler: ShipmentHandler) => () => void;
+  onSellerShipmentReady: (handler: ShipmentHandler) => () => void;
   onShipmentStatusChanged: (handler: ShipmentHandler) => () => void;
 }
 
@@ -44,7 +44,7 @@ const SignalRContext = createContext<SignalRContextValue>({
   onPurchaseRequest: () => () => {},
   onPurchaseRequestUpdated: () => () => {},
   onPaymentChosen: () => () => {},
-  onShipmentCreated: () => () => {},
+  onSellerShipmentReady: () => () => {},
   onShipmentStatusChanged: () => () => {},
 });
 
@@ -123,8 +123,8 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const onShipmentCreated = useCallback(
-    (handler: ShipmentHandler) => signalRService.onShipmentCreated(handler),
+  const onSellerShipmentReady = useCallback(
+    (handler: ShipmentHandler) => signalRService.onSellerShipmentReady(handler),
     []
   );
 
@@ -148,7 +148,7 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
         onPurchaseRequest,
         onPurchaseRequestUpdated,
         onPaymentChosen,
-        onShipmentCreated,
+        onSellerShipmentReady,
         onShipmentStatusChanged,
       }}
     >

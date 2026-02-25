@@ -19,4 +19,6 @@ public class PurchaseRequestDto
     public string SellerId { get; set; } = "";
     public PurchaseRequestStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    /// <summary>Populated for Completed requests when a shipment was auto-created, so the seller can navigate directly to the waybill.</summary>
+    public Guid? ShipmentId { get; set; }
 }

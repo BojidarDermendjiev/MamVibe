@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services.Shipping;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Domain.Enums;
@@ -24,6 +25,7 @@ public class ShippingService : IShippingService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IShipmentNotifier _notifier;
+    private readonly ILogger<ShippingService> _logger;
 
     public ShippingService(
         IApplicationDbContext context,
@@ -31,7 +33,8 @@ public class ShippingService : IShippingService
         CourierProviderFactory factory,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        IShipmentNotifier notifier)
+        IShipmentNotifier notifier,
+        ILogger<ShippingService> logger)
     {
         this._context = context;
         this._mapper = mapper;
@@ -39,6 +42,7 @@ public class ShippingService : IShippingService
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._notifier = notifier;
+        this._logger = logger;
     }
 
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
@@ -59,18 +63,30 @@ public class ShippingService : IShippingService
         var provider = _factory.GetProvider(request.CourierProvider);
         var (trackingNumber, waybillId, labelUrl) = await provider.CreateShipmentAsync(request);
 
-        var priceResult = await provider.CalculatePriceAsync(new CalculateShippingDto
+        // Price was already calculated and shown to the buyer before checkout.
+        // Re-fetching it here is informational only — never let a price-calc failure
+        // prevent the shipment record from being saved (which would orphan the waybill at the courier).
+        decimal shippingPrice = 0m;
+        try
         {
-            CourierProvider = request.CourierProvider,
-            DeliveryType = request.DeliveryType,
-            ToCity = request.City,
-            OfficeId = request.OfficeId,
-            Weight = request.Weight,
-            IsCod = request.IsCod,
-            CodAmount = request.CodAmount,
-            IsInsured = request.IsInsured,
-            InsuredAmount = request.InsuredAmount
-        });
+            var priceResult = await provider.CalculatePriceAsync(new CalculateShippingDto
+            {
+                CourierProvider = request.CourierProvider,
+                DeliveryType = request.DeliveryType,
+                ToCity = request.City,
+                OfficeId = request.OfficeId,
+                Weight = request.Weight,
+                IsCod = request.IsCod,
+                CodAmount = request.CodAmount,
+                IsInsured = request.IsInsured,
+                InsuredAmount = request.InsuredAmount
+            });
+            shippingPrice = priceResult.Price;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "Price calculation after shipment creation failed for waybill {WaybillId}. Shipment will be saved with price 0.", waybillId);
+        }
 
         var shipment = new Shipment
         {
@@ -86,7 +102,7 @@ public class ShippingService : IShippingService
             City = request.City,
             OfficeId = request.OfficeId,
             OfficeName = request.OfficeName,
-            ShippingPrice = priceResult.Price,
+            ShippingPrice = shippingPrice,
             IsCod = request.IsCod,
             CodAmount = request.CodAmount,
             IsInsured = request.IsInsured,
@@ -123,7 +139,8 @@ public class ShippingService : IShippingService
 
         shipment.Payment = payment;
         var dto = this._mapper.Map<ShipmentDto>(shipment);
-        try { await this._notifier.NotifyShipmentCreatedAsync(payment.BuyerId, dto); } catch { /* notification failure must not break shipment creation */ }
+        // Notify the SELLER: waybill is ready to print and attach to the package
+        try { await this._notifier.NotifySellerShipmentReadyAsync(payment.SellerId, dto); } catch { /* notification failure must not break shipment creation */ }
         return dto;
     }
 

@@ -22,7 +22,7 @@ class SignalRService {
   private purchaseRequestHandlers: PurchaseRequestHandler[] = [];
   private purchaseRequestUpdatedHandlers: PurchaseRequestHandler[] = [];
   private paymentChosenHandlers: PaymentChosenHandler[] = [];
-  private shipmentCreatedHandlers: ShipmentHandler[] = [];
+  private sellerShipmentReadyHandlers: ShipmentHandler[] = [];
   private shipmentStatusChangedHandlers: ShipmentHandler[] = [];
 
   async connect(accessToken: string): Promise<void> {
@@ -72,7 +72,7 @@ class SignalRService {
     });
 
     this.connection.on('ShipmentCreated', (shipment: Shipment) => {
-      this.shipmentCreatedHandlers.forEach((h) => h(shipment));
+      this.sellerShipmentReadyHandlers.forEach((h) => h(shipment));
     });
 
     this.connection.on('ShipmentStatusChanged', (shipment: Shipment) => {
@@ -158,10 +158,10 @@ class SignalRService {
     };
   }
 
-  onShipmentCreated(handler: ShipmentHandler): () => void {
-    this.shipmentCreatedHandlers.push(handler);
+  onSellerShipmentReady(handler: ShipmentHandler): () => void {
+    this.sellerShipmentReadyHandlers.push(handler);
     return () => {
-      this.shipmentCreatedHandlers = this.shipmentCreatedHandlers.filter((h) => h !== handler);
+      this.sellerShipmentReadyHandlers = this.sellerShipmentReadyHandlers.filter((h) => h !== handler);
     };
   }
 

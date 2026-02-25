@@ -3,6 +3,7 @@ namespace MomVibe.Infrastructure.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 using Stripe;
 using Stripe.Checkout;
@@ -31,6 +32,7 @@ public class PaymentService : IPaymentService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IShippingService _shippingService;
+    private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IApplicationDbContext context,
@@ -39,7 +41,8 @@ public class PaymentService : IPaymentService
         ITakeANapService takeANapService,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        IShippingService shippingService)
+        IShippingService shippingService,
+        ILogger<PaymentService> logger)
     {
         this._context = context;
         this._mapper = mapper;
@@ -48,6 +51,7 @@ public class PaymentService : IPaymentService
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._shippingService = shippingService;
+        this._logger = logger;
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
@@ -128,7 +132,7 @@ public class PaymentService : IPaymentService
                         InsuredAmount = 0
                     });
                 }
-                catch { /* Shipment creation failure must not break payment flow */ }
+                catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for payment {PaymentId}. Buyer's delivery details were recorded but no waybill was generated.", payment.Id); }
             }
 
             try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
@@ -291,7 +295,7 @@ public class PaymentService : IPaymentService
                             InsuredAmount = 0
                         });
                     }
-                    catch { /* Shipment creation failure must not break webhook flow */ }
+                    catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for Stripe payment session {SessionId}.", session.Id); }
                 }
 
                 // Fire webhook for single payment

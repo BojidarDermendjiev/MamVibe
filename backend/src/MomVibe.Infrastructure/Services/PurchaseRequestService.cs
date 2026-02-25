@@ -195,7 +195,34 @@ public class PurchaseRequestService : IPurchaseRequestService
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        return this._mapper.Map<List<PurchaseRequestDto>>(requests);
+        var dtos = this._mapper.Map<List<PurchaseRequestDto>>(requests);
+
+        // Enrich completed requests with ShipmentId (only when a shipment was actually created)
+        // so the seller's "View Waybill" button only appears when there is a real waybill to view.
+        var completedItemIds = requests
+            .Where(r => r.Status == PurchaseRequestStatus.Completed)
+            .Select(r => r.ItemId)
+            .ToList();
+
+        if (completedItemIds.Count > 0)
+        {
+            var paymentToShipment = await this._context.Payments
+                .Where(p => completedItemIds.Contains(p.ItemId) && p.SellerId == sellerId)
+                .Join(this._context.Shipments,
+                    p => p.Id,
+                    s => s.PaymentId,
+                    (p, s) => new { p.ItemId, p.BuyerId, ShipmentId = s.Id })
+                .ToListAsync();
+
+            foreach (var dto in dtos)
+            {
+                var match = paymentToShipment.FirstOrDefault(x => x.ItemId == dto.ItemId && x.BuyerId == dto.BuyerId);
+                if (match != null)
+                    dto.ShipmentId = match.ShipmentId;
+            }
+        }
+
+        return dtos;
     }
 
     public async Task<List<PurchaseRequestDto>> GetAsBuyerAsync(string buyerId)
