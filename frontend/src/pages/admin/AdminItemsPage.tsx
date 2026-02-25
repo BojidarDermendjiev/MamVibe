@@ -1,17 +1,175 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { HiX, HiChevronLeft, HiChevronRight, HiEye } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import { itemsApi } from '../../api/itemsApi';
 import { adminApi } from '../../api/adminApi';
 import { type Item, ListingType } from '../../types/item';
 import Button from '../../components/common/Button';
+import Avatar from '../../components/common/Avatar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+
+function ItemDetailModal({
+  item,
+  isPending,
+  onClose,
+  onApprove,
+  onDelete,
+}: {
+  item: Item;
+  isPending: boolean;
+  onClose: () => void;
+  onApprove: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const photos = item.photos.slice().sort((a, b) => a.displayOrder - b.displayOrder);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-[#2d2a42] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-lavender/20 dark:border-white/10">
+          <h2 className="text-lg font-semibold text-[#364153] dark:text-[#bdb9bc] truncate pr-4">{item.title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0"
+          >
+            <HiX className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Photo gallery */}
+        {photos.length > 0 && (
+          <div className="relative bg-gray-100 dark:bg-black/20">
+            <img
+              src={photos[photoIndex].url}
+              alt={item.title}
+              className="w-full h-72 object-contain"
+            />
+            {photos.length > 1 && (
+              <>
+                <button
+                  onClick={() => setPhotoIndex((i) => (i - 1 + photos.length) % photos.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1"
+                >
+                  <HiChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setPhotoIndex((i) => (i + 1) % photos.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1"
+                >
+                  <HiChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {photos.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPhotoIndex(i)}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === photoIndex ? 'bg-white' : 'bg-white/40'}`}
+                    />
+                  ))}
+                </div>
+                {/* Thumbnails */}
+                <div className="flex gap-2 p-3 overflow-x-auto">
+                  {photos.map((p, i) => (
+                    <button key={p.id} onClick={() => setPhotoIndex(i)}>
+                      <img
+                        src={p.url}
+                        alt=""
+                        className={`h-14 w-14 rounded-lg object-cover flex-shrink-0 border-2 transition-colors ${
+                          i === photoIndex ? 'border-primary' : 'border-transparent'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Details */}
+        <div className="px-6 py-4 space-y-4">
+          {/* Meta row */}
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              item.listingType === ListingType.Donate ? 'bg-green-100 text-green-700' : 'bg-mauve/10 text-mauve'
+            }`}>
+              {item.listingType === ListingType.Donate ? t('items.donate') : t('items.sell')}
+            </span>
+            {item.price != null && item.price > 0 && (
+              <span className="text-lg font-bold text-mauve">{item.price.toFixed(2)} BGN</span>
+            )}
+            {(item.price == null || item.price === 0) && item.listingType === ListingType.Donate && (
+              <span className="text-lg font-bold text-green-600">{t('items.free')}</span>
+            )}
+            {item.categoryName && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-full">
+                {item.categoryName}
+              </span>
+            )}
+            <span className="text-xs text-gray-400 ml-auto">
+              {new Date(item.createdAt).toLocaleDateString()}
+            </span>
+          </div>
+
+          {/* Description */}
+          {item.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+              {item.description}
+            </p>
+          )}
+
+          {/* Owner */}
+          <div className="flex items-center gap-2 pt-1 border-t border-lavender/20 dark:border-white/10">
+            <Avatar src={item.userAvatarUrl} size="sm" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">{item.userDisplayName}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 px-6 py-4 border-t border-lavender/20 dark:border-white/10">
+          {isPending && (
+            <Button
+              size="sm"
+              onClick={() => { onApprove(item.id); onClose(); }}
+            >
+              {t('admin.approve_item')}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => { onDelete(item.id); onClose(); }}
+          >
+            {t('admin.delete_item')}
+          </Button>
+          <button
+            onClick={onClose}
+            className="ml-auto text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            {t('common.cancel')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminItemsPage() {
   const { t } = useTranslation();
   const [items, setItems] = useState<Item[]>([]);
   const [pendingItems, setPendingItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<{ item: Item; isPending: boolean } | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -84,15 +242,21 @@ export default function AdminItemsPage() {
                   </thead>
                   <tbody className="divide-y divide-amber-100 dark:divide-amber-900/30">
                     {pendingItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-900/10">
+                      <tr
+                        key={item.id}
+                        className="hover:bg-amber-50/50 dark:hover:bg-amber-900/10 cursor-pointer"
+                        onClick={() => setSelectedItem({ item, isPending: true })}
+                      >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            {item.photos?.[0] && (
+                            {item.photos?.[0] ? (
                               <img
                                 src={item.photos[0].url}
                                 alt={item.title}
-                                className="w-10 h-10 rounded-lg object-cover"
+                                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                               />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-lavender/20 flex-shrink-0" />
                             )}
                             <span className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">{item.title}</span>
                           </div>
@@ -110,13 +274,22 @@ export default function AdminItemsPage() {
                           {item.price ? `${item.price.toFixed(2)} BGN` : 'Free'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.userDisplayName}</td>
-                        <td className="px-4 py-3 flex gap-2">
-                          <Button size="sm" onClick={() => handleApprove(item.id)}>
-                            {t('admin.approve_item')}
-                          </Button>
-                          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
-                            {t('admin.delete_item')}
-                          </Button>
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setSelectedItem({ item, isPending: true })}
+                              className="p-1.5 text-gray-400 hover:text-primary transition-colors"
+                              title="View details"
+                            >
+                              <HiEye className="h-4 w-4" />
+                            </button>
+                            <Button size="sm" onClick={() => handleApprove(item.id)}>
+                              {t('admin.approve_item')}
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
+                              {t('admin.delete_item')}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -140,7 +313,11 @@ export default function AdminItemsPage() {
               </thead>
               <tbody className="divide-y divide-lavender/20 dark:divide-white/10">
                 {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-cream/50 dark:hover:bg-white/5">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-cream/50 dark:hover:bg-white/5 cursor-pointer"
+                    onClick={() => setSelectedItem({ item, isPending: false })}
+                  >
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">{item.title}</span>
                     </td>
@@ -157,10 +334,19 @@ export default function AdminItemsPage() {
                       {item.price ? `${item.price.toFixed(2)} BGN` : 'Free'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.userDisplayName}</td>
-                    <td className="px-4 py-3">
-                      <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
-                        {t('admin.delete_item')}
-                      </Button>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedItem({ item, isPending: false })}
+                          className="p-1.5 text-gray-400 hover:text-primary transition-colors"
+                          title="View details"
+                        >
+                          <HiEye className="h-4 w-4" />
+                        </button>
+                        <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
+                          {t('admin.delete_item')}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -168,6 +354,16 @@ export default function AdminItemsPage() {
             </table>
           </div>
         </>
+      )}
+
+      {selectedItem && (
+        <ItemDetailModal
+          item={selectedItem.item}
+          isPending={selectedItem.isPending}
+          onClose={() => setSelectedItem(null)}
+          onApprove={handleApprove}
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );
