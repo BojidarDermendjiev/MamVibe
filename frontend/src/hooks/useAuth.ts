@@ -6,6 +6,10 @@ export function useAuth() {
   const { setAuth, logout, isLoading } = useAuthStore();
 
   useEffect(() => {
+    // The `cancelled` flag guards against stale promise resolution after unmount
+    // or rapid remount. If the component unmounts before the refresh resolves,
+    // the flag is set to true and the state update is skipped — preventing
+    // "state update on unmounted component" warnings and stale auth state.
     let cancelled = false;
 
     const initAuth = async () => {

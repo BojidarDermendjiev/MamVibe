@@ -35,6 +35,7 @@ export default function AdminLayout() {
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex-shrink-0"
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
@@ -81,6 +82,8 @@ export default function AdminLayout() {
             <Link
               key={item.path}
               to={item.path}
+              aria-label={t(item.labelKey)}
+              title={t(item.labelKey)}
               className={clsx(
                 'p-2 rounded-lg transition-colors',
                 isActive(item.path, item.exact)
@@ -94,6 +97,7 @@ export default function AdminLayout() {
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
           >
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}

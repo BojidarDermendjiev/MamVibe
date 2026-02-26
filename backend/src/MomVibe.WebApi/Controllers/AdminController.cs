@@ -117,9 +117,9 @@ public class AdminController : ControllerBase
     // --- Feature 2: Item approval ---
 
     [HttpGet("items/pending")]
-    public async Task<IActionResult> GetPendingItems()
+    public async Task<IActionResult> GetPendingItems([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var items = await this._adminService.GetPendingItemsAsync();
+        var items = await this._adminService.GetPendingItemsAsync(page, pageSize);
         return Ok(items);
     }
 
@@ -133,9 +133,9 @@ public class AdminController : ControllerBase
     // --- Feature 3: Admin shipping & payments ---
 
     [HttpGet("shipments")]
-    public async Task<IActionResult> GetAllShipments()
+    public async Task<IActionResult> GetAllShipments([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var shipments = await this._shippingService.GetAllShipmentsAsync();
+        var shipments = await this._shippingService.GetAllShipmentsAsync(page, pageSize);
         return Ok(shipments);
     }
 

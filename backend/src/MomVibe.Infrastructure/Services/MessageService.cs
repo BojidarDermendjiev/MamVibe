@@ -48,35 +48,68 @@ public class MessageService : IMessageService
 
     public async Task<List<ConversationDto>> GetConversationsAsync(string userId)
     {
-        var messages = await this._context.Messages
+        // Query 1: SQL-level GROUP BY — gets per-peer aggregates without loading all messages.
+        // Max 50 conversations returned to prevent unbounded result sets.
+        var summaries = await this._context.Messages
+            .AsNoTracking()
+            .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+            .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+            .Select(g => new
+            {
+                PeerId = g.Key,
+                LastMessageTime = g.Max(m => m.CreatedAt),
+                UnreadCount = g.Count(m => m.ReceiverId == userId && !m.IsRead),
+            })
+            .OrderByDescending(g => g.LastMessageTime)
+            .Take(50)
+            .ToListAsync();
+
+        if (summaries.Count == 0)
+            return new List<ConversationDto>();
+
+        var peerIds = summaries.Select(s => s.PeerId).ToList();
+        var maxTimes = summaries.Select(s => s.LastMessageTime).Distinct().ToList();
+
+        // Query 2: Load the last message for each conversation (with navigation properties)
+        // using the known max timestamps — bounded to 50 peer conversations.
+        var latestMessages = await this._context.Messages
             .AsNoTracking()
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
-            .Where(m => m.SenderId == userId || m.ReceiverId == userId)
-            .OrderByDescending(m => m.CreatedAt)
+            .Where(m => (m.SenderId == userId || m.ReceiverId == userId)
+                     && maxTimes.Contains(m.CreatedAt))
             .ToListAsync();
 
-        var conversations = messages
-            .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
-            .Select(g =>
-            {
-                var otherUser = g.First().SenderId == userId ? g.First().Receiver : g.First().Sender;
-                var lastMessage = g.First();
-                var unreadCount = g.Count(m => m.ReceiverId == userId && !m.IsRead);
+        // Match each peer to its most recent message (ordered by time to handle ties)
+        var lastMessageByPeer = new Dictionary<string, Message>();
+        foreach (var s in summaries)
+        {
+            var msg = latestMessages
+                .Where(m => m.CreatedAt == s.LastMessageTime
+                         && (m.SenderId == s.PeerId || m.ReceiverId == s.PeerId))
+                .OrderByDescending(m => m.CreatedAt)
+                .FirstOrDefault();
+            if (msg != null)
+                lastMessageByPeer[s.PeerId] = msg;
+        }
 
+        return summaries
+            .Where(s => lastMessageByPeer.ContainsKey(s.PeerId))
+            .Select(s =>
+            {
+                var msg = lastMessageByPeer[s.PeerId];
+                var otherUser = msg.SenderId == userId ? msg.Receiver : msg.Sender;
                 return new ConversationDto
                 {
-                    UserId = otherUser.Id,
-                    DisplayName = otherUser.DisplayName,
-                    AvatarUrl = otherUser.AvatarUrl,
-                    LastMessage = lastMessage.Content,
-                    LastMessageTime = lastMessage.CreatedAt,
-                    UnreadCount = unreadCount
+                    UserId = s.PeerId,
+                    DisplayName = otherUser?.DisplayName ?? "Unknown",
+                    AvatarUrl = otherUser?.AvatarUrl,
+                    LastMessage = msg.Content,
+                    LastMessageTime = s.LastMessageTime,
+                    UnreadCount = s.UnreadCount,
                 };
             })
             .ToList();
-
-        return conversations;
     }
 
     public async Task<List<MessageDto>> GetMessagesAsync(string userId, string otherUserId, int page = 1, int pageSize = 50)

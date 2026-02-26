@@ -14,5 +14,5 @@ public interface IShippingService
     Task<ShipmentDto?> GetShipmentByPaymentIdAsync(Guid paymentId, string userId);
     Task<List<ShipmentDto>> GetShipmentsByUserAsync(string userId);
     Task SyncShipmentStatusesAsync();
-    Task<List<ShipmentDto>> GetAllShipmentsAsync();
+    Task<List<ShipmentDto>> GetAllShipmentsAsync(int page = 1, int pageSize = 50);
 }

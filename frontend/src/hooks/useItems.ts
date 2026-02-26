@@ -12,6 +12,7 @@ interface UseItemsReturn {
   items: Item[];
   totalPages: number;
   loading: boolean;
+  error: string | null;
   filter: ItemFilter;
   setFilter: (partial: Partial<ItemFilter>) => void;
   searchTerm: string;
@@ -31,6 +32,7 @@ export function useItems(options: UseItemsOptions = {}): UseItemsReturn {
   const [items, setItems] = useState<Item[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilterState] = useState<ItemFilter>({
     ...defaultFilter,
@@ -45,6 +47,7 @@ export function useItems(options: UseItemsOptions = {}): UseItemsReturn {
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const { data } = await itemsApi.getAll({
         ...filter,
@@ -52,8 +55,9 @@ export function useItems(options: UseItemsOptions = {}): UseItemsReturn {
       });
       setItems(data.items);
       setTotalPages(data.totalPages);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load items';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -67,6 +71,7 @@ export function useItems(options: UseItemsOptions = {}): UseItemsReturn {
     items,
     totalPages,
     loading,
+    error,
     filter,
     setFilter,
     searchTerm,

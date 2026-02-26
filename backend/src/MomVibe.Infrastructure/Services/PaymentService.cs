@@ -194,7 +194,10 @@ public class PaymentService : IPaymentService
 
     public async Task HandleWebhookAsync(string json, string stripeSignature)
     {
-        var webhookSecret = _configuration["Stripe:WebhookSecret"]!;
+        var webhookSecret = _configuration["Stripe:WebhookSecret"];
+        if (string.IsNullOrWhiteSpace(webhookSecret))
+            throw new InvalidOperationException("Stripe:WebhookSecret is not configured.");
+
         var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
 
         if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
@@ -214,7 +217,8 @@ public class PaymentService : IPaymentService
 
                 for (var idx = 0; idx < itemIds.Count; idx++)
                 {
-                    var currentItem = items.First(i => i.Id == itemIds[idx]);
+                    var currentItem = items.FirstOrDefault(i => i.Id == itemIds[idx]);
+                    if (currentItem == null) continue;
                     var payment = new PaymentEntity
                     {
                         ItemId = itemIds[idx],

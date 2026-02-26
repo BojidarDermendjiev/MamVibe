@@ -37,6 +37,7 @@ public class MappingProfile : Profile
             .ForMember(d => d.UserAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null))
             .ForMember(d => d.User, opt => opt.MapFrom(s => s.User));
 
+
         CreateMap<ItemPhoto, ItemPhotoDto>();
 
         CreateMap<Message, MessageDto>()
@@ -52,13 +53,13 @@ public class MappingProfile : Profile
             .ForMember(d => d.UserAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null));
 
         CreateMap<Shipment, ShipmentDto>()
-            .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Payment != null && s.Payment.Item != null ? s.Payment.Item.Title : null));
+            .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Payment?.Item?.Title));
 
         CreateMap<PurchaseRequest, PurchaseRequestDto>()
             .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Item != null ? s.Item.Title : null))
             .ForMember(d => d.ItemPhotoUrl, opt => opt.MapFrom(s =>
                 s.Item != null && s.Item.Photos != null && s.Item.Photos.Count > 0
-                    ? s.Item.Photos.OrderBy(p => p.DisplayOrder).First().Url
+                    ? s.Item.Photos.OrderBy(p => p.DisplayOrder).FirstOrDefault()?.Url
                     : null))
             .ForMember(d => d.ListingType, opt => opt.MapFrom(s => s.Item != null ? s.Item.ListingType : default))
             .ForMember(d => d.Price, opt => opt.MapFrom(s => s.Item != null ? s.Item.Price : null))

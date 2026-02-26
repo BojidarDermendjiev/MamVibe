@@ -96,6 +96,9 @@ export default function MainLayout() {
   const [activeTab, setActiveTab] = useState<string | null>(getActive);
 
   useEffect(() => {
+    // getActive() reads navItems which is derived from isAuthenticated and location.pathname.
+    // Both deps are required: pathname drives which tab is active, isAuthenticated controls
+    // which nav items exist (authenticated-only items appear on login).
     setActiveTab(getActive());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, isAuthenticated]);
@@ -174,9 +177,8 @@ export default function MainLayout() {
       {/* Dark mode toggle */}
       <button
         onClick={toggleTheme}
-        title={
-          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-        }
+        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors text-gray-700 dark:text-gray-200"
       >
         {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}

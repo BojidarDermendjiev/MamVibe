@@ -16,7 +16,7 @@ using Application.Interfaces;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-[EnableRateLimiting("upload")]
+[EnableRateLimiting(RateLimitPolicies.Upload)]
 public class PhotosController : ControllerBase
 {
     private readonly IPhotoService _photoService;

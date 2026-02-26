@@ -20,7 +20,7 @@ using Application.Interfaces;
 
 [ApiController]
 [Route("api/[controller]")]
-[EnableRateLimiting("auth")]
+[EnableRateLimiting(RateLimitPolicies.Auth)]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

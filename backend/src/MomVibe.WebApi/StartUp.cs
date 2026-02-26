@@ -154,7 +154,7 @@ builder.Services.AddRateLimiter(options =>
     });
 
     // Named policy retained for AuthController's stricter limit: 10 requests per minute per IP
-    options.AddPolicy("global", context =>
+    options.AddPolicy(RateLimitPolicies.Global, context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
@@ -167,7 +167,7 @@ builder.Services.AddRateLimiter(options =>
     // Auth endpoint rate limit: 30 req/min per IP.
     // Sufficient brute-force protection; /auth/refresh is called on every page load
     // so 10/min was too tight when multiple tabs or hot-reloads are in use.
-    options.AddPolicy("auth", context =>
+    options.AddPolicy(RateLimitPolicies.Auth, context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
@@ -178,7 +178,7 @@ builder.Services.AddRateLimiter(options =>
             }));
 
     // Upload rate limit: 20 uploads per minute per IP
-    options.AddPolicy("upload", context =>
+    options.AddPolicy(RateLimitPolicies.Upload, context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions

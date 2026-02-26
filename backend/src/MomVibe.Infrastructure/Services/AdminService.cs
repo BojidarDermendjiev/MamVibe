@@ -143,8 +143,11 @@ public class AdminService : IAdminService
         await this._context.SaveChangesAsync();
     }
 
-    public async Task<List<ItemDto>> GetPendingItemsAsync()
+    public async Task<List<ItemDto>> GetPendingItemsAsync(int page = 1, int pageSize = 50)
     {
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        page = Math.Max(1, page);
+
         var items = await this._context.Items
             .AsNoTracking()
             .Where(i => !i.IsActive)
@@ -152,6 +155,8 @@ public class AdminService : IAdminService
             .Include(i => i.User)
             .Include(i => i.Category)
             .OrderByDescending(i => i.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return this._mapper.Map<List<ItemDto>>(items);

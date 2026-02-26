@@ -117,7 +117,12 @@ public class PhotoService : IPhotoService
             }
         }
         catch (ArgumentException) { throw; }
-        catch { /* If we can't parse dimensions, allow the upload — size limit still applies */ }
+        catch (Exception ex)
+        {
+            // Reject uploads where dimension validation fails for unknown reasons.
+            // Silently allowing unparseable files could let malformed or malicious images through.
+            throw new ArgumentException($"Unable to validate image dimensions: {ex.Message}", ex);
+        }
     }
 
     public Task DeletePhotoAsync(string url)

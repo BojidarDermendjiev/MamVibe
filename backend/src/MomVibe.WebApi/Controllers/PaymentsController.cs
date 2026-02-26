@@ -251,8 +251,15 @@ public class PaymentsController : ControllerBase
         using var reader = new StreamReader(this.HttpContext.Request.Body);
         var json = await reader.ReadToEndAsync();
         var signature = this.Request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
-        await this._paymentService.HandleWebhookAsync(json, signature);
-        return Ok();
+        try
+        {
+            await this._paymentService.HandleWebhookAsync(json, signature);
+            return Ok();
+        }
+        catch (Stripe.StripeException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>

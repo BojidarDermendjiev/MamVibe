@@ -222,13 +222,18 @@ public class ShippingService : IShippingService
         return _mapper.Map<List<ShipmentDto>>(shipments);
     }
 
-    public async Task<List<ShipmentDto>> GetAllShipmentsAsync()
+    public async Task<List<ShipmentDto>> GetAllShipmentsAsync(int page = 1, int pageSize = 50)
     {
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        page = Math.Max(1, page);
+
         var shipments = await this._context.Shipments
             .AsNoTracking()
             .Include(s => s.Payment)
                 .ThenInclude(p => p.Item)
             .OrderByDescending(s => s.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         return _mapper.Map<List<ShipmentDto>>(shipments);

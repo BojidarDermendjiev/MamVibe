@@ -116,12 +116,15 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!activeChat) return;
+    let isMounted = true;
     const loadMessages = async () => {
       try {
         const { data } = await messagesApi.getMessages(activeChat);
+        if (!isMounted) return;
         setMessages(data);
         setTimeout(scrollToBottom, 100);
         await messagesApi.markAsRead(activeChat);
+        if (!isMounted) return;
         markConversationRead(activeChat);
         setConversations((prev) =>
           prev.map((c) => c.userId === activeChat ? { ...c, unreadCount: 0 } : c)
@@ -129,7 +132,17 @@ export default function ChatPage() {
       } catch { /* ignore */ }
     };
     loadMessages();
+    return () => { isMounted = false; };
   }, [activeChat, markConversationRead, scrollToBottom]);
+
+  const activeConversation = conversations.find((c) => c.userId === activeChat);
+  // Fallback chain for new chats not yet in the conversations list
+  const activePeerName =
+    activeConversation?.displayName ||
+    navState?.displayName ||
+    messages.find((m) => m.senderId === activeChat)?.senderDisplayName ||
+    'User';
+  const activePeerAvatarUrl = activeConversation?.avatarUrl ?? navState?.avatarUrl ?? null;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +164,7 @@ export default function ChatPage() {
           // First message to a new contact — add them to the sidebar
           return [
             {
-              userId: activeChat!,
+              userId: activeChat,
               displayName: activePeerName,
               avatarUrl: activePeerAvatarUrl,
               lastMessage: msg.content,
@@ -171,15 +184,6 @@ export default function ChatPage() {
       sendTyping(activeChat).catch(() => {});
     }
   };
-
-  const activeConversation = conversations.find((c) => c.userId === activeChat);
-  // Fallback chain for new chats not yet in the conversations list
-  const activePeerName =
-    activeConversation?.displayName ||
-    navState?.displayName ||
-    messages.find((m) => m.senderId === activeChat)?.senderDisplayName ||
-    'User';
-  const activePeerAvatarUrl = activeConversation?.avatarUrl ?? navState?.avatarUrl ?? null;
 
   const filteredConversations = searchQuery
     ? conversations.filter((c) =>

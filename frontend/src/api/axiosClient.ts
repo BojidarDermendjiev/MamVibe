@@ -26,7 +26,9 @@ axiosClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const language = localStorage.getItem('language') || 'en';
+  const ALLOWED_LANGUAGES = ['en', 'bg'] as const;
+  const storedLang = localStorage.getItem('language');
+  const language = ALLOWED_LANGUAGES.includes(storedLang as (typeof ALLOWED_LANGUAGES)[number]) ? storedLang : 'en';
   config.headers['X-Language'] = language;
 
   // Set Content-Type for JSON requests only; let browser handle FormData

@@ -16,5 +16,5 @@ public interface IAdminService
     Task UnblockUserAsync(string userId);
     Task<DashboardStatsDto> GetDashboardStatsAsync();
     Task ApproveItemAsync(Guid itemId);
-    Task<List<ItemDto>> GetPendingItemsAsync();
+    Task<List<ItemDto>> GetPendingItemsAsync(int page = 1, int pageSize = 50);
 }

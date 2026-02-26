@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
 
 using Application.DTOs.Items;
 using Application.Interfaces;
@@ -20,16 +21,19 @@ public class ItemsController : ControllerBase
 {
     private readonly IItemService _itemService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IValidator<UpdateItemDto> _updateItemValidator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ItemsController"/>.
     /// </summary>
     /// <param name="itemService">Service handling item operations.</param>
     /// <param name="currentUserService">Service providing context about the current user.</param>
-    public ItemsController(IItemService itemService, ICurrentUserService currentUserService)
+    /// <param name="updateItemValidator">Validator for item update payloads.</param>
+    public ItemsController(IItemService itemService, ICurrentUserService currentUserService, IValidator<UpdateItemDto> updateItemValidator)
     {
         this._itemService = itemService;
         this._currentUserService = currentUserService;
+        this._updateItemValidator = updateItemValidator;
     }
 
     /// <summary>
@@ -115,6 +119,11 @@ public class ItemsController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
+
+        var validation = await this._updateItemValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         try
         {
             var item = await this._itemService.UpdateAsync(id, dto, userId);
