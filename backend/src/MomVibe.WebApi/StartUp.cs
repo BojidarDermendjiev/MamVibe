@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 using MomVibe.Application;
+using MomVibe.WebApi;
 using MomVibe.WebApi.Hubs;
 using MomVibe.WebApi.Services;
 using MomVibe.Infrastructure;
