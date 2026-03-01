@@ -1,5 +1,7 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "../store/authStore";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const SWITCH_ROUTES = ["/login", "/register"];
 
@@ -8,14 +10,32 @@ export default function AuthLayout() {
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
   const showSwitch = SWITCH_ROUTES.includes(location.pathname);
+  const { isAuthenticated, isLoading } = useAuthStore();
 
-  // null = follow the URL; true/false = animation in progress
+  // Must be declared before any early returns (Rules of Hooks)
   const [transitionOverride, setTransitionOverride] = useState<boolean | null>(null);
   const isActive = transitionOverride ?? !isLogin;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup on unmount
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  // While session is resolving, show a spinner so the login form never flashes
+  // for users who are already authenticated.
+  if (showSwitch && isLoading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "linear-gradient(135deg, #8b8fff 0%, #7b6fe0 40%, #9c72c4 100%)" }}
+      >
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Already logged in — send straight to home instead of showing the form.
+  if (showSwitch && isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const switchTo = (path: string, active: boolean) => {
     setTransitionOverride(active);
