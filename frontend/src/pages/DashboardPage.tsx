@@ -7,6 +7,7 @@ import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
 import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
+import { formatPrice } from '../utils/currency';
 import ItemCard from '../components/items/ItemCard';
 import ShipmentCard from '../components/shipping/ShipmentCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -122,7 +123,7 @@ export default function DashboardPage() {
                       <p className="text-sm text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-mauve">${p.amount.toFixed(2)}</p>
+                      <p className="font-bold text-mauve">{formatPrice(p.amount)}</p>
                       <p className="text-xs text-gray-400 capitalize">{p.paymentMethod === 0 ? 'Card' : 'On Spot'}</p>
                     </div>
                   </div>
@@ -217,7 +218,7 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-primary truncate">{r.itemTitle}</p>
                         <p className="text-sm text-gray-500 mt-0.5">
-                          {r.price != null && r.price > 0 ? `$${r.price.toFixed(2)}` : 'Free'}
+                          {r.price != null && r.price > 0 ? formatPrice(r.price) : 'Free'}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
                       </div>

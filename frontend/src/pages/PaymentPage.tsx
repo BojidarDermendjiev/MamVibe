@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { type Item, ListingType } from '../types/item';
+import { formatPrice } from '../utils/currency';
 import { CourierProvider, DeliveryType } from '../types/shipping';
 import type { CalculateShippingRequest, PaymentDeliveryRequest } from '../types/shipping';
 import Button from '../components/common/Button';
@@ -131,7 +132,7 @@ export default function PaymentPage() {
       <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-6">
         <h2 className="font-semibold text-primary mb-1">{item.title}</h2>
         <p className="text-2xl font-bold text-mauve">
-          {isDonate ? t('items.free') : `$${item.price?.toFixed(2)}`}
+          {isDonate ? t('items.free') : formatPrice(item.price)}
         </p>
       </div>
 

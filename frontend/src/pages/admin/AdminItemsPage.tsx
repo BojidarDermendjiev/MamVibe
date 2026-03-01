@@ -8,6 +8,7 @@ import { type Item, ListingType } from '../../types/item';
 import Button from '../../components/common/Button';
 import Avatar from '../../components/common/Avatar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { formatPrice } from '../../utils/currency';
 
 function ItemDetailModal({
   item,
@@ -106,7 +107,7 @@ function ItemDetailModal({
               {item.listingType === ListingType.Donate ? t('items.donate') : t('items.sell')}
             </span>
             {item.price != null && item.price > 0 && (
-              <span className="text-lg font-bold text-mauve">{item.price.toFixed(2)} BGN</span>
+              <span className="text-lg font-bold text-mauve">{formatPrice(item.price)}</span>
             )}
             {(item.price == null || item.price === 0) && item.listingType === ListingType.Donate && (
               <span className="text-lg font-bold text-green-600">{t('items.free')}</span>
@@ -271,7 +272,7 @@ export default function AdminItemsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                          {item.price ? `${item.price.toFixed(2)} BGN` : 'Free'}
+                          {item.price ? formatPrice(item.price) : 'Free'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.userDisplayName}</td>
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>

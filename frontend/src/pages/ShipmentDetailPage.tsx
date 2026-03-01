@@ -7,6 +7,7 @@ import { CourierProvider, ShipmentStatus, type Shipment } from '../types/shippin
 import ShipmentTracker from '../components/shipping/ShipmentTracker';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { formatPrice } from '../utils/currency';
 
 export default function ShipmentDetailPage() {
   const { shipmentId } = useParams<{ shipmentId: string }>();
@@ -136,7 +137,7 @@ export default function ShipmentDetailPage() {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <span className="text-sm text-gray-500">{t('shipping.shipping_price')}</span>
-            <p className="font-bold text-mauve">{shipment.shippingPrice.toFixed(2)} BGN</p>
+            <p className="font-bold text-mauve">{formatPrice(shipment.shippingPrice)}</p>
           </div>
           <div>
             <span className="text-sm text-gray-500">{t('shipping.weight')}</span>
@@ -151,14 +152,14 @@ export default function ShipmentDetailPage() {
         {shipment.isCod && (
           <div>
             <span className="text-sm text-gray-500">{t('shipping.cod')}</span>
-            <p className="font-medium text-primary">{shipment.codAmount.toFixed(2)} BGN</p>
+            <p className="font-medium text-primary">{formatPrice(shipment.codAmount)}</p>
           </div>
         )}
 
         {shipment.isInsured && (
           <div>
             <span className="text-sm text-gray-500">{t('shipping.insurance')}</span>
-            <p className="font-medium text-primary">{shipment.insuredAmount.toFixed(2)} BGN</p>
+            <p className="font-medium text-primary">{formatPrice(shipment.insuredAmount)}</p>
           </div>
         )}
       </div>

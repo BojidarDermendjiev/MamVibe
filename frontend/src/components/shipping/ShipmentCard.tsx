@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { CourierProvider, ShipmentStatus, type Shipment } from '../../types/shipping';
+import { formatPrice } from '../../utils/currency';
 
 interface ShipmentCardProps {
   shipment: Shipment;
@@ -57,7 +58,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
       </div>
       <div className="flex justify-between items-center text-sm">
         <span className="text-gray-500">{shipment.recipientName}</span>
-        <span className="font-medium text-mauve">{shipment.shippingPrice.toFixed(2)} BGN</span>
+        <span className="font-medium text-mauve">{formatPrice(shipment.shippingPrice)}</span>
       </div>
       <p className="text-xs text-gray-400 mt-1">
         {new Date(shipment.createdAt).toLocaleDateString()}

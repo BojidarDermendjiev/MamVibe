@@ -8,6 +8,7 @@ import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { type Item, ListingType } from '../types/item';
 import { useAuthStore } from '../store/authStore';
 import { getCategoryImage } from '../utils/categoryImages';
+import { formatPrice } from '../utils/currency';
 import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
@@ -143,7 +144,7 @@ export default function ItemDetailPage() {
           <p className="text-sm text-gray-500 mb-4">{item.categoryName}</p>
 
           <div className="text-3xl font-bold text-mauve mb-6">
-            {item.listingType === ListingType.Donate ? t('items.free') : `$${item.price?.toFixed(2)}`}
+            {item.listingType === ListingType.Donate ? t('items.free') : formatPrice(item.price)}
           </div>
 
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">

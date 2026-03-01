@@ -3,6 +3,7 @@ import { HiEye } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
 import { type Item, ListingType } from '../../types/item';
 import { getCategoryImage } from '../../utils/categoryImages';
+import { formatPrice } from '../../utils/currency';
 import LikeButton from './LikeButton';
 
 interface ItemCardProps {
@@ -41,7 +42,7 @@ export default function ItemCard({ item, onLikeToggle }: ItemCardProps) {
           <span className="font-bold text-lg text-mauve">
             {item.listingType === ListingType.Donate
               ? t('items.free')
-              : `$${item.price?.toFixed(2)}`}
+              : formatPrice(item.price)}
           </span>
           <div className="flex items-center gap-3 text-sm text-gray-400">
             <span className="flex items-center gap-1">
