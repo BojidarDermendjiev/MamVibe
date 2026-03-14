@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { adminApi } from '../../api/adminApi';
 import { shippingApi } from '../../api/shippingApi';
 import {

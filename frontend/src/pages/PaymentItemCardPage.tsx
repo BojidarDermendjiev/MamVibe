@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiArrowLeft } from 'react-icons/hi';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { type Item, ListingType } from '../types/item';

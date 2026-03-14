@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { useSignalR } from './SignalRContext';
 import { useAuthStore } from '../store/authStore';
 import { messagesApi } from '../api/messagesApi';
@@ -98,7 +98,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const courier = courierNames[shipment.courierProvider] ?? '';
       toast(
         (t) => (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#945c67] min-w-[280px] max-w-[380px]">
             <p className="font-semibold text-primary">🖨️ Waybill ready to print!</p>
             <p className="text-sm text-gray-600">
               {shipment.itemTitle && <span>"{shipment.itemTitle}" via {courier}</span>}
@@ -131,7 +131,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const courier = courierNames[shipment.courierProvider] ?? '';
       toast(
         (t) => (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-emerald-400 min-w-[280px] max-w-[380px]">
             <p className="font-semibold text-primary">🚚 Your order is on its way!</p>
             <p className="text-sm text-gray-600">
               {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}

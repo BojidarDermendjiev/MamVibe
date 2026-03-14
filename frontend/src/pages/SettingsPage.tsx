@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { HiCamera } from 'react-icons/hi';
 import axiosClient from '../api/axiosClient';
 import { authApi } from '../api/authApi';

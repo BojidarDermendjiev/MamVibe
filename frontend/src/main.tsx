@@ -16,13 +16,23 @@ createRoot(document.getElementById("root")!).render(
         <App />
         <Toaster
           position="top-right"
+          containerStyle={{ top: 72, right: 16 }}
           toastOptions={{
-            duration: 3000,
+            duration: 3500,
             style: {
-              background: "#fff",
-              color: "#3f4a7f",
-              borderRadius: "12px",
-              border: "1px solid #c1c4e3",
+              background: '#fff',
+              color: '#3f4a7f',
+              borderRadius: '12px',
+              border: '1px solid #c1c4e3',
+            },
+            // Custom renders (our beautiful toast cards) handle their own styling
+            custom: {
+              style: {
+                background: 'transparent',
+                boxShadow: 'none',
+                padding: 0,
+                maxWidth: 'none',
+              },
             },
           }}
         />

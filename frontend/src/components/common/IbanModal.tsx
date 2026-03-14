@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import axiosClient from '../../api/axiosClient';
 import { useAuthStore } from '../../store/authStore';
 import Modal from './Modal';

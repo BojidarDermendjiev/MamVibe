@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HiX, HiChevronLeft, HiChevronRight, HiEye } from 'react-icons/hi';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { itemsApi } from '../../api/itemsApi';
 import { adminApi } from '../../api/adminApi';
 import { type Item, ListingType } from '../../types/item';

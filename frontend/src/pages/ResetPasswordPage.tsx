@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { authApi } from '../api/authApi';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';

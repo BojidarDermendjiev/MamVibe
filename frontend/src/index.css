@@ -300,6 +300,19 @@ a:hover {
   animation: soft-pulse 2s ease-in-out infinite;
 }
 
+/* ─── Toast Progress Bar ─── */
+.toast-progress {
+  width: 100%;
+  transform-origin: left;
+  animation: shrink-progress var(--toast-duration, 3.5s) linear forwards;
+}
+
+@keyframes shrink-progress {
+  to {
+    transform: scaleX(0);
+  }
+}
+
 /* staggered entrance — apply delay with inline style or nth-child */
 .animate-stagger {
   animation: fade-in 0.4s ease-out both;

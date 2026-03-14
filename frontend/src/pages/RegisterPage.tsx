@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';

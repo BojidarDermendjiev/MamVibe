@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { type Item, ListingType } from '../types/item';

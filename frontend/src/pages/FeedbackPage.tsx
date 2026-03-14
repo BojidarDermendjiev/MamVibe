@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { Paperclip, Mic, CornerDownLeft } from 'lucide-react';
 import { feedbackApi } from '../api/feedbackApi';
 import { FeedbackCategory } from '../types/feedback';

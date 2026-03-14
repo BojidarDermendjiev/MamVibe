@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { shippingApi } from '../api/shippingApi';
 import { CourierProvider, ShipmentStatus, type Shipment } from '../types/shipping';
 import ShipmentTracker from '../components/shipping/ShipmentTracker';

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';

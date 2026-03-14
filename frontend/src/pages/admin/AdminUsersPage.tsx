@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { adminApi, type AdminUser } from '../../api/adminApi';
 import Avatar from '../../components/common/Avatar';
 import Button from '../../components/common/Button';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
+import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { photosApi } from '../api/photosApi';
 import { ListingType } from '../types/item';
