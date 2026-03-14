@@ -12,39 +12,41 @@ function CookieCharacter() {
       className="w-full h-full"
       aria-hidden="true"
     >
-      {/* Drop shadow behind cookie */}
-      <ellipse cx="50" cy="96" rx="38" ry="5" fill="#00000022" />
-
       {/* Cookie body */}
-      <circle cx="50" cy="50" r="46" fill="#F0A848" />
-      <circle cx="50" cy="50" r="46" stroke="#C87830" strokeWidth="2.5" />
+      <circle cx="50" cy="50" r="46" fill="#D4956B" />
+      {/* Baked highlight — upper-left glow */}
+      <ellipse cx="38" cy="36" rx="20" ry="15" fill="#E8B07A" opacity="0.55" />
+      {/* Cookie outline */}
+      <circle cx="50" cy="50" r="46" stroke="#A86030" strokeWidth="2.5" />
 
-      {/* Inner lighter ring — baked look */}
-      <circle cx="50" cy="50" r="40" fill="none" stroke="#F8C070" strokeWidth="5" opacity="0.35" />
+      {/* Chocolate chips — organic blob shapes */}
+      <ellipse cx="29" cy="33" rx="7.5" ry="6"   fill="#3B1500" transform="rotate(-20 29 33)" />
+      <ellipse cx="57" cy="27" rx="7"   ry="5.5" fill="#3B1500" transform="rotate(14 57 27)"  />
+      <ellipse cx="74" cy="46" rx="6.5" ry="5.5" fill="#3B1500" transform="rotate(22 74 46)"  />
+      <ellipse cx="21" cy="54" rx="6.5" ry="5.5" fill="#3B1500" transform="rotate(-12 21 54)" />
+      <ellipse cx="66" cy="65" rx="7"   ry="6"   fill="#3B1500" transform="rotate(10 66 65)"  />
+      <ellipse cx="34" cy="70" rx="7"   ry="5.5" fill="#3B1500" transform="rotate(-16 34 70)" />
+      <ellipse cx="50" cy="36" rx="5.5" ry="5"   fill="#3B1500" transform="rotate(5 50 36)"   />
 
-      {/* Chocolate chips */}
-      <ellipse cx="32" cy="36" rx="7"   ry="6"   fill="#3B1E08" transform="rotate(-18 32 36)" />
-      <ellipse cx="57" cy="30" rx="6.5" ry="5.5" fill="#3B1E08" transform="rotate(10 57 30)"  />
-      <ellipse cx="72" cy="48" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(20 72 48)"  />
-      <ellipse cx="26" cy="58" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(-10 26 58)" />
-      <ellipse cx="62" cy="62" rx="6.5" ry="6"   fill="#3B1E08" transform="rotate(12 62 62)"  />
-      <ellipse cx="40" cy="68" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(-8 40 68)"  />
+      {/* ── Face ── */}
 
-      {/* Eyes */}
-      <circle cx="38" cy="52" r="7" fill="#1A0800" />
-      <circle cx="60" cy="52" r="7" fill="#1A0800" />
-      {/* Eye highlights */}
-      <circle cx="41"  cy="49" r="2.6" fill="white" />
-      <circle cx="63"  cy="49" r="2.6" fill="white" />
-      <circle cx="37"  cy="55" r="1.2" fill="white" opacity="0.5" />
-      <circle cx="59"  cy="55" r="1.2" fill="white" opacity="0.5" />
+      {/* Eyes — large kawaii circles */}
+      <circle cx="37" cy="55" r="9" fill="#1A0800" />
+      <circle cx="62" cy="55" r="9" fill="#1A0800" />
+      {/* Eye main highlight */}
+      <circle cx="41"  cy="51" r="3.8" fill="white" />
+      <circle cx="66"  cy="51" r="3.8" fill="white" />
+      {/* Eye tiny sparkle */}
+      <circle cx="35.5" cy="59" r="1.5" fill="white" opacity="0.6" />
+      <circle cx="60.5" cy="59" r="1.5" fill="white" opacity="0.6" />
 
       {/* Rosy cheeks */}
-      <ellipse cx="27" cy="62" rx="9" ry="6" fill="#FF8070" opacity="0.35" />
-      <ellipse cx="71" cy="62" rx="9" ry="6" fill="#FF8070" opacity="0.35" />
+      <ellipse cx="24" cy="67" rx="11" ry="7.5" fill="#FF9090" opacity="0.5" />
+      <ellipse cx="75" cy="67" rx="11" ry="7.5" fill="#FF9090" opacity="0.5" />
 
-      {/* Smile */}
-      <path d="M 36 68 Q 50 82 64 68" stroke="#1A0800" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Open happy mouth */}
+      <path d="M 37 69 Q 50 83 63 69" fill="#3B1500" />
+      <path d="M 39 70 Q 50 80 61 70 Q 55 75 45 75 Z" fill="#D4694A" />
     </svg>
   );
 }
