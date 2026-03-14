@@ -176,22 +176,11 @@ export default function HomePage() {
           Items from brands you know &amp; love
         </p>
 
-        {/* Row 1 — left → right */}
-        <div className="group relative w-full overflow-hidden mb-5 [--duration:40s]">
+        {/* Single row — left → right */}
+        <div className="group relative w-full overflow-hidden [--duration:40s]">
           <div className="flex w-max gap-4 px-4 animate-marquee group-hover:[animation-play-state:paused]">
             {BRAND_STRIP.map((b, i) => (
               <BrandCard key={`r1-${i}`} name={b.name} domain={b.domain} accent={b.accent} />
-            ))}
-          </div>
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#201d30]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white dark:from-[#201d30]" />
-        </div>
-
-        {/* Row 2 — right → left (different speed for depth) */}
-        <div className="group relative w-full overflow-hidden [--duration:30s]">
-          <div className="flex w-max gap-4 px-4 animate-marquee-reverse group-hover:[animation-play-state:paused]">
-            {BRAND_STRIP_REV.map((b, i) => (
-              <BrandCard key={`r2-${i}`} name={b.name} domain={b.domain} accent={b.accent} />
             ))}
           </div>
           <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#201d30]" />

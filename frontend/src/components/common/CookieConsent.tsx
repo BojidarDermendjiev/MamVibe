@@ -74,7 +74,7 @@ export default function CookieConsent() {
     >
       <div className="relative">
         {/* Cookie character — peeks out from top-right of card */}
-        <div className="absolute -top-14 right-4 w-28 h-28 pointer-events-none z-10">
+        <div className="absolute -top-16 right-2 w-32 h-32 pointer-events-none z-10">
           <CookieCharacter />
         </div>
 
