@@ -24,6 +24,7 @@ import Avatar from "../components/common/Avatar";
 import Button from "../components/common/Button";
 import CookieConsent from "../components/common/CookieConsent";
 import ScrollToTop from "../components/common/ScrollToTop";
+import toast from "../utils/toast";
 
 export default function MainLayout() {
   const { t } = useTranslation();
@@ -104,9 +105,14 @@ export default function MainLayout() {
   }, [location.pathname, isAuthenticated]);
 
   const handleLogout = async () => {
+    const name = user?.displayName;
     try { await authApi.revoke(); } catch { /* best effort */ }
     logout();
     navigate("/");
+    toast.info(
+      name ? `See you soon, ${name}! 👋` : 'See you soon! 👋',
+      'You have been logged out successfully.',
+    );
   };
 
   /* ─── Shared pill nav (used by both desktop center + mobile bottom) ─── */
