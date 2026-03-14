@@ -6,49 +6,45 @@ import Button from './Button';
 function CookieCharacter() {
   return (
     <svg
-      viewBox="0 0 160 165"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-full"
       aria-hidden="true"
     >
-      {/* Waving arm — rendered first so body overlaps the base */}
-      <path d="M 112 62 C 122 46 130 30 128 16" stroke="#BF6A30" strokeWidth="11" strokeLinecap="round" />
-      {/* Hand */}
-      <circle cx="126" cy="12" r="14" fill="#E8A55A" />
-      <circle cx="126" cy="12" r="14" stroke="#BF6A30" strokeWidth="2" />
-      <ellipse cx="125" cy="10" rx="5.5" ry="4.5" fill="#3D2010" transform="rotate(-15 125 10)" />
+      {/* Drop shadow behind cookie */}
+      <ellipse cx="50" cy="96" rx="38" ry="5" fill="#00000022" />
 
       {/* Cookie body */}
-      <circle cx="70" cy="92" r="60" fill="#E8A55A" />
-      <circle cx="70" cy="92" r="60" stroke="#BF6A30" strokeWidth="2.5" />
-      {/* Subtle baked-texture ring */}
-      <circle cx="70" cy="92" r="55" stroke="#D4884A" strokeWidth="1.2" opacity="0.25" strokeDasharray="4 9" />
+      <circle cx="50" cy="50" r="46" fill="#F0A848" />
+      <circle cx="50" cy="50" r="46" stroke="#C87830" strokeWidth="2.5" />
+
+      {/* Inner lighter ring — baked look */}
+      <circle cx="50" cy="50" r="40" fill="none" stroke="#F8C070" strokeWidth="5" opacity="0.35" />
 
       {/* Chocolate chips */}
-      <ellipse cx="52" cy="80"  rx="9.5" ry="8.5" fill="#3D2010" transform="rotate(-14 52 80)"  />
-      <ellipse cx="80" cy="74"  rx="8.5" ry="7.5" fill="#3D2010" transform="rotate(11 80 74)"   />
-      <ellipse cx="56" cy="104" rx="9"   ry="8"   fill="#3D2010" transform="rotate(-7 56 104)"  />
-      <ellipse cx="84" cy="100" rx="8"   ry="7.5" fill="#3D2010" transform="rotate(16 84 100)"  />
-      <ellipse cx="38" cy="103" rx="7"   ry="6.5" fill="#3D2010" transform="rotate(-11 38 103)" />
-      <ellipse cx="94" cy="80"  rx="7"   ry="6"   fill="#3D2010" transform="rotate(7 94 80)"    />
+      <ellipse cx="32" cy="36" rx="7"   ry="6"   fill="#3B1E08" transform="rotate(-18 32 36)" />
+      <ellipse cx="57" cy="30" rx="6.5" ry="5.5" fill="#3B1E08" transform="rotate(10 57 30)"  />
+      <ellipse cx="72" cy="48" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(20 72 48)"  />
+      <ellipse cx="26" cy="58" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(-10 26 58)" />
+      <ellipse cx="62" cy="62" rx="6.5" ry="6"   fill="#3B1E08" transform="rotate(12 62 62)"  />
+      <ellipse cx="40" cy="68" rx="6"   ry="5.5" fill="#3B1E08" transform="rotate(-8 40 68)"  />
 
       {/* Eyes */}
-      <circle cx="54" cy="87" r="8.5" fill="#1A0A00" />
-      <circle cx="78" cy="87" r="8.5" fill="#1A0A00" />
-      {/* Main highlight */}
-      <circle cx="57.5" cy="83.5" r="3.2" fill="white" />
-      <circle cx="81.5" cy="83.5" r="3.2" fill="white" />
-      {/* Secondary sparkle */}
-      <circle cx="52.5" cy="91" r="1.5" fill="white" opacity="0.55" />
-      <circle cx="76.5" cy="91" r="1.5" fill="white" opacity="0.55" />
+      <circle cx="38" cy="52" r="7" fill="#1A0800" />
+      <circle cx="60" cy="52" r="7" fill="#1A0800" />
+      {/* Eye highlights */}
+      <circle cx="41"  cy="49" r="2.6" fill="white" />
+      <circle cx="63"  cy="49" r="2.6" fill="white" />
+      <circle cx="37"  cy="55" r="1.2" fill="white" opacity="0.5" />
+      <circle cx="59"  cy="55" r="1.2" fill="white" opacity="0.5" />
 
       {/* Rosy cheeks */}
-      <ellipse cx="41"  cy="98" rx="10" ry="7" fill="#FF8888" opacity="0.32" />
-      <ellipse cx="91"  cy="98" rx="10" ry="7" fill="#FF8888" opacity="0.32" />
+      <ellipse cx="27" cy="62" rx="9" ry="6" fill="#FF8070" opacity="0.35" />
+      <ellipse cx="71" cy="62" rx="9" ry="6" fill="#FF8070" opacity="0.35" />
 
       {/* Smile */}
-      <path d="M 52 100 Q 68 117 86 100" stroke="#1A0A00" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <path d="M 36 68 Q 50 82 64 68" stroke="#1A0800" strokeWidth="3" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
@@ -78,7 +74,7 @@ export default function CookieConsent() {
     >
       <div className="relative">
         {/* Cookie character — peeks out from top-right of card */}
-        <div className="absolute -top-20 -right-8 w-36 h-36 pointer-events-none drop-shadow-lg z-10">
+        <div className="absolute -top-14 right-4 w-28 h-28 pointer-events-none z-10">
           <CookieCharacter />
         </div>
 
