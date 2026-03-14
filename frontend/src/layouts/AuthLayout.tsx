@@ -25,7 +25,7 @@ export default function AuthLayout() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #8b8fff 0%, #7b6fe0 40%, #9c72c4 100%)" }}
+        style={{ background: "linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)" }}
       >
         <LoadingSpinner size="lg" />
       </div>
@@ -50,7 +50,7 @@ export default function AuthLayout() {
     <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{
-        background: "linear-gradient(135deg, #8b8fff 0%, #7b6fe0 40%, #9c72c4 100%)",
+        background: "linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)",
       }}
     >
       <div className="w-full max-w-[820px]">
