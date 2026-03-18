@@ -51,6 +51,7 @@ export interface ItemFilter {
   categoryId?: string;
   listingType?: ListingType;
   searchTerm?: string;
+  brand?: string;
   page: number;
   pageSize: number;
   sortBy: string;

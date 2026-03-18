@@ -1,8 +1,9 @@
 using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
-using MomVibe.Application.DTOs.Auth;
+using System.Net.Http.Json;
+
 using MomVibe.Domain.Enums;
+using MomVibe.Application.DTOs.Auth;
 
 namespace MomVibe.IntegrationTests;
 

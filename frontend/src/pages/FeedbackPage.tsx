@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
-import { Paperclip, Mic, CornerDownLeft } from 'lucide-react';
+import { Paperclip, Mic, MicOff, CornerDownLeft, X } from 'lucide-react';
 import { feedbackApi } from '../api/feedbackApi';
 import { FeedbackCategory } from '../types/feedback';
 import type { Feedback, FeedbackCategory as FeedbackCategoryType } from '../types/feedback';
@@ -9,25 +9,39 @@ import { useAuthStore } from '../store/authStore';
 import StarRating from '../components/feedback/StarRating';
 
 const categoryOptions: { value: FeedbackCategoryType; labelKey: string; icon: string }[] = [
-  { value: FeedbackCategory.Praise, labelKey: 'feedback.cat_praise', icon: '❤️' },
-  { value: FeedbackCategory.Improvement, labelKey: 'feedback.cat_improvement', icon: '💡' },
-  { value: FeedbackCategory.FeatureRequest, labelKey: 'feedback.cat_feature', icon: '🚀' },
-  { value: FeedbackCategory.BugReport, labelKey: 'feedback.cat_bug', icon: '🐛' },
+  { value: FeedbackCategory.Praise,         labelKey: 'feedback.cat_praise',      icon: '❤️' },
+  { value: FeedbackCategory.Improvement,    labelKey: 'feedback.cat_improvement',  icon: '💡' },
+  { value: FeedbackCategory.FeatureRequest, labelKey: 'feedback.cat_feature',      icon: '🚀' },
+  { value: FeedbackCategory.BugReport,      labelKey: 'feedback.cat_bug',          icon: '🐛' },
 ];
 
 const categoryColor: Record<number, string> = {
-  [FeedbackCategory.Praise]: 'bg-green-100 text-green-700',
-  [FeedbackCategory.Improvement]: 'bg-amber-100 text-amber-700',
+  [FeedbackCategory.Praise]:         'bg-green-100 text-green-700',
+  [FeedbackCategory.Improvement]:    'bg-amber-100 text-amber-700',
   [FeedbackCategory.FeatureRequest]: 'bg-blue-100 text-blue-700',
-  [FeedbackCategory.BugReport]: 'bg-red-100 text-red-700',
+  [FeedbackCategory.BugReport]:      'bg-red-100 text-red-700',
 };
 
+// Extend Window for cross-browser SpeechRecognition
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
 export default function FeedbackPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuthStore();
+
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const [form, setForm] = useState<{
     rating: number;
@@ -40,6 +54,13 @@ export default function FeedbackPage() {
     content: '',
     isContactable: false,
   });
+
+  // Stop recording if component unmounts mid-session
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const loadFeedbacks = async () => {
     setListLoading(true);
@@ -57,6 +78,69 @@ export default function FeedbackPage() {
     loadFeedbacks();
   }, []);
 
+  // ── File attachment ──────────────────────────────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setAttachedFile(file);
+    // Reset so the same file can be re-selected after removal
+    e.target.value = '';
+  };
+
+  // ── Voice / Speech recognition ───────────────────────────────────────────────
+  const handleMicClick = () => {
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+
+    if (!SR) {
+      toast.error('Speech recognition is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    // Second click → stop current session
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    // Match the app's current language; fall back to English
+    recognition.lang = i18n.language === 'bg' ? 'bg-BG' : 'en-US';
+
+    recognition.onstart = () => setIsRecording(true);
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcript += event.results[i][0].transcript;
+        }
+      }
+      if (transcript) {
+        setForm((prev) => ({
+          ...prev,
+          content:
+            prev.content + (prev.content && !prev.content.endsWith(' ') ? ' ' : '') + transcript,
+        }));
+      }
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        toast.error('Microphone access denied. Please allow microphone permission and try again.');
+      } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        toast.error(`Microphone error: ${event.error}`);
+      }
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => setIsRecording(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.content.trim()) {
@@ -68,6 +152,7 @@ export default function FeedbackPage() {
       await feedbackApi.create(form);
       toast.success(t('feedback.submitted'));
       setForm({ rating: 5, category: FeedbackCategory.Praise, content: '', isContactable: false });
+      setAttachedFile(null);
       loadFeedbacks();
     } catch {
       toast.error(t('feedback.submit_error'));
@@ -86,11 +171,7 @@ export default function FeedbackPage() {
     }
   };
 
-  // Exactly 2 copies — the -50% CSS animation moves one full copy off-screen,
-  // landing perfectly on the identical second copy. Loop is seamless forever.
-  const marqueeItems = feedbacks.length > 0
-    ? [...feedbacks, ...feedbacks]
-    : [];
+  const marqueeItems = feedbacks.length > 0 ? [...feedbacks, ...feedbacks] : [];
 
   return (
     <div className="animate-fade-in">
@@ -106,8 +187,6 @@ export default function FeedbackPage() {
           <h2 className="text-xl font-semibold text-primary-dark text-center mb-8 px-4">
             {t('feedback.community')}
           </h2>
-
-          {/* Single overflow container — group lets child pause on hover */}
           <div className="group relative w-full overflow-hidden [--duration:45s]">
             <div className="flex w-max animate-marquee gap-4 group-hover:[animation-play-state:paused]">
               {marqueeItems.map((fb, i) => (
@@ -120,8 +199,6 @@ export default function FeedbackPage() {
                 />
               ))}
             </div>
-
-            {/* Gradient fades */}
             <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-peach dark:from-[#201d30] sm:block" />
             <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-32 bg-gradient-to-l from-peach dark:from-[#201d30] sm:block" />
           </div>
@@ -188,6 +265,18 @@ export default function FeedbackPage() {
               </label>
 
               <div className="relative rounded-lg border border-lavender/50 bg-white dark:bg-[#2a2740] focus-within:ring-1 focus-within:ring-primary-dark/30 focus-within:border-primary-dark transition-shadow p-1">
+
+                {/* Recording indicator */}
+                {isRecording && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 mb-1 rounded-md bg-red-50 border border-red-100 text-xs text-red-500 font-medium">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    Listening… speak now. Click the mic again to stop.
+                  </div>
+                )}
+
                 {/* Textarea */}
                 <textarea
                   value={form.content}
@@ -197,13 +286,47 @@ export default function FeedbackPage() {
                   className="min-h-[80px] max-h-48 w-full resize-none rounded-lg bg-white dark:bg-[#2a2740] dark:text-gray-200 dark:placeholder:text-gray-500 border-0 px-3 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-0 shadow-none"
                 />
 
+                {/* Attached file badge */}
+                {attachedFile && (
+                  <div className="flex items-center gap-1.5 mx-2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-peach-light/50 border border-lavender/30 text-xs text-primary">
+                    <Paperclip size={12} className="shrink-0 text-primary" />
+                    <span className="truncate max-w-[200px] font-medium">{attachedFile.name}</span>
+                    <span className="text-gray-400 ml-0.5">
+                      ({(attachedFile.size / 1024).toFixed(0)} KB)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachedFile(null)}
+                      className="ml-auto shrink-0 p-0.5 rounded text-gray-400 hover:text-red-400 transition-colors"
+                      title="Remove attachment"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                  onChange={handleFileChange}
+                />
+
                 {/* Toolbar */}
                 <div className="flex items-center px-2 pb-2 pt-0 gap-1">
+
                   {/* Paperclip */}
                   <button
                     type="button"
                     title="Attach file"
-                    className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      attachedFile
+                        ? 'text-primary bg-peach-light/60'
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    }`}
                   >
                     <Paperclip size={15} />
                     <span className="sr-only">Attach file</span>
@@ -212,11 +335,16 @@ export default function FeedbackPage() {
                   {/* Mic */}
                   <button
                     type="button"
-                    title="Use microphone"
-                    className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    title={isRecording ? 'Stop recording' : 'Use microphone'}
+                    onClick={handleMicClick}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      isRecording
+                        ? 'text-red-500 bg-red-50 animate-pulse'
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    }`}
                   >
-                    <Mic size={15} />
-                    <span className="sr-only">Use Microphone</span>
+                    {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
+                    <span className="sr-only">{isRecording ? 'Stop recording' : 'Use Microphone'}</span>
                   </button>
 
                   {/* Character count + Send */}
@@ -227,7 +355,7 @@ export default function FeedbackPage() {
                       disabled={loading}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? t('feedback.submit') : t('feedback.submit')}
+                      {t('feedback.submit')}
                       <CornerDownLeft size={13} />
                     </button>
                   </div>
@@ -253,7 +381,7 @@ export default function FeedbackPage() {
   );
 }
 
-// ── Marquee card ──
+// ── Marquee card ──────────────────────────────────────────────────────────────
 function FeedbackMarqueeCard({
   feedback,
   canDelete,

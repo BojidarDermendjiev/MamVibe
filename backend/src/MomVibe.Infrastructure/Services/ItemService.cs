@@ -67,13 +67,20 @@ public class ItemService : IItemService
             query = query.Where(i => i.Title.ToLower().Contains(term) || i.Description.ToLower().Contains(term));
         }
 
+        if (!string.IsNullOrWhiteSpace(filter.Brand))
+        {
+            var brand = filter.Brand.ToLower();
+            query = query.Where(i => i.Title.ToLower().Contains(brand) || i.Description.ToLower().Contains(brand));
+        }
+
         query = filter.SortBy switch
         {
-            "price_asc" => query.OrderBy(i => i.Price),
-            "price_desc" => query.OrderByDescending(i => i.Price),
-            "most_liked" => query.OrderByDescending(i => i.LikeCount),
+            "price_asc"   => query.OrderBy(i => i.Price),
+            "price_desc"  => query.OrderByDescending(i => i.Price),
+            "most_liked"  => query.OrderByDescending(i => i.LikeCount),
             "most_viewed" => query.OrderByDescending(i => i.ViewCount),
-            _ => query.OrderByDescending(i => i.CreatedAt)
+            "oldest"      => query.OrderBy(i => i.CreatedAt),
+            _             => query.OrderByDescending(i => i.CreatedAt)
         };
 
         var totalCount = await query.CountAsync();

@@ -11,6 +11,9 @@ public class ItemFilterDto
     [MaxLength(200)]
     public string? SearchTerm { get; set; }
 
+    [MaxLength(100)]
+    public string? Brand { get; set; }
+
     [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
 

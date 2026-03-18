@@ -1,8 +1,8 @@
-using FluentAssertions;
 using FluentValidation.TestHelper;
+
+using MomVibe.Domain.Enums;
 using MomVibe.Application.DTOs.Auth;
 using MomVibe.Application.Validators;
-using MomVibe.Domain.Enums;
 
 namespace MomVibe.UnitTests.Validators;
 

@@ -8,12 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-using MomVibe.Application;
 using MomVibe.WebApi;
+using MomVibe.Application;
 using MomVibe.WebApi.Hubs;
-using MomVibe.WebApi.Services;
 using MomVibe.Infrastructure;
 using MomVibe.Domain.Entities;
+using MomVibe.WebApi.Services;
 using MomVibe.WebApi.Middleware;
 using MomVibe.Application.Interfaces;
 using MomVibe.Infrastructure.Persistence;
