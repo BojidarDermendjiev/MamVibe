@@ -67,6 +67,14 @@ public static class DependencyInjection
         services.AddScoped<CourierProviderFactory>();
         services.AddScoped<IShippingService, ShippingService>();
 
+        // Nekorekten.com buyer reputation checks
+        services.Configure<NekorektenSettings>(configuration.GetSection("Nekorekten"));
+        services.AddHttpClient("Nekorekten", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
+        services.AddScoped<INekorektenService, NekorektenService>();
+
         // n8n Webhook integration
         services.Configure<N8nSettings>(configuration.GetSection("N8n"));
         services.AddHttpClient("N8n", client =>

@@ -19,15 +19,18 @@ public class PurchaseRequestService : IPurchaseRequestService
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IPurchaseRequestNotifier _notifier;
+    private readonly INekorektenService _nekorekten;
 
     public PurchaseRequestService(
         IApplicationDbContext context,
         IMapper mapper,
-        IPurchaseRequestNotifier notifier)
+        IPurchaseRequestNotifier notifier,
+        INekorektenService nekorekten)
     {
         this._context = context;
         this._mapper = mapper;
         this._notifier = notifier;
+        this._nekorekten = nekorekten;
     }
 
     public async Task<PurchaseRequestDto> CreateAsync(Guid itemId, string buyerId)
@@ -235,5 +238,23 @@ public class PurchaseRequestService : IPurchaseRequestService
             .ToListAsync();
 
         return this._mapper.Map<List<PurchaseRequestDto>>(requests);
+    }
+
+    public async Task<BuyerCheckResult> CheckBuyerAsync(Guid requestId, string sellerId)
+    {
+        var request = await this._context.PurchaseRequests
+            .Include(r => r.Buyer)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        if (request == null)
+            throw new KeyNotFoundException("Purchase request not found.");
+        if (request.SellerId != sellerId)
+            throw new UnauthorizedAccessException("You are not the seller for this request.");
+
+        var buyer = request.Buyer;
+        return await this._nekorekten.CheckAsync(
+            buyer?.DisplayName,
+            buyer?.Email,
+            buyer?.PhoneNumber);
     }
 }

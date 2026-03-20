@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import { itemsApi } from '../api/itemsApi';
-import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
+import { purchaseRequestsApi, type BuyerCheckResult } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
+import type { PurchaseRequest } from '../types/purchaseRequest';
 import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
 import { formatPrice } from '../utils/currency';
@@ -12,6 +14,7 @@ import ItemCard from '../components/items/ItemCard';
 import ShipmentCard from '../components/shipping/ShipmentCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Avatar from '../components/common/Avatar';
+import BuyerReputationModal from '../components/purchase/BuyerReputationModal';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -32,7 +35,13 @@ export default function DashboardPage() {
     } catch { /* ignore */ }
   };
 
-  const handleAccept = async (requestId: string) => {
+  const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [reputationModal, setReputationModal] = useState<{
+    request: PurchaseRequest;
+    result: BuyerCheckResult;
+  } | null>(null);
+
+  const doAccept = async (requestId: string) => {
     try {
       await purchaseRequestsApi.accept(requestId);
       decrementPendingRequestCount();
@@ -40,6 +49,23 @@ export default function DashboardPage() {
       refreshTab();
     } catch {
       toast.error('Could not accept request.');
+    }
+  };
+
+  const handleAccept = async (request: PurchaseRequest) => {
+    setCheckingId(request.id);
+    try {
+      const { data } = await purchaseRequestsApi.checkBuyer(request.id);
+      if (data.hasReports) {
+        setReputationModal({ request, result: data });
+      } else {
+        await doAccept(request.id);
+      }
+    } catch {
+      // If the check itself fails, proceed with the accept (don't block seller)
+      await doAccept(request.id);
+    } finally {
+      setCheckingId(null);
     }
   };
 
@@ -73,6 +99,19 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+      {/* ── Buyer Reputation Modal ── */}
+      {reputationModal && (
+        <BuyerReputationModal
+          buyerName={reputationModal.request.buyerDisplayName}
+          buyerAvatarUrl={reputationModal.request.buyerAvatarUrl}
+          result={reputationModal.result}
+          onAccept={async () => {
+            setReputationModal(null);
+            await doAccept(reputationModal.request.id);
+          }}
+          onCancel={() => setReputationModal(null)}
+        />
+      )}
       <h1 className="text-3xl font-bold text-primary-dark mb-6">{t('dashboard.title')}</h1>
 
       <div className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit">
@@ -160,10 +199,11 @@ export default function DashboardPage() {
                         {r.status === PurchaseRequestStatus.Pending && (
                           <>
                             <button
-                              onClick={() => handleAccept(r.id)}
-                              className="px-3 py-1.5 text-sm font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                              onClick={() => handleAccept(r)}
+                              disabled={checkingId === r.id}
+                              className="px-3 py-1.5 text-sm font-medium bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-60 disabled:cursor-wait"
                             >
-                              {t('dashboard.req_accept')}
+                              {checkingId === r.id ? '…' : t('dashboard.req_accept')}
                             </button>
                             <button
                               onClick={() => handleDecline(r.id)}

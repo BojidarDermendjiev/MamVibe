@@ -19,4 +19,24 @@ export const purchaseRequestsApi = {
 
   getAsBuyer: () =>
     axiosClient.get<PurchaseRequest[]>('/purchase-requests/as-buyer'),
+
+  checkBuyer: (id: string) =>
+    axiosClient.get<BuyerCheckResult>(`/purchase-requests/${id}/buyer-check`),
 };
+
+export interface NekorektenReport {
+  text?: string;
+  phone?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  likes: number;
+  createdAt?: string;
+}
+
+export interface BuyerCheckResult {
+  hasReports: boolean;
+  reportCount: number;
+  reports: NekorektenReport[];
+  serviceUnavailable: boolean;
+}

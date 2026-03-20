@@ -22,13 +22,6 @@ const categoryColor: Record<number, string> = {
   [FeedbackCategory.BugReport]:      'bg-red-100 text-red-700',
 };
 
-// Extend Window for cross-browser SpeechRecognition
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
 
 export default function FeedbackPage() {
   const { t, i18n } = useTranslation();
@@ -41,7 +34,8 @@ export default function FeedbackPage() {
   const [isRecording, setIsRecording] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   const [form, setForm] = useState<{
     rating: number;
@@ -88,7 +82,8 @@ export default function FeedbackPage() {
 
   // ── Voice / Speech recognition ───────────────────────────────────────────────
   const handleMicClick = () => {
-    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
 
     if (!SR) {
       toast.error('Speech recognition is not supported in this browser. Try Chrome or Edge.');
@@ -101,7 +96,8 @@ export default function FeedbackPage() {
       return;
     }
 
-    const recognition = new SR();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition: any = new SR();
     recognition.continuous = true;
     recognition.interimResults = false;
     // Match the app's current language; fall back to English
@@ -109,7 +105,8 @@ export default function FeedbackPage() {
 
     recognition.onstart = () => setIsRecording(true);
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
@@ -125,7 +122,8 @@ export default function FeedbackPage() {
       }
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
       if (event.error === 'not-allowed' || event.error === 'permission-denied') {
         toast.error('Microphone access denied. Please allow microphone permission and try again.');
       } else if (event.error !== 'aborted' && event.error !== 'no-speech') {

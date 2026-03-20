@@ -38,4 +38,11 @@ public interface IPurchaseRequestService
 
     /// <summary>Returns all purchase requests where the caller is the buyer.</summary>
     Task<List<PurchaseRequestDto>> GetAsBuyerAsync(string buyerId);
+
+    /// <summary>
+    /// Checks the buyer's reputation on nekorekten.com.
+    /// Only the seller of the given request may call this.
+    /// Returns <see cref="BuyerCheckResult.ServiceUnavailable"/> when the external API is unreachable.
+    /// </summary>
+    Task<BuyerCheckResult> CheckBuyerAsync(Guid requestId, string sellerId);
 }

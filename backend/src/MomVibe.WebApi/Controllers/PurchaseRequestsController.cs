@@ -156,6 +156,32 @@ public class PurchaseRequestsController : ControllerBase
         var requests = await this._service.GetAsBuyerAsync(userId);
         return Ok(requests);
     }
+
+    /// <summary>
+    /// Checks the buyer's reputation on nekorekten.com before the seller approves.
+    /// Only the seller of the request may call this endpoint.
+    /// Returns the check result including any fraud reports found.
+    /// </summary>
+    [HttpGet("{id:guid}/buyer-check")]
+    public async Task<IActionResult> CheckBuyer(Guid id)
+    {
+        var userId = this._currentUser.UserId;
+        if (userId == null) return Unauthorized();
+
+        try
+        {
+            var result = await this._service.CheckBuyerAsync(id, userId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+    }
 }
 
 public record CreatePurchaseRequestBody(Guid ItemId);
