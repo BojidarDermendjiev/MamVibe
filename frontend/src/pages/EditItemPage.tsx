@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { photosApi } from '../api/photosApi';
-import { ListingType } from '../types/item';
+import { ListingType, AgeGroup } from '../types/item';
 import { useCategories } from '../hooks/useCategories';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import PhotoUploader from '../components/items/PhotoUploader';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import CategorySpecificSection from '../components/items/CategorySpecificSection';
 
 export default function EditItemPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,14 +27,25 @@ export default function EditItemPage() {
     description: string;
     categoryId: string;
     listingType: ListingType;
+    ageGroup: AgeGroup | null;
+    shoeSize: number | null;
+    clothingSize: number | null;
     price: string;
   }>({
     title: '',
     description: '',
     categoryId: '',
     listingType: ListingType.Donate,
+    ageGroup: null,
+    shoeSize: null,
+    clothingSize: null,
     price: '',
   });
+
+  const selectedSlug = useMemo(
+    () => categories.find((c) => c.id === form.categoryId)?.slug,
+    [categories, form.categoryId]
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -44,6 +56,9 @@ export default function EditItemPage() {
           description: item.description,
           categoryId: item.categoryId,
           listingType: item.listingType,
+          ageGroup: item.ageGroup,
+          shoeSize: item.shoeSize,
+          clothingSize: item.clothingSize,
           price: item.price?.toString() || '',
         });
         setExistingPhotos(item.photos.map((p) => ({ id: p.id, url: p.url })));
@@ -86,6 +101,9 @@ export default function EditItemPage() {
       await itemsApi.update(id!, {
         ...form,
         price: form.listingType === ListingType.Sell ? parseFloat(form.price) : null,
+        ageGroup: form.ageGroup,
+        shoeSize: form.shoeSize,
+        clothingSize: form.clothingSize,
         photoUrls,
       });
       toast.success('Item updated!');
@@ -129,7 +147,9 @@ export default function EditItemPage() {
           <label className="block text-sm font-medium text-primary mb-1">{t('items.category')}</label>
           <select
             value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, categoryId: e.target.value, ageGroup: null, shoeSize: null, clothingSize: null });
+            }}
             required
             className="w-full px-4 py-2.5 rounded-lg border border-lavender bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
           >
@@ -178,6 +198,16 @@ export default function EditItemPage() {
             required
           />
         )}
+
+        <CategorySpecificSection
+          categorySlug={selectedSlug}
+          ageGroup={form.ageGroup}
+          shoeSize={form.shoeSize}
+          clothingSize={form.clothingSize}
+          onAgeGroupChange={(v) => setForm({ ...form, ageGroup: v })}
+          onShoeSizeChange={(v) => setForm({ ...form, shoeSize: v })}
+          onClothingSizeChange={(v) => setForm({ ...form, clothingSize: v })}
+        />
 
         <PhotoUploader
           photos={newPhotos}

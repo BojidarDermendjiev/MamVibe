@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, Tag, ShoppingBag, ArrowUpDown, Sparkles, X } from 'lucide-react';
-import { ListingType, type Category, type ItemFilter } from '../../types/item';
+import { SlidersHorizontal, Tag, ShoppingBag, ArrowUpDown, Sparkles, Baby, X } from 'lucide-react';
+import { ListingType, AgeGroup, type Category, type ItemFilter } from '../../types/item';
 
 const BRANDS = [
   { name: 'Cybex',         domain: 'cybex-online.com' },
@@ -27,6 +27,15 @@ function faviconUrl(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 }
 
+const AGE_GROUPS: { label: string; emoji: string; value: AgeGroup }[] = [
+  { label: 'Newborn',    emoji: '👶', value: AgeGroup.Newborn },
+  { label: 'Infant',     emoji: '🍼', value: AgeGroup.Infant },
+  { label: 'Toddler',    emoji: '🧸', value: AgeGroup.Toddler },
+  { label: 'Preschool',  emoji: '🎨', value: AgeGroup.Preschool },
+  { label: 'School Age', emoji: '📚', value: AgeGroup.SchoolAge },
+  { label: 'Teen',       emoji: '🎒', value: AgeGroup.Teen },
+];
+
 interface ItemFiltersProps {
   filter: ItemFilter;
   categories: Category[];
@@ -40,10 +49,11 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
     !!filter.categoryId ||
     filter.listingType !== undefined ||
     !!filter.brand ||
+    filter.ageGroup !== undefined ||
     filter.sortBy !== 'newest';
 
   const clearAll = () =>
-    onChange({ categoryId: undefined, listingType: undefined, brand: undefined, sortBy: 'newest', page: 1 });
+    onChange({ categoryId: undefined, listingType: undefined, brand: undefined, ageGroup: undefined, sortBy: 'newest', page: 1 });
 
   return (
     <div className="bg-white rounded-2xl border border-lavender/30 shadow-sm overflow-hidden">
@@ -149,6 +159,44 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
                 <span>{b.name}</span>
+              </button>
+            ))}
+
+          </div>
+        </div>
+
+        {/* ── Age Group ── */}
+        <div>
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+            <Baby className="w-3.5 h-3.5" />
+            Age
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+
+            {/* All pill */}
+            <button
+              onClick={() => onChange({ ageGroup: undefined, page: 1 })}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                filter.ageGroup === undefined
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
+              }`}
+            >
+              All
+            </button>
+
+            {AGE_GROUPS.map((ag) => (
+              <button
+                key={ag.value}
+                onClick={() => onChange({ ageGroup: filter.ageGroup === ag.value ? undefined : ag.value, page: 1 })}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                  filter.ageGroup === ag.value
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
+                }`}
+              >
+                <span>{ag.emoji}</span>
+                <span>{ag.label}</span>
               </button>
             ))}
 

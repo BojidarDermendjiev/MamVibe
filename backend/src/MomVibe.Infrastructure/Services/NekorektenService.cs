@@ -25,6 +25,39 @@ public class NekorektenService : INekorektenService
 
     public async Task<BuyerCheckResult> CheckAsync(string? name, string? email, string? phone)
     {
+        // ── Test mode ─────────────────────────────────────────────────────────
+        // Set ApiKey = "test" in appsettings to get a fake flagged-buyer result
+        // without needing a real nekorekten.com account.
+        if (this._settings.ApiKey == "test")
+        {
+            await Task.Delay(600); // simulate network latency
+            return new BuyerCheckResult
+            {
+                HasReports = true,
+                ReportCount = 2,
+                Reports =
+                [
+                    new NekorektenReport
+                    {
+                        Text = $"[TEST] Buyer \"{name}\" did not pay after receiving the item. Ignored all messages afterwards.",
+                        FirstName = name?.Split(' ').FirstOrDefault(),
+                        Email = email,
+                        Phone = phone,
+                        Likes = 3,
+                        CreatedAt = DateTime.UtcNow.AddDays(-45),
+                    },
+                    new NekorektenReport
+                    {
+                        Text = "[TEST] Requested a refund claiming item was damaged, but photos showed otherwise.",
+                        Email = email,
+                        Likes = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-12),
+                    },
+                ],
+            };
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         try
         {
             var parts = new List<string>();

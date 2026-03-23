@@ -18,5 +18,8 @@ public class CreateItemDto
     public Guid CategoryId { get; set; }
     public ListingType ListingType { get; set; }
     public decimal? Price { get; set; }
+    public AgeGroup? AgeGroup { get; set; }
+    public int? ShoeSize { get; set; }
+    public int? ClothingSize { get; set; }
     public List<string> PhotoUrls { get; set; } = [];
 }

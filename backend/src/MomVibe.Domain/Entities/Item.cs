@@ -55,6 +55,21 @@ public class Item : BaseEntity
     public ListingType ListingType { get; set; }
 
     /// <summary>
+    /// Age group the item is suitable for; null means unspecified.
+    /// </summary>
+    public AgeGroup? AgeGroup { get; set; }
+
+    /// <summary>
+    /// EU shoe size (e.g. 24, 32, 38); null when not applicable.
+    /// </summary>
+    public int? ShoeSize { get; set; }
+
+    /// <summary>
+    /// EU clothing size (e.g. 56, 86, 128); null when not applicable.
+    /// </summary>
+    public int? ClothingSize { get; set; }
+
+    /// <summary>
     /// Item price in currency units; null if not applicable.
     /// </summary>
     [Precision(18, 2)]

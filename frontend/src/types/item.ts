@@ -4,6 +4,16 @@ export const ListingType = {
 } as const;
 export type ListingType = (typeof ListingType)[keyof typeof ListingType];
 
+export const AgeGroup = {
+  Newborn: 0,
+  Infant: 1,
+  Toddler: 2,
+  Preschool: 3,
+  SchoolAge: 4,
+  Teen: 5,
+} as const;
+export type AgeGroup = (typeof AgeGroup)[keyof typeof AgeGroup];
+
 export interface ItemPhoto {
   id: string;
   url: string;
@@ -17,6 +27,9 @@ export interface Item {
   categoryId: string;
   categoryName: string;
   listingType: ListingType;
+  ageGroup: AgeGroup | null;
+  shoeSize: number | null;
+  clothingSize: number | null;
   price: number | null;
   userId: string;
   userDisplayName: string;
@@ -34,6 +47,9 @@ export interface CreateItemRequest {
   description: string;
   categoryId: string;
   listingType: ListingType;
+  ageGroup?: AgeGroup | null;
+  shoeSize?: number | null;
+  clothingSize?: number | null;
   price: number | null;
   photoUrls?: string[];
 }
@@ -43,6 +59,9 @@ export interface UpdateItemRequest {
   description: string;
   categoryId: string;
   listingType: ListingType;
+  ageGroup?: AgeGroup | null;
+  shoeSize?: number | null;
+  clothingSize?: number | null;
   price: number | null;
   photoUrls?: string[];
 }
@@ -52,6 +71,9 @@ export interface ItemFilter {
   listingType?: ListingType;
   searchTerm?: string;
   brand?: string;
+  ageGroup?: AgeGroup;
+  shoeSize?: number;
+  clothingSize?: number;
   page: number;
   pageSize: number;
   sortBy: string;

@@ -21,6 +21,9 @@ public class ItemDto
     public Guid CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public ListingType ListingType { get; set; }
+    public AgeGroup? AgeGroup { get; set; }
+    public int? ShoeSize { get; set; }
+    public int? ClothingSize { get; set; }
     public decimal? Price { get; set; }
     public required string UserId { get; set; }
     public string? UserDisplayName { get; set; }

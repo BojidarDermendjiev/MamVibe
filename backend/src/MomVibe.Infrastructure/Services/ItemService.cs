@@ -73,6 +73,15 @@ public class ItemService : IItemService
             query = query.Where(i => i.Title.ToLower().Contains(brand) || i.Description.ToLower().Contains(brand));
         }
 
+        if (filter.AgeGroup.HasValue)
+            query = query.Where(i => i.AgeGroup == filter.AgeGroup.Value);
+
+        if (filter.ShoeSize.HasValue)
+            query = query.Where(i => i.ShoeSize == filter.ShoeSize.Value);
+
+        if (filter.ClothingSize.HasValue)
+            query = query.Where(i => i.ClothingSize == filter.ClothingSize.Value);
+
         query = filter.SortBy switch
         {
             "price_asc"   => query.OrderBy(i => i.Price),
@@ -144,6 +153,9 @@ public class ItemService : IItemService
             Description = dto.Description,
             CategoryId = dto.CategoryId,
             ListingType = dto.ListingType,
+            AgeGroup = dto.AgeGroup,
+            ShoeSize = dto.ShoeSize,
+            ClothingSize = dto.ClothingSize,
             Price = dto.Price,
             UserId = userId,
             Photos = dto.PhotoUrls.Select((url, index) => new ItemPhoto
@@ -198,6 +210,9 @@ public class ItemService : IItemService
         if (dto.Description != null) item.Description = dto.Description;
         if (dto.CategoryId.HasValue) item.CategoryId = dto.CategoryId.Value;
         if (dto.ListingType.HasValue) item.ListingType = dto.ListingType.Value;
+        item.AgeGroup = dto.AgeGroup;
+        item.ShoeSize = dto.ShoeSize;
+        item.ClothingSize = dto.ClothingSize;
         if (dto.Price.HasValue) item.Price = dto.Price;
         if (dto.IsActive.HasValue) item.IsActive = dto.IsActive.Value;
 

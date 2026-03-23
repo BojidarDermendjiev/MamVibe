@@ -14,6 +14,10 @@ public class ItemFilterDto
     [MaxLength(100)]
     public string? Brand { get; set; }
 
+    public AgeGroup? AgeGroup { get; set; }
+    public int? ShoeSize { get; set; }
+    public int? ClothingSize { get; set; }
+
     [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
 
