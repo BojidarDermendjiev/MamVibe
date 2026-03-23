@@ -59,7 +59,7 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
     <div className="bg-white rounded-2xl border border-lavender/30 shadow-sm overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-peach-light/60 to-lavender-light/40 border-b border-lavender/20">
+      <div className="px-4 py-3 flex items-center justify-between bg-lavender/10 dark:bg-white/5 border-b border-lavender/20 dark:border-white/10">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm text-primary">{t('items.filters')}</h3>

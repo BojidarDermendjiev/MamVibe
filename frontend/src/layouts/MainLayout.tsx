@@ -213,14 +213,14 @@ export default function MainLayout() {
               <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#2d2a42] rounded-xl shadow-lg border border-lavender/30 py-2 z-50">
                 <Link
                   to="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-cream-dark dark:hover:bg-white/10"
                   onClick={() => setDropdownOpen(false)}
                 >
                   {t("nav.profile")}
                 </Link>
                 <Link
                   to="/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-cream-dark"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-cream-dark dark:hover:bg-white/10"
                   onClick={() => setDropdownOpen(false)}
                 >
                   {t("nav.settings")}
@@ -228,19 +228,19 @@ export default function MainLayout() {
                 {user?.roles.includes("Admin") && (
                   <Link
                     to="/admin"
-                    className="block px-4 py-2 text-sm text-mauve font-medium hover:bg-cream-dark"
+                    className="block px-4 py-2 text-sm text-mauve dark:text-purple-300 font-medium hover:bg-cream-dark dark:hover:bg-white/10"
                     onClick={() => setDropdownOpen(false)}
                   >
                     {t("nav.admin")}
                   </Link>
                 )}
-                <hr className="my-1 border-lavender/30" />
+                <hr className="my-1 border-lavender/30 dark:border-white/10" />
                 <button
                   onClick={() => {
                     handleLogout();
                     setDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-cream-dark"
+                  className="w-full text-left px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-cream-dark dark:hover:bg-white/10"
                 >
                   {t("nav.logout")}
                 </button>
