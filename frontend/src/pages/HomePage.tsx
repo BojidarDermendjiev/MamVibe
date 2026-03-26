@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { MoveRight, ShoppingBag } from "lucide-react";
+import { MoveRight, ShoppingBag, Heart } from "lucide-react";
 import { HiCamera, HiTag, HiTruck, HiHeart } from "react-icons/hi";
 import { FaBaby, FaSmile, FaTshirt, FaChild } from "react-icons/fa";
 import { GiFootprint } from "react-icons/gi";
@@ -256,6 +256,46 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── Support section ── */}
+      <section className="bg-white dark:bg-[#201d30] py-24 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="max-w-2xl mx-auto text-center"
+        >
+          {/* Animated heart */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6"
+            style={{ backgroundColor: 'rgba(148,92,103,0.1)' }}
+          >
+            <Heart className="w-8 h-8 text-primary fill-primary/20" />
+          </motion.div>
+
+          <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-4">
+            {t("home.support_title")}
+          </h2>
+          <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-10 max-w-md mx-auto">
+            {t("home.support_body")}
+          </p>
+
+          <Link to="/donate">
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-semibold text-base text-white transition-all duration-200 shadow-md hover:shadow-lg"
+              style={{ backgroundColor: '#945c67' }}
+            >
+              <Heart className="w-4 h-4 fill-white/30" />
+              {t("home.support_btn")}
+            </motion.button>
+          </Link>
+        </motion.div>
       </section>
 
     </div>

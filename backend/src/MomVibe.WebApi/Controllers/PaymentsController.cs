@@ -244,6 +244,34 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a Stripe checkout session for a donation.
+    /// No authentication required — anyone can support MamVibe.
+    /// Payouts go to whatever bank account (e.g. Revolut Business IBAN) is
+    /// connected under Stripe Dashboard → Settings → Payouts.
+    /// </summary>
+    [HttpPost("donation/checkout")]
+    public async Task<IActionResult> CreateDonationCheckout([FromBody] DonationCheckoutRequest request)
+    {
+        try
+        {
+            var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
+            var sessionUrl = await this._paymentService.CreateDonationCheckoutAsync(
+                request.Amount,
+                $"{frontendUrl}/payment/success",
+                $"{frontendUrl}/donate");
+            return Ok(new { sessionUrl });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Payment service error. Please try again later." });
+        }
+    }
+
     [HttpPost("webhook")]
     [RequestSizeLimit(65_536)] // 64KB max for webhook payloads
     public async Task<IActionResult> Webhook()

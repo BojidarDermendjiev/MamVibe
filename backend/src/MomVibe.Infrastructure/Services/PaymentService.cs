@@ -653,4 +653,44 @@ public class PaymentService : IPaymentService
         var paymentIntent = await service.CreateAsync(options);
         return paymentIntent.ClientSecret;
     }
+
+    public async Task<string> CreateDonationCheckoutAsync(decimal amount, string successUrl, string cancelUrl)
+    {
+        if (!IsStripeConfigured())
+            return successUrl + "?session_id=test_donation_simulated";
+
+        var options = new SessionCreateOptions
+        {
+            PaymentMethodTypes = ["card"],
+            LineItems =
+            [
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(amount * 100),
+                        Currency = "bgn",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = "MamVibe Donation 💛",
+                            Description = "Thank you for supporting MamVibe!"
+                        }
+                    },
+                    Quantity = 1
+                }
+            ],
+            Mode = "payment",
+            SuccessUrl = successUrl + "?session_id={CHECKOUT_SESSION_ID}",
+            CancelUrl = cancelUrl,
+            Metadata = new Dictionary<string, string>
+            {
+                { "type", "donation" },
+                { "amount", amount.ToString("F2") }
+            }
+        };
+
+        var sessionService = new SessionService();
+        var session = await sessionService.CreateAsync(options);
+        return session.Url!;
+    }
 }

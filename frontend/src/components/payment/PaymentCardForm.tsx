@@ -7,6 +7,7 @@ import PaymentCard from "./PaymentCard";
 interface PaymentCardFormProps {
   onSubmit: () => void;
   isLoading?: boolean;
+  submitLabel?: string;
 }
 
 function formatCardNumber(value: string): string {
@@ -25,6 +26,7 @@ function formatExpiration(value: string): string {
 export default function PaymentCardForm({
   onSubmit,
   isLoading = false,
+  submitLabel,
 }: PaymentCardFormProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
@@ -102,7 +104,7 @@ export default function PaymentCardForm({
         </div>
 
         <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
-          {t("card.pay_now")}
+          {submitLabel ?? t("card.pay_now")}
         </Button>
       </form>
     </div>

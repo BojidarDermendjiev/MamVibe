@@ -18,5 +18,6 @@ export const paymentsApi = {
   createPaymentIntent: (itemId: string) =>
     axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`),
 
-
+  createDonationCheckout: (amount: number) =>
+    axiosClient.post<{ sessionUrl: string }>('/payments/donation/checkout', { amount }),
 };

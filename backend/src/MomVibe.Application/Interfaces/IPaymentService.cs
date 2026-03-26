@@ -21,4 +21,5 @@ public interface IPaymentService
     Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl);
     Task<List<PaymentDto>> CreateBulkBookingAsync(List<Guid> itemIds, string buyerId);
     Task<List<PaymentDto>> CreateBulkOnSpotPaymentAsync(List<Guid> itemIds, string buyerId);
+    Task<string> CreateDonationCheckoutAsync(decimal amount, string successUrl, string cancelUrl);
 }

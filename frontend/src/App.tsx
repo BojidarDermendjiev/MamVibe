@@ -38,6 +38,8 @@ const AdminShippingPage = lazy(
 const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetailPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const DonationPage = lazy(() => import("./pages/DonationPage"));
+const DonationCardPage = lazy(() => import("./pages/DonationCardPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -106,6 +108,8 @@ function AppRoutes() {
           <Route path="/" element={<HomePage />} />
           <Route path="/browse" element={<BrowseItemsPage />} />
           <Route path="/items/:id" element={<ItemDetailPage />} />
+          <Route path="/donate" element={<DonationPage />} />
+          <Route path="/donate/card" element={<DonationCardPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

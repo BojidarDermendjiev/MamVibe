@@ -12,7 +12,8 @@
     "register": "Sign Up",
     "logout": "Sign Out",
     "feedback": "Feedback",
-    "cart": "Cart"
+    "cart": "Cart",
+    "donate": "Donate"
   },
   "home": {
     "hero_title": "Give Baby Items a Second Life",
@@ -36,6 +37,9 @@
     "step3_desc": "Connect with families nearby and arrange a convenient exchange.",
     "step4_title": "Make a Difference",
     "step4_desc": "Help families and give baby clothes a beautiful second life.",
+    "support_title": "MamVibe is free. Always.",
+    "support_body": "No ads, no sponsors, no catch. If this place has made your family's life even a little easier, a small coffee keeps the lights on.",
+    "support_btn": "Buy us a coffee",
     "shop_by_age": "Shop by Age",
     "shop_by_age_subtitle": "Find the perfect size for your little one",
     "age_newborn": "Newborn",
@@ -345,5 +349,24 @@
     "links": "Quick Links",
     "contact": "Contact",
     "rights": "All rights reserved."
+  },
+  "donate": {
+    "title": "You're kind of a big deal",
+    "subtitle": "MamVibe runs on love — and a tiny bit of servers. If this place has made life a little easier, a small contribution keeps the magic alive.",
+    "amounts_label": "Pick an amount",
+    "tier_coffee": "Coffee boost",
+    "tier_love": "A little love",
+    "tier_hero": "You're a hero",
+    "tier_custom": "My own amount",
+    "custom_placeholder": "Enter amount (лв.)",
+    "donate_btn": "Donate {amount} лв.",
+    "donate_btn_default": "Donate",
+    "secure_note": "Secure payment via Stripe",
+    "fun_note": "No pressure at all. You're already awesome for being here.",
+    "card_title": "Complete your donation",
+    "card_amount": "Your donation",
+    "card_pay": "Send {amount} лв. with love",
+    "thanks_title": "You're a legend!",
+    "thanks_sub": "Seriously. Thank you from the whole MamVibe team."
   }
 }

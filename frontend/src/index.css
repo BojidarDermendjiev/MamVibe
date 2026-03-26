@@ -160,7 +160,7 @@ svg {
 /* ─── Card / Container ─── */
 .card {
   background-color: #fff;
-  border: 1px solid rgba(193, 196, 227, 0.3);
+  border: 1px solid rgba(148, 92, 103, 0.18);
   border-radius: 0.75rem;
   padding: 1.5rem;
   width: 100%;
@@ -504,6 +504,13 @@ a:hover {
   padding: 0.75rem 1rem;
   font-size: 0.8rem;
   color: #9ca3af;
+}
+
+/* ─── Light Mode Border Overrides ─── */
+/* Make card/panel borders more visible in light mode */
+:root {
+  --border-subtle: rgba(148, 92, 103, 0.18);
+  --border-light:  rgba(148, 92, 103, 0.28);
 }
 
 /* ─── Light Mode Text Overrides ─── */
