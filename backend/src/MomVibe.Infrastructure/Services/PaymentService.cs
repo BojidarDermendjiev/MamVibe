@@ -205,6 +205,13 @@ public class PaymentService : IPaymentService
             var session = stripeEvent.Data.Object as Session;
             if (session == null) return;
 
+            // Idempotency guard: Stripe delivers webhooks at-least-once; skip if already processed.
+            if (await this._context.Payments.AnyAsync(p => p.StripeSessionId == session.Id))
+            {
+                this._logger.LogInformation("Duplicate Stripe webhook for session {SessionId} — skipping.", session.Id);
+                return;
+            }
+
             var isBulk = session.Metadata.ContainsKey("isBulk") && session.Metadata["isBulk"] == "true";
 
             if (isBulk)

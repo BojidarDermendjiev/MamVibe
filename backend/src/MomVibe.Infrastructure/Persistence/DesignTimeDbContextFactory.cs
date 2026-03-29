@@ -32,6 +32,6 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Applicatio
             configuration.GetConnectionString("DefaultConnection"),
             b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        return new ApplicationDbContext(optionsBuilder.Options, configuration);
     }
 }

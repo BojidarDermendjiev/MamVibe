@@ -2,17 +2,34 @@ namespace MomVibe.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 using Domain.Entities;
 using Application.Interfaces;
+using Infrastructure.Persistence.Converters;
 
 /// <summary>
 /// Primary EF Core DbContext integrating ASP.NET Core Identity with domain entities.
 /// Applies entity type configurations and centralizes audit timestamps on save.
+/// When "Security:IbanEncryptionKey" (32-byte Base64) is configured, the IBAN column
+/// is transparently encrypted at rest using AES-256-CBC.
 /// </summary>
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    private readonly byte[]? _ibanEncryptionKey;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration)
+        : base(options)
+    {
+        var keyBase64 = configuration["Security:IbanEncryptionKey"];
+        if (!string.IsNullOrWhiteSpace(keyBase64))
+        {
+            _ibanEncryptionKey = Convert.FromBase64String(keyBase64);
+            if (_ibanEncryptionKey.Length != 32)
+                throw new InvalidOperationException(
+                    "Security:IbanEncryptionKey must be a 32-byte Base64 string (e.g. openssl rand -base64 32).");
+        }
+    }
 
     public DbSet<Item> Items => Set<Item>();
     public DbSet<ItemPhoto> ItemPhotos => Set<ItemPhoto>();
@@ -29,6 +46,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        if (_ibanEncryptionKey != null)
+        {
+            builder.Entity<ApplicationUser>()
+                .Property(u => u.Iban)
+                .HasConversion(new AesEncryptionConverter(_ibanEncryptionKey));
+        }
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

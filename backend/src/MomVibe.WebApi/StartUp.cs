@@ -114,8 +114,8 @@ builder.Services.AddAuthentication(options =>
 // Authorization policies
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("ActiveUser", policy =>
+    options.AddPolicy(AuthorizationPolicies.AdminOnly, policy => policy.RequireRole("Admin"));
+    options.AddPolicy(AuthorizationPolicies.ActiveUser, policy =>
         policy.RequireAssertion(context =>
             !context.User.HasClaim("IsBlocked", "true")));
 });
@@ -123,7 +123,7 @@ builder.Services.AddAuthorization(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("MamVibePolicy", policy =>
+    options.AddPolicy(CorsPolicy.MamVibe, policy =>
     {
         policy.WithOrigins(
                 builder.Configuration["FrontendUrl"] ?? "https://localhost:5173")
@@ -195,6 +195,9 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
 });
+
+// Memory cache (used by BlockedUserMiddleware for per-user block-status caching)
+builder.Services.AddMemoryCache();
 
 // Controllers
 builder.Services.AddControllers();
@@ -316,7 +319,7 @@ app.UseStaticFiles();
 app.UseRequestLocalization();
 app.UseResponseCaching();
 app.UseRateLimiter();
-app.UseCors("MamVibePolicy");
+app.UseCors(CorsPolicy.MamVibe);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -325,7 +328,7 @@ app.UseMiddleware<BlockedUserMiddleware>();
 
 app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
-app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("ActiveUser");
+app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization(AuthorizationPolicies.ActiveUser);
     
 app.Run();
 

@@ -1,37 +1,49 @@
 namespace MomVibe.WebApi.Middleware;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
+
+using MomVibe.Domain.Entities;
+
 /// <summary>
-/// Middleware that blocks access for authenticated users marked as blocked via the <c>"IsBlocked"</c> claim.
-/// If the claim value is <c>"true"</c>, responds with 403 Forbidden and a JSON error; otherwise continues the pipeline.
+/// Middleware that blocks access for users whose account has been blocked.
+/// Checks the database (via UserManager) so that blocking takes effect immediately
+/// without waiting for the user's JWT to expire.
+/// Results are cached per-user for up to 1 minute to avoid a DB hit on every request.
+/// The cache is explicitly evicted when an admin blocks or unblocks a user.
 /// </summary>
 public class BlockedUserMiddleware
 {
     private readonly RequestDelegate _next;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BlockedUserMiddleware"/>.
-    /// </summary>
-    /// <param name="next">The next request delegate in the pipeline.</param>
+    public static string CacheKey(string userId) => $"blocked:{userId}";
+
     public BlockedUserMiddleware(RequestDelegate next)
     {
         this._next = next;
     }
 
-    /// <summary>
-    /// Intercepts the request and denies access for blocked authenticated users.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, UserManager<ApplicationUser> userManager, IMemoryCache cache)
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var isBlocked = context.User.FindFirst("IsBlocked")?.Value;
-            if (isBlocked == "true")
+            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
             {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsJsonAsync(new { error = "Your account has been blocked." });
-                return;
+                if (!cache.TryGetValue(CacheKey(userId), out bool isBlocked))
+                {
+                    var user = await userManager.FindByIdAsync(userId);
+                    isBlocked = user?.IsBlocked ?? false;
+                    cache.Set(CacheKey(userId), isBlocked, TimeSpan.FromMinutes(1));
+                }
+
+                if (isBlocked)
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    await context.Response.WriteAsJsonAsync(new { error = "Your account has been blocked." });
+                    return;
+                }
             }
         }
 

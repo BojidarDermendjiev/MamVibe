@@ -29,6 +29,7 @@ public class EmailService : IEmailService
         client.Credentials = new NetworkCredential(this._settings.Username, this._settings.Password);
         client.EnableSsl = this._settings.EnableSsl;
 
-        await client.SendMailAsync(message);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await client.SendMailAsync(message, cts.Token);
     }
 }

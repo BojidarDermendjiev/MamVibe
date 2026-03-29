@@ -15,7 +15,7 @@ using Application.Interfaces;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;

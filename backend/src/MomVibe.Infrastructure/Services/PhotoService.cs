@@ -62,15 +62,21 @@ public class PhotoService : IPhotoService
         headerStream.Position = 0;
         ValidateImageDimensions(extension, headerStream);
 
+        // Strip EXIF/GPS metadata from JPEG before saving to protect user privacy
+        headerStream.Position = 0;
+        var saveStream = extension is ".jpg" or ".jpeg"
+            ? StripJpegMetadata(headerStream)
+            : headerStream;
+
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "items");
         Directory.CreateDirectory(uploadsDir);
 
         var fileName = $"{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsDir, fileName);
 
-        headerStream.Position = 0;
+        saveStream.Position = 0;
         using var fileStream = new FileStream(filePath, FileMode.Create);
-        await headerStream.CopyToAsync(fileStream);
+        await saveStream.CopyToAsync(fileStream);
 
         return $"/uploads/items/{fileName}";
     }
@@ -123,6 +129,76 @@ public class PhotoService : IPhotoService
             // Silently allowing unparseable files could let malformed or malicious images through.
             throw new ArgumentException($"Unable to validate image dimensions: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Removes EXIF (APP1, 0xFF 0xE1) and IPTC/Photoshop (APP13, 0xFF 0xED) metadata segments
+    /// from a JPEG stream by rewriting the segment list without those markers.
+    /// GPS coordinates live in EXIF, so stripping APP1 prevents location leaks.
+    /// All other segments (SOF, DHT, DQT, SOS, etc.) are preserved intact.
+    /// </summary>
+    private static MemoryStream StripJpegMetadata(MemoryStream source)
+    {
+        var data = source.ToArray();
+        if (data.Length < 4 || data[0] != 0xFF || data[1] != 0xD8)
+            return source; // Not a recognisable JPEG — return unchanged
+
+        var output = new MemoryStream(data.Length);
+        output.WriteByte(0xFF);
+        output.WriteByte(0xD8); // SOI
+        var pos = 2;
+
+        while (pos < data.Length - 1)
+        {
+            if (data[pos] != 0xFF) break; // Sync lost — copy remainder as-is
+            var marker = data[pos + 1];
+            pos += 2;
+
+            // SOS starts entropy-coded data; copy everything that follows verbatim
+            if (marker == 0xDA)
+            {
+                output.WriteByte(0xFF);
+                output.WriteByte(marker);
+                output.Write(data, pos, data.Length - pos);
+                break;
+            }
+
+            // EOI — write and stop
+            if (marker == 0xD9)
+            {
+                output.WriteByte(0xFF);
+                output.WriteByte(marker);
+                break;
+            }
+
+            // Markers with no length field (RST0-RST7, SOI)
+            if ((marker >= 0xD0 && marker <= 0xD8))
+            {
+                output.WriteByte(0xFF);
+                output.WriteByte(marker);
+                continue;
+            }
+
+            if (pos + 1 >= data.Length) break;
+            var segmentLength = (data[pos] << 8) | data[pos + 1];
+            if (segmentLength < 2 || pos + segmentLength > data.Length) break;
+
+            // APP1 = EXIF/XMP (0xE1), APP13 = IPTC/Photoshop (0xED) — drop both
+            if (marker == 0xE1 || marker == 0xED)
+            {
+                pos += segmentLength;
+                continue;
+            }
+
+            // Keep all other segments
+            output.WriteByte(0xFF);
+            output.WriteByte(marker);
+            output.Write(data, pos, segmentLength);
+            pos += segmentLength;
+        }
+
+        output.Position = 0;
+        return output;
     }
 
     public Task DeletePhotoAsync(string url)

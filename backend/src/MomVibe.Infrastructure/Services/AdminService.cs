@@ -4,6 +4,7 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 using Domain.Enums;
 using Domain.Entities;
@@ -26,6 +27,7 @@ public class AdminService : IAdminService
     private readonly IMapper _mapper;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly IMemoryCache _cache;
 
     public AdminService(
         UserManager<ApplicationUser> userManager,
@@ -33,7 +35,8 @@ public class AdminService : IAdminService
         ApplicationDbContext dbContext,
         IMapper mapper,
         IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings)
+        IOptions<N8nSettings> n8nSettings,
+        IMemoryCache cache)
     {
         this._userManager = userManager;
         this._context = context;
@@ -41,6 +44,7 @@ public class AdminService : IAdminService
         this._mapper = mapper;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._cache = cache;
     }
 
     public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(int page = 1, int pageSize = 20, string? search = null)
@@ -95,6 +99,7 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = true;
         await this._userManager.UpdateAsync(user);
+        this._cache.Remove($"blocked:{userId}"); // Invalidate immediately — don't wait for TTL
 
         try
         {
@@ -116,6 +121,7 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = false;
         await this._userManager.UpdateAsync(user);
+        this._cache.Remove($"blocked:{userId}"); // Invalidate immediately — don't wait for TTL
     }
 
     public async Task<DashboardStatsDto> GetDashboardStatsAsync()
