@@ -1,18 +1,23 @@
-import { useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { itemsApi } from '../api/itemsApi';
 import { useCategories } from '../hooks/useCategories';
 import { useItems } from '../hooks/useItems';
+import { useAuthStore } from '../store/authStore';
 import ItemCard from '../components/items/ItemCard';
 import ItemFilters from '../components/items/ItemFilters';
 import Pagination from '../components/common/Pagination';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Input from '../components/common/Input';
+import Modal from '../components/common/Modal';
 
 export default function BrowseItemsPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { categories } = useCategories();
+  const { isAuthenticated } = useAuthStore();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { items, totalPages, loading, filter, setFilter, searchTerm, setSearchTerm } = useItems({
     initialFilter: {
@@ -31,6 +36,10 @@ export default function BrowseItemsPage() {
     try {
       await itemsApi.toggleLike(id);
     } catch { /* ignore */ }
+  };
+
+  const handleRequireAuth = () => {
+    setShowLoginModal(true);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -67,7 +76,12 @@ export default function BrowseItemsPage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {items.map((item) => (
-                  <ItemCard key={item.id} item={item} onLikeToggle={handleLikeToggle} />
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onLikeToggle={handleLikeToggle}
+                    onRequireAuth={!isAuthenticated ? handleRequireAuth : undefined}
+                  />
                 ))}
               </div>
               <Pagination
@@ -79,6 +93,32 @@ export default function BrowseItemsPage() {
           )}
         </div>
       </div>
+      <Modal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title={t('auth.login_required_title')}
+      >
+        <div className="text-center py-2">
+          <div className="text-4xl mb-4">🔒</div>
+          <p className="text-text mb-6">{t('auth.login_required_desc')}</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to="/login"
+              onClick={() => setShowLoginModal(false)}
+              className="flex-1 bg-mauve text-white py-2.5 px-4 rounded-lg font-medium hover:bg-mauve/90 transition-colors text-center"
+            >
+              {t('nav.login')}
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setShowLoginModal(false)}
+              className="flex-1 border border-mauve text-mauve py-2.5 px-4 rounded-lg font-medium hover:bg-mauve/10 transition-colors text-center"
+            >
+              {t('nav.register')}
+            </Link>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

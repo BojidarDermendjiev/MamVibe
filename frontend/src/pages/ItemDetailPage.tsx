@@ -13,6 +13,7 @@ import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import NekorektenWarningModal from '../components/common/NekorektenWarningModal';
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,10 @@ export default function ItemDetailPage() {
   const [activePhoto, setActivePhoto] = useState(0);
   const [requestPending, setRequestPending] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const [showNekorektenWarning, setShowNekorektenWarning] = useState(false);
+  // TODO: fetch from backend — this is a demo URL to preview the warning UI
+  const nekorektenReportUrl = 'https://nekorekten.com/';
+  const isSellerReported = true; // demo: set to true to see the warning UI
   const viewCounted = useRef(false);
 
   useEffect(() => {
@@ -57,8 +62,17 @@ export default function ItemDetailPage() {
     }
   };
 
+  const handlePurchaseClick = () => {
+    if (isSellerReported) {
+      setShowNekorektenWarning(true);
+    } else {
+      handleRequestPurchase();
+    }
+  };
+
   const handleRequestPurchase = async () => {
     if (!item) return;
+    setShowNekorektenWarning(false);
     setRequestPending(true);
     try {
       await purchaseRequestsApi.create(item.id);
@@ -162,13 +176,23 @@ export default function ItemDetailPage() {
           </div>
 
           {/* Seller card */}
-          <div className="bg-peach-light rounded-xl p-4 mb-6">
+          <div className={`rounded-xl p-4 mb-6 ${isSellerReported ? 'bg-red-50 border border-red-200' : 'bg-peach-light'}`}>
             <div className="flex items-center gap-3">
               <Avatar src={item.userAvatarUrl} size="md" />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-medium text-primary">{item.userDisplayName}</p>
                 <p className="text-xs text-gray-400">Listed {new Date(item.createdAt).toLocaleDateString()}</p>
               </div>
+              {isSellerReported && (
+                <a
+                  href={nekorektenReportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-600 text-xs font-semibold border border-red-300 hover:bg-red-200 transition-colors flex-shrink-0"
+                >
+                  ⚠️ {t('nekorekten.badge')}
+                </a>
+              )}
             </div>
           </div>
 
@@ -191,7 +215,7 @@ export default function ItemDetailPage() {
                   fullWidth
                   disabled={requestSent || requestPending}
                   className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
-                  onClick={handleRequestPurchase}
+                  onClick={handlePurchaseClick}
                 >
                   {requestSent
                     ? 'Pending Approval'
@@ -213,6 +237,13 @@ export default function ItemDetailPage() {
           )}
         </div>
       </div>
+      <NekorektenWarningModal
+        isOpen={showNekorektenWarning}
+        onClose={() => setShowNekorektenWarning(false)}
+        onConfirm={handleRequestPurchase}
+        sellerName={item.userDisplayName}
+        reportUrl={nekorektenReportUrl}
+      />
     </div>
   );
 }

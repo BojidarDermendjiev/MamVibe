@@ -9,9 +9,10 @@ import LikeButton from './LikeButton';
 interface ItemCardProps {
   item: Item;
   onLikeToggle?: (id: string) => void;
+  onRequireAuth?: () => void;
 }
 
-export default function ItemCard({ item, onLikeToggle }: ItemCardProps) {
+export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCardProps) {
   const { t } = useTranslation();
   const photo = item.photos[0];
 
@@ -53,6 +54,7 @@ export default function ItemCard({ item, onLikeToggle }: ItemCardProps) {
               likeCount={item.likeCount}
               isLiked={item.isLikedByCurrentUser}
               onToggle={onLikeToggle}
+              onRequireAuth={onRequireAuth}
               size="sm"
             />
           </div>

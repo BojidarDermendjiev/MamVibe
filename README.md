@@ -36,13 +36,13 @@ MamVibe/
 ├── backend/
 │   ├── Dockerfile
 │   ├── src/
-│   │   ├── MamVibe.Domain/          # Entities, Enums, Constants
-│   │   ├── MamVibe.Application/     # DTOs, Interfaces, Validators, Mapping
-│   │   ├── MamVibe.Infrastructure/  # EF Core, Services, Persistence, Config
-│   │   └── MamVibe.WebApi/          # Controllers, Hubs, Middleware, Startup
+│   │   ├── MomVibe.Domain/          # Entities, Enums, Constants
+│   │   ├── MomVibe.Application/     # DTOs, Interfaces, Validators, Mapping
+│   │   ├── MomVibe.Infrastructure/  # EF Core, Services, Persistence, Config
+│   │   └── MomVibe.WebApi/          # Controllers, Hubs, Middleware, Startup
 │   └── tests/
-│       ├── MamVibe.UnitTests/
-│       └── MamVibe.IntegrationTests/
+│       ├── MomVibe.UnitTests/
+│       └── MomVibe.IntegrationTests/
 ├── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -55,8 +55,10 @@ MamVibe/
 │       ├── layouts/                 # Main, Auth, Admin layouts
 │       ├── locales/                 # EN/BG translation files
 │       ├── pages/                   # Route pages
+│       ├── services/                # SignalR service wrappers
 │       ├── store/                   # Zustand stores
-│       └── types/                   # TypeScript type definitions
+│       ├── types/                   # TypeScript type definitions
+│       └── utils/                   # Utility helpers (currency, toast, etc.)
 ├── n8n-workflows/                   # Importable n8n workflow definitions
 │   ├── user-registered.json
 │   ├── payment-completed.json
@@ -142,15 +144,15 @@ Connect to the database with host `postgres`, port `5432`, and the credentials f
 ### 1. Backend setup
 
 ```bash
-cd backend/src/MamVibe.WebApi
+cd backend/src/MomVibe.WebApi
 
 # Copy and configure settings
 cp appsettings.json appsettings.Development.json
 # Edit appsettings.Development.json with your PostgreSQL connection string, JWT secret, etc.
 
 # Generate and apply EF Core migrations
-dotnet ef migrations add InitialPostgres --project ../MamVibe.Infrastructure --startup-project .
-dotnet ef database update --project ../MamVibe.Infrastructure --startup-project .
+dotnet ef migrations add InitialPostgres --project ../MomVibe.Infrastructure --startup-project .
+dotnet ef database update --project ../MomVibe.Infrastructure --startup-project .
 
 # Run the API
 dotnet run

@@ -7,10 +7,11 @@ interface LikeButtonProps {
   likeCount: number;
   isLiked: boolean;
   onToggle?: (id: string) => void;
+  onRequireAuth?: () => void;
   size?: 'sm' | 'md';
 }
 
-export default function LikeButton({ itemId, likeCount, isLiked, onToggle, size = 'md' }: LikeButtonProps) {
+export default function LikeButton({ itemId, likeCount, isLiked, onToggle, onRequireAuth, size = 'md' }: LikeButtonProps) {
   const [liked, setLiked] = useState(isLiked);
   const [count, setCount] = useState(likeCount);
   const [animating, setAnimating] = useState(false);
@@ -18,6 +19,10 @@ export default function LikeButton({ itemId, likeCount, isLiked, onToggle, size 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (onRequireAuth) {
+      onRequireAuth();
+      return;
+    }
     setLiked(!liked);
     setCount(liked ? count - 1 : count + 1);
     setAnimating(true);

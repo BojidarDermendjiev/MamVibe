@@ -86,7 +86,9 @@
     "reset_password_title": "Възстановяване на парола",
     "reset_password_success": "Паролата е възстановена успешно! Можете да влезете.",
     "reset_password_invalid": "Невалиден или изтекъл линк за възстановяване.",
-    "send_reset_link": "Изпрати линк"
+    "send_reset_link": "Изпрати линк",
+    "login_required_title": "Необходим вход",
+    "login_required_desc": "Влезте в профила си или се регистрирайте, за да харесвате обяви."
   },
   "items": {
     "create_title": "Нова обява",
@@ -342,6 +344,14 @@
     "order_summary": "Обобщение на поръчката",
     "place_order": "Направи поръчка",
     "success": "Поръчката е направена успешно!"
+  },
+  "nekorekten": {
+    "warning_title": "Предупреждение за продавача",
+    "seller_reported": "Този продавач е докладван като измамник",
+    "warning_desc": "Този продавач е докладван в nekorekten.com като нечестен търговец. Силно препоръчваме да проверите профила му преди да правите покупка.",
+    "check_profile": "Провери в nekorekten.com",
+    "continue_anyway": "Продължи въпреки това",
+    "badge": "Докладван измамник"
   },
   "footer": {
     "about": "За MamVibe",
