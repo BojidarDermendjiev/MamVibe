@@ -1,0 +1,55 @@
+# Production overrides for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      JwtSettings__Secret: "${JWT_SECRET}"
+      JwtSettings__AccessTokenExpirationMinutes: "15"
+      JwtSettings__RefreshTokenExpirationDays: "3"
+      GoogleAuth__ClientId: "${GOOGLE_CLIENT_ID}"
+      GoogleAuth__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
+      Stripe__PublishableKey: "${STRIPE_PUBLISHABLE_KEY}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
+      Cloudflare__TurnstileSiteKey: "${TURNSTILE_SITE_KEY}"
+      Cloudflare__TurnstileSecretKey: "${TURNSTILE_SECRET_KEY}"
+      Smtp__Host: "${SMTP_HOST}"
+      Smtp__Port: "${SMTP_PORT}"
+      Smtp__Username: "${SMTP_USERNAME}"
+      Smtp__Password: "${SMTP_PASSWORD}"
+      Smtp__FromEmail: "${SMTP_FROM_EMAIL}"
+      Smtp__FromName: "${SMTP_FROM_NAME}"
+      Smtp__EnableSsl: "true"
+      Econt__Username: "${ECONT_USERNAME}"
+      Econt__Password: "${ECONT_PASSWORD}"
+      Econt__BaseUrl: "https://ee.econt.com/services"
+      Speedy__Username: "${SPEEDY_USERNAME}"
+      Speedy__Password: "${SPEEDY_PASSWORD}"
+      Speedy__BaseUrl: "https://api.speedy.bg/v1"
+      BoxNow__ApiKey: "${BOXNOW_API_KEY}"
+      BoxNow__BaseUrl: "https://api.boxnow.bg/api/v1"
+      TakeANap__ApiKey: "${TAKEANAP_API_KEY}"
+      TakeANap__ApiSecret: "${TAKEANAP_API_SECRET}"
+      TakeANap__ShopId: "${TAKEANAP_SHOP_ID}"
+      TakeANap__BaseUrl: "https://api.takeanap.bg"
+      Nekorekten__ApiKey: "${NEKOREKTEN_API_KEY}"
+      Nekorekten__BaseUrl: "https://api.nekorekten.com"
+      Security__IbanEncryptionKey: "${IBAN_ENCRYPTION_KEY}"
+      AdminSeed__Enabled: "${ADMIN_SEED_ENABLED}"
+      AdminSeed__Email: "${ADMIN_EMAIL}"
+      AdminSeed__Password: "${ADMIN_PASSWORD}"
+      AdminSeed__DisplayName: "${ADMIN_DISPLAY_NAME}"
+      N8n__BaseUrl: "${N8N_BASE_URL}"
+      N8n__Enabled: "${N8N_ENABLED}"
+    ports: []  # API not exposed directly — only reachable via nginx on the internal network
+    volumes:
+      - uploads:/app/wwwroot/uploads
+
+  frontend:
+    ports:
+      - "80:80"  # Cloudflare → port 80 → nginx → api:8080
+
+volumes:
+  uploads:
