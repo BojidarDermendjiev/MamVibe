@@ -38,7 +38,6 @@ function googleFaviconUrl(domain: string, size = 64) {
 
 // Two identical copies — seamless -50% marquee loop
 const BRAND_STRIP = [...BRANDS, ...BRANDS];
-const BRAND_STRIP_REV = [...BRANDS].reverse().concat([...BRANDS].reverse());
 
 // ── BrandCard ───────────────────────────────────────────────────────────────
 function BrandCard({ name, domain, accent }: { name: string; domain: string; accent: string }) {

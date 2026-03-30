@@ -1,30 +1,30 @@
-import { useState, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import toast from '@/utils/toast';
-import { HiCamera } from 'react-icons/hi';
-import axiosClient from '../api/axiosClient';
-import { authApi } from '../api/authApi';
-import { useAuthStore } from '../store/authStore';
-import Avatar from '../components/common/Avatar';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
+import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import toast from "@/utils/toast";
+import { HiCamera } from "react-icons/hi";
+import axiosClient from "../api/axiosClient";
+import { authApi } from "../api/authApi";
+import { useAuthStore } from "../store/authStore";
+import Avatar from "../components/common/Avatar";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
   const { user, setUser } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    displayName: user?.displayName || '',
-    bio: user?.bio || '',
-    iban: user?.iban || '',
+    displayName: user?.displayName || "",
+    bio: user?.bio || "",
+    iban: user?.iban || "",
   });
   const [loading, setLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
 
   const [pwForm, setPwForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmNewPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
   });
   const [pwErrors, setPwErrors] = useState<Record<string, string>>({});
   const [pwLoading, setPwLoading] = useState(false);
@@ -36,19 +36,22 @@ export default function SettingsPage() {
     setAvatarLoading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      const { data: uploadData } = await axiosClient.post<{ url: string }>('/photos/upload', formData);
+      formData.append("file", file);
+      const { data: uploadData } = await axiosClient.post<{ url: string }>(
+        "/photos/upload",
+        formData,
+      );
 
-      const { data: updatedUser } = await axiosClient.put('/users/profile', {
+      const { data: updatedUser } = await axiosClient.put("/users/profile", {
         avatarUrl: uploadData.url,
       });
       setUser(updatedUser);
-      toast.success(t('profile.avatar_updated'));
+      toast.success(t("profile.avatar_updated"));
     } catch {
-      toast.error(t('common.error'));
+      toast.error(t("common.error"));
     } finally {
       setAvatarLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -56,11 +59,11 @@ export default function SettingsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axiosClient.put('/users/profile', form);
+      const { data } = await axiosClient.put("/users/profile", form);
       setUser(data);
-      toast.success(t('profile.save'));
+      toast.success(t("profile.save"));
     } catch {
-      toast.error(t('common.error'));
+      toast.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -69,16 +72,16 @@ export default function SettingsPage() {
   const validatePassword = () => {
     const errs: Record<string, string> = {};
     if (pwForm.newPassword.length < 8) {
-      errs.newPassword = t('auth.password_min_length');
+      errs.newPassword = t("auth.password_min_length");
     } else if (!/[A-Z]/.test(pwForm.newPassword)) {
-      errs.newPassword = t('auth.password_uppercase');
+      errs.newPassword = t("auth.password_uppercase");
     } else if (!/[a-z]/.test(pwForm.newPassword)) {
-      errs.newPassword = t('auth.password_lowercase');
+      errs.newPassword = t("auth.password_lowercase");
     } else if (!/[0-9]/.test(pwForm.newPassword)) {
-      errs.newPassword = t('auth.password_digit');
+      errs.newPassword = t("auth.password_digit");
     }
     if (pwForm.newPassword !== pwForm.confirmNewPassword) {
-      errs.confirmNewPassword = t('auth.passwords_no_match');
+      errs.confirmNewPassword = t("auth.passwords_no_match");
     }
     setPwErrors(errs);
     return Object.keys(errs).length === 0;
@@ -90,12 +93,17 @@ export default function SettingsPage() {
     setPwLoading(true);
     try {
       await authApi.changePassword(pwForm);
-      toast.success(t('auth.password_changed'));
-      setPwForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      toast.success(t("auth.password_changed"));
+      setPwForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
       setPwErrors({});
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || t('common.error'));
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      toast.error(msg || t("common.error"));
     } finally {
       setPwLoading(false);
     }
@@ -103,16 +111,20 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
-    localStorage.setItem('language', lang);
+    localStorage.setItem("language", lang);
   };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-primary mb-6">{t('profile.settings_title')}</h1>
+      <h1 className="text-3xl font-bold text-primary mb-6">
+        {t("profile.settings_title")}
+      </h1>
 
       {/* Avatar Section */}
       <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-8">
-        <label className="block text-sm font-medium text-primary mb-3">{t('profile.avatar')}</label>
+        <label className="block text-sm font-medium text-primary mb-3">
+          {t("profile.avatar")}
+        </label>
         <div className="flex items-center gap-5">
           <div className="relative">
             <Avatar
@@ -137,7 +149,9 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-800">{user?.displayName}</p>
+            <p className="text-sm font-medium text-gray-800">
+              {user?.displayName}
+            </p>
             <p className="text-xs text-gray-500">{user?.email}</p>
             <button
               type="button"
@@ -145,22 +159,27 @@ export default function SettingsPage() {
               disabled={avatarLoading}
               className="text-sm text-primary hover:underline mt-1 disabled:opacity-50"
             >
-              {avatarLoading ? t('common.loading') : t('profile.change_avatar')}
+              {avatarLoading ? t("common.loading") : t("profile.change_avatar")}
             </button>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 border border-lavender/30 space-y-5">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-xl p-6 border border-lavender/30 space-y-5"
+      >
         <Input
-          label={t('auth.display_name')}
+          label={t("auth.display_name")}
           value={form.displayName}
           onChange={(e) => setForm({ ...form, displayName: e.target.value })}
           required
         />
 
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">{t('profile.bio')}</label>
+          <label className="block text-sm font-medium text-primary mb-1">
+            {t("profile.bio")}
+          </label>
           <textarea
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
@@ -170,29 +189,35 @@ export default function SettingsPage() {
         </div>
 
         <Input
-          label={t('payment.iban_label')}
+          label={t("payment.iban_label")}
           value={form.iban}
           onChange={(e) => setForm({ ...form, iban: e.target.value })}
           placeholder="BG80BNBG96611020345678"
         />
 
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">{t('profile.language')}</label>
+          <label className="block text-sm font-medium text-primary mb-1">
+            {t("profile.language")}
+          </label>
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => handleLanguageChange('en')}
+              onClick={() => handleLanguageChange("en")}
               className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                i18n.language === 'en' ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 text-gray-500'
+                i18n.language === "en"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-gray-200 text-gray-500"
               }`}
             >
               English
             </button>
             <button
               type="button"
-              onClick={() => handleLanguageChange('bg')}
+              onClick={() => handleLanguageChange("bg")}
               className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                i18n.language === 'bg' ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 text-gray-500'
+                i18n.language === "bg"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-gray-200 text-gray-500"
               }`}
             >
               Български
@@ -201,39 +226,50 @@ export default function SettingsPage() {
         </div>
 
         <Button type="submit" fullWidth isLoading={loading}>
-          {t('profile.save')}
+          {t("profile.save")}
         </Button>
       </form>
 
-      <form onSubmit={handleChangePassword} className="bg-white rounded-xl p-6 border border-lavender/30 space-y-5 mt-8">
-        <h2 className="text-xl font-bold text-primary">{t('auth.change_password')}</h2>
+      <form
+        onSubmit={handleChangePassword}
+        className="bg-white rounded-xl p-6 border border-lavender/30 space-y-5 mt-8"
+      >
+        <h2 className="text-xl font-bold text-primary">
+          {t("auth.change_password")}
+        </h2>
 
         <Input
-          label={t('auth.current_password')}
+          label={t("auth.current_password")}
           type="password"
           value={pwForm.currentPassword}
-          onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+          onChange={(e) =>
+            setPwForm({ ...pwForm, currentPassword: e.target.value })
+          }
           required
         />
         <Input
-          label={t('auth.new_password')}
+          label={t("auth.new_password")}
           type="password"
           value={pwForm.newPassword}
-          onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+          onChange={(e) =>
+            setPwForm({ ...pwForm, newPassword: e.target.value })
+          }
           error={pwErrors.newPassword}
           required
         />
         <Input
-          label={t('auth.confirm_new_password')}
+          label={t("auth.confirm_new_password")}
           type="password"
           value={pwForm.confirmNewPassword}
-          onChange={(e) => setPwForm({ ...pwForm, confirmNewPassword: e.target.value })}
+          onChange={(e) =>
+            setPwForm({ ...pwForm, confirmNewPassword: e.target.value })
+          }
           error={pwErrors.confirmNewPassword}
           required
         />
 
         <Button type="submit" fullWidth isLoading={pwLoading}>
-          {t('auth.change_password')}
+          {t("auth.change_password")}
         </Button>
       </form>
     </div>

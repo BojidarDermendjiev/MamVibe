@@ -1,4 +1,10 @@
-import { lazy, Suspense, Component, type ReactNode, type ErrorInfo } from "react";
+import {
+  lazy,
+  Suspense,
+  Component,
+  type ReactNode,
+  type ErrorInfo,
+} from "react";
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -32,9 +38,7 @@ const AdminDashboardPage = lazy(
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminItemsPage = lazy(() => import("./pages/admin/AdminItemsPage"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
-const AdminShippingPage = lazy(
-  () => import("./pages/admin/AdminShippingPage"),
-);
+const AdminShippingPage = lazy(() => import("./pages/admin/AdminShippingPage"));
 const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetailPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -42,23 +46,28 @@ const DonationPage = lazy(() => import("./pages/DonationPage"));
 const DonationCardPage = lazy(() => import("./pages/DonationCardPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
   constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError(_: Error) {
+  static getDerivedStateFromError(_error: Error) {
     return { hasError: true };
   }
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('Uncaught error:', error, info);
+    console.error("Uncaught error:", error, info);
   }
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Something went wrong.</p>
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+              Something went wrong.
+            </p>
             <button
               className="mt-4 px-4 py-2 bg-primary text-white rounded-lg"
               onClick={() => this.setState({ hasError: false })}
@@ -121,11 +130,17 @@ function AppRoutes() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:userId" element={<ChatPage />} />
             <Route path="/payment/:itemId" element={<PaymentPage />} />
-            <Route path="/payment/:itemId/card" element={<PaymentItemCardPage />} />
+            <Route
+              path="/payment/:itemId/card"
+              element={<PaymentItemCardPage />}
+            />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/cancel" element={<PaymentCancelPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/shipments/:shipmentId" element={<ShipmentDetailPage />} />
+            <Route
+              path="/shipments/:shipmentId"
+              element={<ShipmentDetailPage />}
+            />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
