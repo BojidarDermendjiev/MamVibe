@@ -327,7 +327,7 @@ public class ItemService : IItemService
     public async Task<List<ItemDto>> GetLikedItemsAsync(string userId)
     {
         var items = await this._context.Likes
-            .AsNoTracking()
+            .AsNoTrackingWithIdentityResolution()
             .Where(l => l.UserId == userId)
             .Include(l => l.Item)
                 .ThenInclude(i => i.Photos)
