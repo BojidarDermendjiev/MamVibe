@@ -18,18 +18,68 @@
     },
     {
       "parameters": {
+        "functionCode": "const body = $input.first().json.body;\n\nconst prompt = `You are a content moderator for MamVibe, a Bulgarian marketplace for families selling baby and children's items.\nReview this listing submission and provide a moderation recommendation.\n\nTitle: ${body.title || 'N/A'}\nCategory: ${body.category || 'N/A'}\nListing type: ${body.listingType || 'N/A'}\nPrice: ${body.price ? body.price + ' BGN' : 'Free / Donation'}\nDescription: ${body.description || 'No description provided'}\n\nRespond with ONLY valid JSON, no other text:\n{\"recommendation\": \"approve\", \"reason\": \"brief reason here\", \"flags\": []}\n\nrecommendation must be exactly one of:\n- \"approve\": clearly appropriate baby/children item with acceptable description\n- \"review\": needs manual check (vague description, unusual item, borderline content)\n- \"reject\": inappropriate content, spam, dangerous item, or completely unrelated\n\nflags: array of concern tags, empty if none. Examples: [\"low_quality_description\", \"suspicious_price\", \"wrong_category\"]`;\n\nconst requestBody = JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 200,\n  messages: [{ role: \"user\", content: prompt }]\n});\n\nreturn [{ json: { ...($input.first().json), requestBody } }];"
+      },
+      "id": "build-ai-prompt",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {}
+      },
+      "id": "call-claude-ai",
+      "name": "Call Claude AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const apiResponse = $input.first().json;\nconst webhookBody = $('Webhook: Item Pending').item.json.body;\n\nlet aiResult = {\n  recommendation: \"review\",\n  reason: \"AI screening unavailable — please review manually.\",\n  flags: []\n};\n\ntry {\n  const text = apiResponse.content[0].text.trim();\n  aiResult = JSON.parse(text);\n} catch (e) {\n  // use fallback\n}\n\nconst colorMap = { approve: \"#27ae60\", review: \"#e67e22\", reject: \"#e74c3c\" };\nconst labelMap = {\n  approve: \"Auto-Approve Suggested\",\n  review: \"Manual Review Needed\",\n  reject: \"Reject Suggested\"\n};\n\nreturn [{\n  json: {\n    ...webhookBody,\n    aiRecommendation: aiResult.recommendation,\n    aiRecommendationLabel: labelMap[aiResult.recommendation] || aiResult.recommendation,\n    aiReason: aiResult.reason,\n    aiFlags: (aiResult.flags || []).join(\", \") || \"none\",\n    aiBadgeColor: colorMap[aiResult.recommendation] || \"#888\"\n  }\n}];"
+      },
+      "id": "parse-ai-recommendation",
+      "name": "Parse AI Recommendation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
         "fromEmail": "noreply@mamvibe.com",
         "toEmail": "admin@mamvibe.com",
-        "subject": "New item needs approval: {{ $('Webhook: Item Pending').item.json.body.title }}",
+        "subject": "New item needs approval: {{ $json.title }}",
         "emailType": "html",
-        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe Admin</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #e67e22; margin-top: 0;\">New Item Pending Approval</h2>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 15px; margin: 20px 0;\">\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0; width: 120px;\">Title</td>\n        <td style=\"padding: 10px; color: #333; font-weight: 600; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Pending').item.json.body.title }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Category</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Pending').item.json.body.category }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Type</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Pending').item.json.body.listingType }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Price</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Pending').item.json.body.price || 'Free' }} {{ $('Webhook: Item Pending').item.json.body.price ? 'BGN' : '' }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Seller</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $('Webhook: Item Pending').item.json.body.sellerName }} ({{ $('Webhook: Item Pending').item.json.body.sellerEmail }})</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888;\">Description</td>\n        <td style=\"padding: 10px; color: #555; font-size: 14px;\">{{ $('Webhook: Item Pending').item.json.body.description }}</td>\n      </tr>\n    </table>\n    <div style=\"text-align: center; margin: 24px 0;\">\n      <a href=\"https://mamvibe.com/admin/items\" style=\"background: #27ae60; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Review & Approve</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe Admin</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #e67e22; margin-top: 0;\">New Item Pending Approval</h2>\n    <div style=\"background: #f8f9fa; border-radius: 10px; padding: 18px 20px; margin: 0 0 20px; border-left: 5px solid {{ $json.aiBadgeColor }};\">\n      <p style=\"margin: 0 0 8px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;\">AI Pre-screening Result</p>\n      <div style=\"display: inline-block; background: {{ $json.aiBadgeColor }}; color: white; padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 10px;\">{{ $json.aiRecommendationLabel }}</div>\n      <p style=\"margin: 6px 0 4px; color: #444; font-size: 14px;\">{{ $json.aiReason }}</p>\n      <p style=\"margin: 4px 0 0; color: #888; font-size: 12px;\">Flags: {{ $json.aiFlags }}</p>\n    </div>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 15px; margin: 20px 0;\">\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0; width: 120px;\">Title</td>\n        <td style=\"padding: 10px; color: #333; font-weight: 600; border-bottom: 1px solid #f0f0f0;\">{{ $json.title }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Category</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $json.category }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Type</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $json.listingType }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Price</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $json.price || 'Free' }} {{ $json.price ? 'BGN' : '' }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888; border-bottom: 1px solid #f0f0f0;\">Seller</td>\n        <td style=\"padding: 10px; color: #333; border-bottom: 1px solid #f0f0f0;\">{{ $json.sellerName }} ({{ $json.sellerEmail }})</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 10px; color: #888;\">Description</td>\n        <td style=\"padding: 10px; color: #555; font-size: 14px;\">{{ $json.description }}</td>\n      </tr>\n    </table>\n    <div style=\"text-align: center; margin: 24px 0;\">\n      <a href=\"https://mamvibe.com/admin/items\" style=\"background: #27ae60; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Review &amp; Approve</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
         "options": {}
       },
       "id": "email-admin",
       "name": "Email Admin",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [520, 300],
+      "position": [1140, 300],
       "credentials": {
         "smtp": {
           "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
@@ -40,6 +90,39 @@
   ],
   "connections": {
     "Webhook: Item Pending": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call Claude AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Recommendation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Recommendation": {
       "main": [
         [
           {
@@ -57,6 +140,7 @@
   "tags": [
     { "name": "MamVibe" },
     { "name": "Admin Alerts" },
-    { "name": "Items" }
+    { "name": "Items" },
+    { "name": "AI" }
   ]
 }

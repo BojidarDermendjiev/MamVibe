@@ -42,18 +42,68 @@
     },
     {
       "parameters": {
+        "functionCode": "const seller = $input.first().json;\n\nconst prompt = `You are a helpful assistant for MamVibe, a Bulgarian marketplace for families selling second-hand baby and children's items.\nBased on this seller's weekly performance stats, write exactly 2 short personalized tips to improve their sales.\nBe warm, specific and actionable. Each tip must be under 20 words.\n\nSeller: ${seller.displayName}\nViews: ${seller.totalViews} | Sales: ${seller.totalSales} | Revenue: ${seller.totalRevenue} BGN | Active listings: ${seller.activeListings}\n\nReturn ONLY a JSON array with exactly 2 strings. No other text.\nExample: [\"Add clearer photos to attract more buyers.\", \"Consider lowering prices by 5 BGN.\"]`;\n\nconst requestBody = JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 200,\n  messages: [{ role: \"user\", content: prompt }]\n});\n\nreturn [{ json: { ...seller, requestBody } }];"
+      },
+      "id": "prepare-ai-request",
+      "name": "Prepare AI Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {}
+      },
+      "id": "call-claude-ai",
+      "name": "Call Claude AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const apiResponse = $input.first().json;\nconst seller = $('Split by Seller').item.json;\n\nlet tips = [\n  \"Add more photos to your listings to attract buyers.\",\n  \"Compare your prices with similar items and consider a small reduction.\"\n];\n\ntry {\n  const text = apiResponse.content[0].text.trim();\n  const parsed = JSON.parse(text);\n  if (Array.isArray(parsed) && parsed.length >= 1) {\n    tips = parsed;\n  }\n} catch (e) {\n  // use fallback tips\n}\n\nreturn [{ json: { ...seller, aiTips: tips } }];"
+      },
+      "id": "parse-ai-tips",
+      "name": "Parse AI Tips",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 300]
+    },
+    {
+      "parameters": {
         "fromEmail": "noreply@mamvibe.com",
         "toEmail": "={{ $json.email }}",
         "subject": "Your MamVibe Weekly Report — {{ new Date().toISOString().substring(0, 10) }}",
         "emailType": "html",
-        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n    <p style=\"color: #888; margin: 5px 0 0;\">Weekly Seller Report</p>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">Hi {{ $json.displayName }}!</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Here's how your listings performed this week:</p>\n    <div style=\"display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0;\">\n      <div style=\"flex: 1; min-width: 100px; background: #f8f4ff; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #e91e8c;\">{{ $json.totalViews }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Views</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #f0fff4; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #27ae60;\">{{ $json.totalSales }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Sales</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #fff8f0; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #e67e22;\">{{ $json.totalRevenue }} BGN</div>\n        <div style=\"font-size: 13px; color: #888;\">Revenue</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #f0f4ff; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #3498db;\">{{ $json.activeListings }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Active</div>\n      </div>\n    </div>\n    <div style=\"text-align: center; margin: 24px 0;\">\n      <a href=\"https://mamvibe.com/dashboard\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">View Dashboard</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n    <p style=\"color: #888; margin: 5px 0 0;\">Weekly Seller Report</p>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">Hi {{ $json.displayName }}!</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Here's how your listings performed this week:</p>\n    <div style=\"display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0;\">\n      <div style=\"flex: 1; min-width: 100px; background: #f8f4ff; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #e91e8c;\">{{ $json.totalViews }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Views</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #f0fff4; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #27ae60;\">{{ $json.totalSales }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Sales</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #fff8f0; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #e67e22;\">{{ $json.totalRevenue }} BGN</div>\n        <div style=\"font-size: 13px; color: #888;\">Revenue</div>\n      </div>\n      <div style=\"flex: 1; min-width: 100px; background: #f0f4ff; border-radius: 10px; padding: 16px; text-align: center;\">\n        <div style=\"font-size: 28px; font-weight: 700; color: #3498db;\">{{ $json.activeListings }}</div>\n        <div style=\"font-size: 13px; color: #888;\">Active</div>\n      </div>\n    </div>\n    <div style=\"background: #fef9ff; border-left: 4px solid #e91e8c; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;\">\n      <p style=\"margin: 0 0 10px; font-weight: 700; color: #e91e8c; font-size: 14px;\">Your AI tips this week</p>\n      <ul style=\"margin: 0; padding-left: 18px; color: #555; font-size: 14px; line-height: 1.9;\">{{#each $json.aiTips}}<li>{{this}}</li>{{/each}}</ul>\n    </div>\n    <div style=\"text-align: center; margin: 24px 0;\">\n      <a href=\"https://mamvibe.com/dashboard\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">View Dashboard</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
         "options": {}
       },
       "id": "email-seller",
       "name": "Email Each Seller",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [920, 300],
+      "position": [1580, 300],
       "credentials": {
         "smtp": {
           "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
@@ -89,6 +139,39 @@
       "main": [
         [
           {
+            "node": "Prepare AI Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Request": {
+      "main": [
+        [
+          {
+            "node": "Call Claude AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Tips",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Tips": {
+      "main": [
+        [
+          {
             "node": "Email Each Seller",
             "type": "main",
             "index": 0
@@ -103,6 +186,7 @@
   "tags": [
     { "name": "MamVibe" },
     { "name": "Scheduled" },
-    { "name": "Sellers" }
+    { "name": "Sellers" },
+    { "name": "AI" }
   ]
 }

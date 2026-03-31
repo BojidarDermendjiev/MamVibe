@@ -28,18 +28,68 @@
     },
     {
       "parameters": {
+        "functionCode": "const seller = $input.first().json;\n\nconst itemsList = seller.items.map((item, i) =>\n  `${i + 1}. \"${item.title}\" — ${item.price > 0 ? item.price + ' BGN' : 'Free'}, listed ${item.daysListed} days, ${item.viewCount} views`\n).join('\\n');\n\nconst prompt = `You are a helpful assistant for MamVibe, a Bulgarian marketplace for families selling second-hand baby and children's items.\nA seller has listings that have not sold in over 30 days. Provide one short specific improvement tip per item.\nEach tip must be under 15 words and be practical (e.g. lower price, add photos, improve title).\n\nItems:\n${itemsList}\n\nReturn ONLY a JSON array with one tip per item in the same order. No other text.\nExample for 2 items: [\"Lower price by 10 BGN to match similar listings.\", \"Add close-up photos of the condition.\"]`;\n\nconst requestBody = JSON.stringify({\n  model: \"claude-haiku-4-5-20251001\",\n  max_tokens: 300,\n  messages: [{ role: \"user\", content: prompt }]\n});\n\nreturn [{ json: { ...seller, requestBody } }];"
+      },
+      "id": "prepare-ai-request",
+      "name": "Prepare AI Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {}
+      },
+      "id": "call-claude-ai",
+      "name": "Call Claude AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const apiResponse = $input.first().json;\nconst seller = $('Group by Seller').item.json;\n\nlet adviceList = seller.items.map(() => \"Consider updating the description or reducing the price.\");\n\ntry {\n  const text = apiResponse.content[0].text.trim();\n  const parsed = JSON.parse(text);\n  if (Array.isArray(parsed)) {\n    adviceList = parsed;\n  }\n} catch (e) {\n  // use fallback\n}\n\nconst itemsWithAdvice = seller.items.map((item, i) => ({\n  ...item,\n  aiAdvice: adviceList[i] || \"Try refreshing this listing with new photos.\"\n}));\n\nreturn [{ json: { ...seller, items: itemsWithAdvice } }];"
+      },
+      "id": "parse-ai-advice",
+      "name": "Parse AI Advice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 300]
+    },
+    {
+      "parameters": {
         "fromEmail": "noreply@mamvibe.com",
         "toEmail": "={{ $json.sellerEmail }}",
         "subject": "Your {{ $json.items.length }} listing(s) on MamVibe need attention",
         "emailType": "html",
-        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #e67e22; margin-top: 0;\">Your listings need a refresh \ud83d\udd04</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Hi <strong>{{ $json.sellerName }}</strong>,</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">The following items have been listed for over 30 days without selling. Consider updating the price or description to attract buyers:</p>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;\">\n      <thead>\n        <tr style=\"background: #f8f8f8;\">\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0;\">Item</th>\n          <th style=\"padding: 10px; text-align: right; border-bottom: 2px solid #e0e0e0;\">Price</th>\n          <th style=\"padding: 10px; text-align: center; border-bottom: 2px solid #e0e0e0;\">Days</th>\n          <th style=\"padding: 10px; text-align: center; border-bottom: 2px solid #e0e0e0;\">Views</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{#each $json.items}}\n        <tr>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0;\">{{ title }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: right;\">{{ price }} BGN</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #e67e22;\">{{ daysListed }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center;\">{{ viewCount }}</td>\n        </tr>\n        {{/each}}\n      </tbody>\n    </table>\n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://mamvibe.com/my-items\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Update Listings</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
+        "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; padding: 20px 0;\">\n    <h1 style=\"color: #e91e8c; margin: 0;\">MamVibe</h1>\n  </div>\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #e67e22; margin-top: 0;\">Your listings need a refresh \ud83d\udd04</h2>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">Hi <strong>{{ $json.sellerName }}</strong>,</p>\n    <p style=\"color: #555; font-size: 16px; line-height: 1.6;\">The following items have been listed for over 30 days without selling. Each row includes an AI tip to help you get a sale:</p>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;\">\n      <thead>\n        <tr style=\"background: #f8f8f8;\">\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0;\">Item</th>\n          <th style=\"padding: 10px; text-align: right; border-bottom: 2px solid #e0e0e0;\">Price</th>\n          <th style=\"padding: 10px; text-align: center; border-bottom: 2px solid #e0e0e0;\">Days</th>\n          <th style=\"padding: 10px; text-align: center; border-bottom: 2px solid #e0e0e0;\">Views</th>\n          <th style=\"padding: 10px; text-align: left; border-bottom: 2px solid #e0e0e0; color: #e91e8c;\">AI Tip</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{#each $json.items}}\n        <tr>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0;\">{{ title }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: right;\">{{ price }} BGN</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #e67e22;\">{{ daysListed }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center;\">{{ viewCount }}</td>\n          <td style=\"padding: 10px; border-bottom: 1px solid #f0f0f0; color: #7c3aed; font-style: italic;\">{{ aiAdvice }}</td>\n        </tr>\n        {{/each}}\n      </tbody>\n    </table>\n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://mamvibe.com/my-items\" style=\"background: #e91e8c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;\">Update Listings</a>\n    </div>\n  </div>\n  <div style=\"text-align: center; padding: 20px 0; color: #aaa; font-size: 12px;\">&copy; 2026 MamVibe. All rights reserved.</div>\n</div>",
         "options": {}
       },
       "id": "email-seller",
       "name": "Email Each Seller",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [720, 300],
+      "position": [1360, 300],
       "credentials": {
         "smtp": {
           "id": "REPLACE_WITH_SMTP_CREDENTIAL_ID",
@@ -64,6 +114,39 @@
       "main": [
         [
           {
+            "node": "Prepare AI Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Request": {
+      "main": [
+        [
+          {
+            "node": "Call Claude AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Advice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Advice": {
+      "main": [
+        [
+          {
             "node": "Email Each Seller",
             "type": "main",
             "index": 0
@@ -77,6 +160,7 @@
   },
   "tags": [
     { "name": "MamVibe" },
-    { "name": "Daily Checks" }
+    { "name": "Daily Checks" },
+    { "name": "AI" }
   ]
 }
