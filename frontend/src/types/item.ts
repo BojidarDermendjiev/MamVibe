@@ -79,6 +79,17 @@ export interface ItemFilter {
   sortBy: string;
 }
 
+export interface AiListingSuggestion {
+  title: string;
+  description: string;
+  categorySlug: string;
+  listingType: ListingType;
+  suggestedPrice: number | null;
+  ageGroup: AgeGroup | null;
+  clothingSize: number | null;
+  shoeSize: number | null;
+}
+
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;

@@ -91,6 +91,11 @@ public static class DependencyInjection
         // n8n scheduled daily checks
         services.AddHostedService<N8nScheduledService>();
 
+        // Anthropic Claude AI — listing assistant
+        services.Configure<AnthropicSettings>(configuration.GetSection("Anthropic"));
+        services.AddHttpClient("Anthropic");
+        services.AddScoped<IAiService, AiService>();
+
         return services;
     }
 }

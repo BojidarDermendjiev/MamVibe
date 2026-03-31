@@ -13,6 +13,7 @@ using Application.Interfaces;
 /// - Retrieve item details (increments view count)
 /// - Create, update, and delete items (authenticated; with authorization checks)
 /// - Toggle like status on an item (authenticated)
+/// - AI listing assistant: analyze a photo and return prefilled listing suggestions
 /// </summary>
 
 [ApiController]
@@ -22,18 +23,18 @@ public class ItemsController : ControllerBase
     private readonly IItemService _itemService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
+    private readonly IAiService _aiService;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ItemsController"/>.
-    /// </summary>
-    /// <param name="itemService">Service handling item operations.</param>
-    /// <param name="currentUserService">Service providing context about the current user.</param>
-    /// <param name="updateItemValidator">Validator for item update payloads.</param>
-    public ItemsController(IItemService itemService, ICurrentUserService currentUserService, IValidator<UpdateItemDto> updateItemValidator)
+    public ItemsController(
+        IItemService itemService,
+        ICurrentUserService currentUserService,
+        IValidator<UpdateItemDto> updateItemValidator,
+        IAiService aiService)
     {
         this._itemService = itemService;
         this._currentUserService = currentUserService;
         this._updateItemValidator = updateItemValidator;
+        this._aiService = aiService;
     }
 
     /// <summary>
@@ -82,6 +83,33 @@ public class ItemsController : ControllerBase
     {
         await this._itemService.IncrementViewCountAsync(id);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Analyzes a product photo with Claude AI and returns prefilled listing suggestions.
+    /// </summary>
+    /// <param name="photo">The product photo to analyze (JPEG, PNG, or WebP, max 5 MB).</param>
+    /// <returns>
+    /// 400 Bad Request if the photo is missing, too large, or in an unsupported format.<br/>
+    /// 200 OK with <see cref="AiListingSuggestionDto"/> on success.
+    /// </returns>
+    [Authorize]
+    [HttpPost("ai-suggest")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> AiSuggest(IFormFile photo)
+    {
+        if (photo is null || photo.Length == 0)
+            return BadRequest(new { error = "A photo is required." });
+
+        try
+        {
+            var suggestion = await this._aiService.SuggestListingAsync(photo);
+            return Ok(suggestion);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>

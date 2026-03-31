@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "@/utils/toast";
 import { itemsApi } from "../api/itemsApi";
 import { photosApi } from "../api/photosApi";
+import { aiApi } from "../api/aiApi";
 import { ListingType, AgeGroup } from "../types/item";
 import { useCategories } from "../hooks/useCategories";
 import { useAuthStore } from "../store/authStore";
@@ -20,7 +21,9 @@ export default function CreateItemPage() {
   const { user } = useAuthStore();
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [showIbanModal, setShowIbanModal] = useState(false);
+  const aiInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<{
     title: string;
     description: string;
@@ -45,6 +48,41 @@ export default function CreateItemPage() {
     () => categories.find((c) => c.id === form.categoryId)?.slug,
     [categories, form.categoryId]
   );
+
+  const handleAiFill = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAiLoading(true);
+    try {
+      const { data: suggestion } = await aiApi.suggestListing(file);
+      const matchedCategory = categories.find(
+        (c) => c.slug === suggestion.categorySlug
+      );
+      setForm((prev) => ({
+        ...prev,
+        title: suggestion.title || prev.title,
+        description: suggestion.description || prev.description,
+        categoryId: matchedCategory?.id ?? prev.categoryId,
+        listingType: suggestion.listingType,
+        ageGroup: suggestion.ageGroup ?? prev.ageGroup,
+        shoeSize: suggestion.shoeSize ?? prev.shoeSize,
+        clothingSize: suggestion.clothingSize ?? prev.clothingSize,
+        price:
+          suggestion.suggestedPrice != null
+            ? String(suggestion.suggestedPrice)
+            : prev.price,
+      }));
+      // Add the analysed photo to the listing
+      setPhotos((prev) => [file, ...prev]);
+      toast.success("Form filled with AI suggestions — review before submitting!");
+    } catch {
+      toast.error("Could not analyse the photo. Please fill the form manually.");
+    } finally {
+      setAiLoading(false);
+      e.target.value = "";
+    }
+  };
 
   const doSubmit = async () => {
     if (!form.categoryId) {
@@ -84,7 +122,6 @@ export default function CreateItemPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // If selling and no IBAN saved, show modal first
     if (form.listingType === ListingType.Sell && !user?.iban) {
       setShowIbanModal(true);
       return;
@@ -97,6 +134,31 @@ export default function CreateItemPage() {
       <h1 className="text-3xl font-bold text-primary mb-6">
         {t("items.create_title")}
       </h1>
+
+      {/* AI Listing Assistant */}
+      <div className="mb-5 p-4 rounded-xl border border-lavender/40 bg-gradient-to-r from-purple-50 to-pink-50">
+        <p className="text-sm font-medium text-gray-700 mb-1">
+          ✨ AI Listing Assistant
+        </p>
+        <p className="text-xs text-gray-500 mb-3">
+          Upload a photo and Claude AI will suggest the title, description,
+          category, price, and size for you.
+        </p>
+        <input
+          ref={aiInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          className="hidden"
+          onChange={handleAiFill}
+        />
+        <Button
+          type="button"
+          isLoading={aiLoading}
+          onClick={() => aiInputRef.current?.click()}
+        >
+          {aiLoading ? "Analysing photo…" : "✨ Fill with AI"}
+        </Button>
+      </div>
 
       <form
         onSubmit={handleSubmit}
