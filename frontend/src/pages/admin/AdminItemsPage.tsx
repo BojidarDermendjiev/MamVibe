@@ -122,6 +122,36 @@ function ItemDetailModal({
             </span>
           </div>
 
+          {/* AI Moderation */}
+          {item.aiModerationStatus !== 0 && (
+            <div className={`p-3 rounded-lg text-sm border ${
+              item.aiModerationStatus === 3
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/40'
+                : item.aiModerationStatus === 2
+                ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-900/40'
+                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/40'
+            }`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`font-semibold ${
+                  item.aiModerationStatus === 3 ? 'text-red-700 dark:text-red-400' :
+                  item.aiModerationStatus === 2 ? 'text-yellow-700 dark:text-yellow-400' :
+                  'text-green-700 dark:text-green-400'
+                }`}>
+                  {item.aiModerationStatus === 3 ? 'AI: Flagged' :
+                   item.aiModerationStatus === 2 ? 'AI: Needs Review' : 'AI: Auto-Approved'}
+                </span>
+                {item.aiModerationScore != null && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    ({Math.round(item.aiModerationScore * 100)}% confidence)
+                  </span>
+                )}
+              </div>
+              {item.aiModerationNotes && (
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">{item.aiModerationNotes}</p>
+              )}
+            </div>
+          )}
+
           {/* Description */}
           {item.description && (
             <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
@@ -237,6 +267,7 @@ export default function AdminItemsPage() {
                       <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Title</th>
                       <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Type</th>
                       <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Price</th>
+                      <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">AI Screen</th>
                       <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Owner</th>
                       <th className="px-4 py-3 text-sm font-medium text-[#364153] dark:text-[#bdb9bc]">Actions</th>
                     </tr>
@@ -273,6 +304,21 @@ export default function AdminItemsPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                           {item.price ? formatPrice(item.price) : 'Free'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.aiModerationStatus === 3 ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                              Flagged
+                            </span>
+                          ) : item.aiModerationStatus === 2 ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                              Review
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400">
+                              —
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.userDisplayName}</td>
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>

@@ -40,6 +40,9 @@ export interface Item {
   isLikedByCurrentUser: boolean;
   photos: ItemPhoto[];
   createdAt: string;
+  aiModerationStatus: number;
+  aiModerationNotes: string | null;
+  aiModerationScore: number | null;
 }
 
 export interface CreateItemRequest {

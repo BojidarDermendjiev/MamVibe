@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using Domain.Entities;
+using Domain.Enums;
 using Application.DTOs.Items;
 using Application.Interfaces;
 using Application.DTOs.Common;
@@ -22,17 +23,22 @@ public class ItemService : IItemService
     private readonly IMapper _mapper;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly IAiService _aiService;
+
+    private const double AutoApproveThreshold = 0.85;
 
     public ItemService(
         IApplicationDbContext context,
         IMapper mapper,
         IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings)
+        IOptions<N8nSettings> n8nSettings,
+        IAiService aiService)
     {
         this._context = context;
         this._mapper = mapper;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._aiService = aiService;
     }
 
     private static string MaskEmail(string? email)
@@ -168,28 +174,64 @@ public class ItemService : IItemService
         this._context.Items.Add(item);
         await this._context.SaveChangesAsync();
 
-        // Fire item.pending_approval webhook for admin review
+        // Load navigation properties (needed for moderation context + webhook payload)
         var createdItem = await this._context.Items
             .Include(i => i.User)
             .Include(i => i.Category)
             .FirstOrDefaultAsync(i => i.Id == item.Id);
+
+        // AI Moderation — runs synchronously; failure must never block item creation
         try
         {
-            this._webhook.Send(this._n8nSettings.ItemPendingApproval, new
+            var modResult = await this._aiService.ModerateItemAsync(
+                dto.Title,
+                dto.Description,
+                createdItem?.Category?.Name ?? string.Empty,
+                dto.ListingType,
+                dto.Price);
+
+            item.AiModerationScore = (float)modResult.Confidence;
+            item.AiModerationNotes = modResult.Reason;
+
+            if (modResult.Recommendation == "approve" && modResult.Confidence >= AutoApproveThreshold)
             {
-                Event = "item.pending_approval",
-                Timestamp = DateTime.UtcNow,
-                ItemId = item.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                Category = createdItem?.Category?.Name,
-                ListingType = dto.ListingType.ToString(),
-                Price = dto.Price,
-                SellerName = createdItem?.User?.DisplayName,
-                SellerEmail = MaskEmail(createdItem?.User?.Email)
-            });
+                item.IsActive = true;
+                item.AiModerationStatus = AiModerationStatus.AutoApproved;
+            }
+            else
+            {
+                item.AiModerationStatus = modResult.Recommendation == "reject"
+                    ? AiModerationStatus.FlaggedForReview
+                    : AiModerationStatus.NeedsReview;
+            }
+
+            await this._context.SaveChangesAsync();
         }
-        catch { /* Webhook failure must not break item creation */ }
+        catch { /* Moderation failure must not block item creation */ }
+
+        // Only notify admin for items that still need manual review
+        if (!item.IsActive)
+        {
+            try
+            {
+                this._webhook.Send(this._n8nSettings.ItemPendingApproval, new
+                {
+                    Event = "item.pending_approval",
+                    Timestamp = DateTime.UtcNow,
+                    ItemId = item.Id,
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    Category = createdItem?.Category?.Name,
+                    ListingType = dto.ListingType.ToString(),
+                    Price = dto.Price,
+                    SellerName = createdItem?.User?.DisplayName,
+                    SellerEmail = MaskEmail(createdItem?.User?.Email),
+                    AiRecommendation = item.AiModerationStatus.ToString(),
+                    AiReason = item.AiModerationNotes
+                });
+            }
+            catch { /* Webhook failure must not break item creation */ }
+        }
 
         return (await GetByIdAsync(item.Id))!;
     }

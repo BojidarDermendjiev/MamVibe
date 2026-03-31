@@ -36,4 +36,9 @@ public class ItemDto
     public List<ItemPhotoDto> Photos { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    // AI Moderation — used in admin views
+    public Domain.Enums.AiModerationStatus AiModerationStatus { get; set; }
+    public string? AiModerationNotes { get; set; }
+    public float? AiModerationScore { get; set; }
 }

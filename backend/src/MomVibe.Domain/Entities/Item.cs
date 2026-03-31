@@ -120,4 +120,16 @@ public class Item : BaseEntity
     /// Likes for this item.
     /// </summary>
     public ICollection<Like> Likes { get; set; } = [];
+
+    // ── AI Moderation ──────────────────────────────────────────────────────────
+
+    /// <summary>Outcome of the AI content moderation run at creation time.</summary>
+    public AiModerationStatus AiModerationStatus { get; set; } = AiModerationStatus.NotScreened;
+
+    /// <summary>Human-readable reason from the AI model, shown to admins.</summary>
+    [MaxLength(1000)]
+    public string? AiModerationNotes { get; set; }
+
+    /// <summary>Confidence score from the AI model, 0.0–1.0.</summary>
+    public float? AiModerationScore { get; set; }
 }
