@@ -93,6 +93,24 @@ export interface AiListingSuggestion {
   shoeSize: number | null;
 }
 
+export interface PriceSuggestionRequest {
+  categoryId: string;
+  title: string;
+  description: string;
+  ageGroup?: AgeGroup | null;
+  clothingSize?: number | null;
+  shoeSize?: number | null;
+}
+
+export interface PriceSuggestion {
+  suggestedPrice: number | null;
+  low: number | null;
+  high: number | null;
+  confidence: number;
+  reason: string;
+  comparableCount: number;
+}
+
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;

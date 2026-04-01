@@ -1,11 +1,11 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "@/utils/toast";
 import { itemsApi } from "../api/itemsApi";
 import { photosApi } from "../api/photosApi";
 import { aiApi } from "../api/aiApi";
-import { ListingType, AgeGroup } from "../types/item";
+import { ListingType, AgeGroup, type PriceSuggestion } from "../types/item";
 import { useCategories } from "../hooks/useCategories";
 import { useAuthStore } from "../store/authStore";
 import Button from "../components/common/Button";
@@ -22,6 +22,8 @@ export default function CreateItemPage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceSuggestion, setPriceSuggestion] = useState<PriceSuggestion | null>(null);
   const [showIbanModal, setShowIbanModal] = useState(false);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<{
@@ -48,6 +50,26 @@ export default function CreateItemPage() {
     () => categories.find((c) => c.id === form.categoryId)?.slug,
     [categories, form.categoryId]
   );
+
+  const handlePriceSuggest = useCallback(async () => {
+    if (!form.categoryId) return;
+    setPriceLoading(true);
+    try {
+      const { data } = await aiApi.suggestPrice({
+        categoryId: form.categoryId,
+        title: form.title,
+        description: form.description,
+        ageGroup: form.ageGroup,
+        clothingSize: form.clothingSize,
+        shoeSize: form.shoeSize,
+      });
+      setPriceSuggestion(data);
+    } catch {
+      toast.error("Could not get a price suggestion. Please try again.");
+    } finally {
+      setPriceLoading(false);
+    }
+  }, [form.categoryId, form.title, form.description, form.ageGroup, form.clothingSize, form.shoeSize]);
 
   const handleAiFill = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -192,6 +214,7 @@ export default function CreateItemPage() {
             value={form.categoryId}
             onChange={(e) => {
               setForm({ ...form, categoryId: e.target.value, ageGroup: null, shoeSize: null, clothingSize: null });
+              setPriceSuggestion(null);
             }}
             required
             className="w-full px-4 py-2.5 rounded-lg border border-lavender bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -212,9 +235,10 @@ export default function CreateItemPage() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() =>
-                setForm({ ...form, listingType: ListingType.Donate })
-              }
+              onClick={() => {
+                setForm({ ...form, listingType: ListingType.Donate });
+                setPriceSuggestion(null);
+              }}
               className={`flex-1 py-3 rounded-lg border-2 font-medium transition-all ${
                 form.listingType === ListingType.Donate
                   ? "border-green-500 bg-green-50 text-green-700"
@@ -225,9 +249,10 @@ export default function CreateItemPage() {
             </button>
             <button
               type="button"
-              onClick={() =>
-                setForm({ ...form, listingType: ListingType.Sell })
-              }
+              onClick={() => {
+                setForm({ ...form, listingType: ListingType.Sell });
+                setPriceSuggestion(null);
+              }}
               className={`flex-1 py-3 rounded-lg border-2 font-medium transition-all ${
                 form.listingType === ListingType.Sell
                   ? "border-mauve bg-mauve/10 text-mauve"
@@ -240,15 +265,86 @@ export default function CreateItemPage() {
         </div>
 
         {form.listingType === ListingType.Sell && (
-          <Input
-            label={t("items.price")}
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
-            required
-          />
+          <div className="space-y-2">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <Input
+                  label={t("items.price")}
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  required
+                />
+              </div>
+              {form.categoryId && (
+                <button
+                  type="button"
+                  onClick={handlePriceSuggest}
+                  disabled={priceLoading}
+                  className="mb-0.5 flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-lavender/60 bg-gradient-to-r from-purple-50 to-pink-50 text-sm font-medium text-gray-700 hover:border-primary/50 hover:bg-purple-50 transition-all disabled:opacity-60 whitespace-nowrap"
+                >
+                  {priceLoading ? (
+                    <svg className="h-4 w-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                  ) : (
+                    <span>✨</span>
+                  )}
+                  {priceLoading ? "Thinking…" : "Suggest price"}
+                </button>
+              )}
+            </div>
+
+            {priceSuggestion && priceSuggestion.suggestedPrice != null && (
+              <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-xl font-bold text-primary">
+                        {priceSuggestion.suggestedPrice} BGN
+                      </span>
+                      {priceSuggestion.low != null && priceSuggestion.high != null && (
+                        <span className="text-sm text-gray-500">
+                          range: {priceSuggestion.low}–{priceSuggestion.high} BGN
+                        </span>
+                      )}
+                      {priceSuggestion.comparableCount > 0 && (
+                        <span className="text-xs text-gray-400">
+                          based on {priceSuggestion.comparableCount} similar listing{priceSuggestion.comparableCount !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                    {priceSuggestion.reason && (
+                      <p className="mt-1 text-xs text-gray-600 leading-relaxed">{priceSuggestion.reason}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((prev) => ({ ...prev, price: String(priceSuggestion.suggestedPrice) }));
+                        setPriceSuggestion(null);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
+                    >
+                      Use this
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPriceSuggestion(null)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Dismiss"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         <CategorySpecificSection
