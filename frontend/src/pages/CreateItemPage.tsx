@@ -98,8 +98,13 @@ export default function CreateItemPage() {
       // Add the analysed photo to the listing
       setPhotos((prev) => [file, ...prev]);
       toast.success("Form filled with AI suggestions — review before submitting!");
-    } catch {
-      toast.error("Could not analyse the photo. Please fill the form manually.");
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string; error?: string } } })
+          ?.response?.data?.detail ||
+        (err as { response?: { data?: { detail?: string; error?: string } } })
+          ?.response?.data?.error;
+      toast.error(detail ?? "Could not analyse the photo. Please fill the form manually.");
     } finally {
       setAiLoading(false);
       e.target.value = "";
