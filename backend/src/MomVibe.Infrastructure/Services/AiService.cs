@@ -270,4 +270,105 @@ public class AiService : IAiService
             return new AiModerationResultDto { Recommendation = "review", Confidence = 0.5 };
         }
     }
+
+    public async Task<PriceSuggestionResultDto> SuggestPriceAsync(
+        string title,
+        string description,
+        string categoryName,
+        AgeGroup? ageGroup,
+        int? clothingSize,
+        int? shoeSize,
+        IReadOnlyList<decimal> comparablePrices)
+    {
+        var comparablesText = comparablePrices.Count > 0
+            ? $"Comparable listings currently on this platform ({comparablePrices.Count} items): {string.Join(", ", comparablePrices.Select(p => $"{p} BGN"))}"
+            : "No comparable listings found on this platform yet — use general knowledge of the Bulgarian second-hand baby market.";
+
+        var sizeContext = new List<string>();
+        if (ageGroup.HasValue) sizeContext.Add($"Age group: {ageGroup.Value}");
+        if (clothingSize.HasValue) sizeContext.Add($"Clothing size: EU {clothingSize.Value}");
+        if (shoeSize.HasValue) sizeContext.Add($"Shoe size: EU {shoeSize.Value}");
+        var sizeText = sizeContext.Count > 0 ? string.Join(", ", sizeContext) : "Size: not specified";
+
+        var prompt = $$"""
+            You are a pricing assistant for MamVibe, a Bulgarian marketplace for second-hand baby and children's items.
+            Suggest a fair selling price in BGN for this listing.
+
+            Title: {{title}}
+            Category: {{categoryName}}
+            Description: {{description}}
+            {{sizeText}}
+            {{comparablesText}}
+
+            Return ONLY valid JSON with no markdown or extra text:
+            {
+              "suggestedPrice": 45,
+              "low": 30,
+              "high": 60,
+              "confidence": 0.85,
+              "reason": "brief explanation under 80 words"
+            }
+
+            Guidelines:
+            - suggestedPrice, low, high are numbers in BGN (Bulgarian Lev), rounded to the nearest whole number
+            - If comparable prices exist, base your suggestion on them; otherwise use general knowledge of the Bulgarian second-hand baby market
+            - low = reasonable minimum a seller could accept, high = reasonable maximum
+            - confidence: 0.0 (very uncertain) to 1.0 (very confident)
+            - reason: 1-2 sentences explaining the price, referencing comparable listings if available
+            """;
+
+        var requestBody = new
+        {
+            model = _settings.Model,
+            max_tokens = 200,
+            messages = new[] { new { role = "user", content = prompt } }
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
+        request.Headers.Add("x-api-key", _settings.ApiKey);
+        request.Headers.Add("anthropic-version", "2023-06-01");
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        using var doc = JsonDocument.Parse(json);
+        var text = doc.RootElement
+            .GetProperty("content")[0]
+            .GetProperty("text")
+            .GetString() ?? "{}";
+
+        return ParsePriceSuggestion(ExtractJson(text), comparablePrices.Count);
+    }
+
+    private static PriceSuggestionResultDto ParsePriceSuggestion(string json, int comparableCount)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var r = doc.RootElement;
+
+            return new PriceSuggestionResultDto
+            {
+                SuggestedPrice = r.TryGetProperty("suggestedPrice", out var sp) && sp.ValueKind == JsonValueKind.Number
+                    ? sp.GetDecimal() : null,
+                Low = r.TryGetProperty("low", out var lo) && lo.ValueKind == JsonValueKind.Number
+                    ? lo.GetDecimal() : null,
+                High = r.TryGetProperty("high", out var hi) && hi.ValueKind == JsonValueKind.Number
+                    ? hi.GetDecimal() : null,
+                Confidence = r.TryGetProperty("confidence", out var conf) && conf.ValueKind == JsonValueKind.Number
+                    ? conf.GetDouble() : 0.5,
+                Reason = r.TryGetProperty("reason", out var reason)
+                    ? reason.GetString() ?? string.Empty : string.Empty,
+                ComparableCount = comparableCount
+            };
+        }
+        catch
+        {
+            return new PriceSuggestionResultDto { Confidence = 0.5, ComparableCount = comparableCount };
+        }
+    }
 }

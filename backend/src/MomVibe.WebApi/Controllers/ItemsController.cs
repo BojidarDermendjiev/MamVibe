@@ -113,6 +113,17 @@ public class ItemsController : ControllerBase
     }
 
     /// <summary>
+    /// Suggests a fair selling price based on comparable active listings and item context.
+    /// </summary>
+    [Authorize]
+    [HttpPost("suggest-price")]
+    public async Task<IActionResult> SuggestPrice([FromBody] PriceSuggestionRequestDto dto)
+    {
+        var result = await this._itemService.SuggestPriceAsync(dto);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Creates a new item listing for the authenticated user.
     /// </summary>
     /// <param name="dto">Item creation payload including title, description, category, listing type, price, and photos.</param>

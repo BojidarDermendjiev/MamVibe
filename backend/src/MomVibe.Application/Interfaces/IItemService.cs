@@ -23,4 +23,5 @@ public interface IItemService
     Task<bool> ToggleLikeAsync(Guid itemId, string userId);
     Task<List<ItemDto>> GetUserItemsAsync(string userId);
     Task<List<ItemDto>> GetLikedItemsAsync(string userId);
+    Task<PriceSuggestionResultDto> SuggestPriceAsync(PriceSuggestionRequestDto dto);
 }

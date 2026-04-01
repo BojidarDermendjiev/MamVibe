@@ -366,6 +366,42 @@ public class ItemService : IItemService
         return dtos;
     }
 
+    public async Task<PriceSuggestionResultDto> SuggestPriceAsync(PriceSuggestionRequestDto dto)
+    {
+        var category = await this._context.Categories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == dto.CategoryId);
+
+        var query = this._context.Items
+            .AsNoTracking()
+            .Where(i => i.IsActive
+                     && i.CategoryId == dto.CategoryId
+                     && i.ListingType == Domain.Enums.ListingType.Sell
+                     && i.Price != null);
+
+        if (dto.AgeGroup.HasValue)
+            query = query.Where(i => i.AgeGroup == dto.AgeGroup.Value);
+        if (dto.ClothingSize.HasValue)
+            query = query.Where(i => i.ClothingSize == dto.ClothingSize.Value);
+        if (dto.ShoeSize.HasValue)
+            query = query.Where(i => i.ShoeSize == dto.ShoeSize.Value);
+
+        var comparablePrices = await query
+            .OrderByDescending(i => i.CreatedAt)
+            .Take(20)
+            .Select(i => i.Price!.Value)
+            .ToListAsync();
+
+        return await this._aiService.SuggestPriceAsync(
+            dto.Title,
+            dto.Description,
+            category?.Name ?? string.Empty,
+            dto.AgeGroup,
+            dto.ClothingSize,
+            dto.ShoeSize,
+            comparablePrices);
+    }
+
     public async Task<List<ItemDto>> GetLikedItemsAsync(string userId)
     {
         var items = await this._context.Likes

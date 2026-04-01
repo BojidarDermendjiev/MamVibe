@@ -5,7 +5,7 @@ using DTOs.Items;
 using Domain.Enums;
 
 /// <summary>
-/// AI-powered service for listing suggestions and content moderation.
+/// AI-powered service for listing suggestions, content moderation, and price suggestions.
 /// </summary>
 public interface IAiService
 {
@@ -24,4 +24,17 @@ public interface IAiService
         string categoryName,
         ListingType listingType,
         decimal? price);
+
+    /// <summary>
+    /// Suggests a fair selling price based on comparable active listings and item context.
+    /// Returns a suggested price with low/high range, confidence, and reasoning.
+    /// </summary>
+    Task<PriceSuggestionResultDto> SuggestPriceAsync(
+        string title,
+        string description,
+        string categoryName,
+        AgeGroup? ageGroup,
+        int? clothingSize,
+        int? shoeSize,
+        IReadOnlyList<decimal> comparablePrices);
 }
