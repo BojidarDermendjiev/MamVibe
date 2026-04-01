@@ -8,6 +8,7 @@ import { useSignalR } from '../hooks/useSignalR';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAuthStore } from '../store/authStore';
 import type { Message, Conversation } from '../types/message';
+import { AI_BOT_USER_ID } from '../types/message';
 import Avatar from '../components/common/Avatar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -138,10 +139,12 @@ export default function ChatPage() {
   const activeConversation = conversations.find((c) => c.userId === activeChat);
   // Fallback chain for new chats not yet in the conversations list
   const activePeerName =
-    activeConversation?.displayName ||
-    navState?.displayName ||
-    messages.find((m) => m.senderId === activeChat)?.senderDisplayName ||
-    'User';
+    activeChat === AI_BOT_USER_ID
+      ? 'MamVibe Assistant'
+      : activeConversation?.displayName ||
+        navState?.displayName ||
+        messages.find((m) => m.senderId === activeChat)?.senderDisplayName ||
+        'User';
   const activePeerAvatarUrl = activeConversation?.avatarUrl ?? navState?.avatarUrl ?? null;
 
   const handleSend = async (e: React.FormEvent) => {
@@ -185,11 +188,11 @@ export default function ChatPage() {
     }
   };
 
-  const filteredConversations = searchQuery
-    ? conversations.filter((c) =>
-        c.displayName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : conversations;
+  const filteredConversations = conversations
+    .filter((c) => c.userId !== AI_BOT_USER_ID)
+    .filter((c) =>
+      !searchQuery || c.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const grouped = groupConversationsByDate(filteredConversations);
 
@@ -324,6 +327,26 @@ export default function ChatPage() {
 
           {/* Conversation list */}
           <div className="flex-1 overflow-y-auto">
+            {/* Pinned AI Assistant entry */}
+            <div className="px-2 pb-1 pt-1">
+              <button
+                onClick={() => setActiveChat(AI_BOT_USER_ID)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${
+                  activeChat === AI_BOT_USER_ID
+                    ? 'bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200'
+                    : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 hover:border-purple-200'
+                }`}
+              >
+                <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-base shadow-sm">
+                  ✨
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-purple-700 truncate">MamVibe Assistant</p>
+                  <p className="text-xs text-purple-400 truncate">AI-powered help</p>
+                </div>
+              </button>
+            </div>
+
             {filteredConversations.length === 0 ? (
               <p className="text-center text-gray-400 text-sm py-10">{t('chat.no_conversations')}</p>
             ) : (
@@ -343,11 +366,19 @@ export default function ChatPage() {
               {/* Chat header */}
               <div className="px-6 py-4 bg-white border-b border-lavender/20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar src={activePeerAvatarUrl} size="md" />
+                  {activeChat === AI_BOT_USER_ID ? (
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-base shadow-sm flex-shrink-0">
+                      ✨
+                    </div>
+                  ) : (
+                    <Avatar src={activePeerAvatarUrl} size="md" />
+                  )}
                   <div>
                     <p className="font-semibold text-primary-dark">{activePeerName}</p>
-                    {typingUser ? (
+                    {typingUser && typingUser === activeChat ? (
                       <p className="text-xs text-primary animate-pulse">{t('chat.typing')}</p>
+                    ) : activeChat === AI_BOT_USER_ID ? (
+                      <p className="text-xs text-purple-400">AI-powered assistant</p>
                     ) : (
                       <p className="text-xs text-gray-400">{t('chat.online')}</p>
                     )}
@@ -383,11 +414,26 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8 text-center">
               <div className="h-16 w-16 rounded-full bg-lavender/20 flex items-center justify-center">
                 <HiPaperAirplane className="h-7 w-7 text-primary/40 rotate-90" />
               </div>
-              <p className="text-sm">{t('chat.select_conversation')}</p>
+              <p className="text-sm text-gray-400">{t('chat.select_conversation')}</p>
+              <div className="w-full max-w-xs">
+                <div className="h-px bg-lavender/20 mb-5" />
+                <button
+                  onClick={() => setActiveChat(AI_BOT_USER_ID)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 hover:border-purple-300 transition-all group"
+                >
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+                    ✨
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-purple-700">Try MamVibe Assistant</p>
+                    <p className="text-xs text-purple-400">Ask about pricing, listings, safety tips…</p>
+                  </div>
+                </button>
+              </div>
             </div>
           )}
         </div>

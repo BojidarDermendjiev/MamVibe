@@ -1,3 +1,5 @@
+export const AI_BOT_USER_ID = 'mamvibe-ai-assistant';
+
 export interface Message {
   id: string;
   senderId: string;
