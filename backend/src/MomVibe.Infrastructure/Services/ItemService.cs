@@ -4,8 +4,8 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using Domain.Entities;
 using Domain.Enums;
+using Domain.Entities;
 using Application.DTOs.Items;
 using Application.Interfaces;
 using Application.DTOs.Common;
@@ -376,7 +376,7 @@ public class ItemService : IItemService
             .AsNoTracking()
             .Where(i => i.IsActive
                      && i.CategoryId == dto.CategoryId
-                     && i.ListingType == Domain.Enums.ListingType.Sell
+                     && i.ListingType == ListingType.Sell
                      && i.Price != null);
 
         if (dto.AgeGroup.HasValue)
