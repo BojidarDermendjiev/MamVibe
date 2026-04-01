@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using Domain.Entities;
+using Domain.Constants;
 using Application.Interfaces;
 using Application.DTOs.Messages;
 using Infrastructure.Configuration;
@@ -21,19 +22,22 @@ public class MessageService : IMessageService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly UserPresenceTracker _presenceTracker;
+    private readonly IAiService _aiService;
 
     public MessageService(
         IApplicationDbContext context,
         IMapper mapper,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        UserPresenceTracker presenceTracker)
+        UserPresenceTracker presenceTracker,
+        IAiService aiService)
     {
         this._context = context;
         this._mapper = mapper;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._presenceTracker = presenceTracker;
+        this._aiService = aiService;
     }
 
     private static string MaskEmail(string? email)
@@ -155,10 +159,10 @@ public class MessageService : IMessageService
             .Include(m => m.Receiver)
             .FirstAsync(m => m.Id == message.Id);
 
-        // If receiver is offline, fire webhook for offline notification
+        // If receiver is offline (and not the AI bot), fire webhook for offline notification
         try
         {
-            if (!this._presenceTracker.IsOnline(receiverId))
+            if (receiverId != AiBotConstants.UserId && !this._presenceTracker.IsOnline(receiverId))
             {
                 this._webhook.Send(this._n8nSettings.NewChatMessage, new
                 {
@@ -189,5 +193,70 @@ public class MessageService : IMessageService
         }
 
         await this._context.SaveChangesAsync();
+    }
+
+    public async Task<MessageDto?> SendAiResponseAsync(string userId, string userMessage)
+    {
+        // Load the last 10 messages of this conversation for context (includes the just-saved user message)
+        var history = await this._context.Messages
+            .AsNoTracking()
+            .Where(m => (m.SenderId == userId       && m.ReceiverId == AiBotConstants.UserId) ||
+                        (m.SenderId == AiBotConstants.UserId && m.ReceiverId == userId))
+            .OrderByDescending(m => m.CreatedAt)
+            .Take(10)
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => new { m.SenderId, m.Content })
+            .ToListAsync();
+
+        var conversationHistory = history
+            .Select(m => (
+                role: m.SenderId == userId ? "user" : "assistant",
+                content: m.Content
+            ))
+            .ToList<(string role, string content)>();
+
+        const string systemPrompt = """
+            You are MamVibe Assistant, a helpful AI for the MamVibe marketplace — a Bulgarian platform
+            for buying and selling second-hand baby and children's items.
+
+            You help parents with:
+            - Pricing advice for listings (typical prices in BGN)
+            - Listing tips: what photos to take, how to write a good description
+            - Safety tips for meeting buyers or sellers in person
+            - How the platform works (posting items, searching, contacting sellers)
+            - Care and hygiene tips for second-hand baby items
+
+            Keep responses concise (2-4 sentences). Be warm and friendly — your audience is parents.
+            Respond in the same language the user writes in (Bulgarian or English).
+            If asked something outside these topics, politely redirect to MamVibe-related questions.
+            Never guarantee the safety of any item or fabricate specific product facts.
+            """;
+
+        string responseText;
+        try
+        {
+            responseText = await this._aiService.ChatAsync(systemPrompt, conversationHistory);
+        }
+        catch
+        {
+            return null; // AI failure must never break the chat
+        }
+
+        var botMessage = new Message
+        {
+            SenderId = AiBotConstants.UserId,
+            ReceiverId = userId,
+            Content = responseText
+        };
+
+        this._context.Messages.Add(botMessage);
+        await this._context.SaveChangesAsync();
+
+        var saved = await this._context.Messages
+            .Include(m => m.Sender)
+            .Include(m => m.Receiver)
+            .FirstAsync(m => m.Id == botMessage.Id);
+
+        return this._mapper.Map<MessageDto>(saved);
     }
 }

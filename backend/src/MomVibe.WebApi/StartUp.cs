@@ -271,6 +271,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await DataSeeder.SeedRolesAsync(roleManager);
     await DataSeeder.SeedAdminAsync(userManager, app.Configuration);
+    await DataSeeder.SeedAiBotAsync(userManager);
     await DataSeeder.SeedDemoDataAsync(userManager, dbContext, app.Environment);
 }
 

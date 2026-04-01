@@ -10,6 +10,7 @@ using Application.DTOs.Messages;
 using Application.DTOs.PurchaseRequests;
 using Application.DTOs.Shipping;
 using Infrastructure.Services;
+using Domain.Constants;
 
 /// <summary>
 /// Authenticated SignalR chat hub providing real-time messaging features:
@@ -47,6 +48,16 @@ public class ChatHub : Hub<IChatClient>
 
         var message = await this._messageService.SendMessageAsync(senderId, receiverId, content);
         await Clients.Group($"user_{receiverId}").ReceiveMessage(message);
+
+        // AI bot: show typing indicator, then push the generated reply
+        if (receiverId == AiBotConstants.UserId)
+        {
+            await Clients.Group($"user_{senderId}").UserTyping(AiBotConstants.UserId);
+            var aiReply = await this._messageService.SendAiResponseAsync(senderId, content);
+            if (aiReply != null)
+                await Clients.Group($"user_{senderId}").ReceiveMessage(aiReply);
+        }
+
         return message;
     }
 

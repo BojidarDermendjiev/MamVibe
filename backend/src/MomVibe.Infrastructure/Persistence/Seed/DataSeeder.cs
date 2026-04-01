@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using MomVibe.Domain.Entities;
+using MomVibe.Domain.Constants;
 
 /// <summary>
 /// Seeds initial roles, admin user, and demo data into the database.
@@ -75,6 +76,28 @@ public static class DataSeeder
         {
             await userManager.AddToRoleAsync(admin, "Admin");
         }
+    }
+
+    /// <summary>
+    /// Ensures the AI assistant bot user exists in all environments.
+    /// Uses a well-known ID so it is never duplicated.
+    /// </summary>
+    public static async Task SeedAiBotAsync(UserManager<ApplicationUser> userManager)
+    {
+        var existing = await userManager.FindByIdAsync(AiBotConstants.UserId);
+        if (existing != null) return;
+
+        var bot = new ApplicationUser
+        {
+            Id = AiBotConstants.UserId,
+            UserName = AiBotConstants.UserName,
+            Email = AiBotConstants.UserName,
+            DisplayName = AiBotConstants.DisplayName,
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await userManager.CreateAsync(bot);
     }
 
     /// <summary>

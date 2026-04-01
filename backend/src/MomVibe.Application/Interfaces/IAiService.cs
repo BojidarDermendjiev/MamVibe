@@ -37,4 +37,11 @@ public interface IAiService
         int? clothingSize,
         int? shoeSize,
         IReadOnlyList<decimal> comparablePrices);
+
+    /// <summary>
+    /// Generates a conversational reply for the MamVibe AI assistant.
+    /// </summary>
+    Task<string> ChatAsync(
+        string systemPrompt,
+        IReadOnlyList<(string role, string content)> history);
 }

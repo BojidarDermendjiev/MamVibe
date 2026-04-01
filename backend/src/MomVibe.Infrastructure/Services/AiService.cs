@@ -371,4 +371,35 @@ public class AiService : IAiService
             return new PriceSuggestionResultDto { Confidence = 0.5, ComparableCount = comparableCount };
         }
     }
+
+    public async Task<string> ChatAsync(
+        string systemPrompt,
+        IReadOnlyList<(string role, string content)> history)
+    {
+        var messages = history.Select(h => new { role = h.role, content = h.content }).ToArray();
+
+        var requestBody = new
+        {
+            model = _settings.Model,
+            max_tokens = 500,
+            system = systemPrompt,
+            messages
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
+        request.Headers.Add("x-api-key", _settings.ApiKey);
+        request.Headers.Add("anthropic-version", "2023-06-01");
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement
+            .GetProperty("content")[0]
+            .GetProperty("text")
+            .GetString() ?? "I'm sorry, I couldn't generate a response right now.";
+    }
 }
