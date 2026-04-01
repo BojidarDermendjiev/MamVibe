@@ -242,21 +242,28 @@ public class MessageService : IMessageService
             return null; // AI failure must never break the chat
         }
 
-        var botMessage = new Message
+        try
         {
-            SenderId = AiBotConstants.UserId,
-            ReceiverId = userId,
-            Content = responseText
-        };
+            var botMessage = new Message
+            {
+                SenderId = AiBotConstants.UserId,
+                ReceiverId = userId,
+                Content = responseText
+            };
 
-        this._context.Messages.Add(botMessage);
-        await this._context.SaveChangesAsync();
+            this._context.Messages.Add(botMessage);
+            await this._context.SaveChangesAsync();
 
-        var saved = await this._context.Messages
-            .Include(m => m.Sender)
-            .Include(m => m.Receiver)
-            .FirstAsync(m => m.Id == botMessage.Id);
+            var saved = await this._context.Messages
+                .Include(m => m.Sender)
+                .Include(m => m.Receiver)
+                .FirstAsync(m => m.Id == botMessage.Id);
 
-        return this._mapper.Map<MessageDto>(saved);
+            return this._mapper.Map<MessageDto>(saved);
+        }
+        catch
+        {
+            return null; // DB save failure (e.g. bot user not yet seeded) must not crash the hub
+        }
     }
 }

@@ -52,10 +52,14 @@ public class ChatHub : Hub<IChatClient>
         // AI bot: show typing indicator, then push the generated reply
         if (receiverId == AiBotConstants.UserId)
         {
-            await Clients.Group($"user_{senderId}").UserTyping(AiBotConstants.UserId);
-            var aiReply = await this._messageService.SendAiResponseAsync(senderId, content);
-            if (aiReply != null)
-                await Clients.Group($"user_{senderId}").ReceiveMessage(aiReply);
+            try
+            {
+                await Clients.Group($"user_{senderId}").UserTyping(AiBotConstants.UserId);
+                var aiReply = await this._messageService.SendAiResponseAsync(senderId, content);
+                if (aiReply != null)
+                    await Clients.Group($"user_{senderId}").ReceiveMessage(aiReply);
+            }
+            catch { /* AI response failure must never break the user's send */ }
         }
 
         return message;

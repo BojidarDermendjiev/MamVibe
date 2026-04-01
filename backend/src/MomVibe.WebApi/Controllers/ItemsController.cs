@@ -110,6 +110,14 @@ public class ItemsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode(502, new { error = "AI service unavailable. Check your Anthropic API key.", detail = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "AI suggestion failed.", detail = ex.Message });
+        }
     }
 
     /// <summary>
@@ -119,8 +127,19 @@ public class ItemsController : ControllerBase
     [HttpPost("suggest-price")]
     public async Task<IActionResult> SuggestPrice([FromBody] PriceSuggestionRequestDto dto)
     {
-        var result = await this._itemService.SuggestPriceAsync(dto);
-        return Ok(result);
+        try
+        {
+            var result = await this._itemService.SuggestPriceAsync(dto);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode(502, new { error = "AI service unavailable. Check your Anthropic API key.", detail = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Price suggestion failed.", detail = ex.Message });
+        }
     }
 
     /// <summary>
