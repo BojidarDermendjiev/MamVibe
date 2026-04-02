@@ -149,12 +149,32 @@ export default function ChatPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeChat) return;
+    const content = newMessage.trim();
+    if (!content || !activeChat) return;
+    setNewMessage('');
+
+    // Optimistically add the user's message before awaiting the hub call.
+    // This ensures correct ordering when the bot reply arrives via SignalR
+    // before sendMessage() resolves.
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      content,
+      senderId: user!.id,
+      receiverId: activeChat,
+      timestamp: new Date().toISOString(),
+      isRead: true,
+      senderDisplayName: user?.displayName || '',
+      senderAvatarUrl: user?.avatarUrl ?? null,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setTimeout(scrollToBottom, 50);
+
     try {
-      const msg = await sendMessage(activeChat, newMessage.trim());
-      setNewMessage('');
+      const msg = await sendMessage(activeChat, content);
       if (msg) {
-        setMessages((prev) => [...prev, msg]);
+        // Replace temp with real message (gets correct server-assigned id/timestamp)
+        setMessages((prev) => prev.map((m) => m.id === tempId ? msg : m));
         setConversations((prev) => {
           const existing = prev.find((c) => c.userId === activeChat);
           if (existing) {
@@ -179,7 +199,9 @@ export default function ChatPage() {
         });
         setTimeout(scrollToBottom, 100);
       }
-    } catch { /* ignore */ }
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    }
   };
 
   const handleTyping = () => {

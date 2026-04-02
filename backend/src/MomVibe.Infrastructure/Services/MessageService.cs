@@ -230,6 +230,7 @@ public class MessageService : IMessageService
             Respond in the same language the user writes in (Bulgarian or English).
             If asked something outside these topics, politely redirect to MamVibe-related questions.
             Never guarantee the safety of any item or fabricate specific product facts.
+            Do NOT use markdown formatting (no asterisks, no bold, no bullet dashes) — plain text only.
             """;
 
         string responseText;
