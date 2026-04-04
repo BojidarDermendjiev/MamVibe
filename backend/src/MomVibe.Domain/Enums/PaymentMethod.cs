@@ -18,5 +18,10 @@ public enum PaymentMethod
     /// <summary>
     /// Free booking reservation for donated items.
     /// </summary>
-    Booking = 2
+    Booking = 2,
+
+    /// <summary>
+    /// Payment deducted directly from the buyer's platform wallet balance.
+    /// </summary>
+    Wallet = 3
 }

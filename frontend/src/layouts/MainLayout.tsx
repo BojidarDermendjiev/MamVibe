@@ -10,6 +10,7 @@ import {
   MessageCircle,
   LayoutDashboard,
   MessageSquare,
+  Wallet,
   LogIn,
   Sun,
   Moon,
@@ -80,6 +81,11 @@ export default function MainLayout() {
             name: t("nav.feedback") || "Feedback",
             url: "/feedback",
             icon: MessageSquare,
+          },
+          {
+            name: t("nav.wallet") || "Wallet",
+            url: "/wallet",
+            icon: Wallet,
           },
         ]
       : []),

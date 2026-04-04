@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiChartBar, HiUsers, HiCollection, HiArrowLeft, HiTruck } from 'react-icons/hi';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Wallet } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -10,6 +10,7 @@ const navItems = [
   { path: '/admin/users', icon: HiUsers, labelKey: 'admin.users', exact: false },
   { path: '/admin/items', icon: HiCollection, labelKey: 'admin.items', exact: false },
   { path: '/admin/shipping', icon: HiTruck, labelKey: 'shipping.admin_title', exact: false },
+  { path: '/admin/wallets', icon: Wallet, labelKey: 'wallet.admin_title', exact: false },
 ];
 
 export default function AdminLayout() {

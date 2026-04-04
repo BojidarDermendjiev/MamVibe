@@ -39,6 +39,8 @@ const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminItemsPage = lazy(() => import("./pages/admin/AdminItemsPage"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
 const AdminShippingPage = lazy(() => import("./pages/admin/AdminShippingPage"));
+const AdminWalletsPage = lazy(() => import("./pages/admin/AdminWalletsPage"));
+const WalletPage = lazy(() => import("./pages/WalletPage"));
 const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetailPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -109,6 +111,7 @@ function AppRoutes() {
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/items" element={<AdminItemsPage />} />
             <Route path="/admin/shipping" element={<AdminShippingPage />} />
+            <Route path="/admin/wallets" element={<AdminWalletsPage />} />
           </Route>
         </Route>
 
@@ -137,6 +140,7 @@ function AppRoutes() {
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/cancel" element={<PaymentCancelPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
             <Route
               path="/shipments/:shipmentId"
               element={<ShipmentDetailPage />}

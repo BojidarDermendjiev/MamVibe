@@ -41,6 +41,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<PurchaseRequest> PurchaseRequests => Set<PurchaseRequest>();
+    public DbSet<Wallet> Wallets => Set<Wallet>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<WalletTransfer> WalletTransfers => Set<WalletTransfer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -8,7 +8,8 @@ using Domain.Entities;
 /// <summary>
 /// Application data context abstraction over EF Core.
 /// Exposes DbSets for core entities (Items, ItemPhotos, Categories, Likes, Messages, Payments,
-/// RefreshTokens, Feedbacks, Shipments, PurchaseRequests) and SaveChangesAsync for committing changes.
+/// RefreshTokens, Feedbacks, Shipments, PurchaseRequests, Wallets, WalletTransactions, WalletTransfers)
+/// and SaveChangesAsync for committing changes.
 /// Facilitates testability and layering by decoupling services from the concrete DbContext.
 /// </summary>
 public interface IApplicationDbContext
@@ -23,6 +24,9 @@ public interface IApplicationDbContext
     DbSet<Feedback> Feedbacks { get; }
     DbSet<Shipment> Shipments { get; }
     DbSet<PurchaseRequest> PurchaseRequests { get; }
+    DbSet<Wallet> Wallets { get; }
+    DbSet<WalletTransaction> WalletTransactions { get; }
+    DbSet<WalletTransfer> WalletTransfers { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -85,4 +85,16 @@ public class N8nSettings
     /// Webhook endpoint for shipment out for delivery events.
     /// </summary>
     public string ShipmentOutForDelivery { get; set; } = "shipment-out-for-delivery";
+
+    // -------------------------------------------------------------------------
+    // Wallet events
+    // -------------------------------------------------------------------------
+
+    public string WalletTopUp { get; set; } = "wallet-topup";
+    public string WalletTransfer { get; set; } = "wallet-transfer";
+    public string WalletFrozen { get; set; } = "wallet-frozen";
+    public string WalletWithdrawalRequested { get; set; } = "wallet-withdrawal-requested";
+    public string WalletWithdrawalApproved { get; set; } = "wallet-withdrawal-approved";
+    public string WalletWithdrawalRejected { get; set; } = "wallet-withdrawal-rejected";
+    public string WalletRefund { get; set; } = "wallet-refund";
 }

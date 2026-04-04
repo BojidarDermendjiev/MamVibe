@@ -100,4 +100,9 @@ public class ApplicationUser : IdentityUser
     /// Refresh tokens issued to this user.
     /// </summary>
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+
+    /// <summary>
+    /// The user's platform wallet. Created automatically on first wallet interaction.
+    /// </summary>
+    public Wallet? Wallet { get; set; }
 }
