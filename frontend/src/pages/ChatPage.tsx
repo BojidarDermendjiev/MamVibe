@@ -326,9 +326,9 @@ export default function ChatPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-4">
-      <div className="bg-white rounded-2xl border border-lavender/20 shadow-sm flex h-[calc(100vh-8rem)] overflow-hidden">
+      <div className="bg-white dark:bg-[#1e1b2e] rounded-2xl border border-lavender/20 dark:border-white/10 shadow-sm flex h-[calc(100vh-8rem)] overflow-hidden">
         {/* Left sidebar — Inbox */}
-        <div className="w-80 border-r border-lavender/20 flex flex-col bg-white">
+        <div className="w-80 border-r border-lavender/20 dark:border-white/10 flex flex-col bg-white dark:bg-[#1e1b2e]">
           {/* Inbox header */}
           <div className="px-5 pt-5 pb-3">
             <h2 className="text-lg font-bold text-primary-dark">{t('chat.title')}</h2>
@@ -355,16 +355,16 @@ export default function ChatPage() {
                 onClick={() => setActiveChat(AI_BOT_USER_ID)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${
                   activeChat === AI_BOT_USER_ID
-                    ? 'bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200'
-                    : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 hover:border-purple-200'
+                    ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/40 border border-purple-200 dark:border-purple-700/60'
+                    : 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/20 border border-purple-100 dark:border-purple-800/50 hover:border-purple-200 dark:hover:border-purple-700'
                 }`}
               >
                 <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-base shadow-sm">
                   ✨
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-purple-700 truncate">MamVibe Assistant</p>
-                  <p className="text-xs text-purple-400 truncate">AI-powered help</p>
+                  <p className="text-sm font-semibold text-purple-700 dark:text-purple-300 truncate">MamVibe Assistant</p>
+                  <p className="text-xs text-purple-400 dark:text-purple-500 truncate">AI-powered help</p>
                 </div>
               </button>
             </div>
@@ -386,7 +386,7 @@ export default function ChatPage() {
           {activeChat ? (
             <>
               {/* Chat header */}
-              <div className="px-6 py-4 bg-white border-b border-lavender/20 flex items-center justify-between">
+              <div className="px-6 py-4 bg-white dark:bg-[#1e1b2e] border-b border-lavender/20 dark:border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {activeChat === AI_BOT_USER_ID ? (
                     <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-base shadow-sm flex-shrink-0">
@@ -415,7 +415,7 @@ export default function ChatPage() {
               </div>
 
               {/* Message input */}
-              <div className="px-6 py-4 bg-white border-t border-lavender/20">
+              <div className="px-6 py-4 bg-white dark:bg-[#1e1b2e] border-t border-lavender/20 dark:border-white/10">
                 <form onSubmit={handleSend} className="flex items-center gap-3">
                   <input
                     value={newMessage}

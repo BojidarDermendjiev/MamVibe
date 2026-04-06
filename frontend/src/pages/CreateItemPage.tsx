@@ -163,11 +163,11 @@ export default function CreateItemPage() {
       </h1>
 
       {/* AI Listing Assistant */}
-      <div className="mb-5 p-4 rounded-xl border border-lavender/40 bg-gradient-to-r from-purple-50 to-pink-50">
-        <p className="text-sm font-medium text-gray-700 mb-1">
+      <div className="mb-5 p-4 rounded-xl border border-primary-dark/30 bg-primary-dark/10 dark:bg-primary-dark/40 dark:border-primary-dark/60">
+        <p className="text-base font-semibold text-primary-dark dark:text-white mb-1">
           ✨ AI Listing Assistant
         </p>
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-sm text-primary-dark/70 dark:text-white/70 mb-3">
           Upload a photo and Claude AI will suggest the title, description,
           category, price, and size for you.
         </p>
@@ -182,6 +182,7 @@ export default function CreateItemPage() {
           type="button"
           isLoading={aiLoading}
           onClick={() => aiInputRef.current?.click()}
+          className="!bg-primary-dark hover:!bg-[#2d3a6e] focus:ring-primary-dark"
         >
           {aiLoading ? "Analysing photo…" : "✨ Fill with AI"}
         </Button>
@@ -189,7 +190,7 @@ export default function CreateItemPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-5 bg-white rounded-xl p-6 border border-lavender/30"
+        className="space-y-5 bg-white dark:bg-[#2d2a42] rounded-xl p-6 border border-lavender/30 dark:border-white/10"
       >
         <Input
           label={t("items.title")}
