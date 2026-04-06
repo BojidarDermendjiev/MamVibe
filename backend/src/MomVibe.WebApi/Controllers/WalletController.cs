@@ -197,6 +197,35 @@ public class WalletController : ControllerBase
     }
 
     /// <summary>
+    /// Confirms delivery of a wallet-paid item, releasing escrowed funds to the seller.
+    /// Only the buyer of the payment may call this endpoint.
+    /// </summary>
+    [HttpPost("confirm-delivery/{paymentId:guid}")]
+    public async Task<IActionResult> ConfirmDelivery(Guid paymentId)
+    {
+        var userId = _currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+
+        try
+        {
+            var tx = await _walletService.ConfirmDeliveryAsync(paymentId, userId);
+            return Ok(tx);
+        }
+        catch (DomainException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Confirmation failed. Please try again." });
+        }
+    }
+
+    /// <summary>
     /// Queues a withdrawal of funds to the authenticated user's registered IBAN.
     /// Reserves the balance immediately (Pending debit) — an admin must approve
     /// before the bank transfer is executed.

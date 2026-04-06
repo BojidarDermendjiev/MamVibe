@@ -34,6 +34,9 @@ export const walletApi = {
   payForItem: (itemId: string) =>
     axiosClient.post<WalletTransactionDto>(`/wallet/pay/${itemId}`),
 
+  confirmDelivery: (paymentId: string) =>
+    axiosClient.post<WalletTransactionDto>(`/wallet/confirm-delivery/${paymentId}`),
+
   // Admin endpoints
   admin: {
     getWallets: (page = 1, pageSize = 20, status?: WalletStatus) =>

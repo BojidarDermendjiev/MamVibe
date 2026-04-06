@@ -5,8 +5,10 @@ import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi, type BuyerCheckResult } from '../api/purchaseRequestsApi';
+import { walletApi } from '../api/walletApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
 import type { PurchaseRequest } from '../types/purchaseRequest';
+import { PaymentMethod, PaymentStatus } from '../types/payment';
 import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
 import { formatPrice } from '../utils/currency';
@@ -15,6 +17,36 @@ import ShipmentCard from '../components/shipping/ShipmentCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Avatar from '../components/common/Avatar';
 import BuyerReputationModal from '../components/purchase/BuyerReputationModal';
+
+function ConfirmDeliveryButton({ paymentId, onConfirmed }: { paymentId: string; onConfirmed: () => void }) {
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await walletApi.confirmDelivery(paymentId);
+      toast.success(t('payment.delivery_confirmed'));
+      onConfirmed();
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        || t('common.error');
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleConfirm}
+      disabled={loading}
+      className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-wait whitespace-nowrap"
+    >
+      {loading ? '…' : t('payment.confirm_delivery')}
+    </button>
+  );
+}
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -161,9 +193,19 @@ export default function DashboardPage() {
                       <p className="font-medium text-primary">{p.itemTitle}</p>
                       <p className="text-sm text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-mauve">{formatPrice(p.amount)}</p>
-                      <p className="text-xs text-gray-400 capitalize">{p.paymentMethod === 0 ? 'Card' : 'On Spot'}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-bold text-mauve">{formatPrice(p.amount)}</p>
+                        <p className="text-xs text-gray-400 capitalize">
+                          {p.paymentMethod === PaymentMethod.Card ? 'Card'
+                            : p.paymentMethod === PaymentMethod.Wallet ? 'Wallet'
+                            : p.paymentMethod === PaymentMethod.Booking ? 'Free'
+                            : 'On Spot'}
+                        </p>
+                      </div>
+                      {p.paymentMethod === PaymentMethod.Wallet && p.status === PaymentStatus.Pending && (
+                        <ConfirmDeliveryButton paymentId={p.id} onConfirmed={refreshTab} />
+                      )}
                     </div>
                   </div>
                 ))}

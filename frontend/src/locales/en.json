@@ -215,7 +215,14 @@
     "iban_desc": "Your IBAN is needed to receive card payments directly to your bank account",
     "iban_save": "Save & Continue",
     "iban_invalid": "Invalid IBAN format",
-    "download_receipt": "Download Receipt"
+    "download_receipt": "Download Receipt",
+    "wallet": "Pay from Wallet",
+    "wallet_desc": "Instant — funds held in escrow until delivery",
+    "wallet_balance": "Available: {{balance}} лв.",
+    "wallet_success": "Payment successful! Funds held until you confirm delivery.",
+    "confirm_delivery": "Confirm Delivery",
+    "confirm_delivery_msg": "Confirm you received the item — this releases funds to the seller.",
+    "delivery_confirmed": "Delivery confirmed! Funds released to seller."
   },
   "card": {
     "cardholder_name": "cardholder name",

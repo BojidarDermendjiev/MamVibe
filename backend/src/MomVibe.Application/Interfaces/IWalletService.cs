@@ -56,13 +56,23 @@ public interface IWalletService
 
     /// <summary>
     /// Pays for a marketplace item directly from the buyer's wallet balance.
-    /// Internally creates the Payment record (Method = Wallet), debits the wallet,
-    /// and fires a TakeANap receipt with the item title as the line item.
+    /// Creates a Payment record (Method = Wallet, Status = Pending) and debits the buyer's
+    /// wallet atomically — funds are held in escrow until delivery is confirmed.
     /// Throws KeyNotFoundException if item not found.
     /// Throws InvalidOperationException if item is not for sale.
     /// Throws WalletFrozenException / InsufficientFundsException on wallet guards.
     /// </summary>
     Task<WalletTransactionDto> PayForItemFromWalletAsync(string buyerUserId, Guid itemId);
+
+    /// <summary>
+    /// Confirms delivery of a wallet-paid item, releasing escrowed funds to the seller.
+    /// Only the buyer of the payment may call this. Creates a Credit transaction on the
+    /// seller's wallet and marks the Payment as Completed.
+    /// Throws KeyNotFoundException if payment not found.
+    /// Throws DomainException if the caller is not the buyer, the payment is not a pending
+    /// wallet payment, or the seller's wallet is unavailable.
+    /// </summary>
+    Task<WalletTransactionDto> ConfirmDeliveryAsync(Guid paymentId, string buyerUserId);
 
     /// <summary>
     /// Queues a withdrawal request (debit) to the user's registered IBAN.

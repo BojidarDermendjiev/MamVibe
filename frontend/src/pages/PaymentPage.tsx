@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiCreditCard, HiLocationMarker } from 'react-icons/hi';
+import { HiWallet } from 'react-icons/hi2';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
+import { walletApi } from '../api/walletApi';
 import { type Item, ListingType } from '../types/item';
 import { formatPrice } from '../utils/currency';
 import { CourierProvider, DeliveryType } from '../types/shipping';
@@ -35,7 +37,8 @@ export default function PaymentPage() {
   const [recipientPhone, setRecipientPhone] = useState('');
 
   // Payment method (sell items only)
-  const [method, setMethod] = useState<'card' | 'onspot'>('card');
+  const [method, setMethod] = useState<'card' | 'onspot' | 'wallet'>('card');
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const isDonate = item?.listingType === ListingType.Donate;
 
@@ -48,6 +51,7 @@ export default function PaymentPage() {
       toast.error('Item not found');
       navigate('/browse');
     });
+    walletApi.getWallet().then((res) => setWalletBalance(res.data.balance)).catch(() => {});
   }, [itemId, navigate]);
 
   const shippingRequest: CalculateShippingRequest | null =
@@ -105,6 +109,10 @@ export default function PaymentPage() {
       if (isDonate) {
         await paymentsApi.createBooking(itemId, delivery);
         toast.success(t('payment.booking_success'));
+        navigate('/payment/success');
+      } else if (method === 'wallet') {
+        await walletApi.payForItem(itemId);
+        toast.success(t('payment.wallet_success'));
         navigate('/payment/success');
       } else {
         await paymentsApi.createOnSpot(itemId, delivery);
@@ -231,6 +239,25 @@ export default function PaymentPage() {
               </div>
             </button>
           </div>
+          <button
+            onClick={() => setMethod('wallet')}
+            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+              method === 'wallet' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-lavender'
+            }`}
+          >
+            <div className="w-10 h-10 rounded-lg bg-lavender/30 flex items-center justify-center">
+              <HiWallet className="h-5 w-5 text-primary" />
+            </div>
+            <div className="text-left flex-1">
+              <p className="font-medium text-primary">{t('payment.wallet')}</p>
+              <p className="text-sm text-gray-500">{t('payment.wallet_desc')}</p>
+            </div>
+            {walletBalance !== null && (
+              <span className="text-sm font-medium text-primary shrink-0">
+                {t('payment.wallet_balance', { balance: walletBalance.toFixed(2) })}
+              </span>
+            )}
+          </button>
 
         </div>
       )}
@@ -240,6 +267,8 @@ export default function PaymentPage() {
           ? t('payment.confirm_booking')
           : method === 'card'
           ? t('payment.continue_to_card')
+          : method === 'wallet'
+          ? t('payment.wallet')
           : t('payment.proceed')}
       </Button>
     </div>

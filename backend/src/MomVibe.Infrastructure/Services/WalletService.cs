@@ -413,7 +413,8 @@ public class WalletService : IWalletService
             if (balance < amount)
                 throw new InsufficientFundsException();
 
-            // Create the marketplace Payment record so it appears in order history.
+            // Payment stays Pending — funds are held in escrow until the buyer
+            // confirms delivery via ConfirmDeliveryAsync.
             var payment = new Domain.Entities.Payment
             {
                 ItemId = itemId,
@@ -421,7 +422,7 @@ public class WalletService : IWalletService
                 SellerId = item.UserId,
                 Amount = amount,
                 PaymentMethod = Domain.Enums.PaymentMethod.Wallet,
-                Status = Domain.Enums.PaymentStatus.Completed
+                Status = Domain.Enums.PaymentStatus.Pending
             };
             _context.Payments.Add(payment);
 
@@ -433,33 +434,14 @@ public class WalletService : IWalletService
                 Amount = amount,
                 BalanceAfter = balance - amount,
                 Status = WalletTransactionStatus.Completed,
-                Description = $"Payment for: {item.Title}"
+                Description = $"Payment for: {item.Title} (awaiting delivery)"
             };
             _context.WalletTransactions.Add(tx);
             await _context.SaveChangesAsync();
 
-            // Link wallet transaction → payment after both IDs are known.
             tx.PaymentId = payment.Id;
             await _context.SaveChangesAsync();
             await dbTx.CommitAsync();
-
-            var user = await _userManager.FindByIdAsync(buyerUserId);
-            if (user?.Email != null)
-            {
-                try
-                {
-                    var receiptUrl = await _takeANapService.CreateWalletReceiptAsync(tx, user.Email);
-                    if (receiptUrl != null)
-                    {
-                        tx.ReceiptUrl = receiptUrl;
-                        await _context.SaveChangesAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "TakeANap receipt failed for item payment tx {TxId}.", tx.Id);
-                }
-            }
 
             return _mapper.Map<WalletTransactionDto>(tx);
         }
@@ -477,6 +459,96 @@ public class WalletService : IWalletService
         {
             await dbTx.RollbackAsync();
             throw new DomainException("Payment could not be processed due to concurrent activity. Please try again.");
+        }
+        catch
+        {
+            await dbTx.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<WalletTransactionDto> ConfirmDeliveryAsync(Guid paymentId, string buyerUserId)
+    {
+        var payment = await _context.Payments
+            .Include(p => p.Item)
+            .FirstOrDefaultAsync(p => p.Id == paymentId)
+            ?? throw new KeyNotFoundException("Payment not found.");
+
+        if (payment.BuyerId != buyerUserId)
+            throw new DomainException("Only the buyer can confirm delivery.");
+
+        if (payment.PaymentMethod != Domain.Enums.PaymentMethod.Wallet)
+            throw new DomainException("Only wallet payments use the escrow confirmation flow.");
+
+        if (payment.Status != Domain.Enums.PaymentStatus.Pending)
+            throw new DomainException("This payment is not awaiting delivery confirmation.");
+
+        await using var dbTx = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var sellerWallet = await GetOrCreateWalletEntityAsync(payment.SellerId);
+            if (sellerWallet.Status == WalletStatus.Frozen)
+                throw new DomainException("Seller wallet is currently unavailable. Contact support.");
+
+            var sellerBalance = await GetCurrentBalanceAsync(sellerWallet.Id);
+
+            var creditTx = new WalletTransaction
+            {
+                WalletId = sellerWallet.Id,
+                Type = WalletTransactionType.Credit,
+                Kind = WalletTransactionKind.ItemPayment,
+                Amount = payment.Amount,
+                BalanceAfter = sellerBalance + payment.Amount,
+                Status = WalletTransactionStatus.Completed,
+                PaymentId = payment.Id,
+                Description = $"Sale proceeds: {payment.Item?.Title}"
+            };
+            _context.WalletTransactions.Add(creditTx);
+
+            payment.Status = Domain.Enums.PaymentStatus.Completed;
+            await _context.SaveChangesAsync();
+            await dbTx.CommitAsync();
+
+            var seller = await _userManager.FindByIdAsync(payment.SellerId);
+            if (seller?.Email != null)
+            {
+                try
+                {
+                    var receiptUrl = await _takeANapService.CreateWalletReceiptAsync(creditTx, seller.Email);
+                    if (receiptUrl != null) { creditTx.ReceiptUrl = receiptUrl; await _context.SaveChangesAsync(); }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "TakeANap receipt failed for escrow release tx {TxId}.", creditTx.Id);
+                }
+            }
+
+            try
+            {
+                _n8nWebhook.Send(_n8nSettings.WalletEscrowReleased, new
+                {
+                    Event = "wallet.escrow.released",
+                    Timestamp = DateTime.UtcNow,
+                    PaymentId = payment.Id,
+                    BuyerUserId = buyerUserId,
+                    SellerUserId = payment.SellerId,
+                    Amount = payment.Amount,
+                    Currency = WalletConstants.Defaults.Currency
+                });
+            }
+            catch { }
+
+            return _mapper.Map<WalletTransactionDto>(creditTx);
+        }
+        catch (DomainException)
+        {
+            await dbTx.RollbackAsync();
+            throw;
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "40001")
+        {
+            await dbTx.RollbackAsync();
+            throw new DomainException("Delivery confirmation could not be processed. Please try again.");
         }
         catch
         {

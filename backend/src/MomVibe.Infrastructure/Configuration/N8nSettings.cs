@@ -97,4 +97,5 @@ public class N8nSettings
     public string WalletWithdrawalApproved { get; set; } = "wallet-withdrawal-approved";
     public string WalletWithdrawalRejected { get; set; } = "wallet-withdrawal-rejected";
     public string WalletRefund { get; set; } = "wallet-refund";
+    public string WalletEscrowReleased { get; set; } = "wallet-escrow-released";
 }
