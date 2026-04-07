@@ -3,12 +3,14 @@ import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { shippingApi } from '../api/shippingApi';
+import { ebillsApi } from '../api/ebillsApi';
 import type { Item } from '../types/item';
 import type { Payment } from '../types/payment';
 import type { PurchaseRequest } from '../types/purchaseRequest';
 import type { Shipment } from '../types/shipping';
+import type { EBill } from '../types/ebill';
 
-export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests' | 'shipments';
+export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests' | 'shipments' | 'ebills';
 
 interface UseDashboardReturn {
   tab: DashboardTab;
@@ -19,6 +21,7 @@ interface UseDashboardReturn {
   incomingRequests: PurchaseRequest[];
   myRequests: PurchaseRequest[];
   shipments: Shipment[];
+  ebills: EBill[];
   loading: boolean;
   removeLikedItem: (id: string) => void;
   refreshTab: () => void;
@@ -32,6 +35,7 @@ export function useDashboard(): UseDashboardReturn {
   const [incomingRequests, setIncomingRequests] = useState<PurchaseRequest[]>([]);
   const [myRequests, setMyRequests] = useState<PurchaseRequest[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [ebills, setEBills] = useState<EBill[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -61,6 +65,9 @@ export function useDashboard(): UseDashboardReturn {
         } else if (tab === 'shipments') {
           const { data } = await shippingApi.getMyShipments();
           setShipments(data);
+        } else if (tab === 'ebills') {
+          const { data } = await ebillsApi.getMyEBills();
+          setEBills(data);
         }
       } catch {
         /* ignore */
@@ -75,5 +82,5 @@ export function useDashboard(): UseDashboardReturn {
     setLikedItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, loading, removeLikedItem, refreshTab };
+  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, ebills, loading, removeLikedItem, refreshTab };
 }

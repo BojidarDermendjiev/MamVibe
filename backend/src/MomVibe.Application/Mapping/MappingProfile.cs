@@ -49,6 +49,12 @@ public class MappingProfile : Profile
         CreateMap<Payment, PaymentDto>()
             .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Item != null ? s.Item.Title : null));
 
+        CreateMap<Payment, EBillDto>()
+            .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Item != null ? s.Item.Title : null))
+            .ForMember(d => d.SellerDisplayName, opt => opt.MapFrom(s => s.Seller != null ? s.Seller.DisplayName : null))
+            .ForMember(d => d.IssuedAt, opt => opt.MapFrom(s => s.CreatedAt))
+            .ForMember(d => d.Currency, opt => opt.MapFrom(_ => "BGN"));
+
         CreateMap<Feedback, FeedbackDto>()
             .ForMember(d => d.UserDisplayName, opt => opt.MapFrom(s => s.User != null ? s.User.DisplayName : null))
             .ForMember(d => d.UserAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null));

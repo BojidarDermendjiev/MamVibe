@@ -45,6 +45,7 @@ public class WalletService : IWalletService
     private readonly IN8nWebhookService _n8nWebhook;
     private readonly N8nSettings _n8nSettings;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEBillService _eBillService;
     private readonly ILogger<WalletService> _logger;
 
     public WalletService(
@@ -55,6 +56,7 @@ public class WalletService : IWalletService
         IN8nWebhookService n8nWebhook,
         IOptions<N8nSettings> n8nSettings,
         UserManager<ApplicationUser> userManager,
+        IEBillService eBillService,
         ILogger<WalletService> logger)
     {
         _context = context;
@@ -64,6 +66,7 @@ public class WalletService : IWalletService
         _n8nWebhook = n8nWebhook;
         _n8nSettings = n8nSettings.Value;
         _userManager = userManager;
+        _eBillService = eBillService;
         _logger = logger;
         StripeConfiguration.ApiKey = configuration["Stripe:SecretKey"];
     }
@@ -515,7 +518,13 @@ public class WalletService : IWalletService
                 try
                 {
                     var receiptUrl = await _takeANapService.CreateWalletReceiptAsync(creditTx, seller.Email);
-                    if (receiptUrl != null) { creditTx.ReceiptUrl = receiptUrl; await _context.SaveChangesAsync(); }
+                    if (receiptUrl != null)
+                    {
+                        creditTx.ReceiptUrl = receiptUrl;
+                        // Mirror the receipt URL on Payment so the e-bill endpoint can surface it.
+                        payment.ReceiptUrl = receiptUrl;
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -537,6 +546,18 @@ public class WalletService : IWalletService
                 });
             }
             catch { }
+
+            // Issue e-bill and send receipt email to buyer (non-blocking on failure)
+            try
+            {
+                var buyer = await _userManager.FindByIdAsync(buyerUserId);
+                if (buyer?.Email != null)
+                    await _eBillService.IssueEBillAsync(payment.Id, buyer.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "E-bill issuance failed for wallet payment {PaymentId}.", payment.Id);
+            }
 
             return _mapper.Map<WalletTransactionDto>(creditTx);
         }

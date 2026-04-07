@@ -79,6 +79,14 @@ public class Payment : BaseEntity
     public string? ReceiptUrl { get; set; }
 
     /// <summary>
+    /// Human-readable e-bill number assigned once at payment completion (e.g. "MV-2026-A1B2C3D4").
+    /// Null until the payment transitions to <see cref="Enums.PaymentStatus.Completed"/>.
+    /// </summary>
+    [MaxLength(PaymentConstants.Lengths.EBillNumberMax)]
+    [Comment(PaymentConstants.Comments.EBillNumber)]
+    public string? EBillNumber { get; set; }
+
+    /// <summary>
     /// Navigation to the purchased item.
     /// </summary>
     public Item Item { get; set; } = null!;

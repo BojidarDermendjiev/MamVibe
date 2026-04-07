@@ -16,6 +16,9 @@ public static class PaymentConstants
 
         /// <summary>Maximum length for <c>ReceiptUrl</c>.</summary>
         public const int ReceiptUrlMax = 2048;
+
+        /// <summary>Maximum length for <c>EBillNumber</c> (e.g. "MV-2026-A1B2C3D4").</summary>
+        public const int EBillNumberMax = 32;
     }
 
     /// <summary>
@@ -86,5 +89,10 @@ public static class PaymentConstants
         /// Column comment: URL to the digital receipt from Take a NAP.
         /// </summary>
         public const string ReceiptUrl = "URL to the digital receipt from Take a NAP.";
+
+        /// <summary>
+        /// Column comment: human-readable e-bill number assigned when a purchase is completed (e.g. MV-2026-A1B2C3D4).
+        /// </summary>
+        public const string EBillNumber = "Human-readable e-bill number assigned when a purchase is completed (e.g. MV-2026-A1B2C3D4).";
     }
 }

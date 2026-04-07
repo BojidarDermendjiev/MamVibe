@@ -158,7 +158,8 @@
     "req_accept": "Accept",
     "req_decline": "Decline",
     "req_complete_purchase": "Complete Purchase",
-    "req_view_waybill": "View Waybill"
+    "req_view_waybill": "View Waybill",
+    "my_ebills": "E-Bills"
   },
   "profile": {
     "title": "Profile",
@@ -438,6 +439,16 @@
     "description": "Description",
     "type_credit": "Credit",
     "type_debit": "Debit"
+  },
+  "ebill": {
+    "download": "Download",
+    "resend": "Resend",
+    "resent_ok": "Receipt sent to your email.",
+    "empty": "No e-bills yet.",
+    "empty_hint": "E-bills are issued automatically for completed purchases.",
+    "number": "Receipt #",
+    "issued": "Issued",
+    "seller": "Seller"
   },
   "donate": {
     "title": "You're kind of a big deal",

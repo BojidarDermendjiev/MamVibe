@@ -32,6 +32,7 @@ public class PaymentService : IPaymentService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IShippingService _shippingService;
+    private readonly IEBillService _eBillService;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
@@ -42,6 +43,7 @@ public class PaymentService : IPaymentService
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
         IShippingService shippingService,
+        IEBillService eBillService,
         ILogger<PaymentService> logger)
     {
         this._context = context;
@@ -51,6 +53,7 @@ public class PaymentService : IPaymentService
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._shippingService = shippingService;
+        this._eBillService = eBillService;
         this._logger = logger;
         StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
@@ -350,6 +353,23 @@ public class PaymentService : IPaymentService
                 catch
                 {
                     // Receipt failure should not break payment flow
+                }
+
+                // Issue e-bill and send receipt email to buyer (non-blocking on failure)
+                try
+                {
+                    var buyerEmail = await this._context.Payments
+                        .Include(p => p.Buyer)
+                        .Where(p => p.Id == payment.Id)
+                        .Select(p => p.Buyer!.Email)
+                        .FirstOrDefaultAsync();
+
+                    if (buyerEmail != null)
+                        await this._eBillService.IssueEBillAsync(payment.Id, buyerEmail);
+                }
+                catch (Exception ex)
+                {
+                    this._logger.LogError(ex, "E-bill issuance failed for payment {PaymentId}.", payment.Id);
                 }
 
                 try { await CompletePurchaseRequestAsync(payment.ItemId, payment.BuyerId); } catch { }

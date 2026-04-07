@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
+import EBillCard from '../components/payment/EBillCard';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi, type BuyerCheckResult } from '../api/purchaseRequestsApi';
 import { walletApi } from '../api/walletApi';
@@ -50,7 +51,7 @@ function ConfirmDeliveryButton({ paymentId, onConfirmed }: { paymentId: string; 
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, loading, removeLikedItem, refreshTab } = useDashboard();
+  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, ebills, loading, removeLikedItem, refreshTab } = useDashboard();
   const { decrementPendingRequestCount } = useNotification();
 
   const handleListingLikeToggle = async (id: string) => {
@@ -127,6 +128,7 @@ export default function DashboardPage() {
     { key: 'incoming-requests', label: t('dashboard.incoming_requests') },
     { key: 'my-requests', label: t('dashboard.my_requests') },
     { key: 'shipments', label: t('dashboard.my_shipments') },
+    { key: 'ebills', label: t('dashboard.my_ebills') },
   ];
 
   return (
@@ -278,6 +280,20 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {shipments.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
+              </div>
+            )
+          )}
+
+          {/* ── E-Bills ── */}
+          {tab === 'ebills' && (
+            ebills.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-gray-400">{t('ebill.empty')}</p>
+                <p className="text-sm text-gray-300 mt-1">{t('ebill.empty_hint')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {ebills.map((bill) => <EBillCard key={bill.id} bill={bill} />)}
               </div>
             )
           )}

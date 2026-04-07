@@ -10,4 +10,5 @@ public static class RateLimitPolicies
     public const string Global = "global";
     public const string Auth = "auth";
     public const string Upload = "upload";
+    public const string EBillResend = "ebill_resend";
 }
