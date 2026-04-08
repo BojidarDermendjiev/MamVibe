@@ -116,8 +116,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AuthorizationPolicies.AdminOnly, policy => policy.RequireRole("Admin"));
     options.AddPolicy(AuthorizationPolicies.ActiveUser, policy =>
-        policy.RequireAssertion(context =>
-            !context.User.HasClaim("IsBlocked", "true")));
+        policy.RequireAuthenticatedUser()
+              .RequireAssertion(context =>
+                  !context.User.HasClaim("IsBlocked", "true")));
 });
 
 // CORS
@@ -299,13 +300,12 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHsts();
     app.Use(async (context, next) =>
     {
         context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
         await next();
     });
-} 
+}
 
 app.UseSerilogRequestLogging(options =>
 {
