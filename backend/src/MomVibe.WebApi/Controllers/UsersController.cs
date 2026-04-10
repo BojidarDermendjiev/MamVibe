@@ -135,4 +135,28 @@ public class UsersController : ControllerBase
         var items = await this._itemService.GetLikedItemsAsync(userId);
         return Ok(items);
     }
+
+    /// <summary>
+    /// Registers or updates the Expo push notification token for the authenticated user's mobile device.
+    /// Called once after login whenever the mobile app obtains a fresh Expo push token.
+    /// </summary>
+    /// <param name="dto">Payload containing the Expo push token string.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the user cannot be located.<br/>
+    /// 204 No Content on success.
+    /// </returns>
+    [Authorize]
+    [HttpPost("push-token")]
+    public async Task<IActionResult> RegisterPushToken([FromBody] RegisterPushTokenDto dto)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var user = await this._userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        user.ExpoPushToken = dto.Token;
+        await this._userManager.UpdateAsync(user);
+        return NoContent();
+    }
 }

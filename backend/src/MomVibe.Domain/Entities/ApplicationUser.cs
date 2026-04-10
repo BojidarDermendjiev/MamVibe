@@ -77,6 +77,13 @@ public class ApplicationUser : IdentityUser
     public string? Iban { get; set; }
 
     /// <summary>
+    /// Expo push notification token for the user's mobile device.
+    /// Null when the user has not granted push notification permission or has not used the mobile app.
+    /// </summary>
+    [MaxLength(200)]
+    public string? ExpoPushToken { get; set; }
+
+    /// <summary>
     /// Items created by this user.
     /// </summary>
     public ICollection<Item> Items { get; set; } = [];

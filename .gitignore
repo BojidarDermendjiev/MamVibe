@@ -40,8 +40,9 @@ backend/**/wwwroot/uploads/avatars/
 # ──────────────────────────────────────────────────────────────
 # Frontend (Node / Vite / React)
 # ──────────────────────────────────────────────────────────────
-frontend/node_modules/
+node_modules/
 frontend/dist/
+mobile/dist/
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local

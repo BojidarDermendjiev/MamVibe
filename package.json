@@ -1,0 +1,9 @@
+{
+  "name": "mamvibe",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "shared",
+    "mobile"
+  ]
+}
