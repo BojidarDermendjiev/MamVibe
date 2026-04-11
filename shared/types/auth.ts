@@ -34,8 +34,10 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken?: string; // Now delivered as httpOnly cookie, not in body
+  // Delivered both as httpOnly cookie (web) and in the response body (mobile).
+  refreshToken?: string;
   user: User;
+  expiresAt?: string;
 }
 
 export interface RefreshTokenRequest {

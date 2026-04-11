@@ -40,6 +40,12 @@ public class AuthController : ControllerBase
         this._configuration = configuration;
     }
 
+    // Simple body model for mobile clients that cannot use httpOnly cookies.
+    private sealed class MobileRefreshBody
+    {
+        public string? RefreshToken { get; set; }
+    }
+
     private void SetRefreshTokenCookie(string token)
     {
         var days = int.Parse(this._configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7");
@@ -71,7 +77,9 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RegisterAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
+            // refreshToken is also included in the body so that native mobile clients
+            // (which cannot access httpOnly cookies) can store and rotate it.
+            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -94,7 +102,8 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.LoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
+            // refreshToken also in body for native mobile clients.
+            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -111,9 +120,11 @@ public class AuthController : ControllerBase
     /// 400 Bad Request with an error message on invalid or expired refresh token.
     /// </returns>
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken()
+    public async Task<IActionResult> RefreshToken(
+        [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] MobileRefreshBody? body = null)
     {
-        var refreshToken = this.Request.Cookies["refreshToken"];
+        // Cookie takes priority (web); fall back to body for native mobile clients.
+        var refreshToken = this.Request.Cookies["refreshToken"] ?? body?.RefreshToken;
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { message = "No refresh token." });
 
@@ -121,7 +132,8 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RefreshTokenAsync(refreshToken);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
+            // refreshToken also in body for native mobile clients.
+            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {
@@ -145,7 +157,8 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.GoogleLoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            return Ok(new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt });
+            // refreshToken also in body for native mobile clients.
+            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
         }
         catch (Exception ex)
         {

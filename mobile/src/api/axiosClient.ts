@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { useAuthStore } from '@/store/authStore';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:5038/api';
 
@@ -52,6 +53,7 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes('/auth/refresh')) {
         await tokenStorage.clearTokens();
+        useAuthStore.getState().logout();
         return Promise.reject(error);
       }
 
@@ -69,6 +71,9 @@ axiosClient.interceptors.response.use(
 
       try {
         const refreshToken = await tokenStorage.getRefreshToken();
+        // Send refreshToken in the request body so native mobile clients work
+        // (httpOnly cookies set by the server are not automatically sent by Axios
+        // on all React Native versions; the body is a reliable fallback).
         const { data } = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
 
         await tokenStorage.setAccessToken(data.accessToken);
@@ -83,6 +88,8 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         await tokenStorage.clearTokens();
+        // Clear auth state so the app navigates back to the login screen.
+        useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

@@ -34,8 +34,12 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({ user: s.user }),
       onRehydrateStorage: () => (state) => {
-        if (state?.user) {
-          state.isAuthenticated = true;
+        // Called after async rehydration from AsyncStorage.
+        // Always set isLoading = false and derive isAuthenticated from the
+        // persisted user so the app never stays stuck in a loading state.
+        if (state) {
+          state.isAuthenticated = !!state.user;
+          state.isLoading = false;
         }
       },
     },
