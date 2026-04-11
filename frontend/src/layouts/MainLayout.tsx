@@ -115,10 +115,7 @@ export default function MainLayout() {
     try { await authApi.revoke(); } catch { /* best effort */ }
     logout();
     navigate("/");
-    toast.info(
-      name ? `See you soon, ${name}! 👋` : 'See you soon! 👋',
-      'You have been logged out successfully.',
-    );
+    toast.success(name ? `See you soon, ${name}! 👋` : 'See you soon! 👋');
   };
 
   /* ─── Shared pill nav (used by both desktop center + mobile bottom) ─── */

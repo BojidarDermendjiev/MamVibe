@@ -47,7 +47,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
   const [sending, setSending] = useState(false);
   const [typingVisible, setTypingVisible] = useState(false);
   const listRef = useRef<FlatList>(null);
-  const typingTimer = useRef<ReturnType<typeof setTimeout>>();
+  const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Load message history
   useEffect(() => {

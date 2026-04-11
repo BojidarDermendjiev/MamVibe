@@ -18,6 +18,8 @@ import ChatListScreen from '@/screens/chat/ChatListScreen';
 import ConversationScreen from '@/screens/chat/ConversationScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
+export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
+
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainTab   = createBottomTabNavigator<MainTabParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();

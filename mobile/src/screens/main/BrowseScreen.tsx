@@ -42,7 +42,7 @@ const LISTING_FILTERS = [
 export default function BrowseScreen({ navigation }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
-  const [selectedListing, setSelectedListing] = useState<number | undefined>(undefined);
+  const [selectedListing, setSelectedListing] = useState<ListingType | undefined>(undefined);
   const [selectedSort, setSelectedSort] = useState('newest');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -58,7 +58,7 @@ export default function BrowseScreen({ navigation }: Props) {
     setFilter({ categoryId: catId, page: 1 });
   };
 
-  const handleListingFilter = (value: number | undefined) => {
+  const handleListingFilter = (value: ListingType | undefined) => {
     setSelectedListing(value);
     setFilter({ listingType: value, page: 1 });
   };
