@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
     }
 
     // Simple body model for mobile clients that cannot use httpOnly cookies.
-    private sealed class MobileRefreshBody
+    public sealed class MobileRefreshBody
     {
         public string? RefreshToken { get; set; }
     }

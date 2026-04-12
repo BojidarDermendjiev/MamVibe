@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 import axiosClient from '@/api/axiosClient';
 
@@ -14,6 +15,9 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications(): Promise<string | null> {
+  // Remote push notifications are not supported in Expo Go (SDK 53+). Requires a dev build.
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return null;
+
   const { status: existing } = await Notifications.getPermissionsAsync();
   let finalStatus = existing;
 
