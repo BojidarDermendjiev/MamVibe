@@ -10,7 +10,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -35,7 +35,6 @@ const TYPE_FILTERS = [
 
 export default function BrowseScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
@@ -80,10 +79,10 @@ export default function BrowseScreen({ navigation }: Props) {
   );
 
   return (
-    <View style={[s.safe, { backgroundColor: colors.bg }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: colors.bg }]} edges={['top']}>
 
       {/* Search */}
-      <View style={[s.searchWrap, { paddingTop: insets.top + 10 }]}>
+      <View style={s.searchWrap}>
         <TextInput
           style={[s.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
           placeholder="Search items..."
@@ -164,14 +163,14 @@ export default function BrowseScreen({ navigation }: Props) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   safe: { flex: 1 },
 
-  searchWrap: { paddingHorizontal: 16, paddingBottom: 10 },
+  searchWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 },
   searchInput: { height: 44, borderRadius: 12, paddingHorizontal: 14, fontSize: 15, borderWidth: 1 },
 
   /* Type toggle — 3-segment pill bar */

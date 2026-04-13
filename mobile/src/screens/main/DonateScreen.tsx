@@ -53,8 +53,9 @@ export default function DonateScreen({ navigation }: Props) {
       Alert.alert('Thank you! 💛', 'Your support keeps MamVibe running.', [
         { text: 'Back to Home', onPress: () => navigation.goBack() },
       ]);
-    } catch {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? 'Could not connect to server. Make sure the backend is running.';
+      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }
