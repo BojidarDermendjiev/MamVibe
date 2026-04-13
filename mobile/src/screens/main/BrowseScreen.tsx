@@ -6,8 +6,6 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,10 +13,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useItems } from '@/hooks/useItems';
-import { itemsApi } from '@/api/itemsApi';
 import ItemCard from '@/components/ItemCard';
 import { useTheme } from '@/contexts/ThemeContext';
-import type { Item, Category } from '@mamvibe/shared';
+import type { Item } from '@mamvibe/shared';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 
 type Props = CompositeScreenProps<
@@ -29,21 +26,10 @@ type Props = CompositeScreenProps<
 export default function BrowseScreen({ navigation }: Props) {
   const { colors } = useTheme();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
 
   const { items, loading, loadingMore, setFilter, searchTerm, setSearchTerm, refetch, loadNextPage } =
-    useItems({ categoryId: selectedCategory, sortBy: 'newest' });
-
-  useEffect(() => {
-    itemsApi.getCategories().then(({ data }) => setCategories(data)).catch(() => {});
-  }, []);
-
-  const handleCategorySelect = (catId: string | undefined) => {
-    setSelectedCategory(catId);
-    setFilter({ categoryId: catId, page: 1 });
-  };
+    useItems({ sortBy: 'newest' });
 
   const handleItemPress = useCallback(
     (item: Item) => { (navigation as any).navigate('ItemDetail', { itemId: item.id }); },
@@ -81,32 +67,6 @@ export default function BrowseScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Category chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={s.catScroll}
-        contentContainerStyle={s.catContent}
-      >
-        <TouchableOpacity
-          style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, !selectedCategory && s.chipOn]}
-          onPress={() => handleCategorySelect(undefined)}
-        >
-          <Text style={[s.chipTxt, { color: colors.text2 }, !selectedCategory && s.chipTxtOn]}>All</Text>
-        </TouchableOpacity>
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedCategory === cat.id && s.chipOn]}
-            onPress={() => handleCategorySelect(cat.id)}
-          >
-            <Text style={[s.chipTxt, { color: colors.text2 }, selectedCategory === cat.id && s.chipTxtOn]}>
-              {cat.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
       {/* Grid */}
       {loading ? (
         <View style={s.center}>
@@ -141,14 +101,6 @@ const s = StyleSheet.create({
 
   searchWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 },
   searchInput: { height: 44, borderRadius: 12, paddingHorizontal: 14, fontSize: 15, borderWidth: 1 },
-
-  /* Category chips */
-  catScroll: { flexGrow: 0 },
-  catContent: { paddingHorizontal: 16, paddingBottom: 12, flexDirection: 'row', gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, borderWidth: 1 },
-  chipOn: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
-  chipTxt: { fontSize: 13, fontWeight: '500' },
-  chipTxtOn: { color: '#fff', fontWeight: '600' },
 
   list: { paddingHorizontal: 16, paddingTop: 4 },
   cardLeft:  { flex: 1, marginRight: 8 },
