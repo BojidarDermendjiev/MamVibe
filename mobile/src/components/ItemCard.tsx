@@ -11,6 +11,7 @@ import { type Item, ListingType } from '@mamvibe/shared';
 import { formatPrice } from '@/utils/currency';
 import { itemsApi } from '@/api/itemsApi';
 import { useAuthStore } from '@/store/authStore';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
@@ -23,6 +24,7 @@ export default function ItemCard({ item, onPress }: Props) {
   const [liked, setLiked] = useState(item.isLikedByCurrentUser);
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { colors } = useTheme();
   const photo = item.photos[0];
 
   const handleLike = async () => {
@@ -42,7 +44,7 @@ export default function ItemCard({ item, onPress }: Props) {
   const isDonate = item.listingType === ListingType.Donate;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(item)} activeOpacity={0.85}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => onPress(item)} activeOpacity={0.85}>
       <View style={styles.imageContainer}>
         {photo ? (
           <Image source={{ uri: photo.url }} style={styles.image} resizeMode="cover" />
@@ -60,15 +62,15 @@ export default function ItemCard({ item, onPress }: Props) {
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.category} numberOfLines={1}>{item.categoryName}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
+        <Text style={[styles.category, { color: colors.text2 }]} numberOfLines={1}>{item.categoryName}</Text>
         <View style={styles.footer}>
           <Text style={styles.price}>
             {isDonate ? 'Free' : formatPrice(item.price)}
           </Text>
-          <Text style={styles.views}>👁 {item.viewCount}</Text>
+          <Text style={[styles.views, { color: colors.text3 }]}>👁 {item.viewCount}</Text>
         </View>
-        <Text style={styles.likeCount}>🤍 {likeCount}</Text>
+        <Text style={[styles.likeCount, { color: colors.text3 }]}>🤍 {likeCount}</Text>
       </View>
     </TouchableOpacity>
   );

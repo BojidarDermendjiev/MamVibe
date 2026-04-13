@@ -17,6 +17,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useItems } from '@/hooks/useItems';
 import { itemsApi } from '@/api/itemsApi';
 import ItemCard from '@/components/ItemCard';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Item, Category } from '@mamvibe/shared';
 import { ListingType } from '@mamvibe/shared';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
@@ -40,6 +41,7 @@ const LISTING_FILTERS = [
 ];
 
 export default function BrowseScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedListing, setSelectedListing] = useState<ListingType | undefined>(undefined);
@@ -100,13 +102,13 @@ export default function BrowseScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]}>
       {/* Search bar */}
       <View style={styles.searchContainer}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
           placeholder="Search items..."
-          placeholderTextColor="#aaa"
+          placeholderTextColor={colors.text2}
           value={searchTerm}
           onChangeText={(t) => { setSearchTerm(t); setFilter({ page: 1 }); }}
           returnKeyType="search"
@@ -122,18 +124,18 @@ export default function BrowseScreen({ navigation }: Props) {
         contentContainerStyle={styles.chipsContent}
       >
         <TouchableOpacity
-          style={[styles.chip, !selectedCategory && styles.chipActive]}
+          style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, !selectedCategory && styles.chipActive]}
           onPress={() => handleCategorySelect(undefined)}
         >
-          <Text style={[styles.chipText, !selectedCategory && styles.chipTextActive]}>All</Text>
+          <Text style={[styles.chipText, { color: colors.text2 }, !selectedCategory && styles.chipTextActive]}>All</Text>
         </TouchableOpacity>
         {categories.map((cat) => (
           <TouchableOpacity
             key={cat.id}
-            style={[styles.chip, selectedCategory === cat.id && styles.chipActive]}
+            style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedCategory === cat.id && styles.chipActive]}
             onPress={() => handleCategorySelect(cat.id)}
           >
-            <Text style={[styles.chipText, selectedCategory === cat.id && styles.chipTextActive]}>
+            <Text style={[styles.chipText, { color: colors.text2 }, selectedCategory === cat.id && styles.chipTextActive]}>
               {cat.name}
             </Text>
           </TouchableOpacity>
@@ -143,15 +145,15 @@ export default function BrowseScreen({ navigation }: Props) {
       {/* Listing type + Sort — side-by-side with labels */}
       <View style={styles.filterRow}>
         <View style={styles.filterGroup}>
-          <Text style={styles.filterLabel}>TYPE</Text>
+          <Text style={[styles.filterLabel, { color: colors.text3 }]}>TYPE</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
             {LISTING_FILTERS.map((lf) => (
               <TouchableOpacity
                 key={String(lf.value)}
-                style={[styles.chip, styles.chipSmall, selectedListing === lf.value && styles.chipActive]}
+                style={[styles.chip, styles.chipSmall, { backgroundColor: colors.card, borderColor: colors.border }, selectedListing === lf.value && styles.chipActive]}
                 onPress={() => handleListingFilter(lf.value)}
               >
-                <Text style={[styles.chipText, styles.chipTextSmall, selectedListing === lf.value && styles.chipTextActive]}>
+                <Text style={[styles.chipText, styles.chipTextSmall, { color: colors.text2 }, selectedListing === lf.value && styles.chipTextActive]}>
                   {lf.label}
                 </Text>
               </TouchableOpacity>
@@ -159,18 +161,18 @@ export default function BrowseScreen({ navigation }: Props) {
           </ScrollView>
         </View>
 
-        <View style={styles.filterDivider} />
+        <View style={[styles.filterDivider, { backgroundColor: colors.border }]} />
 
         <View style={styles.filterGroup}>
-          <Text style={styles.filterLabel}>SORT</Text>
+          <Text style={[styles.filterLabel, { color: colors.text3 }]}>SORT</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
             {SORT_OPTIONS.map((s) => (
               <TouchableOpacity
                 key={s.value}
-                style={[styles.chip, styles.chipSmall, selectedSort === s.value && styles.chipActive]}
+                style={[styles.chip, styles.chipSmall, { backgroundColor: colors.card, borderColor: colors.border }, selectedSort === s.value && styles.chipActive]}
                 onPress={() => handleSort(s.value)}
               >
-                <Text style={[styles.chipText, styles.chipTextSmall, selectedSort === s.value && styles.chipTextActive]}>
+                <Text style={[styles.chipText, styles.chipTextSmall, { color: colors.text2 }, selectedSort === s.value && styles.chipTextActive]}>
                   {s.label}
                 </Text>
               </TouchableOpacity>
@@ -187,7 +189,7 @@ export default function BrowseScreen({ navigation }: Props) {
       ) : items.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.emptyEmoji}>📦</Text>
-          <Text style={styles.emptyText}>No items found</Text>
+          <Text style={[styles.emptyText, { color: colors.text2 }]}>No items found</Text>
         </View>
       ) : (
         <FlatList

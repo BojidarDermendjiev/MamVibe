@@ -1,8 +1,9 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
+import { useTheme } from '@/contexts/ThemeContext';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import RegisterScreen from '@/screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '@/screens/auth/ForgotPasswordScreen';
@@ -46,13 +47,14 @@ function ChatNavigator() {
 }
 
 function MainTabs() {
+  const { colors } = useTheme();
   return (
     <MainTab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#e91e8c',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: { borderTopColor: '#f0f0f0' },
+        tabBarInactiveTintColor: colors.text2,
+        tabBarStyle: { backgroundColor: colors.tabBar, borderTopColor: colors.tabBarBorder },
       }}
     >
       <MainTab.Screen
@@ -117,9 +119,14 @@ function MainNavigator() {
 
 export default function RootNavigator() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { isDark, colors } = useTheme();
+
+  const navTheme = isDark
+    ? { ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg, card: colors.header } }
+    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.header } };
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       {isAuthenticated ? (
         <MainNavigator />
       ) : (
