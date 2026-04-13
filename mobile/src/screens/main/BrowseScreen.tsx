@@ -140,37 +140,44 @@ export default function BrowseScreen({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      {/* Listing type filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipsContent}
-        style={{ marginBottom: 4 }}
-      >
-        {LISTING_FILTERS.map((lf) => (
-          <TouchableOpacity
-            key={String(lf.value)}
-            style={[styles.chip, styles.chipSmall, selectedListing === lf.value && styles.chipActive]}
-            onPress={() => handleListingFilter(lf.value)}
-          >
-            <Text style={[styles.chipText, styles.chipTextSmall, selectedListing === lf.value && styles.chipTextActive]}>
-              {lf.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <View style={styles.divider} />
-        {SORT_OPTIONS.map((s) => (
-          <TouchableOpacity
-            key={s.value}
-            style={[styles.chip, styles.chipSmall, selectedSort === s.value && styles.chipActive]}
-            onPress={() => handleSort(s.value)}
-          >
-            <Text style={[styles.chipText, styles.chipTextSmall, selectedSort === s.value && styles.chipTextActive]}>
-              {s.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Listing type + Sort — side-by-side with labels */}
+      <View style={styles.filterRow}>
+        <View style={styles.filterGroup}>
+          <Text style={styles.filterLabel}>TYPE</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+            {LISTING_FILTERS.map((lf) => (
+              <TouchableOpacity
+                key={String(lf.value)}
+                style={[styles.chip, styles.chipSmall, selectedListing === lf.value && styles.chipActive]}
+                onPress={() => handleListingFilter(lf.value)}
+              >
+                <Text style={[styles.chipText, styles.chipTextSmall, selectedListing === lf.value && styles.chipTextActive]}>
+                  {lf.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.filterDivider} />
+
+        <View style={styles.filterGroup}>
+          <Text style={styles.filterLabel}>SORT</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+            {SORT_OPTIONS.map((s) => (
+              <TouchableOpacity
+                key={s.value}
+                style={[styles.chip, styles.chipSmall, selectedSort === s.value && styles.chipActive]}
+                onPress={() => handleSort(s.value)}
+              >
+                <Text style={[styles.chipText, styles.chipTextSmall, selectedSort === s.value && styles.chipTextActive]}>
+                  {s.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
 
       {/* Grid */}
       {loading ? (
@@ -258,11 +265,33 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  divider: {
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    marginBottom: 6,
+  },
+  filterGroup: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  filterLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#bbb',
+    letterSpacing: 1,
+    marginBottom: 5,
+  },
+  filterChips: {
+    gap: 6,
+    flexDirection: 'row',
+  },
+  filterDivider: {
     width: 1,
-    backgroundColor: '#ddd',
-    marginHorizontal: 4,
-    borderRadius: 1,
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 10,
+    marginTop: 2,
+    alignSelf: 'stretch',
   },
   listContent: {
     paddingHorizontal: 16,
