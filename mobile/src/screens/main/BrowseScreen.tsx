@@ -19,7 +19,6 @@ import { itemsApi } from '@/api/itemsApi';
 import ItemCard from '@/components/ItemCard';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { Item, Category } from '@mamvibe/shared';
-import { ListingType } from '@mamvibe/shared';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 
 type Props = CompositeScreenProps<
@@ -27,22 +26,15 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
-const TYPE_FILTERS = [
-  { label: 'All',      value: undefined },
-  { label: 'For Sale', value: ListingType.Sell },
-  { label: 'Free',     value: ListingType.Donate },
-] as const;
-
 export default function BrowseScreen({ navigation }: Props) {
   const { colors } = useTheme();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
-  const [selectedType, setSelectedType] = useState<ListingType | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
 
   const { items, loading, loadingMore, setFilter, searchTerm, setSearchTerm, refetch, loadNextPage } =
-    useItems({ categoryId: selectedCategory, listingType: selectedType, sortBy: 'newest' });
+    useItems({ categoryId: selectedCategory, sortBy: 'newest' });
 
   useEffect(() => {
     itemsApi.getCategories().then(({ data }) => setCategories(data)).catch(() => {});
@@ -51,11 +43,6 @@ export default function BrowseScreen({ navigation }: Props) {
   const handleCategorySelect = (catId: string | undefined) => {
     setSelectedCategory(catId);
     setFilter({ categoryId: catId, page: 1 });
-  };
-
-  const handleTypeSelect = (value: ListingType | undefined) => {
-    setSelectedType(value);
-    setFilter({ listingType: value, page: 1 });
   };
 
   const handleItemPress = useCallback(
@@ -92,24 +79,6 @@ export default function BrowseScreen({ navigation }: Props) {
           returnKeyType="search"
           clearButtonMode="while-editing"
         />
-      </View>
-
-      {/* Type toggle: All / For Sale / Free */}
-      <View style={[s.typeBar, { backgroundColor: colors.section, borderColor: colors.border }]}>
-        {TYPE_FILTERS.map((f) => {
-          const active = selectedType === f.value;
-          return (
-            <TouchableOpacity
-              key={String(f.value)}
-              style={[s.typeBtn, active && s.typeBtnActive]}
-              onPress={() => handleTypeSelect(f.value)}
-            >
-              <Text style={[s.typeBtnText, { color: colors.text2 }, active && s.typeBtnTextActive]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
 
       {/* Category chips */}
@@ -172,20 +141,6 @@ const s = StyleSheet.create({
 
   searchWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 },
   searchInput: { height: 44, borderRadius: 12, paddingHorizontal: 14, fontSize: 15, borderWidth: 1 },
-
-  /* Type toggle — 3-segment pill bar */
-  typeBar: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  typeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center' },
-  typeBtnActive: { backgroundColor: '#e91e8c' },
-  typeBtnText: { fontSize: 13, fontWeight: '600' },
-  typeBtnTextActive: { color: '#fff' },
 
   /* Category chips */
   catScroll: { flexGrow: 0 },
