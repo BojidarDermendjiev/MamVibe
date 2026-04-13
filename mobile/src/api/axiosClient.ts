@@ -4,6 +4,9 @@ import { useAuthStore } from '@/store/authStore';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:5038/api';
 
+/** Base server URL (no /api suffix) — used for building absolute media URLs */
+export const SERVER_URL = API_URL.replace(/\/api\/?$/, '');
+
 const axiosClient = axios.create({
   baseURL: API_URL,
 });

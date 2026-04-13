@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
 import { itemsApi } from '@/api/itemsApi';
+import { SERVER_URL } from '@/api/axiosClient';
 import { useAuthStore } from '@/store/authStore';
 import { formatPrice } from '@/utils/currency';
 import { type Item, ListingType } from '@mamvibe/shared';
@@ -121,9 +122,10 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
                   setActivePhoto(idx);
                 }}
                 scrollEventThrottle={16}
-                renderItem={({ item: photo }) => (
-                  <Image source={{ uri: photo.url }} style={styles.mainPhoto} resizeMode="cover" />
-                )}
+                renderItem={({ item: photo }) => {
+                  const uri = photo.url.startsWith('http') ? photo.url : `${SERVER_URL}${photo.url}`;
+                  return <Image source={{ uri }} style={styles.mainPhoto} resizeMode="cover" />;
+                }}
               />
               {photos.length > 1 && (
                 <View style={styles.dots}>

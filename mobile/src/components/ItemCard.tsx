@@ -10,6 +10,7 @@ import {
 import { type Item, ListingType } from '@mamvibe/shared';
 import { formatPrice } from '@/utils/currency';
 import { itemsApi } from '@/api/itemsApi';
+import { SERVER_URL } from '@/api/axiosClient';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -26,6 +27,9 @@ export default function ItemCard({ item, onPress }: Props) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { colors } = useTheme();
   const photo = item.photos[0];
+  const photoUri = photo?.url
+    ? photo.url.startsWith('http') ? photo.url : `${SERVER_URL}${photo.url}`
+    : null;
 
   const handleLike = async () => {
     if (!isAuthenticated) return;
@@ -46,8 +50,8 @@ export default function ItemCard({ item, onPress }: Props) {
   return (
     <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={() => onPress(item)} activeOpacity={0.85}>
       <View style={styles.imageContainer}>
-        {photo ? (
-          <Image source={{ uri: photo.url }} style={styles.image} resizeMode="cover" />
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={styles.image} resizeMode="cover" />
         ) : (
           <View style={[styles.image, styles.imagePlaceholder]}>
             <Text style={styles.placeholderEmoji}>📦</Text>
