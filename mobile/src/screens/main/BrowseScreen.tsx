@@ -35,9 +35,8 @@ const SORT_OPTIONS = [
 ];
 
 const LISTING_FILTERS = [
-  { label: 'All', value: undefined },
   { label: 'For Sale', value: ListingType.Sell },
-  { label: 'Free', value: ListingType.Donate },
+  { label: 'Free',     value: ListingType.Donate },
 ];
 
 export default function BrowseScreen({ navigation }: Props) {
@@ -60,9 +59,10 @@ export default function BrowseScreen({ navigation }: Props) {
     setFilter({ categoryId: catId, page: 1 });
   };
 
-  const handleListingFilter = (value: ListingType | undefined) => {
-    setSelectedListing(value);
-    setFilter({ listingType: value, page: 1 });
+  const handleListingFilter = (value: ListingType) => {
+    const next = selectedListing === value ? undefined : value;
+    setSelectedListing(next);
+    setFilter({ listingType: next, page: 1 });
   };
 
   const handleSort = (value: string) => {
@@ -151,7 +151,7 @@ export default function BrowseScreen({ navigation }: Props) {
               <TouchableOpacity
                 key={String(lf.value)}
                 style={[styles.chip, styles.chipSmall, { backgroundColor: colors.card, borderColor: colors.border }, selectedListing === lf.value && styles.chipActive]}
-                onPress={() => handleListingFilter(lf.value)}
+                onPress={() => handleListingFilter(lf.value as ListingType)}
               >
                 <Text style={[styles.chipText, styles.chipTextSmall, { color: colors.text2 }, selectedListing === lf.value && styles.chipTextActive]}>
                   {lf.label}
