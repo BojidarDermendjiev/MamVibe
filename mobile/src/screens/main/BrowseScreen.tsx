@@ -28,15 +28,10 @@ type Props = CompositeScreenProps<
 >;
 
 const SORT_OPTIONS = [
-  { label: 'Newest', value: 'newest' },
+  { label: 'Newest',   value: 'newest' },
   { label: 'Price ↑', value: 'price_asc' },
   { label: 'Price ↓', value: 'price_desc' },
-  { label: 'Popular', value: 'popular' },
-];
-
-const LISTING_FILTERS = [
-  { label: 'For Sale', value: ListingType.Sell },
-  { label: 'Free',     value: ListingType.Donate },
+  { label: 'Popular',  value: 'popular' },
 ];
 
 export default function BrowseScreen({ navigation }: Props) {
@@ -47,7 +42,7 @@ export default function BrowseScreen({ navigation }: Props) {
   const [selectedSort, setSelectedSort] = useState('newest');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { items, loading, loadingMore, filter, setFilter, searchTerm, setSearchTerm, refetch, loadNextPage } =
+  const { items, loading, loadingMore, setFilter, searchTerm, setSearchTerm, refetch, loadNextPage } =
     useItems({ categoryId: selectedCategory, listingType: selectedListing, sortBy: selectedSort });
 
   useEffect(() => {
@@ -71,9 +66,7 @@ export default function BrowseScreen({ navigation }: Props) {
   };
 
   const handleItemPress = useCallback(
-    (item: Item) => {
-      (navigation as any).navigate('ItemDetail', { itemId: item.id });
-    },
+    (item: Item) => { (navigation as any).navigate('ItemDetail', { itemId: item.id }); },
     [navigation],
   );
 
@@ -85,28 +78,20 @@ export default function BrowseScreen({ navigation }: Props) {
 
   const renderItem = useCallback(
     ({ item, index }: { item: Item; index: number }) => (
-      <View style={index % 2 === 0 ? styles.cardLeft : styles.cardRight}>
+      <View style={index % 2 === 0 ? s.cardLeft : s.cardRight}>
         <ItemCard item={item} onPress={handleItemPress} />
       </View>
     ),
     [handleItemPress],
   );
 
-  const renderFooter = () => {
-    if (!loadingMore) return null;
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator color="#e91e8c" />
-      </View>
-    );
-  };
-
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]}>
-      {/* Search bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.bg }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: colors.bg }]}>
+
+      {/* ── Search bar ── */}
+      <View style={s.searchWrap}>
         <TextInput
-          style={[styles.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+          style={[s.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
           placeholder="Search items..."
           placeholderTextColor={colors.text2}
           value={searchTerm}
@@ -116,82 +101,81 @@ export default function BrowseScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Category chips */}
+      {/* ── Single unified filter row ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.chipsScroll}
-        contentContainerStyle={styles.chipsContent}
+        style={s.filterScroll}
+        contentContainerStyle={s.filterContent}
       >
+        {/* Categories */}
         <TouchableOpacity
-          style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, !selectedCategory && styles.chipActive]}
+          style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, !selectedCategory && s.chipOn]}
           onPress={() => handleCategorySelect(undefined)}
         >
-          <Text style={[styles.chipText, { color: colors.text2 }, !selectedCategory && styles.chipTextActive]}>All</Text>
+          <Text style={[s.chipTxt, { color: colors.text2 }, !selectedCategory && s.chipTxtOn]}>All</Text>
         </TouchableOpacity>
         {categories.map((cat) => (
           <TouchableOpacity
             key={cat.id}
-            style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedCategory === cat.id && styles.chipActive]}
+            style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedCategory === cat.id && s.chipOn]}
             onPress={() => handleCategorySelect(cat.id)}
           >
-            <Text style={[styles.chipText, { color: colors.text2 }, selectedCategory === cat.id && styles.chipTextActive]}>
+            <Text style={[s.chipTxt, { color: colors.text2 }, selectedCategory === cat.id && s.chipTxtOn]}>
               {cat.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* Separator */}
+        <View style={[s.sep, { backgroundColor: colors.border }]} />
+
+        {/* Type */}
+        <TouchableOpacity
+          style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, !selectedListing && s.chipOn]}
+          onPress={() => { setSelectedListing(undefined); setFilter({ listingType: undefined, page: 1 }); }}
+        >
+          <Text style={[s.chipTxt, { color: colors.text2 }, !selectedListing && s.chipTxtOn]}>All Types</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedListing === ListingType.Sell && s.chipOn]}
+          onPress={() => handleListingFilter(ListingType.Sell)}
+        >
+          <Text style={[s.chipTxt, { color: colors.text2 }, selectedListing === ListingType.Sell && s.chipTxtOn]}>For Sale</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedListing === ListingType.Donate && s.chipOn]}
+          onPress={() => handleListingFilter(ListingType.Donate)}
+        >
+          <Text style={[s.chipTxt, { color: colors.text2 }, selectedListing === ListingType.Donate && s.chipTxtOn]}>Free</Text>
+        </TouchableOpacity>
+
+        {/* Separator */}
+        <View style={[s.sep, { backgroundColor: colors.border }]} />
+
+        {/* Sort */}
+        {SORT_OPTIONS.map((opt) => (
+          <TouchableOpacity
+            key={opt.value}
+            style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, selectedSort === opt.value && s.chipOn]}
+            onPress={() => handleSort(opt.value)}
+          >
+            <Text style={[s.chipTxt, { color: colors.text2 }, selectedSort === opt.value && s.chipTxtOn]}>
+              {opt.label}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Type + Sort bar */}
-      <View style={[styles.filterBar, { backgroundColor: colors.section, borderColor: colors.border }]}>
-        {/* TYPE pills */}
-        <View style={styles.filterSegment}>
-          <Text style={[styles.filterLabel, { color: colors.text3 }]}>TYPE</Text>
-          <View style={styles.pillRow}>
-            {LISTING_FILTERS.map((lf) => (
-              <TouchableOpacity
-                key={String(lf.value)}
-                style={[styles.pill, { borderColor: colors.border }, selectedListing === lf.value && styles.pillActive]}
-                onPress={() => handleListingFilter(lf.value as ListingType)}
-              >
-                <Text style={[styles.pillText, { color: colors.text2 }, selectedListing === lf.value && styles.pillTextActive]}>
-                  {lf.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={[styles.filterDivider, { backgroundColor: colors.border }]} />
-
-        {/* SORT pills */}
-        <View style={styles.filterSegment}>
-          <Text style={[styles.filterLabel, { color: colors.text3 }]}>SORT</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
-            {SORT_OPTIONS.map((s) => (
-              <TouchableOpacity
-                key={s.value}
-                style={[styles.pill, { borderColor: colors.border }, selectedSort === s.value && styles.pillActive]}
-                onPress={() => handleSort(s.value)}
-              >
-                <Text style={[styles.pillText, { color: colors.text2 }, selectedSort === s.value && styles.pillTextActive]}>
-                  {s.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </View>
-
-      {/* Grid */}
+      {/* ── Grid ── */}
       {loading ? (
-        <View style={styles.center}>
+        <View style={s.center}>
           <ActivityIndicator size="large" color="#e91e8c" />
         </View>
       ) : items.length === 0 ? (
-        <View style={styles.center}>
-          <Text style={styles.emptyEmoji}>📦</Text>
-          <Text style={[styles.emptyText, { color: colors.text2 }]}>No items found</Text>
+        <View style={s.center}>
+          <Text style={s.emptyEmoji}>📦</Text>
+          <Text style={[s.emptyText, { color: colors.text2 }]}>No items found</Text>
         </View>
       ) : (
         <FlatList
@@ -199,25 +183,24 @@ export default function BrowseScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           numColumns={2}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={s.list}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.3}
-          ListFooterComponent={renderFooter}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />
-          }
+          ListFooterComponent={() => loadingMore ? <ActivityIndicator color="#e91e8c" style={{ paddingVertical: 20 }} /> : null}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />}
         />
       )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   safe: { flex: 1 },
-  searchContainer: {
+
+  searchWrap: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
   searchInput: {
     height: 44,
@@ -226,85 +209,37 @@ const styles = StyleSheet.create({
     fontSize: 15,
     borderWidth: 1,
   },
-  chipsScroll: { flexGrow: 0 },
-  chipsContent: {
+
+  filterScroll: { flexGrow: 0 },
+  filterContent: {
     paddingHorizontal: 16,
-    paddingBottom: 10,
-    gap: 8,
+    paddingBottom: 12,
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
+
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 99,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
-  chipText: { fontSize: 13, fontWeight: '500' },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
+  chipOn: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
+  chipTxt: { fontSize: 13, fontWeight: '500' },
+  chipTxtOn: { color: '#fff', fontWeight: '600' },
 
-  /* Filter bar — visually distinct from category chips above */
-  filterBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 0,
-  },
-  filterSegment: { flex: 1, gap: 6 },
-  filterLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  pillRow: { flexDirection: 'row', gap: 6 },
-  pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 99,
-    borderWidth: 1,
-  },
-  pillActive: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
-  pillText: { fontSize: 12, fontWeight: '500' },
-  pillTextActive: { color: '#fff', fontWeight: '600' },
-  filterDivider: {
+  sep: {
     width: 1,
-    height: '100%',
-    alignSelf: 'stretch',
-    marginHorizontal: 10,
+    height: 20,
+    marginHorizontal: 4,
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
-  cardLeft: {
-    flex: 1,
-    marginRight: 8,
-  },
-  cardRight: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#888',
-  },
-  footerLoader: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
+
+  list: { paddingHorizontal: 16, paddingTop: 4 },
+  cardLeft:  { flex: 1, marginRight: 8 },
+  cardRight: { flex: 1, marginLeft: 8 },
+
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyEmoji: { fontSize: 48, marginBottom: 12 },
+  emptyText: { fontSize: 16 },
 });
