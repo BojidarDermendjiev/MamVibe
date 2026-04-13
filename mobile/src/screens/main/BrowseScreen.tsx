@@ -10,7 +10,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -36,6 +36,7 @@ const SORT_OPTIONS = [
 
 export default function BrowseScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [selectedListing, setSelectedListing] = useState<ListingType | undefined>(undefined);
@@ -86,10 +87,10 @@ export default function BrowseScreen({ navigation }: Props) {
   );
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: colors.bg }]}>
+    <View style={[s.safe, { backgroundColor: colors.bg }]}>
 
       {/* ── Search bar ── */}
-      <View style={s.searchWrap}>
+      <View style={[s.searchWrap, { paddingTop: insets.top + 10 }]}>
         <TextInput
           style={[s.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
           placeholder="Search items..."
@@ -190,7 +191,7 @@ export default function BrowseScreen({ navigation }: Props) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -199,7 +200,6 @@ const s = StyleSheet.create({
 
   searchWrap: {
     paddingHorizontal: 16,
-    paddingTop: 10,
     paddingBottom: 10,
   },
   searchInput: {
