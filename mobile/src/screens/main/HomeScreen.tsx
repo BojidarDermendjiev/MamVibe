@@ -127,11 +127,18 @@ export default function HomeScreen({ navigation }: Props) {
 
       {/* ── Support ── */}
       <View style={[s.supportSection, { backgroundColor: colors.section, borderTopColor: colors.border }]}>
-        <Text style={s.supportHeart}>💜</Text>
+        <Text style={s.supportHeart}>💛</Text>
         <Text style={[s.supportTitle, { color: PRIMARY_DARK }]}>MamVibe is free. Always.</Text>
         <Text style={[s.supportBody, { color: colors.text2 }]}>
           No ads, no sponsors, no catch. If this place has made your family's life even a little easier, a small coffee keeps the lights on.
         </Text>
+        <TouchableOpacity
+          style={s.donateBtn}
+          onPress={() => (navigation as any).navigate('Donate')}
+          activeOpacity={0.85}
+        >
+          <Text style={s.donateBtnText}>Support with a Donation  💳</Text>
+        </TouchableOpacity>
       </View>
 
     </ScrollView>
@@ -197,8 +204,10 @@ const s = StyleSheet.create({
   ageRange: { fontSize: 11, marginTop: 2, textAlign: 'center' },
 
   /* Support */
-  supportSection: { paddingHorizontal: 28, paddingVertical: 40, alignItems: 'center', borderTopWidth: 1 },
+  supportSection: { paddingHorizontal: 28, paddingVertical: 40, paddingBottom: 48, alignItems: 'center', borderTopWidth: 1 },
   supportHeart: { fontSize: 40, marginBottom: 12 },
   supportTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 10 },
-  supportBody: { fontSize: 13, textAlign: 'center', lineHeight: 20, maxWidth: 300 },
+  supportBody: { fontSize: 13, textAlign: 'center', lineHeight: 20, maxWidth: 300, marginBottom: 20 },
+  donateBtn: { backgroundColor: '#e91e8c', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 14 },
+  donateBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

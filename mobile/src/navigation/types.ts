@@ -29,4 +29,5 @@ export type RootStackParamList = {
   ShipmentDetail: { shipmentId: string };
   MyItems: undefined;
   Settings: undefined;
+  Donate: undefined;
 };

@@ -250,6 +250,28 @@ public class PaymentsController : ControllerBase
     /// Payouts go to whatever bank account (e.g. Revolut Business IBAN) is
     /// connected under Stripe Dashboard → Settings → Payouts.
     /// </summary>
+    /// <summary>
+    /// Creates a Stripe PaymentIntent for a mobile donation (returns clientSecret for PaymentSheet).
+    /// No authentication required.
+    /// </summary>
+    [HttpPost("donation/intent")]
+    public async Task<IActionResult> CreateDonationIntent([FromBody] DonationCheckoutRequest request)
+    {
+        try
+        {
+            var clientSecret = await this._paymentService.CreateDonationIntentAsync(request.Amount);
+            return Ok(new { clientSecret });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Payment service error. Please try again later." });
+        }
+    }
+
     [HttpPost("donation/checkout")]
     public async Task<IActionResult> CreateDonationCheckout([FromBody] DonationCheckoutRequest request)
     {

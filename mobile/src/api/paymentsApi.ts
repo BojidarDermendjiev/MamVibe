@@ -14,4 +14,7 @@ export const paymentsApi = {
 
   getMyPayments: () =>
     axiosClient.get<Payment[]>('/payments/my-payments'),
+
+  createDonationIntent: (amount: number) =>
+    axiosClient.post<{ clientSecret: string }>('/payments/donation/intent', { amount }),
 };

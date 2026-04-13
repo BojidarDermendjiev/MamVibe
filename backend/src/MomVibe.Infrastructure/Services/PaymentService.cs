@@ -720,4 +720,25 @@ public class PaymentService : IPaymentService
         var session = await sessionService.CreateAsync(options);
         return session.Url!;
     }
+
+    public async Task<string> CreateDonationIntentAsync(decimal amount)
+    {
+        if (!IsStripeConfigured())
+            return "test_simulated_donation_client_secret";
+
+        var options = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(amount * 100),
+            Currency = "bgn",
+            Metadata = new Dictionary<string, string>
+            {
+                { "type", "donation" },
+                { "amount", amount.ToString("F2") }
+            }
+        };
+
+        var service = new PaymentIntentService();
+        var intent = await service.CreateAsync(options);
+        return intent.ClientSecret;
+    }
 }

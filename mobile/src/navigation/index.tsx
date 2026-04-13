@@ -19,6 +19,7 @@ import ChatListScreen from '@/screens/chat/ChatListScreen';
 import ConversationScreen from '@/screens/chat/ConversationScreen';
 import MyItemsScreen from '@/screens/main/MyItemsScreen';
 import SettingsScreen from '@/screens/main/SettingsScreen';
+import DonateScreen from '@/screens/main/DonateScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
 export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
@@ -124,6 +125,11 @@ function MainNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{ headerShown: true, title: 'Settings', headerTintColor: '#e91e8c' }}
+      />
+      <RootStack.Screen
+        name="Donate"
+        component={DonateScreen}
+        options={{ headerShown: true, title: 'Support MamVibe', headerTintColor: '#e91e8c' }}
       />
     </RootStack.Navigator>
   );
