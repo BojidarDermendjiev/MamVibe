@@ -17,6 +17,8 @@ import DashboardScreen from '@/screens/main/DashboardScreen';
 import ShipmentDetailScreen from '@/screens/main/ShipmentDetailScreen';
 import ChatListScreen from '@/screens/chat/ChatListScreen';
 import ConversationScreen from '@/screens/chat/ConversationScreen';
+import MyItemsScreen from '@/screens/main/MyItemsScreen';
+import SettingsScreen from '@/screens/main/SettingsScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
 export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
@@ -112,6 +114,16 @@ function MainNavigator() {
         name="ShipmentDetail"
         component={ShipmentDetailScreen}
         options={{ headerShown: true, title: 'Shipment', headerTintColor: '#e91e8c' }}
+      />
+      <RootStack.Screen
+        name="MyItems"
+        component={MyItemsScreen}
+        options={{ headerShown: true, title: 'My Items', headerTintColor: '#e91e8c' }}
+      />
+      <RootStack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: true, title: 'Settings', headerTintColor: '#e91e8c' }}
       />
     </RootStack.Navigator>
   );

@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -104,7 +104,7 @@ export default function BrowseScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]}>
       {/* Search bar */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.bg }]}>
         <TextInput
           style={[styles.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
           placeholder="Search items..."
@@ -142,37 +142,39 @@ export default function BrowseScreen({ navigation }: Props) {
         ))}
       </ScrollView>
 
-      {/* Listing type + Sort — side-by-side with labels */}
-      <View style={styles.filterRow}>
-        <View style={styles.filterGroup}>
+      {/* Type + Sort bar */}
+      <View style={[styles.filterBar, { backgroundColor: colors.section, borderColor: colors.border }]}>
+        {/* TYPE pills */}
+        <View style={styles.filterSegment}>
           <Text style={[styles.filterLabel, { color: colors.text3 }]}>TYPE</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+          <View style={styles.pillRow}>
             {LISTING_FILTERS.map((lf) => (
               <TouchableOpacity
                 key={String(lf.value)}
-                style={[styles.chip, styles.chipSmall, { backgroundColor: colors.card, borderColor: colors.border }, selectedListing === lf.value && styles.chipActive]}
+                style={[styles.pill, { borderColor: colors.border }, selectedListing === lf.value && styles.pillActive]}
                 onPress={() => handleListingFilter(lf.value as ListingType)}
               >
-                <Text style={[styles.chipText, styles.chipTextSmall, { color: colors.text2 }, selectedListing === lf.value && styles.chipTextActive]}>
+                <Text style={[styles.pillText, { color: colors.text2 }, selectedListing === lf.value && styles.pillTextActive]}>
                   {lf.label}
                 </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         <View style={[styles.filterDivider, { backgroundColor: colors.border }]} />
 
-        <View style={styles.filterGroup}>
+        {/* SORT pills */}
+        <View style={styles.filterSegment}>
           <Text style={[styles.filterLabel, { color: colors.text3 }]}>SORT</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
             {SORT_OPTIONS.map((s) => (
               <TouchableOpacity
                 key={s.value}
-                style={[styles.chip, styles.chipSmall, { backgroundColor: colors.card, borderColor: colors.border }, selectedSort === s.value && styles.chipActive]}
+                style={[styles.pill, { borderColor: colors.border }, selectedSort === s.value && styles.pillActive]}
                 onPress={() => handleSort(s.value)}
               >
-                <Text style={[styles.chipText, styles.chipTextSmall, { color: colors.text2 }, selectedSort === s.value && styles.chipTextActive]}>
+                <Text style={[styles.pillText, { color: colors.text2 }, selectedSort === s.value && styles.pillTextActive]}>
                   {s.label}
                 </Text>
               </TouchableOpacity>
@@ -211,31 +213,23 @@ export default function BrowseScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fafafa',
-  },
+  safe: { flex: 1 },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 8,
   },
   searchInput: {
-    height: 42,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    height: 44,
+    borderRadius: 12,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: '#1a1a1a',
     borderWidth: 1,
-    borderColor: '#e8e8e8',
   },
-  chipsScroll: {
-    flexGrow: 0,
-  },
+  chipsScroll: { flexGrow: 0 },
   chipsContent: {
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingBottom: 10,
     gap: 8,
     flexDirection: 'row',
   },
@@ -243,57 +237,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 99,
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
-  chipSmall: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  chipActive: {
-    backgroundColor: '#e91e8c',
-    borderColor: '#e91e8c',
-  },
-  chipText: {
-    fontSize: 13,
-    color: '#555',
-    fontWeight: '500',
-  },
-  chipTextSmall: {
-    fontSize: 12,
-  },
-  chipTextActive: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  filterRow: {
+  chipActive: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
+  chipText: { fontSize: 13, fontWeight: '500' },
+  chipTextActive: { color: '#fff', fontWeight: '600' },
+
+  /* Filter bar — visually distinct from category chips above */
+  filterBar: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    marginBottom: 6,
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 0,
   },
-  filterGroup: {
-    flex: 1,
-    overflow: 'hidden',
-  },
+  filterSegment: { flex: 1, gap: 6 },
   filterLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#bbb',
-    letterSpacing: 1,
-    marginBottom: 5,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
-  filterChips: {
-    gap: 6,
-    flexDirection: 'row',
+  pillRow: { flexDirection: 'row', gap: 6 },
+  pill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 99,
+    borderWidth: 1,
   },
+  pillActive: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
+  pillText: { fontSize: 12, fontWeight: '500' },
+  pillTextActive: { color: '#fff', fontWeight: '600' },
   filterDivider: {
     width: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: 10,
-    marginTop: 2,
+    height: '100%',
     alignSelf: 'stretch',
+    marginHorizontal: 10,
   },
   listContent: {
     paddingHorizontal: 16,

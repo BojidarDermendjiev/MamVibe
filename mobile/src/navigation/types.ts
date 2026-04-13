@@ -27,4 +27,6 @@ export type RootStackParamList = {
   Payment: { itemId: string };
   Dashboard: undefined;
   ShipmentDetail: { shipmentId: string };
+  MyItems: undefined;
+  Settings: undefined;
 };

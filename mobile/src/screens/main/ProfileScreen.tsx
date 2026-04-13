@@ -25,8 +25,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const MENU = [
     { icon: '👜', label: 'Wallet',    onPress: () => (navigation as any).navigate('Wallet') },
     { icon: '🗂️', label: 'My Orders', onPress: () => (navigation as any).navigate('Dashboard') },
-    { icon: '📦', label: 'My Items',  onPress: () => {} },
-    { icon: '⚙️', label: 'Settings',  onPress: () => {} },
+    { icon: '📦', label: 'My Items',  onPress: () => (navigation as any).navigate('MyItems') },
+    { icon: '⚙️', label: 'Settings',  onPress: () => (navigation as any).navigate('Settings') },
   ];
 
   return (
