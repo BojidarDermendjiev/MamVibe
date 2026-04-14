@@ -18,6 +18,7 @@ export type MainTabParamList = {
   Browse: undefined;
   ChatTab: undefined;
   Profile: undefined;
+  NewListing: undefined;
 };
 
 export type RootStackParamList = {
@@ -30,4 +31,5 @@ export type RootStackParamList = {
   MyItems: undefined;
   Settings: undefined;
   Donate: undefined;
+  CreateItem: undefined;
 };

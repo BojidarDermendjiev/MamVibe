@@ -1,7 +1,7 @@
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, View, TouchableOpacity } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
 import LoginScreen from '@/screens/auth/LoginScreen';
@@ -20,6 +20,7 @@ import ConversationScreen from '@/screens/chat/ConversationScreen';
 import MyItemsScreen from '@/screens/main/MyItemsScreen';
 import SettingsScreen from '@/screens/main/SettingsScreen';
 import DonateScreen from '@/screens/main/DonateScreen';
+import CreateItemScreen from '@/screens/main/CreateItemScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
 export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
@@ -83,6 +84,24 @@ function MainTabs() {
         component={ProfileScreen}
         options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }}
       />
+      <MainTab.Screen
+        name="NewListing"
+        component={ProfileScreen}
+        listeners={({ navigation: nav }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            nav.navigate('CreateItem');
+          },
+        })}
+        options={{
+          tabBarLabel: '',
+          tabBarIcon: () => (
+            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#e91e8c', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+              <Text style={{ color: '#fff', fontSize: 28, lineHeight: 32, fontWeight: '300' }}>+</Text>
+            </View>
+          ),
+        }}
+      />
     </MainTab.Navigator>
   );
 }
@@ -130,6 +149,11 @@ function MainNavigator() {
         name="Donate"
         component={DonateScreen}
         options={{ headerShown: true, title: 'Support MamVibe', headerTintColor: '#e91e8c' }}
+      />
+      <RootStack.Screen
+        name="CreateItem"
+        component={CreateItemScreen}
+        options={{ headerShown: true, title: 'New Listing', headerTintColor: '#e91e8c' }}
       />
     </RootStack.Navigator>
   );

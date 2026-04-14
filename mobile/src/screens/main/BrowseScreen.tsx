@@ -142,14 +142,14 @@ const s = StyleSheet.create({
   toggle: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 12,
+    marginBottom: 10,
+    borderRadius: 10,
     borderWidth: 1,
     overflow: 'hidden',
   },
-  toggleBtn: { flex: 1, paddingVertical: 10, alignItems: 'center' },
+  toggleBtn: { flex: 1, paddingVertical: 7, alignItems: 'center' },
   toggleBtnActive: { backgroundColor: '#e91e8c' },
-  toggleTxt: { fontSize: 14, fontWeight: '600' },
+  toggleTxt: { fontSize: 12, fontWeight: '600' },
   toggleTxtActive: { color: '#fff' },
 
   list: { paddingHorizontal: 16, paddingTop: 4 },
