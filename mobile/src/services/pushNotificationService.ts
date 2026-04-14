@@ -34,7 +34,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
       name: 'MamVibe',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#e91e8c',
+      lightColor: '#d4938f',
     });
   }
 

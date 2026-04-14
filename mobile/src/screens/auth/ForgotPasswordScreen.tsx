@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@/navigation';
 import axiosClient from '@/api/axiosClient';
@@ -17,6 +18,7 @@ import axiosClient from '@/api/axiosClient';
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -28,7 +30,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       await axiosClient.post('/auth/forgot-password', { email });
       setSent(true);
     } catch {
-      Alert.alert('Error', 'Could not send reset email. Please try again.');
+      Alert.alert(t('common.error'), 'Could not send reset email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -39,18 +41,16 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>Reset Password</Text>
+      <Text style={styles.title}>{t('auth.forgotTitle')}</Text>
       <Text style={styles.subtitle}>
-        {sent
-          ? 'Check your email for a reset link.'
-          : 'Enter your email and we will send you a reset link.'}
+        {sent ? t('auth.resetSent') : t('auth.forgotSubtitle')}
       </Text>
 
       {!sent && (
         <>
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={t('auth.email')}
             placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
@@ -65,14 +65,14 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Send Reset Link</Text>
+              <Text style={styles.buttonText}>{t('auth.sendResetLink')}</Text>
             )}
           </TouchableOpacity>
         </>
       )}
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Back to Sign In</Text>
+        <Text style={styles.link}>{t('auth.backToLogin')}</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 50,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color: '#e91e8c',
+    color: '#d4938f',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 12,

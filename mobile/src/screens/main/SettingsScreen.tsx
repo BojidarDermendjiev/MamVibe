@@ -12,18 +12,23 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
 import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/api/authApi';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
-const PRIMARY = '#e91e8c';
+import { ROSE, SAGE } from '@/constants/palette';
+const PRIMARY = ROSE;
 
 export default function SettingsScreen({}: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const { user, setUser } = useAuthStore();
 
   const [form, setForm] = useState({
@@ -38,16 +43,16 @@ export default function SettingsScreen({}: Props) {
 
   const handleSaveProfile = async () => {
     if (!form.displayName.trim()) {
-      Alert.alert('Validation', 'Display name is required.');
+      Alert.alert(t('common.validation'), t('settings.displayNameRequired'));
       return;
     }
     setProfileLoading(true);
     try {
       const { data } = await authApi.updateProfile(form);
       setUser(data);
-      Alert.alert('Saved', 'Profile updated successfully.');
+      Alert.alert(t('settings.saved'), t('settings.profileUpdated'));
     } catch {
-      Alert.alert('Error', 'Could not update profile.');
+      Alert.alert(t('common.error'), t('settings.profileError'));
     } finally {
       setProfileLoading(false);
     }
@@ -55,24 +60,24 @@ export default function SettingsScreen({}: Props) {
 
   const handleChangePassword = async () => {
     if (pw.newPassword.length < 8) {
-      Alert.alert('Validation', 'New password must be at least 8 characters.'); return;
+      Alert.alert(t('common.validation'), t('settings.passwordMin')); return;
     }
     if (!/[A-Z]/.test(pw.newPassword)) {
-      Alert.alert('Validation', 'Password must contain at least one uppercase letter.'); return;
+      Alert.alert(t('common.validation'), t('settings.passwordUppercase')); return;
     }
     if (!/[0-9]/.test(pw.newPassword)) {
-      Alert.alert('Validation', 'Password must contain at least one digit.'); return;
+      Alert.alert(t('common.validation'), t('settings.passwordDigit')); return;
     }
     if (pw.newPassword !== pw.confirmNewPassword) {
-      Alert.alert('Validation', 'Passwords do not match.'); return;
+      Alert.alert(t('common.validation'), t('settings.passwordMismatch')); return;
     }
     setPwLoading(true);
     try {
       await authApi.changePassword(pw);
-      Alert.alert('Done', 'Password changed successfully.');
+      Alert.alert(t('common.done'), t('settings.passwordChanged'));
       setPw({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.message ?? 'Could not change password.');
+      Alert.alert(t('common.error'), err?.response?.data?.message ?? t('settings.passwordError'));
     } finally {
       setPwLoading(false);
     }
@@ -86,31 +91,49 @@ export default function SettingsScreen({}: Props) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
+          {/* ── Language section ── */}
+          <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[s.cardTitle, { color: PRIMARY }]}>{t('settings.language')}</Text>
+            <View style={s.langRow}>
+              {(['en', 'bg'] as const).map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  style={[s.langBtn, { borderColor: colors.border }, language === lang && s.langBtnActive]}
+                  onPress={() => setLanguage(lang)}
+                >
+                  <Text style={[s.langTxt, { color: colors.text2 }, language === lang && s.langTxtActive]}>
+                    {lang === 'en' ? '🇬🇧  English' : '🇧🇬  Български'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
           {/* ── Profile section ── */}
           <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[s.cardTitle, { color: PRIMARY }]}>Profile</Text>
+            <Text style={[s.cardTitle, { color: PRIMARY }]}>{t('settings.profile')}</Text>
 
-            <Text style={labelStyle}>Display Name</Text>
+            <Text style={labelStyle}>{t('settings.displayName')}</Text>
             <TextInput
               style={inputStyle}
               value={form.displayName}
               onChangeText={(v) => setForm({ ...form, displayName: v })}
-              placeholder="Your name"
+              placeholder={t('settings.displayName')}
               placeholderTextColor={colors.text2}
             />
 
-            <Text style={labelStyle}>Bio</Text>
+            <Text style={labelStyle}>{t('settings.bio')}</Text>
             <TextInput
               style={[inputStyle, s.textArea]}
               value={form.bio}
               onChangeText={(v) => setForm({ ...form, bio: v })}
-              placeholder="Tell families about yourself"
+              placeholder={t('settings.bioPlaceholder')}
               placeholderTextColor={colors.text2}
               multiline
               numberOfLines={3}
             />
 
-            <Text style={labelStyle}>IBAN</Text>
+            <Text style={labelStyle}>{t('settings.iban')}</Text>
             <TextInput
               style={inputStyle}
               value={form.iban}
@@ -123,16 +146,16 @@ export default function SettingsScreen({}: Props) {
             <TouchableOpacity style={s.saveBtn} onPress={handleSaveProfile} disabled={profileLoading}>
               {profileLoading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={s.saveBtnText}>Save Changes</Text>
+                : <Text style={s.saveBtnText}>{t('settings.saveChanges')}</Text>
               }
             </TouchableOpacity>
           </View>
 
           {/* ── Change password section ── */}
           <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[s.cardTitle, { color: PRIMARY }]}>Change Password</Text>
+            <Text style={[s.cardTitle, { color: PRIMARY }]}>{t('settings.changePassword')}</Text>
 
-            <Text style={labelStyle}>Current Password</Text>
+            <Text style={labelStyle}>{t('settings.currentPassword')}</Text>
             <TextInput
               style={inputStyle}
               value={pw.currentPassword}
@@ -142,7 +165,7 @@ export default function SettingsScreen({}: Props) {
               secureTextEntry
             />
 
-            <Text style={labelStyle}>New Password</Text>
+            <Text style={labelStyle}>{t('settings.newPassword')}</Text>
             <TextInput
               style={inputStyle}
               value={pw.newPassword}
@@ -152,7 +175,7 @@ export default function SettingsScreen({}: Props) {
               secureTextEntry
             />
 
-            <Text style={labelStyle}>Confirm New Password</Text>
+            <Text style={labelStyle}>{t('settings.confirmNewPassword')}</Text>
             <TextInput
               style={inputStyle}
               value={pw.confirmNewPassword}
@@ -165,7 +188,7 @@ export default function SettingsScreen({}: Props) {
             <TouchableOpacity style={s.saveBtn} onPress={handleChangePassword} disabled={pwLoading}>
               {pwLoading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={s.saveBtnText}>Change Password</Text>
+                : <Text style={s.saveBtnText}>{t('settings.changePassword')}</Text>
               }
             </TouchableOpacity>
           </View>
@@ -184,6 +207,11 @@ const s = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', marginTop: 8, marginBottom: 4 },
   input: { height: 46, borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, fontSize: 15 },
   textArea: { height: 80, paddingTop: 12, textAlignVertical: 'top' },
-  saveBtn: { backgroundColor: '#e91e8c', borderRadius: 10, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  saveBtn: { backgroundColor: ROSE, borderRadius: 10, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  langRow: { flexDirection: 'row', gap: 10 },
+  langBtn: { flex: 1, height: 44, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  langBtnActive: { backgroundColor: PRIMARY, borderColor: PRIMARY },
+  langTxt: { fontSize: 14, fontWeight: '600' },
+  langTxtActive: { color: '#fff' },
 });

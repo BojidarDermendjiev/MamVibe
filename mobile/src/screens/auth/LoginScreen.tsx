@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@/navigation';
 import axiosClient, { tokenStorage } from '@/api/axiosClient';
@@ -19,6 +20,7 @@ import type { AuthResponse } from '@mamvibe/shared';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function LoginScreen({ navigation }: Props) {
       }
       setAuth(data.user, data.accessToken, data.refreshToken);
     } catch (err: any) {
-      const message = err.response?.data?.error ?? err.response?.data?.message ?? 'Login failed';
+      const message = err.response?.data?.error ?? err.response?.data?.message ?? t('auth.loginFailed');
       Alert.alert('Error', message);
     } finally {
       setLoading(false);
@@ -47,12 +49,12 @@ export default function LoginScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>MamVibe</Text>
-      <Text style={styles.subtitle}>Sign in to your account</Text>
+      <Text style={styles.title}>{t('auth.title')}</Text>
+      <Text style={styles.subtitle}>{t('auth.signInSubtitle')}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder={t('auth.email')}
         placeholderTextColor="#999"
         value={email}
         onChangeText={setEmail}
@@ -62,7 +64,7 @@ export default function LoginScreen({ navigation }: Props) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder={t('auth.password')}
         placeholderTextColor="#999"
         value={password}
         onChangeText={setPassword}
@@ -78,16 +80,16 @@ export default function LoginScreen({ navigation }: Props) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Sign In</Text>
+          <Text style={styles.buttonText}>{t('auth.signIn')}</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.link}>Forgot password?</Text>
+        <Text style={styles.link}>{t('auth.forgotPassword')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Don't have an account? Register</Text>
+        <Text style={styles.link}>{t('auth.noAccount')}</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 50,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color: '#e91e8c',
+    color: '#d4938f',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 12,

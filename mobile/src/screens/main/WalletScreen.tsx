@@ -45,10 +45,10 @@ const STATUS_LABELS: Record<number, string> = {
 };
 
 function statusColor(s: WalletTransactionStatus) {
-  if (s === WalletTransactionStatus.Completed) return '#16a34a';
-  if (s === WalletTransactionStatus.Pending) return '#d97706';
-  if (s === WalletTransactionStatus.Reversed) return '#2563eb';
-  return '#dc2626';
+  if (s === WalletTransactionStatus.Completed) return '#8eaa89';
+  if (s === WalletTransactionStatus.Pending) return '#c9a870';
+  if (s === WalletTransactionStatus.Reversed) return '#8eaa89';
+  return '#d4938f';
 }
 
 // ── Transaction row ────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function TxRow({ tx }: { tx: WalletTransactionDto }) {
         <Text style={styles.txDate}>{new Date(tx.createdAt).toLocaleString('en-GB')}</Text>
       </View>
       <View style={styles.txRight}>
-        <Text style={[styles.txAmount, { color: isCredit ? '#16a34a' : '#dc2626' }]}>
+        <Text style={[styles.txAmount, { color: isCredit ? '#8eaa89' : '#d4938f' }]}>
           {isCredit ? '+' : '-'}{formatEur(tx.amount)}
         </Text>
         <Text style={styles.txBalance}>{formatEur(tx.balanceAfter)}</Text>
@@ -312,7 +312,7 @@ export default function WalletScreen() {
   const isActive = wallet?.status === WalletStatus.Active;
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color="#e91e8c" /></View>;
+    return <View style={styles.center}><ActivityIndicator size="large" color="#d4938f" /></View>;
   }
 
   return (
@@ -323,7 +323,7 @@ export default function WalletScreen() {
         renderItem={({ item }) => <TxRow tx={item} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#d4938f" />}
         ListHeaderComponent={
           <View>
             {/* Balance card */}
@@ -362,7 +362,7 @@ export default function WalletScreen() {
             )}
           </View>
         }
-        ListFooterComponent={loadingMore ? <ActivityIndicator color="#e91e8c" style={{ padding: 16 }} /> : null}
+        ListFooterComponent={loadingMore ? <ActivityIndicator color="#d4938f" style={{ padding: 16 }} /> : null}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
 
@@ -380,9 +380,9 @@ const styles = StyleSheet.create({
   balanceCard: {
     margin: 16,
     padding: 24,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     borderRadius: 20,
-    shadowColor: '#e91e8c',
+    shadowColor: '#d4938f',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   actionBtnIcon: { color: '#fff', fontSize: 20, fontWeight: '600' },
   actionBtnLabel: { color: '#fff', fontSize: 12, fontWeight: '600' },
 
-  sectionLabel: { marginHorizontal: 16, marginBottom: 4, fontSize: 13, fontWeight: '700', color: '#333', textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionLabel: { marginHorizontal: 16, marginBottom: 4, fontSize: 13, fontWeight: '700', color: '#8eaa89', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   txRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#fff' },
   txLeft: { flex: 1, marginRight: 12 },
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   txAmount: { fontSize: 15, fontWeight: '700' },
   txBalance: { fontSize: 12, color: '#aaa' },
   txStatus: { fontSize: 11, fontWeight: '600' },
-  txReceipt: { fontSize: 11, color: '#e91e8c', marginTop: 2 },
+  txReceipt: { fontSize: 11, color: '#d4938f', marginTop: 2 },
 
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: '#f0f0f0' },
   empty: { alignItems: 'center', paddingVertical: 40 },
@@ -424,10 +424,10 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#444', marginBottom: 6, marginTop: 12 },
   input: { height: 48, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 10, paddingHorizontal: 14, fontSize: 16, color: '#1a1a1a', backgroundColor: '#fafafa' },
   inputHint: { fontSize: 12, color: '#aaa', marginTop: 6 },
-  errorText: { color: '#dc2626', fontSize: 13, marginTop: 8 },
+  errorText: { color: '#d4938f', fontSize: 13, marginTop: 8 },
   sheetActions: { marginTop: 24, gap: 10 },
-  btnPrimary: { height: 50, backgroundColor: '#e91e8c', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  btnPrimary: { height: 50, backgroundColor: '#d4938f', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   btnPrimaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  btnSecondary: { height: 50, borderWidth: 1, borderColor: '#ddd', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  btnSecondaryText: { color: '#555', fontSize: 16 },
+  btnSecondary: { height: 50, borderWidth: 1, borderColor: '#f5ede5', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  btnSecondaryText: { color: '#8eaa89', fontSize: 16 },
 });

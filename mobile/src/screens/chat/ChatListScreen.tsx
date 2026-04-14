@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { messagesApi } from '@/api/messagesApi';
 import { useSignalR } from '@/contexts/SignalRContext';
@@ -33,6 +34,7 @@ function formatTime(timestamp: string): string {
 }
 
 export default function ChatListScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filtered, setFiltered] = useState<Conversation[]>([]);
   const [search, setSearch] = useState('');
@@ -131,7 +133,7 @@ export default function ChatListScreen({ navigation }: Props) {
       <View style={styles.searchWrap}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search conversations..."
+          placeholder={t('browse.searchPlaceholder')}
           placeholderTextColor="#aaa"
           value={search}
           onChangeText={setSearch}
@@ -141,13 +143,13 @@ export default function ChatListScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#e91e8c" />
+          <ActivityIndicator size="large" color="#d4938f" />
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.emptyEmoji}>💬</Text>
           <Text style={styles.emptyText}>
-            {search ? 'No results' : 'No conversations yet'}
+            {search ? t('browse.noItems') : t('chat.noConversations')}
           </Text>
         </View>
       ) : (
@@ -160,7 +162,7 @@ export default function ChatListScreen({ navigation }: Props) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => { setRefreshing(true); load(); }}
-              tintColor="#e91e8c"
+              tintColor="#d4938f"
             />
           }
         />
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   avatarWrap: { position: 'relative', marginRight: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
-  avatarFallback: { backgroundColor: '#e91e8c', alignItems: 'center', justifyContent: 'center' },
+  avatarFallback: { backgroundColor: '#d4938f', alignItems: 'center', justifyContent: 'center' },
   avatarLetter: { color: '#fff', fontSize: 20, fontWeight: '700' },
   badge: {
     position: 'absolute',
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,

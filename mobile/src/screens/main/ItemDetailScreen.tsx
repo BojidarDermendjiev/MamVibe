@@ -12,6 +12,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
 import { itemsApi } from '@/api/itemsApi';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ItemDetailScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { itemId } = route.params;
   const { user } = useAuthStore();
   const [item, setItem] = useState<Item | null>(null);
@@ -93,7 +95,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#e91e8c" />
+        <ActivityIndicator size="large" color="#d4938f" />
       </View>
     );
   }
@@ -158,7 +160,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
           <Text style={styles.category}>{item.categoryName}</Text>
 
           <Text style={styles.price}>
-            {isDonate ? 'Free' : formatPrice(item.price)}
+            {isDonate ? t('items.free') : formatPrice(item.price)}
           </Text>
 
           {/* Stats */}
@@ -237,7 +239,7 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   galleryContainer: { position: 'relative' },
   mainPhoto: {
     width: SCREEN_WIDTH,
@@ -279,15 +281,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 99,
   },
-  badgeSell: { backgroundColor: '#e91e8c' },
-  badgeDonate: { backgroundColor: '#22c55e' },
+  badgeSell: { backgroundColor: '#d4938f' },
+  badgeDonate: { backgroundColor: '#8eaa89' },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   likeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   likeIcon: { fontSize: 22 },
   likeCountText: { fontSize: 14, color: '#555' },
   title: { fontSize: 22, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
   category: { fontSize: 13, color: '#888', marginBottom: 12 },
-  price: { fontSize: 24, fontWeight: '800', color: '#e91e8c', marginBottom: 12 },
+  price: { fontSize: 24, fontWeight: '800', color: '#c9a870', marginBottom: 12 },
   statsRow: { flexDirection: 'row', gap: 16, marginBottom: 20 },
   stat: { fontSize: 13, color: '#aaa' },
   sectionLabel: { fontSize: 13, fontWeight: '700', color: '#333', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -305,7 +307,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -320,21 +322,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionBtnPrimary: { backgroundColor: '#e91e8c' },
-  actionBtnGreen: { backgroundColor: '#22c55e' },
-  actionBtnOutline: { borderWidth: 1.5, borderColor: '#e91e8c' },
+  actionBtnPrimary: { backgroundColor: '#d4938f' },
+  actionBtnGreen: { backgroundColor: '#8eaa89' },
+  actionBtnOutline: { borderWidth: 1.5, borderColor: '#d4938f' },
   actionBtnDisabled: { opacity: 0.5 },
   actionBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  actionBtnOutlineText: { color: '#e91e8c', fontSize: 16, fontWeight: '600' },
+  actionBtnOutlineText: { color: '#d4938f', fontSize: 16, fontWeight: '600' },
   deleteBtn: {
     height: 48,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ef4444',
+    borderColor: '#d4938f',
   },
-  deleteBtnText: { color: '#ef4444', fontSize: 15, fontWeight: '600' },
+  deleteBtnText: { color: '#d4938f', fontSize: 15, fontWeight: '600' },
   unavailableBanner: {
     padding: 16,
     backgroundColor: '#f5f5f5',

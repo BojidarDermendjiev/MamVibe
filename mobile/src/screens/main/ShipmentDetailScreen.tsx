@@ -42,10 +42,10 @@ const STATUS_LABELS: Record<number, string> = {
 };
 
 function statusColor(s: ShipmentStatus): string {
-  if (s === ShipmentStatus.Delivered) return '#16a34a';
-  if (s === ShipmentStatus.Cancelled || s === ShipmentStatus.Returned) return '#dc2626';
-  if (s === ShipmentStatus.InTransit || s === ShipmentStatus.OutForDelivery) return '#2563eb';
-  return '#d97706';
+  if (s === ShipmentStatus.Delivered) return '#8eaa89';
+  if (s === ShipmentStatus.Cancelled || s === ShipmentStatus.Returned) return '#d4938f';
+  if (s === ShipmentStatus.InTransit || s === ShipmentStatus.OutForDelivery) return '#8eaa89';
+  return '#c9a870';
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -69,7 +69,7 @@ function TrackingTimeline({ shipmentId }: { shipmentId: string }) {
       .finally(() => setLoading(false));
   }, [shipmentId]);
 
-  if (loading) return <ActivityIndicator color="#e91e8c" style={{ marginVertical: 16 }} />;
+  if (loading) return <ActivityIndicator color="#d4938f" style={{ marginVertical: 16 }} />;
   if (events.length === 0) return <Text style={styles.emptyTracking}>No tracking events yet.</Text>;
 
   return (
@@ -136,7 +136,7 @@ export default function ShipmentDetailScreen({ route, navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color="#e91e8c" /></View>;
+    return <View style={styles.center}><ActivityIndicator size="large" color="#d4938f" /></View>;
   }
 
   if (!shipment) {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fafafa' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   notFound: { fontSize: 16, color: '#888' },
-  backLink: { color: '#e91e8c', fontSize: 15 },
+  backLink: { color: '#d4938f', fontSize: 15 },
   scroll: { padding: 16, gap: 12, paddingBottom: 40 },
 
   statusBanner: {
@@ -261,12 +261,12 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 10 },
   btnSecondary: {
     flex: 1, height: 46, borderRadius: 12, borderWidth: 1.5,
-    borderColor: '#e91e8c', alignItems: 'center', justifyContent: 'center',
+    borderColor: '#d4938f', alignItems: 'center', justifyContent: 'center',
   },
-  btnSecondaryText: { color: '#e91e8c', fontSize: 14, fontWeight: '600' },
+  btnSecondaryText: { color: '#d4938f', fontSize: 14, fontWeight: '600' },
   btnDanger: {
     flex: 1, height: 46, borderRadius: 12,
-    backgroundColor: '#dc2626', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#d4938f', alignItems: 'center', justifyContent: 'center',
   },
   btnDangerText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   btnDisabled: { opacity: 0.5 },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 2,
     elevation: 2,
   },
-  timelineDotActive: { backgroundColor: '#e91e8c' },
+  timelineDotActive: { backgroundColor: '#d4938f' },
   timelineLine: { width: 2, flex: 1, backgroundColor: '#f0f0f0', marginTop: 4 },
   timelineContent: { flex: 1, paddingBottom: 4 },
   timelineDesc: { fontSize: 14, color: '#1a1a1a', fontWeight: '500' },

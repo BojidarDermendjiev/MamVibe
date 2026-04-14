@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { type Item, ListingType } from '@mamvibe/shared';
 import { formatPrice } from '@/utils/currency';
 import { itemsApi } from '@/api/itemsApi';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function ItemCard({ item, onPress }: Props) {
+  const { t } = useTranslation();
   const [liked, setLiked] = useState(item.isLikedByCurrentUser);
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -70,7 +72,7 @@ export default function ItemCard({ item, onPress }: Props) {
         <Text style={[styles.category, { color: colors.text2 }]} numberOfLines={1}>{item.categoryName}</Text>
         <View style={styles.footer}>
           <Text style={styles.price}>
-            {isDonate ? 'Free' : formatPrice(item.price)}
+            {isDonate ? t('items.free') : formatPrice(item.price)}
           </Text>
           <Text style={[styles.views, { color: colors.text3 }]}>👁 {item.viewCount}</Text>
         </View>
@@ -118,10 +120,10 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   badgeDonate: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#8eaa89',
   },
   badgeSell: {
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
   },
   badgeText: {
     color: '#fff',
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#e91e8c',
+    color: '#c9a870',
     flexShrink: 1,
     marginRight: 4,
   },

@@ -63,7 +63,7 @@ export default function MyItemsScreen({ navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={[s.safe, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator size="large" color="#e91e8c" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#d4938f" style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
   }
@@ -114,7 +114,7 @@ const s = StyleSheet.create({
     paddingVertical: 6,
     alignItems: 'center',
   },
-  deleteBtnText: { color: '#ef4444', fontSize: 12, fontWeight: '600' },
+  deleteBtnText: { color: '#d4938f', fontSize: 12, fontWeight: '600' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 16 },

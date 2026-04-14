@@ -194,7 +194,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color="#e91e8c" /></View>;
+    return <View style={styles.center}><ActivityIndicator size="large" color="#d4938f" /></View>;
   }
   if (!item) return null;
 
@@ -291,13 +291,13 @@ const styles = StyleSheet.create({
 
   card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   cardTitle: { fontSize: 17, fontWeight: '600', color: '#1a1a1a', marginBottom: 4 },
-  cardPrice: { fontSize: 22, fontWeight: '800', color: '#e91e8c' },
+  cardPrice: { fontSize: 22, fontWeight: '800', color: '#c9a870' },
 
   sectionLabel: { fontSize: 12, fontWeight: '700', color: '#555', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 8, marginBottom: 4 },
 
   chipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 6 },
   chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, borderWidth: 1, borderColor: '#ddd', backgroundColor: '#fff' },
-  chipActive: { backgroundColor: '#e91e8c', borderColor: '#e91e8c' },
+  chipActive: { backgroundColor: '#d4938f', borderColor: '#d4938f' },
   chipText: { fontSize: 13, color: '#555', fontWeight: '500' },
   chipTextActive: { color: '#fff', fontWeight: '600' },
 
@@ -306,16 +306,16 @@ const styles = StyleSheet.create({
   input: { height: 46, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 10, paddingHorizontal: 14, fontSize: 15, color: '#1a1a1a', backgroundColor: '#fafafa' },
 
   methodCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: '#eee', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
-  methodCardActive: { borderColor: '#e91e8c', backgroundColor: '#fff5f9' },
+  methodCardActive: { borderColor: '#d4938f', backgroundColor: 'rgba(212,147,143,0.06)' },
   methodIcon: { fontSize: 26 },
   methodBody: { flex: 1 },
   methodTitle: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
   methodDesc: { fontSize: 12, color: '#888', marginTop: 1 },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#ddd', alignItems: 'center', justifyContent: 'center' },
-  radioActive: { borderColor: '#e91e8c' },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#e91e8c' },
+  radioActive: { borderColor: '#d4938f' },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#d4938f' },
 
-  submitBtn: { height: 54, backgroundColor: '#e91e8c', borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  submitBtn: { height: 54, backgroundColor: '#d4938f', borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   submitBtnDisabled: { opacity: 0.5 },
   submitText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

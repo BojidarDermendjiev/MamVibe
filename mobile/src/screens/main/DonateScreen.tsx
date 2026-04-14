@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useStripe } from '@stripe/stripe-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
@@ -19,9 +20,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 type Props = NativeStackScreenProps<RootStackParamList, 'Donate'>;
 
 const PRESETS = [1, 3, 5, 10];
-const PRIMARY = '#e91e8c';
+import { ROSE } from '@/constants/palette';
+const PRIMARY = ROSE;
 
 export default function DonateScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
@@ -33,7 +36,7 @@ export default function DonateScreen({ navigation }: Props) {
 
   const handleDonate = async () => {
     if (!amount || isNaN(amount) || amount < 1) {
-      Alert.alert('Amount required', 'Please select or enter an amount of at least 1 лв.');
+      Alert.alert(t('donate.amountRequired'), t('donate.amountMin'));
       return;
     }
     setLoading(true);
@@ -43,18 +46,18 @@ export default function DonateScreen({ navigation }: Props) {
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: 'MamVibe',
       });
-      if (initErr) { Alert.alert('Error', initErr.message); return; }
+      if (initErr) { Alert.alert(t('common.error'), initErr.message); return; }
 
       const { error: presentErr } = await presentPaymentSheet();
       if (presentErr) {
-        if (presentErr.code !== 'Canceled') Alert.alert('Payment failed', presentErr.message);
+        if (presentErr.code !== 'Canceled') Alert.alert(t('donate.paymentFailed'), presentErr.message);
         return;
       }
-      Alert.alert('Thank you! 💛', 'Your support keeps MamVibe running.', [
-        { text: 'Back to Home', onPress: () => navigation.goBack() },
+      Alert.alert(t('donate.thankYou'), t('donate.thankYouMsg'), [
+        { text: t('donate.backToHome'), onPress: () => navigation.goBack() },
       ]);
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? err?.message ?? 'Could not connect to server. Make sure the backend is running.';
+      const msg = err?.response?.data?.error ?? err?.message ?? t('donate.paymentError');
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -68,14 +71,12 @@ export default function DonateScreen({ navigation }: Props) {
         {/* Header */}
         <View style={s.header}>
           <Text style={s.heart}>💛</Text>
-          <Text style={[s.title, { color: colors.text }]}>Support MamVibe</Text>
-          <Text style={[s.subtitle, { color: colors.text2 }]}>
-            MamVibe is free, ad-free, and always will be. A small contribution keeps the platform running and helps more families.
-          </Text>
+          <Text style={[s.title, { color: colors.text }]}>{t('donate.title')}</Text>
+          <Text style={[s.subtitle, { color: colors.text2 }]}>{t('donate.subtitle')}</Text>
         </View>
 
         {/* Preset amounts */}
-        <Text style={[s.label, { color: colors.text2 }]}>Choose an amount (лв)</Text>
+        <Text style={[s.label, { color: colors.text2 }]}>{t('donate.chooseAmount')}</Text>
         <View style={s.presets}>
           {PRESETS.map((v) => (
             <TouchableOpacity
@@ -95,10 +96,10 @@ export default function DonateScreen({ navigation }: Props) {
         </View>
 
         {/* Custom amount */}
-        <Text style={[s.label, { color: colors.text2 }]}>Or enter custom amount</Text>
+        <Text style={[s.label, { color: colors.text2 }]}>{t('donate.customAmount')}</Text>
         <TextInput
           style={[s.input, { backgroundColor: colors.input, borderColor: custom ? PRIMARY : colors.inputBorder, color: colors.text }]}
-          placeholder="e.g. 15"
+          placeholder={t('donate.customPlaceholder')}
           placeholderTextColor={colors.text2}
           keyboardType="decimal-pad"
           value={custom}
@@ -108,7 +109,7 @@ export default function DonateScreen({ navigation }: Props) {
         {/* Summary */}
         {!!amount && !isNaN(amount) && (
           <View style={[s.summary, { backgroundColor: colors.section, borderColor: colors.border }]}>
-            <Text style={[s.summaryText, { color: colors.text2 }]}>You're donating</Text>
+            <Text style={[s.summaryText, { color: colors.text2 }]}>{t('donate.youAreDonating')}</Text>
             <Text style={s.summaryAmount}>{amount.toFixed(2)} лв</Text>
           </View>
         )}
@@ -121,13 +122,11 @@ export default function DonateScreen({ navigation }: Props) {
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={s.btnText}>Donate with Card  💳</Text>
+            : <Text style={s.btnText}>{t('donate.donateBtn')}</Text>
           }
         </TouchableOpacity>
 
-        <Text style={[s.note, { color: colors.text3 }]}>
-          Payments are processed securely via Stripe. MamVibe never stores your card details.
-        </Text>
+        <Text style={[s.note, { color: colors.text3 }]}>{t('donate.stripeNote')}</Text>
 
       </ScrollView>
     </SafeAreaView>

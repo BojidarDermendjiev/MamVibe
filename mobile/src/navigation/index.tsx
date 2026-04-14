@@ -2,6 +2,7 @@ import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/contexts/ThemeContext';
 import LoginScreen from '@/screens/auth/LoginScreen';
@@ -31,19 +32,20 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 const ChatStack = createNativeStackNavigator<ChatStackParamList>();
 
 function ChatNavigator() {
+  const { t } = useTranslation();
   return (
     <ChatStack.Navigator>
       <ChatStack.Screen
         name="ChatList"
         component={ChatListScreen}
-        options={{ title: 'Messages', headerTintColor: '#e91e8c' }}
+        options={{ title: t('nav.messages'), headerTintColor: '#d4938f' }}
       />
       <ChatStack.Screen
         name="Conversation"
         component={ConversationScreen}
         options={({ route }) => ({
           title: route.params.displayName,
-          headerTintColor: '#e91e8c',
+          headerTintColor: '#d4938f',
         })}
       />
     </ChatStack.Navigator>
@@ -51,12 +53,13 @@ function ChatNavigator() {
 }
 
 function MainTabs() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   return (
     <MainTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#e91e8c',
+        tabBarActiveTintColor: '#d4938f',
         tabBarInactiveTintColor: colors.text2,
         tabBarStyle: { backgroundColor: colors.tabBar, borderTopColor: colors.tabBarBorder },
       }}
@@ -64,25 +67,25 @@ function MainTabs() {
       <MainTab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }}
+        options={{ tabBarLabel: t('nav.home'), tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }}
       />
       <MainTab.Screen
         name="Browse"
         component={BrowseScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🔍</Text> }}
+        options={{ tabBarLabel: t('nav.browse'), tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🔍</Text> }}
       />
       <MainTab.Screen
         name="ChatTab"
         component={ChatNavigator}
         options={{
-          tabBarLabel: 'Chat',
+          tabBarLabel: t('nav.chat'),
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text>,
         }}
       />
       <MainTab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }}
+        options={{ tabBarLabel: t('nav.profile'), tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }}
       />
       <MainTab.Screen
         name="NewListing"
@@ -96,7 +99,7 @@ function MainTabs() {
         options={{
           tabBarLabel: '',
           tabBarIcon: () => (
-            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#e91e8c', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+            <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#d4938f', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
               <Text style={{ color: '#fff', fontSize: 28, lineHeight: 32, fontWeight: '300' }}>+</Text>
             </View>
           ),
@@ -107,53 +110,54 @@ function MainTabs() {
 }
 
 function MainNavigator() {
+  const { t } = useTranslation();
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="MainTabs" component={MainTabs} />
       <RootStack.Screen
         name="ItemDetail"
         component={ItemDetailScreen}
-        options={{ headerShown: true, title: '', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: '', headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Wallet"
         component={WalletScreen}
-        options={{ headerShown: true, title: 'Wallet', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: t('profile.wallet'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Payment"
         component={PaymentScreen}
-        options={{ headerShown: true, title: 'Checkout', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: 'Checkout', headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ headerShown: true, title: 'My Orders', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: t('profile.myOrders'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="ShipmentDetail"
         component={ShipmentDetailScreen}
-        options={{ headerShown: true, title: 'Shipment', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: 'Shipment', headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="MyItems"
         component={MyItemsScreen}
-        options={{ headerShown: true, title: 'My Items', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: t('profile.myItems'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ headerShown: true, title: 'Settings', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: t('profile.settings'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Donate"
         component={DonateScreen}
-        options={{ headerShown: true, title: 'Support MamVibe', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: t('donate.title'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="CreateItem"
         component={CreateItemScreen}
-        options={{ headerShown: true, title: 'New Listing', headerTintColor: '#e91e8c' }}
+        options={{ headerShown: true, title: 'New Listing', headerTintColor: '#d4938f' }}
       />
     </RootStack.Navigator>
   );

@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '@/navigation';
 import axiosClient, { tokenStorage } from '@/api/axiosClient';
@@ -19,13 +20,8 @@ import { ProfileType, type AuthResponse } from '@mamvibe/shared';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
-const PROFILE_TYPES = [
-  { label: 'Male', value: ProfileType.Male },
-  { label: 'Female', value: ProfileType.Female },
-  { label: 'Family', value: ProfileType.Family },
-] as const;
-
 export default function RegisterScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,13 +30,19 @@ export default function RegisterScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((s) => s.setAuth);
 
+  const PROFILE_TYPES = [
+    { label: t('auth.male'),   value: ProfileType.Male },
+    { label: t('auth.female'), value: ProfileType.Female },
+    { label: t('auth.family'), value: ProfileType.Family },
+  ];
+
   const handleRegister = async () => {
     if (!email.trim() || !password || !displayName.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('auth.passwordMismatch'));
       return;
     }
     setLoading(true);
@@ -58,7 +60,7 @@ export default function RegisterScreen({ navigation }: Props) {
       }
       setAuth(data.user, data.accessToken, data.refreshToken);
     } catch (err: any) {
-      const message = err.response?.data?.error ?? err.response?.data?.message ?? 'Registration failed';
+      const message = err.response?.data?.error ?? err.response?.data?.message ?? t('auth.registerFailed');
       Alert.alert('Error', message);
     } finally {
       setLoading(false);
@@ -71,19 +73,19 @@ export default function RegisterScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join the MamVibe community</Text>
+        <Text style={styles.title}>{t('auth.registerTitle')}</Text>
+        <Text style={styles.subtitle}>{t('auth.registerSubtitle')}</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Display Name"
+          placeholder={t('auth.displayName')}
           placeholderTextColor="#999"
           value={displayName}
           onChangeText={setDisplayName}
         />
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor="#999"
           value={email}
           onChangeText={setEmail}
@@ -93,7 +95,7 @@ export default function RegisterScreen({ navigation }: Props) {
         />
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder={t('auth.password')}
           placeholderTextColor="#999"
           value={password}
           onChangeText={setPassword}
@@ -101,14 +103,14 @@ export default function RegisterScreen({ navigation }: Props) {
         />
         <TextInput
           style={styles.input}
-          placeholder="Confirm Password"
+          placeholder={t('auth.confirmPassword')}
           placeholderTextColor="#999"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
         />
 
-        <Text style={styles.label}>Profile Type</Text>
+        <Text style={styles.label}>{t('auth.profileType')}</Text>
         <View style={styles.profileTypeRow}>
           {PROFILE_TYPES.map((pt) => (
             <TouchableOpacity
@@ -131,12 +133,12 @@ export default function RegisterScreen({ navigation }: Props) {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Create Account</Text>
+            <Text style={styles.buttonText}>{t('auth.createAccount')}</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.link}>Already have an account? Sign In</Text>
+          <Text style={styles.link}>{t('auth.alreadyHaveAccount')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -189,8 +191,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   chipSelected: {
-    backgroundColor: '#e91e8c',
-    borderColor: '#e91e8c',
+    backgroundColor: '#d4938f',
+    borderColor: '#d4938f',
   },
   chipText: {
     color: '#666',
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 50,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -215,7 +217,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color: '#e91e8c',
+    color: '#d4938f',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 12,

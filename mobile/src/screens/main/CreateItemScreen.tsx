@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@/navigation/types';
@@ -26,9 +27,11 @@ import type { PriceSuggestion } from '@mamvibe/shared';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateItem'>;
 
-const PRIMARY = '#e91e8c';
+import { ROSE } from '@/constants/palette';
+const PRIMARY = ROSE;
 
 export default function CreateItemScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { categories } = useCategories();
 
@@ -48,7 +51,7 @@ export default function CreateItemScreen({ navigation }: Props) {
   const pickPhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      Alert.alert(t('createItem.permissionNeeded'), t('createItem.permissionMsg'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -66,7 +69,7 @@ export default function CreateItemScreen({ navigation }: Props) {
   const handleAiFill = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      Alert.alert(t('createItem.permissionNeeded'), t('createItem.permissionMsg'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -90,9 +93,9 @@ export default function CreateItemScreen({ navigation }: Props) {
         price: suggestion.suggestedPrice != null ? String(suggestion.suggestedPrice) : prev.price,
       }));
       setPhotos((prev) => [{ uri: asset.uri, mime: asset.mimeType ?? 'image/jpeg' }, ...prev].slice(0, 5));
-      Alert.alert('✨ AI filled the form', 'Review the suggestions before submitting.');
+      Alert.alert(t('createItem.aiFilled'), t('createItem.reviewSuggestions'));
     } catch (err: any) {
-      const msg = err?.response?.data?.detail ?? err?.response?.data?.error ?? 'Could not analyse the photo.';
+      const msg = err?.response?.data?.detail ?? err?.response?.data?.error ?? t('createItem.aiError');
       Alert.alert('Error', msg);
     } finally {
       setAiLoading(false);
@@ -100,7 +103,7 @@ export default function CreateItemScreen({ navigation }: Props) {
   }, [categories]);
 
   const handlePriceSuggest = useCallback(async () => {
-    if (!form.categoryId) { Alert.alert('Select a category first'); return; }
+    if (!form.categoryId) { Alert.alert(t('createItem.selectCategoryFirst')); return; }
     setPriceLoading(true);
     try {
       const { data } = await aiApi.suggestPrice({
@@ -110,17 +113,17 @@ export default function CreateItemScreen({ navigation }: Props) {
       });
       setPriceSuggestion(data);
     } catch {
-      Alert.alert('Error', 'Could not get a price suggestion.');
+      Alert.alert(t('common.error'), t('createItem.priceSuggestError'));
     } finally {
       setPriceLoading(false);
     }
   }, [form.categoryId, form.title, form.description]);
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
-    if (!form.categoryId) { Alert.alert('Validation', 'Please select a category.'); return; }
+    if (!form.title.trim()) { Alert.alert(t('common.validation'), t('createItem.titleRequired')); return; }
+    if (!form.categoryId) { Alert.alert(t('common.validation'), t('createItem.categoryRequired')); return; }
     if (form.listingType === ListingType.Sell && !form.price) {
-      Alert.alert('Validation', 'Price is required for items for sale.');
+      Alert.alert(t('common.validation'), t('createItem.priceRequired'));
       return;
     }
     setSubmitting(true);
@@ -141,11 +144,11 @@ export default function CreateItemScreen({ navigation }: Props) {
         shoeSize: null,
         clothingSize: null,
       });
-      Alert.alert('Listed!', 'Your item has been published.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert(t('createItem.listed'), t('createItem.itemPublished'), [
+        { text: t('common.ok'), onPress: () => navigation.goBack() },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err?.response?.data?.error ?? 'Could not create listing.');
+      Alert.alert(t('common.error'), err?.response?.data?.error ?? t('createItem.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -173,16 +176,16 @@ export default function CreateItemScreen({ navigation }: Props) {
             )}
             <View style={{ flex: 1 }}>
               <Text style={[s.aiTitle, { color: colors.text }]}>
-                {aiLoading ? 'Analysing photo…' : '✨ Fill with AI'}
+                {aiLoading ? t('createItem.analysingPhoto') : `✨ ${t('createItem.fillWithAi')}`}
               </Text>
               <Text style={[s.aiSub, { color: colors.text2 }]}>
-                Pick a photo — Claude AI fills title, description, category & price
+                {t('createItem.aiSubtitle')}
               </Text>
             </View>
           </TouchableOpacity>
 
           {/* Photos */}
-          <Text style={label}>Photos</Text>
+          <Text style={label}>{t('createItem.photos')}</Text>
           <View style={s.photoRow}>
             {photos.map((p, i) => (
               <View key={i} style={s.photoThumb}>
@@ -198,30 +201,30 @@ export default function CreateItemScreen({ navigation }: Props) {
             {photos.length < 5 && (
               <TouchableOpacity style={[s.photoAdd, { borderColor: colors.border }]} onPress={pickPhoto}>
                 <Text style={{ fontSize: 24, color: colors.text2 }}>+</Text>
-                <Text style={{ fontSize: 10, color: colors.text2 }}>Add Photo</Text>
+                <Text style={{ fontSize: 10, color: colors.text2 }}>{t('createItem.addPhoto')}</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Listing type */}
-          <Text style={label}>Type</Text>
+          <Text style={label}>{t('createItem.type')}</Text>
           <View style={[s.typeRow, { borderColor: colors.border, backgroundColor: colors.section }]}>
             <TouchableOpacity
               style={[s.typeBtn, form.listingType === ListingType.Donate && s.typeBtnActive]}
               onPress={() => { setForm({ ...form, listingType: ListingType.Donate }); setPriceSuggestion(null); }}
             >
-              <Text style={[s.typeTxt, { color: colors.text2 }, form.listingType === ListingType.Donate && s.typeTxtActive]}>🎁 Donate</Text>
+              <Text style={[s.typeTxt, { color: colors.text2 }, form.listingType === ListingType.Donate && s.typeTxtActive]}>{t('createItem.donate')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.typeBtn, form.listingType === ListingType.Sell && s.typeBtnActive]}
               onPress={() => { setForm({ ...form, listingType: ListingType.Sell }); setPriceSuggestion(null); }}
             >
-              <Text style={[s.typeTxt, { color: colors.text2 }, form.listingType === ListingType.Sell && s.typeTxtActive]}>🛒 For Sale</Text>
+              <Text style={[s.typeTxt, { color: colors.text2 }, form.listingType === ListingType.Sell && s.typeTxtActive]}>{t('createItem.forSale')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Title */}
-          <Text style={label}>Title *</Text>
+          <Text style={label}>{t('createItem.titleLabel')}</Text>
           <TextInput
             style={input}
             value={form.title}
@@ -231,7 +234,7 @@ export default function CreateItemScreen({ navigation }: Props) {
           />
 
           {/* Description */}
-          <Text style={label}>Description</Text>
+          <Text style={label}>{t('createItem.description')}</Text>
           <TextInput
             style={[input, s.textarea]}
             value={form.description}
@@ -244,7 +247,7 @@ export default function CreateItemScreen({ navigation }: Props) {
           />
 
           {/* Category */}
-          <Text style={label}>Category *</Text>
+          <Text style={label}>{t('createItem.categoryLabel')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catRow}>
             {categories.map((cat) => (
               <TouchableOpacity
@@ -262,7 +265,7 @@ export default function CreateItemScreen({ navigation }: Props) {
           {/* Price (sell only) */}
           {form.listingType === ListingType.Sell && (
             <>
-              <Text style={label}>Price (лв) *</Text>
+              <Text style={label}>{t('createItem.price')}</Text>
               <View style={s.priceRow}>
                 <TextInput
                   style={[input, { flex: 1 }]}
@@ -279,7 +282,7 @@ export default function CreateItemScreen({ navigation }: Props) {
                 >
                   {priceLoading
                     ? <ActivityIndicator size="small" color={PRIMARY} />
-                    : <Text style={s.suggestBtnTxt}>✨ Suggest</Text>
+                    : <Text style={s.suggestBtnTxt}>{t('createItem.suggestPrice')}</Text>
                   }
                 </TouchableOpacity>
               </View>
@@ -296,7 +299,7 @@ export default function CreateItemScreen({ navigation }: Props) {
                     style={s.useBtn}
                     onPress={() => { setForm((f) => ({ ...f, price: String(priceSuggestion.suggestedPrice) })); setPriceSuggestion(null); }}
                   >
-                    <Text style={s.useBtnTxt}>Use</Text>
+                    <Text style={s.useBtnTxt}>{t('createItem.use')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setPriceSuggestion(null)} style={{ padding: 4 }}>
                     <Text style={{ color: colors.text2 }}>✕</Text>
@@ -314,7 +317,7 @@ export default function CreateItemScreen({ navigation }: Props) {
           >
             {submitting
               ? <ActivityIndicator color="#fff" />
-              : <Text style={s.submitTxt}>Publish Listing</Text>
+              : <Text style={s.submitTxt}>{t('createItem.publishListing')}</Text>
             }
           </TouchableOpacity>
 

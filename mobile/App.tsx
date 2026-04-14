@@ -1,9 +1,11 @@
+import './src/i18n';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { SignalRProvider } from './src/contexts/SignalRContext';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import { useAuthStore } from './src/store/authStore';
 import RootNavigator from './src/navigation';
 import {
@@ -36,11 +38,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <StripeProvider publishableKey={STRIPE_KEY}>
-          <SignalRProvider>
-            <AppInner />
-          </SignalRProvider>
-        </StripeProvider>
+        <LanguageProvider>
+          <StripeProvider publishableKey={STRIPE_KEY}>
+            <SignalRProvider>
+              <AppInner />
+            </SignalRProvider>
+          </StripeProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -28,6 +29,7 @@ type Props = CompositeScreenProps<
 type TypeFilter = 'all' | 'sale' | 'free';
 
 export default function BrowseScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -75,7 +77,7 @@ export default function BrowseScreen({ navigation }: Props) {
       <View style={s.searchWrap}>
         <TextInput
           style={[s.searchInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
-          placeholder="Search items..."
+          placeholder={t('browse.searchPlaceholder')}
           placeholderTextColor={colors.text2}
           value={searchTerm}
           onChangeText={(t) => { setSearchTerm(t); setFilter({ page: 1 }); }}
@@ -87,7 +89,7 @@ export default function BrowseScreen({ navigation }: Props) {
       {/* For Sale / Free toggle */}
       <View style={[s.toggle, { backgroundColor: colors.section, borderColor: colors.border }]}>
         {(['all', 'sale', 'free'] as TypeFilter[]).map((val) => {
-          const label = val === 'all' ? 'All' : val === 'sale' ? 'For Sale' : 'Free';
+          const label = val === 'all' ? t('browse.all') : val === 'sale' ? t('browse.forSale') : t('browse.free');
           const active = typeFilter === val;
           return (
             <TouchableOpacity
@@ -107,12 +109,12 @@ export default function BrowseScreen({ navigation }: Props) {
       {/* Grid */}
       {loading ? (
         <View style={s.center}>
-          <ActivityIndicator size="large" color="#e91e8c" />
+          <ActivityIndicator size="large" color="#d4938f" />
         </View>
       ) : items.length === 0 ? (
         <View style={s.center}>
           <Text style={s.emptyEmoji}>📦</Text>
-          <Text style={[s.emptyText, { color: colors.text2 }]}>No items found</Text>
+          <Text style={[s.emptyText, { color: colors.text2 }]}>{t('browse.noItems')}</Text>
         </View>
       ) : (
         <FlatList
@@ -124,9 +126,9 @@ export default function BrowseScreen({ navigation }: Props) {
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.3}
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator color="#e91e8c" style={{ paddingVertical: 20 }} /> : null
+            loadingMore ? <ActivityIndicator color="#d4938f" style={{ paddingVertical: 20 }} /> : null
           }
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#e91e8c" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#d4938f" />}
         />
       )}
     </SafeAreaView>
@@ -148,7 +150,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   toggleBtn: { flex: 1, paddingVertical: 7, alignItems: 'center' },
-  toggleBtnActive: { backgroundColor: '#e91e8c' },
+  toggleBtnActive: { backgroundColor: '#d4938f' },
   toggleTxt: { fontSize: 12, fontWeight: '600' },
   toggleTxtActive: { color: '#fff' },
 

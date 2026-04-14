@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { messagesApi } from '@/api/messagesApi';
 import { useSignalR } from '@/contexts/SignalRContext';
@@ -37,6 +38,7 @@ function formatDateLabel(ts: string): string {
 }
 
 export default function ConversationScreen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { userId: peerId, displayName, avatarUrl } = route.params;
   const { user } = useAuthStore();
   const { sendMessage, sendTyping, markAsRead, onMessage, onTyping } = useSignalR();
@@ -193,7 +195,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
       >
         {loading ? (
           <View style={styles.center}>
-            <ActivityIndicator size="large" color="#e91e8c" />
+            <ActivityIndicator size="large" color="#d4938f" />
           </View>
         ) : (
           <FlatList
@@ -216,7 +218,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
-            placeholder="Type a message..."
+            placeholder={t('chat.messagePlaceholder')}
             placeholderTextColor="#aaa"
             value={text}
             onChangeText={setText}
@@ -260,7 +262,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   bubbleMine: {
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     borderBottomRightRadius: 4,
     marginLeft: 6,
   },
@@ -296,7 +298,7 @@ const styles = StyleSheet.create({
   bubbleTimeMine: { color: 'rgba(255,255,255,0.7)' },
 
   typingBanner: { paddingHorizontal: 16, paddingVertical: 4 },
-  typingText: { fontSize: 12, color: '#e91e8c', fontStyle: 'italic' },
+  typingText: { fontSize: 12, color: '#d4938f', fontStyle: 'italic' },
 
   inputBar: {
     flexDirection: 'row',
@@ -305,14 +307,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#eee',
+    borderTopColor: '#e8d8cc',
     gap: 8,
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'rgba(245,237,229,0.6)',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -323,7 +325,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#e91e8c',
+    backgroundColor: '#d4938f',
     alignItems: 'center',
     justifyContent: 'center',
   },
