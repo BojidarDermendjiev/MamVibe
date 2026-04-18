@@ -22,6 +22,8 @@ import type { ChatStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ChatStackParamList, 'Conversation'>;
 
+const MAX_LENGTH = 1000;
+
 function formatTime(ts: string) {
   return new Date(ts).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
@@ -51,7 +53,6 @@ export default function ConversationScreen({ route, navigation }: Props) {
   const listRef = useRef<FlatList>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Load message history
   useEffect(() => {
     messagesApi.getMessages(peerId)
       .then(({ data }) => {
@@ -65,20 +66,17 @@ export default function ConversationScreen({ route, navigation }: Props) {
     markAsRead(peerId).catch(() => {});
   }, [peerId]);
 
-  // Update header with typing indicator
   useEffect(() => {
     navigation.setOptions({
       title: typingVisible ? `${displayName} is typing...` : displayName,
     });
   }, [typingVisible, displayName, navigation]);
 
-  // SignalR: receive messages
   useEffect(() => {
     return onMessage((msg) => {
       const isRelevant = msg.senderId === peerId || msg.receiverId === peerId;
       if (!isRelevant) return;
       setMessages((prev) => {
-        // deduplicate — hub might echo our own message back
         if (prev.some((m) => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
@@ -90,7 +88,6 @@ export default function ConversationScreen({ route, navigation }: Props) {
     });
   }, [onMessage, peerId, markAsRead]);
 
-  // SignalR: typing indicator
   useEffect(() => {
     return onTyping((uid) => {
       if (uid !== peerId) return;
@@ -110,7 +107,6 @@ export default function ConversationScreen({ route, navigation }: Props) {
     setText('');
     setSending(true);
 
-    // Optimistic message
     const tempId = `temp-${Date.now()}`;
     const optimistic: Message = {
       id: tempId,
@@ -129,11 +125,14 @@ export default function ConversationScreen({ route, navigation }: Props) {
       const real = await sendMessage(peerId, content);
       if (real) {
         setMessages((prev) => prev.map((m) => (m.id === tempId ? real : m)));
+      } else {
+        // null means SignalR connection is down — revert optimistic message
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setText(content);
       }
     } catch {
-      // Remove optimistic on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setText(content); // restore text so user can retry
+      setText(content);
     } finally {
       setSending(false);
     }
@@ -143,7 +142,6 @@ export default function ConversationScreen({ route, navigation }: Props) {
     sendTyping(peerId).catch(() => {});
   };
 
-  // Group messages by date for separators
   const renderMessages = () => {
     let lastDate = '';
     return messages.map((msg) => {
@@ -177,7 +175,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
                 {msg.content}
               </Text>
               <Text style={[styles.bubbleTime, isMine && styles.bubbleTimeMine]}>
-                {isTemp ? '...' : formatTime(msg.timestamp)}
+                {isTemp ? '···' : formatTime(msg.timestamp)}
               </Text>
             </View>
           </View>
@@ -186,51 +184,69 @@ export default function ConversationScreen({ route, navigation }: Props) {
     });
   };
 
+  const charsLeft = MAX_LENGTH - text.length;
+  const showCounter = text.length > 0;
+  const counterWarning = charsLeft < 100;
+
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color="#d4938f" />
-          </View>
-        ) : (
-          <FlatList
-            ref={listRef}
-            data={[{ key: 'messages' }]}
-            keyExtractor={(i) => i.key}
-            renderItem={() => <View style={styles.messageList}>{renderMessages()}</View>}
-            onLayout={scrollToBottom}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
+    // KAV must be the outermost container — wrapping SafeAreaView breaks it on Android
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+    >
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#d4938f" />
+        </View>
+      ) : (
+        <FlatList
+          ref={listRef}
+          data={[{ key: 'messages' }]}
+          keyExtractor={(i) => i.key}
+          renderItem={() => <View style={styles.messageList}>{renderMessages()}</View>}
+          onLayout={scrollToBottom}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
 
-        {typingVisible && (
-          <View style={styles.typingBanner}>
-            <Text style={styles.typingText}>{displayName} is typing…</Text>
+      {typingVisible && (
+        <View style={styles.typingBanner}>
+          <View style={styles.typingDots}>
+            <View style={styles.dot} />
+            <View style={styles.dot} />
+            <View style={styles.dot} />
+          </View>
+          <Text style={styles.typingText}>{displayName} is typing…</Text>
+        </View>
+      )}
+
+      {/* Input bar — SafeAreaView only here for bottom inset */}
+      <SafeAreaView edges={['bottom']} style={styles.inputSafe}>
+        {showCounter && (
+          <View style={styles.counterRow}>
+            <Text style={[styles.counter, counterWarning && styles.counterWarning]}>
+              {text.length}/{MAX_LENGTH}
+            </Text>
           </View>
         )}
-
-        {/* Input bar */}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
             placeholder={t('chat.messagePlaceholder')}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#bbb"
             value={text}
             onChangeText={setText}
             onKeyPress={handleTyping}
             multiline
-            maxLength={1000}
+            maxLength={MAX_LENGTH}
             returnKeyType="default"
           />
           <TouchableOpacity
             style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
             onPress={handleSend}
             disabled={!text.trim() || sending}
+            activeOpacity={0.75}
           >
             {sending ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -239,14 +255,13 @@ export default function ConversationScreen({ route, navigation }: Props) {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fafafa' },
-  kav: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#fafafa' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { flexGrow: 1, justifyContent: 'flex-end' },
   messageList: { paddingHorizontal: 12, paddingVertical: 8 },
@@ -283,8 +298,8 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 1,
   },
   bubbleMine: {
@@ -294,20 +309,46 @@ const styles = StyleSheet.create({
   },
   bubbleText: { fontSize: 15, color: '#1a1a1a', lineHeight: 20 },
   bubbleTextMine: { color: '#fff' },
-  bubbleTime: { fontSize: 10, color: '#aaa', marginTop: 4, textAlign: 'right' },
-  bubbleTimeMine: { color: 'rgba(255,255,255,0.7)' },
+  bubbleTime: { fontSize: 10, color: '#bbb', marginTop: 4, textAlign: 'right' },
+  bubbleTimeMine: { color: 'rgba(255,255,255,0.65)' },
 
-  typingBanner: { paddingHorizontal: 16, paddingVertical: 4 },
+  typingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  typingDots: { flexDirection: 'row', gap: 3 },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#d4938f', opacity: 0.7 },
   typingText: { fontSize: 12, color: '#d4938f', fontStyle: 'italic' },
 
+  inputSafe: {
+    backgroundColor: '#fff',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#e8d8cc',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  counterRow: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    alignItems: 'flex-end',
+  },
+  counter: {
+    fontSize: 11,
+    color: '#bbb',
+    fontVariant: ['tabular-nums'],
+  },
+  counterWarning: { color: '#e57373' },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e8d8cc',
     gap: 8,
   },
   input: {
@@ -320,6 +361,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: 'rgba(212,147,143,0.2)',
   },
   sendBtn: {
     width: 42,
@@ -328,7 +371,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#d4938f',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#d4938f',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  sendBtnDisabled: { opacity: 0.4 },
+  sendBtnDisabled: { opacity: 0.4, shadowOpacity: 0 },
   sendIcon: { color: '#fff', fontSize: 16, marginLeft: 2 },
 });

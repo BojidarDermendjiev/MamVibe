@@ -25,6 +25,51 @@ export const tokenStorage = {
   },
 };
 
+let _refreshInFlight: Promise<string> | null = null;
+
+function _isTokenExpired(token: string): boolean {
+  try {
+    // JWT uses base64url (- and _ instead of + and /, no padding).
+    // atob requires standard base64, so normalise before decoding.
+    const b64url = token.split('.')[1];
+    const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice((b64url.length % 4) || 4);
+    const payload = JSON.parse(atob(b64));
+    // Treat as expired if less than 30s remain
+    return !payload.exp || Date.now() >= (payload.exp * 1000 - 30_000);
+  } catch {
+    return false;
+  }
+}
+
+/** Returns a valid access token, refreshing it first if it's expired or nearly expired.
+ *  Used by the SignalR accessTokenFactory so hub reconnects don't fail with 401. */
+export async function ensureFreshToken(): Promise<string> {
+  const token = await tokenStorage.getAccessToken();
+  if (!token) return '';
+  if (!_isTokenExpired(token)) return token;
+
+  // Deduplicate concurrent refresh calls
+  if (_refreshInFlight) return _refreshInFlight;
+
+  _refreshInFlight = (async () => {
+    try {
+      const refreshToken = await tokenStorage.getRefreshToken();
+      if (!refreshToken) return token;
+      const { data } = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+      await tokenStorage.setAccessToken(data.accessToken);
+      if (data.refreshToken) await tokenStorage.setRefreshToken(data.refreshToken);
+      axiosClient.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+      return data.accessToken as string;
+    } catch {
+      return token;
+    } finally {
+      _refreshInFlight = null;
+    }
+  })();
+
+  return _refreshInFlight;
+}
+
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 

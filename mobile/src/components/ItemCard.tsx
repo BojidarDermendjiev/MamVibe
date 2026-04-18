@@ -17,6 +17,17 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
+const DEV_HOSTS = new Set(['localhost', '127.0.0.1', '10.0.2.2']);
+
+function resolvePhotoUrl(url: string): string {
+  if (!url.startsWith('http')) return `${SERVER_URL}${url}`;
+  try {
+    const { hostname, pathname, search } = new URL(url);
+    if (DEV_HOSTS.has(hostname)) return `${SERVER_URL}${pathname}${search}`;
+  } catch {}
+  return url;
+}
+
 interface Props {
   item: Item;
   onPress: (item: Item) => void;
@@ -29,9 +40,7 @@ export default function ItemCard({ item, onPress }: Props) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { colors } = useTheme();
   const photo = item.photos[0];
-  const photoUri = photo?.url
-    ? photo.url.startsWith('http') ? photo.url : `${SERVER_URL}${photo.url}`
-    : null;
+  const photoUri = photo?.url ? resolvePhotoUrl(photo.url) : null;
 
   const handleLike = async () => {
     if (!isAuthenticated) return;

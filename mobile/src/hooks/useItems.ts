@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { itemsApi } from '@/api/itemsApi';
 import { useDebounce } from './useDebounce';
 import type { Item, ItemFilter } from '@mamvibe/shared';
@@ -19,6 +19,7 @@ export function useItems(initialFilter: Partial<ItemFilter> = {}) {
   const [filter, setFilterState] = useState<ItemFilter>({ ...DEFAULT_FILTER, ...initialFilter });
 
   const debouncedSearch = useDebounce(searchTerm, 300);
+  const appendNextRef = useRef(false);
 
   const setFilter = useCallback((partial: Partial<ItemFilter>) => {
     setFilterState((prev) => ({ ...prev, ...partial }));
@@ -44,11 +45,14 @@ export function useItems(initialFilter: Partial<ItemFilter> = {}) {
   }, [filter, debouncedSearch]);
 
   useEffect(() => {
-    fetchItems(false);
+    const append = appendNextRef.current;
+    appendNextRef.current = false;
+    fetchItems(append);
   }, [fetchItems]);
 
   const loadNextPage = () => {
     if (filter.page < totalPages && !loadingMore) {
+      appendNextRef.current = true;
       setFilter({ page: filter.page + 1 });
     }
   };

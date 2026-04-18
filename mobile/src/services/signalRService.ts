@@ -1,5 +1,5 @@
 import * as signalR from '@microsoft/signalr';
-import { tokenStorage } from '@/api/axiosClient';
+import { ensureFreshToken } from '@/api/axiosClient';
 import type { Message, PurchaseRequest, Shipment } from '@mamvibe/shared';
 
 type MessageHandler = (message: Message) => void;
@@ -33,7 +33,7 @@ class SignalRService {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
         // Async factory — reads JWT from SecureStore each time SignalR needs it
-        accessTokenFactory: () => tokenStorage.getAccessToken().then((t) => t ?? ''),
+        accessTokenFactory: ensureFreshToken,
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Warning)
