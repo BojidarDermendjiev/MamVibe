@@ -18,8 +18,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ModernAuthPage = lazy(() => import("./pages/ModernAuthPage"));
 const BrowseItemsPage = lazy(() => import("./pages/BrowseItemsPage"));
 const ItemDetailPage = lazy(() => import("./pages/ItemDetailPage"));
 const CreateItemPage = lazy(() => import("./pages/CreateItemPage"));
@@ -97,9 +96,9 @@ function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Auth routes */}
+        <Route path="/login" element={<ModernAuthPage />} />
+        <Route path="/register" element={<ModernAuthPage />} />
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
