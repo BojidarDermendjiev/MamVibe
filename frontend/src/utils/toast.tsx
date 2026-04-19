@@ -10,6 +10,7 @@ import {
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ToastCard({
   t,
   variant,
@@ -104,13 +105,14 @@ function showToast(variant: ToastVariant, title: string, message?: string, optio
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const toast: typeof _toast & {
+type ToastExtended = typeof _toast & {
   warning: (message: string, options?: ToastOptions) => string;
   info: (message: string, options?: ToastOptions) => string;
-} = Object.assign(
-  // Pass-through for existing toast(fn, opts) usage
-  (msg: any, opts?: any) => _toast(msg, opts),
+};
+
+const toast = Object.assign(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (msg: any, opts?: ToastOptions) => _toast(msg, opts),
   {
     success: (message: string, opts?: ToastOptions) => showToast('success', message, undefined, opts),
     error:   (message: string, opts?: ToastOptions) => showToast('error',   message, undefined, opts),
@@ -121,7 +123,7 @@ const toast: typeof _toast & {
     custom:  _toast.custom,
     promise: _toast.promise,
   },
-) as any;
+) as ToastExtended;
 
 export default toast;
 
