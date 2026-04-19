@@ -32,4 +32,11 @@ export type RootStackParamList = {
   Settings: undefined;
   Donate: undefined;
   CreateItem: undefined;
+  LeaveReview: {
+    paymentId: string;
+    sellerName: string;
+    sellerAvatarUrl: string | null;
+    itemTitle: string;
+    itemPrice: number | null;
+  };
 };

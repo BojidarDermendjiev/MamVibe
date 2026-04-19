@@ -22,6 +22,7 @@ import MyItemsScreen from '@/screens/main/MyItemsScreen';
 import SettingsScreen from '@/screens/main/SettingsScreen';
 import DonateScreen from '@/screens/main/DonateScreen';
 import CreateItemScreen from '@/screens/main/CreateItemScreen';
+import LeaveReviewScreen from '@/screens/main/LeaveReviewScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
 export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
@@ -158,6 +159,16 @@ function MainNavigator() {
         name="CreateItem"
         component={CreateItemScreen}
         options={{ headerShown: true, title: 'New Listing', headerTintColor: '#d4938f' }}
+      />
+      <RootStack.Screen
+        name="LeaveReview"
+        component={LeaveReviewScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          title: 'Rate your experience',
+          headerTintColor: '#d4938f',
+          headerSubtitle: `With ${route.params.sellerName}`,
+        })}
       />
     </RootStack.Navigator>
   );

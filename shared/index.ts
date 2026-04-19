@@ -7,3 +7,4 @@ export * from './types/shipping';
 export * from './types/wallet';
 export * from './types/feedback';
 export * from './types/ebill';
+export * from './types/sellerReview';
