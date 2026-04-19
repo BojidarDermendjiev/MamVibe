@@ -51,5 +51,17 @@ services:
     ports:
       - "80:80"  # Cloudflare → port 80 → nginx → api:8080
 
+  n8n:
+    environment:
+      N8N_ENCRYPTION_KEY: "${N8N_ENCRYPTION_KEY}"
+      # Internal Docker URL — the API calls n8n over the mamvibe-net network
+      WEBHOOK_URL: "http://n8n:5678/"
+      # Protect the n8n UI with basic auth (access via SSH tunnel: ssh -L 5678:n8n:5678 user@server)
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: "${N8N_ADMIN_USER}"
+      N8N_BASIC_AUTH_PASSWORD: "${N8N_ADMIN_PASSWORD}"
+    ports: []  # Not exposed publicly
+
 volumes:
   uploads:
+  n8n_data:

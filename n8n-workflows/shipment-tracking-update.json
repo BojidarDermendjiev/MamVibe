@@ -18,7 +18,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "noreply@mamvibe.com",
+        "fromEmail": "noreply@mamvibe.bg",
         "toEmail": "={{ $('Webhook: Out for Delivery').item.json.body.buyerEmail }}",
         "subject": "Your order is out for delivery today!",
         "emailType": "html",

@@ -18,7 +18,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "noreply@mamvibe.com",
+        "fromEmail": "noreply@mamvibe.bg",
         "toEmail": "={{ $('Webhook: User Blocked').item.json.body.email }}",
         "subject": "Your MamVibe account has been suspended",
         "emailType": "html",
@@ -39,8 +39,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "noreply@mamvibe.com",
-        "toEmail": "admin@mamvibe.com",
+        "fromEmail": "noreply@mamvibe.bg",
+        "toEmail": "admin@mamvibe.bg",
         "subject": "User blocked: {{ $('Webhook: User Blocked').item.json.body.displayName }}",
         "emailType": "html",
         "html": "<div style=\"font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background: #fff; border-radius: 12px; padding: 30px; border: 1px solid #f0f0f0;\">\n    <h2 style=\"color: #333; margin-top: 0;\">User Blocked Confirmation</h2>\n    <table style=\"width: 100%; border-collapse: collapse; font-size: 15px;\">\n      <tr>\n        <td style=\"padding: 8px 0; color: #888; width: 120px;\">User ID</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.userId }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Name</td>\n        <td style=\"padding: 8px 0; color: #333; font-weight: 600;\">{{ $('Webhook: User Blocked').item.json.body.displayName }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Email</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.email }}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px 0; color: #888;\">Blocked At</td>\n        <td style=\"padding: 8px 0; color: #333;\">{{ $('Webhook: User Blocked').item.json.body.timestamp }}</td>\n      </tr>\n    </table>\n  </div>\n</div>",

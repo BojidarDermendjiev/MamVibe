@@ -52,6 +52,12 @@ frontend/.tsbuildinfo
 frontend/*.tsbuildinfo
 
 # ──────────────────────────────────────────────────────────────
+# Database Backups (NEVER commit — can contain sensitive data)
+# ──────────────────────────────────────────────────────────────
+backups/
+google-play-service-account.json
+
+# ──────────────────────────────────────────────────────────────
 # Secrets & Credentials (NEVER commit)
 # ──────────────────────────────────────────────────────────────
 **/*.pfx

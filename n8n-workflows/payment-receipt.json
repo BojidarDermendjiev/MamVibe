@@ -41,7 +41,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "noreply@mamvibe.com",
+        "fromEmail": "noreply@mamvibe.bg",
         "toEmail": "={{ $('Generate Receipt HTML').item.json.buyerEmail }}",
         "subject": "Your MamVibe receipt — {{ $('Generate Receipt HTML').item.json.itemTitle }}",
         "emailType": "html",

@@ -48,6 +48,19 @@ services:
     networks:
       - mamvibe-net
 
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-changeme-replace-in-production}
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    networks:
+      - mamvibe-net
+
   # Uncomment to enable pgAdmin
   # pgadmin:
   #   image: dpage/pgadmin4
@@ -64,6 +77,7 @@ services:
 
 volumes:
   pgdata:
+  n8n_data:
 
 networks:
   mamvibe-net:

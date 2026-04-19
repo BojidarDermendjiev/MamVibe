@@ -1,0 +1,43 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.100.2:5038/api",
+        "EXPO_PUBLIC_STRIPE_KEY": "pk_test_CHANGE_ME"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://mamvibe.bg/api",
+        "EXPO_PUBLIC_STRIPE_KEY": "pk_live_CHANGE_ME"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://mamvibe.bg/api",
+        "EXPO_PUBLIC_STRIPE_KEY": "pk_live_CHANGE_ME"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "CHANGE_ME_apple_id_email",
+        "ascAppId": "CHANGE_ME_app_store_connect_app_id",
+        "appleTeamId": "CHANGE_ME_team_id"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
