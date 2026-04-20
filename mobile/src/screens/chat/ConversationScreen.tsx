@@ -17,6 +17,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { messagesApi } from '@/api/messagesApi';
 import { useSignalR } from '@/contexts/SignalRContext';
 import { useAuthStore } from '@/store/authStore';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Message } from '@mamvibe/shared';
 import type { ChatStackParamList } from '@/navigation/types';
 
@@ -41,6 +42,7 @@ function formatDateLabel(ts: string): string {
 
 export default function ConversationScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const { userId: peerId, displayName, avatarUrl } = route.params;
   const { user } = useAuthStore();
   const { sendMessage, sendTyping, markAsRead, onMessage, onTyping } = useSignalR();
@@ -155,9 +157,9 @@ export default function ConversationScreen({ route, navigation }: Props) {
         <View key={msg.id}>
           {showSep && (
             <View style={styles.dateSep}>
-              <View style={styles.dateLine} />
-              <Text style={styles.dateLabel}>{formatDateLabel(msg.timestamp)}</Text>
-              <View style={styles.dateLine} />
+              <View style={[styles.dateLine, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dateLabel, { color: colors.text2 }]}>{formatDateLabel(msg.timestamp)}</Text>
+              <View style={[styles.dateLine, { backgroundColor: colors.border }]} />
             </View>
           )}
           <View style={[styles.msgRow, isMine && styles.msgRowMine]}>
@@ -170,11 +172,11 @@ export default function ConversationScreen({ route, navigation }: Props) {
                 )}
               </View>
             )}
-            <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubblePeer]}>
-              <Text style={[styles.bubbleText, isMine && styles.bubbleTextMine]}>
+            <View style={[styles.bubble, isMine ? styles.bubbleMine : [styles.bubblePeer, { backgroundColor: colors.card }]]}>
+              <Text style={[styles.bubbleText, { color: isMine ? '#fff' : colors.text }]}>
                 {msg.content}
               </Text>
-              <Text style={[styles.bubbleTime, isMine && styles.bubbleTimeMine]}>
+              <Text style={[styles.bubbleTime, isMine ? styles.bubbleTimeMine : { color: colors.text2 }]}>
                 {isTemp ? '···' : formatTime(msg.timestamp)}
               </Text>
             </View>
@@ -191,7 +193,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
   return (
     // KAV must be the outermost container — wrapping SafeAreaView breaks it on Android
     <KeyboardAvoidingView
-      style={styles.root}
+      style={[styles.root, { backgroundColor: colors.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
     >
@@ -222,7 +224,7 @@ export default function ConversationScreen({ route, navigation }: Props) {
       )}
 
       {/* Input bar — SafeAreaView only here for bottom inset */}
-      <SafeAreaView edges={['bottom']} style={styles.inputSafe}>
+      <SafeAreaView edges={['bottom']} style={[styles.inputSafe, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
         {showCounter && (
           <View style={styles.counterRow}>
             <Text style={[styles.counter, counterWarning && styles.counterWarning]}>
@@ -232,9 +234,9 @@ export default function ConversationScreen({ route, navigation }: Props) {
         )}
         <View style={styles.inputBar}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.inputBorder }]}
             placeholder={t('chat.messagePlaceholder')}
-            placeholderTextColor="#bbb"
+            placeholderTextColor={colors.text2}
             value={text}
             onChangeText={setText}
             onKeyPress={handleTyping}
@@ -261,14 +263,14 @@ export default function ConversationScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fafafa' },
+  root: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { flexGrow: 1, justifyContent: 'flex-end' },
   messageList: { paddingHorizontal: 12, paddingVertical: 8 },
 
   dateSep: { flexDirection: 'row', alignItems: 'center', marginVertical: 16, paddingHorizontal: 8 },
-  dateLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: '#ddd' },
-  dateLabel: { fontSize: 11, color: '#aaa', marginHorizontal: 10, fontWeight: '500' },
+  dateLine: { flex: 1, height: StyleSheet.hairlineWidth },
+  dateLabel: { fontSize: 11, marginHorizontal: 10, fontWeight: '500' },
 
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 6 },
   msgRowMine: { flexDirection: 'row-reverse' },
@@ -294,7 +296,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   bubblePeer: {
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -307,10 +308,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
     marginLeft: 6,
   },
-  bubbleText: { fontSize: 15, color: '#1a1a1a', lineHeight: 20 },
-  bubbleTextMine: { color: '#fff' },
-  bubbleTime: { fontSize: 10, color: '#bbb', marginTop: 4, textAlign: 'right' },
-  bubbleTimeMine: { color: 'rgba(255,255,255,0.65)' },
+  bubbleText: { fontSize: 15, lineHeight: 20 },
+  bubbleTimeMine: { color: 'rgba(255,255,255,0.65)', fontSize: 10, marginTop: 4, textAlign: 'right' },
+  bubbleTime: { fontSize: 10, marginTop: 4, textAlign: 'right' },
 
   typingBanner: {
     flexDirection: 'row',
@@ -324,9 +324,7 @@ const styles = StyleSheet.create({
   typingText: { fontSize: 12, color: '#d4938f', fontStyle: 'italic' },
 
   inputSafe: {
-    backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e8d8cc',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.04,
@@ -355,14 +353,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
-    backgroundColor: 'rgba(245,237,229,0.6)',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#1a1a1a',
     borderWidth: 1,
-    borderColor: 'rgba(212,147,143,0.2)',
   },
   sendBtn: {
     width: 42,

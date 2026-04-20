@@ -18,5 +18,10 @@ public enum CourierProvider
     /// <summary>
     /// Box Now locker/office delivery service.
     /// </summary>
-    BoxNow = 2
+    BoxNow = 2,
+
+    /// <summary>
+    /// Pigeon Express courier service (Bulgaria).
+    /// </summary>
+    PigeonExpress = 3
 }

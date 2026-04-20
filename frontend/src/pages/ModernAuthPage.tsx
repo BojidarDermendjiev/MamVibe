@@ -50,7 +50,7 @@ export default function ModernAuthPage() {
         email: loginEmail,
         password: loginPassword,
       });
-      setAuth(data.user, data.accessToken, data.refreshToken);
+      setAuth(data.user, data.accessToken);
       toast.success("Welcome back!");
       navigate("/");
     } catch (err: unknown) {
@@ -72,7 +72,7 @@ export default function ModernAuthPage() {
             const { data } = await authApi.googleLogin({
               idToken: response.credential,
             });
-            setAuth(data.user, data.accessToken, data.refreshToken);
+            setAuth(data.user, data.accessToken);
             toast.success("Welcome!");
             navigate("/");
           } catch {
@@ -80,7 +80,7 @@ export default function ModernAuthPage() {
           }
         },
       });
-      google.accounts.id.prompt();
+      (google.accounts.id as unknown as { prompt: () => void }).prompt();
     }
   };
 
@@ -108,7 +108,7 @@ export default function ModernAuthPage() {
     setRegLoading(true);
     try {
       const { data } = await authApi.register(regForm);
-      setAuth(data.user, data.accessToken, data.refreshToken);
+      setAuth(data.user, data.accessToken);
       toast.success("Account created!");
       navigate("/");
     } catch (err: unknown) {

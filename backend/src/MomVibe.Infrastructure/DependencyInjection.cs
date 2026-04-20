@@ -54,18 +54,21 @@ public static class DependencyInjection
         services.AddHttpClient("TakeANap");
         services.AddScoped<ITakeANapService, TakeANapService>();
 
-        // Shipping: Econt + Speedy + BoxNow courier integrations
+        // Shipping: Econt + Speedy + BoxNow + PigeonExpress courier integrations
         services.Configure<EcontSettings>(configuration.GetSection("Econt"));
         services.Configure<SpeedySettings>(configuration.GetSection("Speedy"));
         services.Configure<BoxNowSettings>(configuration.GetSection("BoxNow"));
+        services.Configure<PigeonExpressSettings>(configuration.GetSection("PigeonExpress"));
 
         services.AddHttpClient("Econt");
         services.AddHttpClient("Speedy");
         services.AddHttpClient("BoxNow");
+        services.AddHttpClient("PigeonExpress");
 
         services.AddScoped<ICourierProvider, EcontCourierProvider>();
         services.AddScoped<ICourierProvider, SpeedyCourierProvider>();
         services.AddScoped<ICourierProvider, BoxNowCourierProvider>();
+        services.AddScoped<ICourierProvider, PigeonExpressCourierProvider>();
         services.AddScoped<CourierProviderFactory>();
         services.AddScoped<IShippingService, ShippingService>();
 

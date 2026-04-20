@@ -67,16 +67,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // JWT Authentication
-var jwtSecret = builder.Configuration["JwtSettings:Secret"];
-if (string.IsNullOrWhiteSpace(jwtSecret))
-{
-    throw new InvalidOperationException("JwtSettings:Secret is not configured.");
-}
-if (jwtSecret.Length < 32)
-{
-    throw new InvalidOperationException("JwtSettings:Secret must be at least 32 characters for adequate security.");
-}
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -84,6 +74,14 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Read secret inside the lambda so WebApplicationFactory config injection (applied at Build())
+    // is visible here. Eager reads before Build() race against test factory setup.
+    var secret = builder.Configuration["JwtSettings:Secret"];
+    if (string.IsNullOrWhiteSpace(secret))
+        throw new InvalidOperationException("JwtSettings:Secret is not configured.");
+    if (secret.Length < 32)
+        throw new InvalidOperationException("JwtSettings:Secret must be at least 32 characters for adequate security.");
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -92,8 +90,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-        ClockSkew = TimeSpan.FromSeconds(30)  // 30 s tolerance for clock drift between servers
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+        ClockSkew = TimeSpan.FromSeconds(30)
     };
     // SignalR token from query string
     options.Events = new JwtBearerEvents

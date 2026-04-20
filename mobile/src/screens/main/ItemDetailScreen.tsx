@@ -203,12 +203,15 @@ export default function ItemDetailScreen({ route, navigation }: Props) {
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnOutline]}
                 onPress={() =>
-                  (navigation as any).navigate('ChatTab', {
-                    screen: 'Conversation',
+                  (navigation as any).navigate('MainTabs', {
+                    screen: 'ChatTab',
                     params: {
-                      userId: item.userId,
-                      displayName: item.userDisplayName,
-                      avatarUrl: item.userAvatarUrl,
+                      screen: 'Conversation',
+                      params: {
+                        userId: item.userId,
+                        displayName: item.userDisplayName,
+                        avatarUrl: item.userAvatarUrl,
+                      },
                     },
                   })
                 }

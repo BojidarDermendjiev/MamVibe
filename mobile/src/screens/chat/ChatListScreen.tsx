@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { messagesApi } from '@/api/messagesApi';
 import { useSignalR } from '@/contexts/SignalRContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Conversation } from '@mamvibe/shared';
 import type { ChatStackParamList } from '@/navigation/types';
 
@@ -35,6 +36,7 @@ function formatTime(timestamp: string): string {
 
 export default function ChatListScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [filtered, setFiltered] = useState<Conversation[]>([]);
   const [search, setSearch] = useState('');
@@ -83,7 +85,6 @@ export default function ChatListScreen({ navigation }: Props) {
   }, [search, conversations]);
 
   const handleOpen = (conv: Conversation) => {
-    // Clear unread badge immediately
     setConversations((prev) =>
       prev.map((c) => (c.userId === conv.userId ? { ...c, unreadCount: 0 } : c)),
     );
@@ -105,7 +106,7 @@ export default function ChatListScreen({ navigation }: Props) {
           </View>
         )}
         {item.unreadCount > 0 && (
-          <View style={styles.badge}>
+          <View style={[styles.badge, { borderColor: colors.bg }]}>
             <Text style={styles.badgeText}>{item.unreadCount > 99 ? '99+' : item.unreadCount}</Text>
           </View>
         )}
@@ -113,13 +114,13 @@ export default function ChatListScreen({ navigation }: Props) {
 
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
-          <Text style={[styles.name, item.unreadCount > 0 && styles.nameBold]} numberOfLines={1}>
+          <Text style={[styles.name, { color: colors.text }, item.unreadCount > 0 && styles.nameBold]} numberOfLines={1}>
             {item.displayName}
           </Text>
-          <Text style={styles.time}>{formatTime(item.lastMessageTime)}</Text>
+          <Text style={[styles.time, { color: colors.text2 }]}>{formatTime(item.lastMessageTime)}</Text>
         </View>
         <Text
-          style={[styles.lastMsg, item.unreadCount > 0 && styles.lastMsgBold]}
+          style={[styles.lastMsg, { color: item.unreadCount > 0 ? colors.text : colors.text2 }, item.unreadCount > 0 && styles.lastMsgBold]}
           numberOfLines={1}
         >
           {item.lastMessage}
@@ -129,12 +130,12 @@ export default function ChatListScreen({ navigation }: Props) {
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg }]} edges={['bottom']}>
       <View style={styles.searchWrap}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: colors.input, color: colors.text, borderColor: colors.inputBorder }]}
           placeholder={t('browse.searchPlaceholder')}
-          placeholderTextColor="#aaa"
+          placeholderTextColor={colors.text2}
           value={search}
           onChangeText={setSearch}
           clearButtonMode="while-editing"
@@ -148,7 +149,7 @@ export default function ChatListScreen({ navigation }: Props) {
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
           <Text style={styles.emptyEmoji}>💬</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: colors.text2 }]}>
             {search ? t('browse.noItems') : t('chat.noConversations')}
           </Text>
         </View>
@@ -157,7 +158,7 @@ export default function ChatListScreen({ navigation }: Props) {
           data={filtered}
           keyExtractor={(c) => c.userId}
           renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.border }]} />}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -172,19 +173,18 @@ export default function ChatListScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1 },
   searchWrap: { padding: 12, paddingBottom: 4 },
   searchInput: {
     height: 40,
-    backgroundColor: '#f5f5f5',
     borderRadius: 10,
     paddingHorizontal: 14,
     fontSize: 15,
-    color: '#1a1a1a',
+    borderWidth: 1,
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 15, color: '#aaa' },
+  emptyText: { fontSize: 15 },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   avatarWrap: { position: 'relative', marginRight: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
@@ -202,15 +202,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderWidth: 1.5,
-    borderColor: '#fff',
   },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   rowBody: { flex: 1 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  name: { fontSize: 15, color: '#1a1a1a', flexShrink: 1, marginRight: 8 },
+  name: { fontSize: 15, flexShrink: 1, marginRight: 8 },
   nameBold: { fontWeight: '700' },
-  time: { fontSize: 12, color: '#aaa', flexShrink: 0 },
-  lastMsg: { fontSize: 13, color: '#aaa' },
-  lastMsgBold: { color: '#555', fontWeight: '500' },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: '#f0f0f0', marginLeft: 78 },
+  time: { fontSize: 12, flexShrink: 0 },
+  lastMsg: { fontSize: 13 },
+  lastMsgBold: { fontWeight: '500' },
+  separator: { height: StyleSheet.hairlineWidth, marginLeft: 78 },
 });
