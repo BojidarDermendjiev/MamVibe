@@ -410,7 +410,9 @@ dotnet list package --vulnerable
 
 ### Authentication
 
-<img src="docs/screenshots/web-auth.png" width="60%" alt="Login / Register – split-panel design with sliding overlay" />
+<img src="docs/screenshots/web-auth-login-dark.png" width="49%" alt="Login – dark mode" /> <img src="docs/screenshots/web-auth-login-light.png" width="49%" alt="Login – light mode" />
+
+<img src="docs/screenshots/web-auth-register-dark.png" width="49%" alt="Register – dark mode" /> <img src="docs/screenshots/web-auth-register-light.png" width="49%" alt="Register – light mode" />
 
 ### Create & Manage Listings
 
