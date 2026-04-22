@@ -33,6 +33,8 @@ services:
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
     ports:
       - "8080:8080"
+    volumes:
+      - uploads:/app/wwwroot/uploads
     networks:
       - mamvibe-net
 
@@ -78,6 +80,7 @@ services:
 volumes:
   pgdata:
   n8n_data:
+  uploads:
 
 networks:
   mamvibe-net:
