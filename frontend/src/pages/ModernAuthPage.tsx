@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { clsx } from "clsx";
 import { FcGoogle } from "react-icons/fc";
+import { HiOutlineUser, HiOutlineLockClosed, HiOutlineMail, HiSun, HiMoon } from "react-icons/hi";
 import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
+import { useTheme } from "../contexts/ThemeContext";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
 
@@ -14,14 +15,13 @@ export default function ModernAuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setAuth } = useAuthStore();
+  const { theme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(location.pathname === "/register");
 
-  // Login state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Register state
   const [regForm, setRegForm] = useState({
     email: "",
     password: "",
@@ -46,17 +46,12 @@ export default function ModernAuthPage() {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const { data } = await authApi.login({
-        email: loginEmail,
-        password: loginPassword,
-      });
+      const { data } = await authApi.login({ email: loginEmail, password: loginPassword });
       setAuth(data.user, data.accessToken);
       toast.success("Welcome back!");
       navigate("/");
     } catch (err: unknown) {
-      const msg = (
-        err as { response?: { data?: { message?: string } } }
-      )?.response?.data?.message;
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
     } finally {
       setLoginLoading(false);
@@ -69,9 +64,7 @@ export default function ModernAuthPage() {
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
         callback: async (response: { credential: string }) => {
           try {
-            const { data } = await authApi.googleLogin({
-              idToken: response.credential,
-            });
+            const { data } = await authApi.googleLogin({ idToken: response.credential });
             setAuth(data.user, data.accessToken);
             toast.success("Welcome!");
             navigate("/");
@@ -86,18 +79,13 @@ export default function ModernAuthPage() {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (regForm.password.length < 8)
-      errs.password = t("auth.password_min_length");
-    else if (!/[A-Z]/.test(regForm.password))
-      errs.password = t("auth.password_uppercase");
-    else if (!/[a-z]/.test(regForm.password))
-      errs.password = t("auth.password_lowercase");
-    else if (!/[0-9]/.test(regForm.password))
-      errs.password = t("auth.password_digit");
+    if (regForm.password.length < 8) errs.password = t("auth.password_min_length");
+    else if (!/[A-Z]/.test(regForm.password)) errs.password = t("auth.password_uppercase");
+    else if (!/[a-z]/.test(regForm.password)) errs.password = t("auth.password_lowercase");
+    else if (!/[0-9]/.test(regForm.password)) errs.password = t("auth.password_digit");
     if (regForm.password !== regForm.confirmPassword)
       errs.confirmPassword = t("auth.passwords_no_match");
-    if (!regForm.displayName.trim())
-      errs.displayName = t("auth.display_name_required");
+    if (!regForm.displayName.trim()) errs.displayName = t("auth.display_name_required");
     setRegErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -112,9 +100,7 @@ export default function ModernAuthPage() {
       toast.success("Account created!");
       navigate("/");
     } catch (err: unknown) {
-      const msg = (
-        err as { response?: { data?: { message?: string } } }
-      )?.response?.data?.message;
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
     } finally {
       setRegLoading(false);
@@ -122,225 +108,195 @@ export default function ModernAuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-peach to-lavender-light flex items-center justify-center p-4">
+    <div className="auth-page">
       {/* Logo */}
-      <Link
-        to="/"
-        className="absolute top-6 left-6 inline-flex items-center gap-2 z-10"
-      >
-        <img
-          src="/logo.png"
-          alt="MamVibe"
-          className="h-12 w-12 object-contain"
-        />
-        <span className="text-xl font-bold text-primary">MamVibe</span>
+      <Link to="/" className="absolute top-5 left-6 z-20 flex items-center gap-2">
+        <img src="/logo.png" alt="MamVibe" className="h-9 w-9 object-contain" />
+        <span className="text-base font-bold text-[#3f4b7f] dark:text-[#c1c4e3]">MamVibe</span>
       </Link>
 
-      {/* Container */}
-      <div
-        className={clsx(
-          "modern-auth-container",
-          isSignUp && "active",
-        )}
+      {/* Theme toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        className="absolute top-5 right-6 z-20 w-10 h-10 rounded-full bg-white dark:bg-[#2a2740] shadow-md flex items-center justify-center text-gray-500 dark:text-gray-300 hover:scale-105 transition-transform"
       >
-        {/* ── Sign Up Form ── */}
-        <div className="modern-auth-form modern-auth-signup">
-          <form onSubmit={handleRegister}>
-            <h1 className="text-2xl font-bold text-primary-dark">
-              {t("auth.register_title")}
-            </h1>
-            <span className="text-xs text-gray-400 mt-2 mb-4 block">
-              {t("auth.register_subtitle")}
-            </span>
+        {theme === "dark" ? <HiSun size={20} /> : <HiMoon size={20} />}
+      </button>
 
-            <div className="space-y-2 w-full">
-              <input
-                type="text"
-                placeholder={t("auth.display_name")}
-                value={regForm.displayName}
-                onChange={(e) =>
-                  setRegForm({ ...regForm, displayName: e.target.value })
-                }
-                className="modern-auth-input"
-                required
-              />
-              {regErrors.displayName && (
-                <p className="text-xs text-red-500">{regErrors.displayName}</p>
-              )}
-              <input
-                type="email"
-                placeholder={t("auth.email")}
-                value={regForm.email}
-                onChange={(e) =>
-                  setRegForm({ ...regForm, email: e.target.value })
-                }
-                className="modern-auth-input"
-                required
-              />
-              <input
-                type="password"
-                placeholder={t("auth.password")}
-                value={regForm.password}
-                onChange={(e) =>
-                  setRegForm({ ...regForm, password: e.target.value })
-                }
-                className="modern-auth-input"
-                required
-              />
-              {regErrors.password && (
-                <p className="text-xs text-red-500">{regErrors.password}</p>
-              )}
-              <input
-                type="password"
-                placeholder={t("auth.confirm_password")}
-                value={regForm.confirmPassword}
-                onChange={(e) =>
-                  setRegForm({ ...regForm, confirmPassword: e.target.value })
-                }
-                className="modern-auth-input"
-                required
-              />
-              {regErrors.confirmPassword && (
-                <p className="text-xs text-red-500">
-                  {regErrors.confirmPassword}
-                </p>
-              )}
-              <ProfileTypeSelector
-                value={regForm.profileType}
-                onChange={(profileType) =>
-                  setRegForm({ ...regForm, profileType })
-                }
-              />
-            </div>
+      {/* Card */}
+      <div className={`auth-card${isSignUp ? " active" : ""}`}>
 
-            <button
-              type="submit"
-              disabled={regLoading}
-              className="modern-auth-btn mt-3"
-            >
-              {regLoading ? t("common.loading") : t("auth.register_btn")}
-            </button>
+        {/* ── Login panel (left) ── */}
+        <div className="auth-panel auth-panel-login">
+          <form onSubmit={handleLogin} className="auth-form-inner">
+            <h1 className="auth-title">{t("auth.login_title")}</h1>
 
-            {/* Mobile-only toggle link */}
-            <p className="text-center text-sm text-gray-500 mt-4 md:hidden">
-              {t("auth.has_account")}{" "}
-              <button
-                type="button"
-                onClick={toggleToSignIn}
-                className="text-primary font-medium hover:underline"
-              >
-                {t("nav.login")}
-              </button>
-            </p>
-          </form>
-        </div>
-
-        {/* ── Sign In Form ── */}
-        <div className="modern-auth-form modern-auth-signin">
-          <form onSubmit={handleLogin}>
-            <h1 className="text-2xl font-bold text-primary-dark">
-              {t("auth.login_title")}
-            </h1>
-
-            {/* Google social login */}
-            <div className="flex gap-3 my-5">
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="modern-auth-social-icon"
-              >
+            <div className="auth-social-row">
+              <button type="button" onClick={handleGoogleLogin} className="auth-social-icon" aria-label="Google">
                 <FcGoogle size={20} />
               </button>
             </div>
+            <span className="auth-or">{t("auth.login_subtitle")}</span>
 
-            <span className="text-xs text-gray-400 mb-4 block">
-              {t("auth.login_subtitle")}
-            </span>
-
-            <div className="space-y-3 w-full">
-              <input
-                type="email"
-                placeholder={t("auth.email")}
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="modern-auth-input"
-                required
-              />
-              <input
-                type="password"
-                placeholder={t("auth.password")}
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="modern-auth-input"
-                required
-              />
+            <div className="auth-fields">
+              <div className="auth-field">
+                <HiOutlineMail className="auth-field-icon" size={16} />
+                <input
+                  type="email"
+                  placeholder={t("auth.email")}
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
+              <div className="auth-field">
+                <HiOutlineLockClosed className="auth-field-icon" size={16} />
+                <input
+                  type="password"
+                  placeholder={t("auth.password")}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
             </div>
 
-            <Link
-              to="/forgot-password"
-              className="text-sm text-gray-500 my-4 block hover:text-primary transition-colors"
-            >
+            <Link to="/forgot-password" className="auth-forgot">
               {t("auth.forgot_password")}
             </Link>
 
-            <button
-              type="submit"
-              disabled={loginLoading}
-              className="modern-auth-btn"
-            >
+            <button type="submit" disabled={loginLoading} className="auth-btn-fill">
               {loginLoading ? t("common.loading") : t("auth.login_btn")}
             </button>
 
-            {/* Mobile-only toggle link */}
-            <p className="text-center text-sm text-gray-500 mt-4 md:hidden">
+            {/* Mobile-only toggle */}
+            <p className="auth-mobile-link">
               {t("auth.no_account")}{" "}
-              <button
-                type="button"
-                onClick={toggleToSignUp}
-                className="text-primary font-medium hover:underline"
-              >
+              <button type="button" onClick={toggleToSignUp} className="auth-mobile-link-btn">
                 {t("nav.register")}
               </button>
             </p>
           </form>
         </div>
 
-        {/* ── Toggle Container (desktop only) ── */}
-        <div className="modern-auth-toggle-container">
-          <div className="modern-auth-toggle">
-            {/* Left panel — visible when Sign Up is active */}
-            <div className="modern-auth-toggle-panel modern-auth-toggle-left">
-              <h1 className="text-2xl font-bold">{t("auth.login_title")}</h1>
-              <p className="text-sm leading-5 tracking-wide my-5 opacity-90">
-                {t("auth.login_subtitle")}
+        {/* ── Signup panel (right) ── */}
+        <div className="auth-panel auth-panel-signup">
+          <form onSubmit={handleRegister} className="auth-form-inner">
+            <h1 className="auth-title">{t("auth.register_title")}</h1>
+
+            <div className="auth-social-row">
+              <button type="button" onClick={handleGoogleLogin} className="auth-social-icon" aria-label="Google">
+                <FcGoogle size={20} />
+              </button>
+            </div>
+            <span className="auth-or">{t("auth.register_subtitle")}</span>
+
+            <div className="auth-fields">
+              <div className="auth-field">
+                <HiOutlineUser className="auth-field-icon" size={16} />
+                <input
+                  type="text"
+                  placeholder={t("auth.display_name")}
+                  value={regForm.displayName}
+                  onChange={(e) => setRegForm({ ...regForm, displayName: e.target.value })}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
+              {regErrors.displayName && <p className="auth-error">{regErrors.displayName}</p>}
+
+              <div className="auth-field">
+                <HiOutlineMail className="auth-field-icon" size={16} />
+                <input
+                  type="email"
+                  placeholder={t("auth.email")}
+                  value={regForm.email}
+                  onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
+
+              <div className="auth-field">
+                <HiOutlineLockClosed className="auth-field-icon" size={16} />
+                <input
+                  type="password"
+                  placeholder={t("auth.password")}
+                  value={regForm.password}
+                  onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
+              {regErrors.password && <p className="auth-error">{regErrors.password}</p>}
+
+              <div className="auth-field">
+                <HiOutlineLockClosed className="auth-field-icon" size={16} />
+                <input
+                  type="password"
+                  placeholder={t("auth.confirm_password")}
+                  value={regForm.confirmPassword}
+                  onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                  className="auth-field-input"
+                  required
+                />
+              </div>
+              {regErrors.confirmPassword && <p className="auth-error">{regErrors.confirmPassword}</p>}
+            </div>
+
+            <div className="auth-profile-selector">
+              <ProfileTypeSelector
+                value={regForm.profileType}
+                onChange={(profileType) => setRegForm({ ...regForm, profileType })}
+              />
+            </div>
+
+            <button type="submit" disabled={regLoading} className="auth-btn-fill">
+              {regLoading ? t("common.loading") : t("auth.register_btn")}
+            </button>
+
+            {/* Mobile-only toggle */}
+            <p className="auth-mobile-link">
+              {t("auth.has_account")}{" "}
+              <button type="button" onClick={toggleToSignIn} className="auth-mobile-link-btn">
+                {t("nav.login")}
+              </button>
+            </p>
+          </form>
+        </div>
+
+        {/* ── Sliding overlay panel (desktop) ── */}
+        <div className="auth-overlay">
+          <div className="auth-overlay-inner">
+            {/* Left panel — visible when signup is active */}
+            <div className="auth-overlay-panel auth-overlay-left">
+              <h1 className="auth-overlay-title">Welcome Back!</h1>
+              <p className="auth-overlay-text">
+                To keep connected with us please login with your personal info
               </p>
-              <button
-                type="button"
-                onClick={toggleToSignIn}
-                className="modern-auth-toggle-btn"
-              >
+              <button type="button" onClick={toggleToSignIn} className="auth-btn-ghost">
                 {t("auth.login_btn")}
               </button>
             </div>
 
-            {/* Right panel — visible when Sign In is active */}
-            <div className="modern-auth-toggle-panel modern-auth-toggle-right">
-              <h1 className="text-2xl font-bold">{t("auth.register_title")}</h1>
-              <p className="text-sm leading-5 tracking-wide my-5 opacity-90">
-                {t("auth.register_subtitle")}
+            {/* Right panel — visible when login is active */}
+            <div className="auth-overlay-panel auth-overlay-right">
+              <h1 className="auth-overlay-title">Hello, Friend!</h1>
+              <p className="auth-overlay-text">
+                Enter your personal details and start your journey with us
               </p>
-              <button
-                type="button"
-                onClick={toggleToSignUp}
-                className="modern-auth-toggle-btn"
-              >
+              <button type="button" onClick={toggleToSignUp} className="auth-btn-ghost">
                 {t("auth.register_btn")}
               </button>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
 }
-

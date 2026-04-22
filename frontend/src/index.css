@@ -582,237 +582,351 @@ a:hover {
 .dark input::placeholder,
 .dark textarea::placeholder { color: #8884a0 !important; }
 
-/* ─── Modern Auth Slide Layout ─── */
-.modern-auth-container {
+/* ═══════════════════════════════════════════════════════════
+   Auth Page — split-panel sliding design (Gaurav-style)
+   Brand gradient: #945c67 → #3f4b7f
+   ═══════════════════════════════════════════════════════════ */
+
+/* Page wrapper */
+.auth-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e3b7ac 0%, #d8daf0 100%);
   position: relative;
-  background-color: #fff;
-  border-radius: 1.5rem;
-  box-shadow: 0 20px 60px rgba(63, 75, 127, 0.25);
-  overflow: hidden;
-  width: 100%;
-  max-width: 820px;
 }
 
-/* Mobile: stack, show one form at a time */
-.modern-auth-form {
+/* Main card */
+.auth-card {
+  position: relative;
+  background: #fff;
+  border-radius: 30px;
+  box-shadow: 0 5px 45px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  width: 860px;
+  max-width: 100%;
+  min-height: 560px;
+}
+
+/* ── Form panels ── */
+.auth-panel {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.auth-panel-login  { left: 0;   z-index: 2; opacity: 1; }
+.auth-panel-signup { left: 50%; z-index: 2; opacity: 1; }
+
+/* When active (register page) the overlay is on the LEFT — hide login */
+.auth-card.active .auth-panel-login  { pointer-events: none; }
+.auth-card.active .auth-panel-signup { pointer-events: auto; }
+
+.auth-form-inner {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 2.5rem 1.5rem;
-  overflow-y: auto;
+  align-items: center;
+  padding: 2.5rem 2.75rem;
+  text-align: center;
+  gap: 0;
 }
 
-.modern-auth-signup {
-  display: none;
+/* Title */
+.auth-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
 }
 
-.modern-auth-container.active .modern-auth-signup {
+/* Social icons row */
+.auth-social-row {
   display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
 }
 
-.modern-auth-container.active .modern-auth-signin {
+.auth-social-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.auth-social-icon:hover {
+  border-color: #945c67;
+  box-shadow: 0 0 8px rgba(148, 92, 103, 0.3);
+  transform: scale(1.08);
+}
+
+/* "or use your email" */
+.auth-or {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+/* Input fields */
+.auth-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-field-icon {
+  position: absolute;
+  left: 1rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.auth-field-input {
+  width: 100%;
+  padding: 0.7rem 1rem 0.7rem 2.6rem;
+  background-color: #eee;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #333;
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-field-input::placeholder { color: #aaa; }
+
+.auth-field-input:focus {
+  background-color: #e4e3f8;
+  box-shadow: 0 0 0 2px rgba(63, 75, 127, 0.2);
+}
+
+.auth-error {
+  font-size: 0.72rem;
+  color: #ef4444;
+  text-align: left;
+  width: 100%;
+  margin-top: -0.3rem;
+}
+
+/* Forgot password */
+.auth-forgot {
+  font-size: 0.78rem;
+  color: #888;
+  margin: 0.4rem 0 1rem;
+  display: block;
+  transition: color 0.2s ease;
+}
+
+.auth-forgot:hover { color: #945c67; }
+
+/* Profile type selector wrapper — compact in auth context */
+.auth-profile-selector {
+  width: 100%;
+  margin: 0.5rem 0 0.75rem;
+}
+
+/* Filled gradient button */
+.auth-btn-fill {
+  padding: 0.7rem 2.8rem;
+  background: linear-gradient(135deg, #945c67 0%, #3f4b7f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(63, 75, 127, 0.35);
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.auth-btn-fill:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(63, 75, 127, 0.45);
+}
+
+.auth-btn-fill:active:not(:disabled) { transform: translateY(0); }
+
+.auth-btn-fill:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Ghost outline button (overlay panels) */
+.auth-btn-ghost {
+  padding: 0.65rem 2.8rem;
+  background: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.auth-btn-ghost:hover { background-color: rgba(255,255,255,0.15); }
+
+/* Mobile-only toggle link */
+.auth-mobile-link {
   display: none;
+  font-size: 0.82rem;
+  color: #888;
+  margin-top: 1.25rem;
 }
 
-/* Desktop: side-by-side with slide animation */
-@media (min-width: 768px) {
-  .modern-auth-container {
-    height: 580px;
-    min-height: unset;
-  }
-
-  .modern-auth-form {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 50%;
-    padding: 2rem 2.5rem;
-    transition: left 0.6s ease-in-out, opacity 0.6s ease-in-out;
-    overflow-y: auto;
-  }
-
-  /* Login page (default): signin on LEFT, signup hidden on LEFT behind toggle */
-  .modern-auth-signup {
-    display: flex;
-    left: 0;
-    opacity: 0;
-    z-index: 1;
-    pointer-events: none;
-  }
-
-  .modern-auth-signin {
-    display: flex;
-    left: 0;
-    opacity: 1;
-    z-index: 2;
-    pointer-events: auto;
-  }
-
-  /* Register page (active): signup on RIGHT, toggle moves to LEFT */
-  .modern-auth-container.active .modern-auth-signup {
-    left: 50%;
-    opacity: 1;
-    z-index: 5;
-    pointer-events: auto;
-  }
-
-  .modern-auth-container.active .modern-auth-signin {
-    opacity: 0;
-    z-index: 1;
-    pointer-events: none;
-  }
+.auth-mobile-link-btn {
+  background: none;
+  border: none;
+  color: #3f4b7f;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
 }
 
-/* Toggle container — desktop only */
-.modern-auth-toggle-container {
-  display: none;
+.auth-mobile-link-btn:hover { text-decoration: underline; }
+
+/* ── Sliding overlay (desktop) ── */
+.auth-overlay {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 100;
+  border-radius: 150px 0 0 100px;
+  transition: left 1.2s ease-in-out, border-radius 1.2s ease-in-out;
 }
 
-@media (min-width: 768px) {
-  .modern-auth-toggle-container {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-    transition: all 0.6s ease-in-out;
-    border-radius: 150px 0 0 100px;
-    z-index: 1000;
-  }
-
-  .modern-auth-container.active .modern-auth-toggle-container {
-    transform: translateX(-100%);
-    border-radius: 0 150px 100px 0;
-  }
+.auth-card.active .auth-overlay {
+  left: 0;
+  border-radius: 0 150px 100px 0;
 }
 
-/* 200%-wide gradient strip — counter-translates to keep gradient stationary */
-.modern-auth-toggle {
-  background: linear-gradient(160deg, #945c67 0%, #3f4b7f 100%);
+/* 200%-wide gradient strip */
+.auth-overlay-inner {
+  background: linear-gradient(135deg, #945c67 0%, #3f4b7f 100%);
   color: #fff;
   position: relative;
   left: -100%;
   height: 100%;
   width: 200%;
-  transform: translateX(0);
-  transition: all 0.6s ease-in-out;
+  transition: transform 1.2s ease-in-out;
 }
 
-.modern-auth-container.active .modern-auth-toggle {
+.auth-card.active .auth-overlay-inner {
   transform: translateX(50%);
 }
 
-.modern-auth-toggle-panel {
+/* Individual promo panels */
+.auth-overlay-panel {
   position: absolute;
   width: 50%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  padding: 0 2rem;
+  padding: 0 2.5rem;
   text-align: center;
   top: 0;
-  transition: all 0.6s ease-in-out;
+  transition: transform 1.2s ease-in-out;
 }
 
-.modern-auth-toggle-left {
-  left: 0;
-  transform: translateX(-200%);
+.auth-overlay-left  { left:  0; transform: translateX(-200%); }
+.auth-overlay-right { right: 0; transform: translateX(0); }
+
+.auth-card.active .auth-overlay-left  { transform: translateX(0); }
+.auth-card.active .auth-overlay-right { transform: translateX(200%); }
+
+.auth-overlay-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
-.modern-auth-container.active .modern-auth-toggle-left {
-  transform: translateX(0);
+.auth-overlay-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  opacity: 0.9;
 }
 
-.modern-auth-toggle-right {
-  right: 0;
-  transform: translateX(0);
+/* ── Mobile (≤ 768px) ── */
+@media (max-width: 768px) {
+  .auth-card {
+    min-height: auto;
+    border-radius: 20px;
+  }
+
+  .auth-panel {
+    position: relative;
+    width: 100%;
+    left: 0 !important;
+    height: auto;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .auth-panel-signup { display: none; }
+  .auth-card.active .auth-panel-login  { display: none; }
+  .auth-card.active .auth-panel-signup { display: flex; }
+
+  .auth-overlay { display: none; }
+  .auth-mobile-link { display: block; }
+
+  .auth-form-inner { padding: 2rem 1.5rem; }
 }
 
-.modern-auth-container.active .modern-auth-toggle-right {
-  transform: translateX(200%);
+/* ── Dark mode ── */
+.dark .auth-page {
+  background: linear-gradient(135deg, #1a1525 0%, #0f0e1a 100%);
 }
 
-/* Input */
-.modern-auth-input {
-  width: 100%;
-  padding: 0.625rem 1rem;
-  border: 1px solid rgba(148, 92, 103, 0.3);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  outline: none;
-  background-color: transparent;
-  color: var(--color-text);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+.dark .auth-card { background: #1e1c2e; }
+
+.dark .auth-title { color: #f0ece8; }
+
+.dark .auth-field-input {
+  background-color: #2a2740;
+  color: #f0ece8;
 }
 
-.modern-auth-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(148, 92, 103, 0.1);
+.dark .auth-field-input:focus {
+  background-color: #322f50;
+  box-shadow: 0 0 0 2px rgba(193, 196, 227, 0.25);
 }
 
-/* Submit button */
-.modern-auth-btn {
-  width: 100%;
-  padding: 0.65rem 1.5rem;
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.25s ease, transform 0.2s ease;
+.dark .auth-field-input::placeholder { color: #6b6888; }
+
+.dark .auth-social-icon {
+  border-color: rgba(193, 196, 227, 0.25);
 }
 
-.modern-auth-btn:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  transform: scale(1.02);
-}
-
-.modern-auth-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Social icon button */
-.modern-auth-social-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid rgba(148, 92, 103, 0.25);
-  border-radius: 0.5rem;
-  background: transparent;
-  cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.modern-auth-social-icon:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(148, 92, 103, 0.2);
-}
-
-/* Toggle panel ghost button */
-.modern-auth-toggle-btn {
-  padding: 0.6rem 2rem;
-  border: 2px solid #fff;
-  border-radius: 2rem;
-  background: transparent;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
-
-.modern-auth-toggle-btn:hover {
-  background-color: #fff;
-  color: var(--color-primary);
-}
-
-.dark .modern-auth-container { background-color: #2d2a42; }
+.dark .auth-mobile-link-btn { color: #c1c4e3; }
