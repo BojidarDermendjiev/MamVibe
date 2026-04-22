@@ -444,6 +444,24 @@ dotnet list package --vulnerable
 
 <img src="docs/screenshots/web-admin-wallets.png" width="49%" alt="Admin – Wallet Management with freeze controls" />
 
+### Mobile App (Expo / React Native)
+
+**Home & Browse**
+
+<img src="docs/screenshots/mobile/home-dark.jpg" width="30%" alt="Mobile home – dark mode" /> <img src="docs/screenshots/mobile/home-light.jpg" width="30%" alt="Mobile home – light mode" /> <img src="docs/screenshots/mobile/home-shop-by-age.jpg" width="30%" alt="Mobile home – Shop by Age" />
+
+<img src="docs/screenshots/mobile/browse-items.jpg" width="30%" alt="Mobile browse items" /> <img src="docs/screenshots/mobile/item-detail.jpg" width="30%" alt="Mobile item detail" /> <img src="docs/screenshots/mobile/messages.jpg" width="30%" alt="Mobile messages" />
+
+**Profile, Orders & Wallet**
+
+<img src="docs/screenshots/mobile/profile-dark.jpg" width="30%" alt="Mobile profile – dark mode" /> <img src="docs/screenshots/mobile/profile-light.jpg" width="30%" alt="Mobile profile – light mode" /> <img src="docs/screenshots/mobile/wallet.jpg" width="30%" alt="Mobile wallet" />
+
+<img src="docs/screenshots/mobile/orders-incoming.jpg" width="30%" alt="Mobile my orders – incoming" /> <img src="docs/screenshots/mobile/my-items.jpg" width="30%" alt="Mobile my items" /> <img src="docs/screenshots/mobile/settings.jpg" width="30%" alt="Mobile settings" />
+
+**Authentication**
+
+<img src="docs/screenshots/mobile/login.jpg" width="30%" alt="Mobile login screen" />
+
 ## License
 
 This project is proprietary. All rights reserved.
