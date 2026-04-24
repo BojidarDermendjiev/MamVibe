@@ -18,6 +18,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useItems } from '@/hooks/useItems';
 import ItemCard from '@/components/ItemCard';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ROSE } from '@/constants/palette';
 import { ListingType } from '@mamvibe/shared';
 import type { Item } from '@mamvibe/shared';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
@@ -117,7 +118,7 @@ export default function BrowseScreen({ navigation }: Props) {
       {/* Grid */}
       {loading ? (
         <View style={s.center}>
-          <ActivityIndicator size="large" color="#d4938f" />
+          <ActivityIndicator size="large" color={ROSE} />
         </View>
       ) : items.length === 0 ? (
         <View style={s.center}>
@@ -134,9 +135,9 @@ export default function BrowseScreen({ navigation }: Props) {
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.3}
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator color="#d4938f" style={{ paddingVertical: 20 }} /> : null
+            loadingMore ? <ActivityIndicator color={ROSE} style={{ paddingVertical: 20 }} /> : null
           }
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#d4938f" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ROSE} />}
         />
       )}
     </SafeAreaView>
@@ -158,7 +159,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   toggleBtn: { flex: 1, paddingVertical: 7, alignItems: 'center' },
-  toggleBtnActive: { backgroundColor: '#d4938f' },
+  toggleBtnActive: { backgroundColor: ROSE },
   toggleTxt: { fontSize: 12, fontWeight: '600' },
   toggleTxtActive: { color: '#fff' },
 

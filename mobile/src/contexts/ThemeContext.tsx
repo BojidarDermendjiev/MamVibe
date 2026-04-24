@@ -6,22 +6,22 @@ export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'mamvibe_theme';
 
 export const DARK = {
-  bg:           '#2a1c1b',
-  card:         '#3a2624',
-  section:      '#321e1d',
-  border:       'rgba(212,147,143,0.15)',
+  bg:           '#201d30',
+  card:         '#2d2a42',
+  section:      '#252238',
+  border:       'rgba(148,92,103,0.20)',
   text:         '#ffffff',
   text2:        '#8eaa89',
   text3:        'rgba(142,170,137,0.55)',
-  input:        '#3a2624',
-  inputBorder:  'rgba(212,147,143,0.25)',
-  tabBar:       '#2a1c1b',
-  tabBarBorder: 'rgba(212,147,143,0.15)',
-  header:       '#2a1c1b',
+  input:        '#2d2a42',
+  inputBorder:  'rgba(148,92,103,0.30)',
+  tabBar:       '#201d30',
+  tabBarBorder: 'rgba(148,92,103,0.15)',
+  header:       '#201d30',
 };
 
 export const LIGHT = {
-  bg:           '#fefcf9',
+  bg:           '#faf3ee',
   card:         '#ffffff',
   section:      '#f5ede5',
   border:       '#e8d8cc',

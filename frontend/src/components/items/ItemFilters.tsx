@@ -1,40 +1,60 @@
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, Tag, ShoppingBag, ArrowUpDown, Sparkles, Baby, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { ListingType, AgeGroup, type Category, type ItemFilter } from '../../types/item';
 
 const BRANDS = [
-  { name: 'Cybex',         domain: 'cybex-online.com' },
-  { name: 'Little Dutch',  domain: 'little-dutch.com' },
-  { name: 'Nuna',          domain: 'nunababy.com' },
-  { name: 'Bugaboo',       domain: 'bugaboo.com' },
-  { name: 'Ergobaby',      domain: 'ergobaby.com' },
-  { name: 'UPPAbaby',      domain: 'uppababy.com' },
-  { name: 'Joie',          domain: 'joiebaby.com' },
-  { name: 'Chicco',        domain: 'chicco.com' },
-  { name: 'Maxi-Cosi',     domain: 'maxi-cosi.com' },
-  { name: 'BabyBjörn',     domain: 'babybjorn.com' },
-  { name: 'Stokke',        domain: 'stokke.com' },
-  { name: 'Graco',         domain: 'graco.com' },
-  { name: 'Britax',        domain: 'britax.co.uk' },
-  { name: 'Mamas & Papas', domain: 'mamasandpapas.com' },
-  { name: 'Skip Hop',      domain: 'skiphop.com' },
-  { name: 'Hauck',         domain: 'hauck.de' },
-  { name: 'Peg Perego',    domain: 'pegperego.com' },
-  { name: 'BABYZEN',       domain: 'babyzen.com' },
+  'Cybex', 'Little Dutch', 'Nuna', 'Bugaboo', 'Ergobaby',
+  'UPPAbaby', 'Joie', 'Chicco', 'Maxi-Cosi', 'BabyBjörn',
+  'Stokke', 'Graco', 'Britax', 'Mamas & Papas', 'Skip Hop',
+  'Hauck', 'Peg Perego', 'BABYZEN',
 ];
 
-function faviconUrl(domain: string) {
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+const AGE_GROUPS: { label: string; value: AgeGroup }[] = [
+  { label: 'Newborn',    value: AgeGroup.Newborn },
+  { label: 'Infant',     value: AgeGroup.Infant },
+  { label: 'Toddler',    value: AgeGroup.Toddler },
+  { label: 'Preschool',  value: AgeGroup.Preschool },
+  { label: 'School Age', value: AgeGroup.SchoolAge },
+  { label: 'Teen',       value: AgeGroup.Teen },
+];
+
+const SORT_OPTIONS: { label: string; value: string }[] = [
+  { label: 'Newest first',       value: 'newest' },
+  { label: 'Oldest first',       value: 'oldest' },
+  { label: 'Price: low to high', value: 'price_asc' },
+  { label: 'Price: high to low', value: 'price_desc' },
+  { label: 'Most popular',       value: 'most_liked' },
+];
+
+interface CheckRowProps {
+  label: string;
+  selected: boolean;
+  onToggle: () => void;
 }
 
-const AGE_GROUPS: { label: string; emoji: string; value: AgeGroup }[] = [
-  { label: 'Newborn',    emoji: '👶', value: AgeGroup.Newborn },
-  { label: 'Infant',     emoji: '🍼', value: AgeGroup.Infant },
-  { label: 'Toddler',    emoji: '🧸', value: AgeGroup.Toddler },
-  { label: 'Preschool',  emoji: '🎨', value: AgeGroup.Preschool },
-  { label: 'School Age', emoji: '📚', value: AgeGroup.SchoolAge },
-  { label: 'Teen',       emoji: '🎒', value: AgeGroup.Teen },
-];
+function CheckRow({ label, selected, onToggle }: CheckRowProps) {
+  return (
+    <button
+      onClick={onToggle}
+      className="flex items-center gap-3 w-full py-2 text-left hover:opacity-75 transition-opacity"
+    >
+      <span
+        className={`w-[18px] h-[18px] rounded-[4px] border flex-shrink-0 flex items-center justify-center transition-colors ${
+          selected
+            ? 'bg-primary border-primary'
+            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-transparent'
+        }`}
+      >
+        {selected && <Check className="w-3 h-3 text-white stroke-[3]" />}
+      </span>
+      <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+    </button>
+  );
+}
+
+function Divider() {
+  return <hr className="border-gray-200 dark:border-gray-700 my-4" />;
+}
 
 interface ItemFiltersProps {
   filter: ItemFilter;
@@ -56,171 +76,110 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
     onChange({ categoryId: undefined, listingType: undefined, brand: undefined, ageGroup: undefined, sortBy: 'newest', page: 1 });
 
   return (
-    <div className="bg-white rounded-2xl border border-lavender/30 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
 
-      {/* ── Header ── */}
-      <div className="px-4 py-3 flex items-center justify-between bg-lavender/10 dark:bg-white/5 border-b border-lavender/20 dark:border-white/10">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-sm text-primary">{t('items.filters')}</h3>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <span className="font-bold text-[15px] text-gray-800 dark:text-gray-100">Filters</span>
         {hasActiveFilters && (
           <button
             onClick={clearAll}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition-colors px-2 py-0.5 rounded-full hover:bg-peach-light/60"
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition-colors"
           >
             <X className="w-3 h-3" />
-            Clear
+            Clear all
           </button>
         )}
       </div>
 
-      <div className="p-4 space-y-5">
+      <div className="px-5 py-4">
 
         {/* ── Category ── */}
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            <Tag className="w-3.5 h-3.5" />
-            {t('items.category')}
-          </label>
-          <select
-            value={filter.categoryId || ''}
-            onChange={(e) => onChange({ categoryId: e.target.value || undefined, page: 1 })}
-            className="w-full px-3 py-2 rounded-xl border border-lavender/50 bg-peach-light/20 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
-          >
-            <option value="">{t('items.all_categories')}</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">{t('items.category')}</p>
+        <CheckRow
+          label={t('items.all_categories')}
+          selected={!filter.categoryId}
+          onToggle={() => onChange({ categoryId: undefined, page: 1 })}
+        />
+        {categories.map((cat) => (
+          <CheckRow
+            key={cat.id}
+            label={cat.name}
+            selected={filter.categoryId === cat.id}
+            onToggle={() => onChange({ categoryId: filter.categoryId === cat.id ? undefined : cat.id, page: 1 })}
+          />
+        ))}
+
+        <Divider />
 
         {/* ── Listing Type ── */}
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            <ShoppingBag className="w-3.5 h-3.5" />
-            {t('items.listing_type')}
-          </label>
-          <div className="flex gap-1.5">
-            {([
-              { label: 'All',              value: undefined },
-              { label: t('items.donate'),  value: ListingType.Donate },
-              { label: t('items.sell'),    value: ListingType.Sell },
-            ] as { label: string; value: ListingType | undefined }[]).map(({ label, value }) => (
-              <button
-                key={String(value)}
-                onClick={() => onChange({ listingType: value, page: 1 })}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  filter.listingType === value
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-peach-light/50 text-primary hover:bg-lavender/40'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">{t('items.listing_type')}</p>
+        <CheckRow
+          label="All"
+          selected={filter.listingType === undefined}
+          onToggle={() => onChange({ listingType: undefined, page: 1 })}
+        />
+        <CheckRow
+          label={t('items.sell')}
+          selected={filter.listingType === ListingType.Sell}
+          onToggle={() => onChange({ listingType: filter.listingType === ListingType.Sell ? undefined : ListingType.Sell, page: 1 })}
+        />
+        <CheckRow
+          label={t('items.donate')}
+          selected={filter.listingType === ListingType.Donate}
+          onToggle={() => onChange({ listingType: filter.listingType === ListingType.Donate ? undefined : ListingType.Donate, page: 1 })}
+        />
 
-        {/* ── Brands ── */}
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            Brand
-          </label>
-          <div className="flex flex-wrap gap-1.5 max-h-52 overflow-y-auto">
-
-            {/* All pill */}
-            <button
-              onClick={() => onChange({ brand: undefined, page: 1 })}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                !filter.brand
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
-              }`}
-            >
-              All
-            </button>
-
-            {BRANDS.map((b) => (
-              <button
-                key={b.name}
-                onClick={() => onChange({ brand: filter.brand === b.name ? undefined : b.name, page: 1 })}
-                className={`flex items-center gap-1 pl-1 pr-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                  filter.brand === b.name
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
-                }`}
-              >
-                <img
-                  src={faviconUrl(b.domain)}
-                  alt=""
-                  className="w-3.5 h-3.5 rounded-sm flex-shrink-0"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <span>{b.name}</span>
-              </button>
-            ))}
-
-          </div>
-        </div>
+        <Divider />
 
         {/* ── Age Group ── */}
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            <Baby className="w-3.5 h-3.5" />
-            Age
-          </label>
-          <div className="flex flex-wrap gap-1.5">
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">Age Group</p>
+        <CheckRow
+          label="All ages"
+          selected={filter.ageGroup === undefined}
+          onToggle={() => onChange({ ageGroup: undefined, page: 1 })}
+        />
+        {AGE_GROUPS.map((ag) => (
+          <CheckRow
+            key={ag.value}
+            label={ag.label}
+            selected={filter.ageGroup === ag.value}
+            onToggle={() => onChange({ ageGroup: filter.ageGroup === ag.value ? undefined : ag.value, page: 1 })}
+          />
+        ))}
 
-            {/* All pill */}
-            <button
-              onClick={() => onChange({ ageGroup: undefined, page: 1 })}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                filter.ageGroup === undefined
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
-              }`}
-            >
-              All
-            </button>
+        <Divider />
 
-            {AGE_GROUPS.map((ag) => (
-              <button
-                key={ag.value}
-                onClick={() => onChange({ ageGroup: filter.ageGroup === ag.value ? undefined : ag.value, page: 1 })}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                  filter.ageGroup === ag.value
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-peach-light/60 text-primary hover:bg-lavender/40'
-                }`}
-              >
-                <span>{ag.emoji}</span>
-                <span>{ag.label}</span>
-              </button>
-            ))}
-
-          </div>
+        {/* ── Brand ── */}
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">Brand</p>
+        <div className="max-h-48 overflow-y-auto">
+          <CheckRow
+            label="All brands"
+            selected={!filter.brand}
+            onToggle={() => onChange({ brand: undefined, page: 1 })}
+          />
+          {BRANDS.map((b) => (
+            <CheckRow
+              key={b}
+              label={b}
+              selected={filter.brand === b}
+              onToggle={() => onChange({ brand: filter.brand === b ? undefined : b, page: 1 })}
+            />
+          ))}
         </div>
+
+        <Divider />
 
         {/* ── Sort ── */}
-        <div>
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            Sort
-          </label>
-          <select
-            value={filter.sortBy}
-            onChange={(e) => onChange({ sortBy: e.target.value, page: 1 })}
-            className="w-full px-3 py-2 rounded-xl border border-lavender/50 bg-peach-light/20 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
-          >
-            <option value="newest">{t('items.sort_newest')}</option>
-            <option value="oldest">{t('items.sort_oldest')}</option>
-            <option value="price_asc">{t('items.sort_price_asc')}</option>
-            <option value="price_desc">{t('items.sort_price_desc')}</option>
-            <option value="most_liked">{t('items.sort_popular')}</option>
-          </select>
-        </div>
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">Sort By</p>
+        {SORT_OPTIONS.map((opt) => (
+          <CheckRow
+            key={opt.value}
+            label={opt.label}
+            selected={filter.sortBy === opt.value}
+            onToggle={() => onChange({ sortBy: opt.value, page: 1 })}
+          />
+        ))}
 
       </div>
     </div>
