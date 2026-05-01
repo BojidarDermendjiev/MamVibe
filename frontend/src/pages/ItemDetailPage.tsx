@@ -26,9 +26,8 @@ export default function ItemDetailPage() {
   const [requestPending, setRequestPending] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [showNekorektenWarning, setShowNekorektenWarning] = useState(false);
-  // TODO: fetch from backend — this is a demo URL to preview the warning UI
+  const [isSellerReported, setIsSellerReported] = useState(false);
   const nekorektenReportUrl = 'https://nekorekten.com/';
-  const isSellerReported = true; // demo: set to true to see the warning UI
   const viewCounted = useRef(false);
 
   useEffect(() => {
@@ -41,6 +40,9 @@ export default function ItemDetailPage() {
           viewCounted.current = true;
           itemsApi.incrementView(id).catch(() => {});
         }
+        itemsApi.checkSeller(id)
+          .then(({ data: check }) => setIsSellerReported(check.hasReports))
+          .catch(() => {});
       } catch {
         toast.error('Item not found');
         navigate('/browse');

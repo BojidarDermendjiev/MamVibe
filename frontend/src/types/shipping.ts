@@ -2,6 +2,7 @@ export const CourierProvider = {
   Econt: 0,
   Speedy: 1,
   BoxNow: 2,
+  PigeonExpress: 3,
 } as const;
 export type CourierProvider = (typeof CourierProvider)[keyof typeof CourierProvider];
 

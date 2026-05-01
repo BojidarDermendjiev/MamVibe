@@ -24,4 +24,5 @@ public interface IItemService
     Task<List<ItemDto>> GetUserItemsAsync(string userId);
     Task<List<ItemDto>> GetLikedItemsAsync(string userId);
     Task<PriceSuggestionResultDto> SuggestPriceAsync(PriceSuggestionRequestDto dto);
+    Task<SellerCheckResultDto> CheckSellerAsync(Guid itemId);
 }

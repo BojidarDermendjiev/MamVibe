@@ -24,6 +24,7 @@ public class ItemService : IItemService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IAiService _aiService;
+    private readonly INekorektenService _nekorekten;
 
     private const double AutoApproveThreshold = 0.85;
 
@@ -32,13 +33,15 @@ public class ItemService : IItemService
         IMapper mapper,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        IAiService aiService)
+        IAiService aiService,
+        INekorektenService nekorekten)
     {
         this._context = context;
         this._mapper = mapper;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._aiService = aiService;
+        this._nekorekten = nekorekten;
     }
 
     private static string MaskEmail(string? email)
@@ -423,5 +426,36 @@ public class ItemService : IItemService
             dto.IsLikedByCurrentUser = true;
         }
         return dtos;
+    }
+
+    public async Task<SellerCheckResultDto> CheckSellerAsync(Guid itemId)
+    {
+        var item = await this._context.Items
+            .Include(i => i.User)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == itemId);
+
+        if (item == null)
+            throw new KeyNotFoundException("Item not found.");
+
+        var raw = await this._nekorekten.CheckAsync(
+            item.User?.DisplayName,
+            item.User?.Email,
+            item.User?.PhoneNumber);
+
+        return new SellerCheckResultDto
+        {
+            HasReports = raw.HasReports,
+            ReportCount = raw.ReportCount,
+            ServiceUnavailable = raw.ServiceUnavailable,
+            Reports = raw.Reports
+                .Select(r => new SellerCheckReportDto
+                {
+                    Text = r.Text,
+                    Likes = r.Likes,
+                    CreatedAt = r.CreatedAt,
+                })
+                .ToList(),
+        };
     }
 }

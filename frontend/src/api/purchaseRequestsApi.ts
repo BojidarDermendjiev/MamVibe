@@ -40,3 +40,18 @@ export interface BuyerCheckResult {
   reports: NekorektenReport[];
   serviceUnavailable: boolean;
 }
+
+/** PII-free report entry returned by the seller-check endpoint. */
+export interface SellerCheckReport {
+  text?: string;
+  likes: number;
+  createdAt?: string;
+}
+
+/** Result of GET /api/items/{id}/seller-check — no PII fields. */
+export interface SellerCheckResult {
+  hasReports: boolean;
+  reportCount: number;
+  reports: SellerCheckReport[];
+  serviceUnavailable: boolean;
+}

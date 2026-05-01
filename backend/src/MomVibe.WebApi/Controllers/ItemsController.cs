@@ -85,6 +85,21 @@ public class ItemsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize]
+    [HttpGet("{id:guid}/seller-check")]
+    public async Task<IActionResult> CheckSeller(Guid id)
+    {
+        try
+        {
+            var result = await this._itemService.CheckSellerAsync(id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
     /// <summary>
     /// Analyzes a product photo with Claude AI and returns prefilled listing suggestions.
     /// </summary>

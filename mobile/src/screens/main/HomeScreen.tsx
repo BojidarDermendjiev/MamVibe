@@ -70,7 +70,7 @@ export default function HomeScreen({ navigation }: Props) {
     return () => clearInterval(id);
   }, [opacity]);
 
-  const heroBg = isDark ? '#2a1c1b' : '#3d2424';
+  const heroBg = isDark ? '#2d2a42' : '#3d2424';
   const sectionBg = isDark ? colors.section : MIST;
 
   return (

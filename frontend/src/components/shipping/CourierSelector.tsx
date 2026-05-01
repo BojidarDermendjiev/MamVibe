@@ -13,12 +13,13 @@ export default function CourierSelector({ value, onChange }: CourierSelectorProp
     { id: CourierProvider.Econt, label: t('shipping.econt'), desc: t('shipping.econt_desc') },
     { id: CourierProvider.Speedy, label: t('shipping.speedy'), desc: t('shipping.speedy_desc') },
     { id: CourierProvider.BoxNow, label: t('shipping.boxnow'), desc: t('shipping.boxnow_desc') },
+    { id: CourierProvider.PigeonExpress, label: t('shipping.pigeon'), desc: t('shipping.pigeon_desc') },
   ];
 
   return (
     <div className="space-y-3">
       <h3 className="font-medium text-primary">{t('shipping.courier')}</h3>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {couriers.map((courier) => (
           <button
             key={courier.id}

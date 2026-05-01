@@ -1,5 +1,6 @@
 import axiosClient from './axiosClient';
 import type { Item, CreateItemRequest, UpdateItemRequest, ItemFilter, PagedResult, Category } from '../types/item';
+import type { SellerCheckResult } from './purchaseRequestsApi';
 
 export const itemsApi = {
   getAll: (filter: ItemFilter) =>
@@ -31,4 +32,7 @@ export const itemsApi = {
 
   getLikedItems: () =>
     axiosClient.get<Item[]>('/users/dashboard/liked'),
+
+  checkSeller: (id: string) =>
+    axiosClient.get<SellerCheckResult>(`/items/${id}/seller-check`),
 };

@@ -75,6 +75,7 @@ export default function ShipmentDetailPage() {
     [CourierProvider.Econt]: 'Econt',
     [CourierProvider.Speedy]: 'Speedy',
     [CourierProvider.BoxNow]: 'Box Now',
+    [CourierProvider.PigeonExpress]: 'Pigeon Express',
   };
   const courierName = courierNames[shipment.courierProvider] ?? 'Unknown';
   const canCancel =

@@ -37,6 +37,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
     [CourierProvider.Econt]: 'Econt',
     [CourierProvider.Speedy]: 'Speedy',
     [CourierProvider.BoxNow]: 'Box Now',
+    [CourierProvider.PigeonExpress]: 'Pigeon Express',
   };
   const courierName = courierNames[shipment.courierProvider] ?? 'Unknown';
 
