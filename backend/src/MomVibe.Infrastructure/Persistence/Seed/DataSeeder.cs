@@ -129,4 +129,234 @@ public static class DataSeeder
         dbContext.Categories.AddRange(categories);
         await dbContext.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Seeds sample doctor reviews and child-friendly places for development.
+    /// Runs only in Development and only when the tables are empty.
+    /// </summary>
+    public static async Task SeedCommunityDataAsync(
+        ApplicationDbContext dbContext,
+        IWebHostEnvironment environment)
+    {
+        if (!environment.IsDevelopment())
+            return;
+
+        var botId = AiBotConstants.UserId;
+
+        if (!dbContext.DoctorReviews.Any())
+        {
+            var reviews = new[]
+            {
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Мария Иванова",
+                    Specialization = "Педиатър",
+                    ClinicName = "МЦ Здраве",
+                    City = "София",
+                    Rating = 5,
+                    Content = "Изключителен лекар! Много внимателна и търпелива с детето ни. Обяснява всичко подробно и никога не бърза. Горещо препоръчвам!",
+                    SuperdocUrl = null,
+                    IsAnonymous = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-14),
+                },
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Георги Петров",
+                    Specialization = "Детски хирург",
+                    ClinicName = "УМБАЛ Александровска",
+                    City = "София",
+                    Rating = 4,
+                    Content = "Много компетентен специалист. Операцията мина перфектно и проследяването беше отлично. Малко трудно се вземат часове, но си струва чакането.",
+                    SuperdocUrl = null,
+                    IsAnonymous = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-10),
+                },
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Елена Стоянова",
+                    Specialization = "Педиатър",
+                    ClinicName = "Детска поликлиника Пловдив",
+                    City = "Пловдив",
+                    Rating = 5,
+                    Content = "Д-р Стоянова е невероятна! Децата я обичат и никога не плачат при нея. Дава изчерпателни съвети за хранене и развитие. Нашият семеен педиатър от 3 години.",
+                    SuperdocUrl = null,
+                    IsAnonymous = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-7),
+                },
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Стефан Димитров",
+                    Specialization = "Детски ортопед",
+                    ClinicName = "МЦ Варна",
+                    City = "Варна",
+                    Rating = 5,
+                    Content = "Открихме проблем с тазобедрените стави на бебето ни на 3 месеца. Д-р Димитров беше изключително внимателен и ни обясни всичко. Сега детето е напълно здраво!",
+                    SuperdocUrl = null,
+                    IsAnonymous = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                },
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Анна Николова",
+                    Specialization = "Детски невролог",
+                    ClinicName = null,
+                    City = "София",
+                    Rating = 4,
+                    Content = "Много добър специалист с голям опит. Установи проблема бързо и предложи ефективно лечение. Препоръчвам за деца с неврологични въпроси.",
+                    SuperdocUrl = null,
+                    IsAnonymous = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-3),
+                },
+                new MomVibe.Domain.Entities.DoctorReview
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    DoctorName = "Красимир Велков",
+                    Specialization = "Алерголог",
+                    ClinicName = "Алергоцентър Пловдив",
+                    City = "Пловдив",
+                    Rating = 5,
+                    Content = "Синът ми имаше тежка алергия към хранителни продукти. Д-р Велков направи пълна диагностика и разработи план. 6 месеца по-късно животът ни се промени напълно!",
+                    SuperdocUrl = null,
+                    IsAnonymous = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                },
+            };
+
+            dbContext.DoctorReviews.AddRange(reviews);
+            await dbContext.SaveChangesAsync();
+        }
+
+        if (!dbContext.ChildFriendlyPlaces.Any())
+        {
+            var places = new[]
+            {
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Южен парк",
+                    Description = "Огромен парк в центъра на София с прекрасни детски площадки, езеро с патици и много зелени площи. Идеален за разходки с количка и пикник.",
+                    Address = "бул. България, Южен парк",
+                    City = "София",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Park,
+                    AgeFromMonths = 0,
+                    AgeToMonths = 144,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-20),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Детски градски цирк",
+                    Description = "Тематичен атракцион за деца с клоунове, акробати и животни. Представленията траят около час и са подходящи за деца от 3 години нагоре.",
+                    Address = "бул. Цар Борис III 111",
+                    City = "София",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.ThemeAttraction,
+                    AgeFromMonths = 36,
+                    AgeToMonths = 144,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-18),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Природонаучен музей",
+                    Description = "Богата колекция от животни, минерали и праисторически експонати. Има специална детска зала с интерактивни експозиции. Децата обожават динозаврите!",
+                    Address = "бул. Цар Освободител 1",
+                    City = "София",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Museum,
+                    AgeFromMonths = 24,
+                    AgeToMonths = 180,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-15),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Детска площадка Цар Симеон",
+                    Description = "Добре поддържана площадка с люлки, пързалки и катерушки. Има пясъчник и засенчени места за сядане. Родителите харесват спокойната атмосфера.",
+                    Address = "Градина Цар Симеон, Пловдив",
+                    City = "Пловдив",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Playground,
+                    AgeFromMonths = 12,
+                    AgeToMonths = 96,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-12),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Делфинариум Варна",
+                    Description = "Единственият делфинариум в България! Шоуто е невероятно — децата остават с отворени уста. Има и зона за снимки с делфините след представлението.",
+                    Address = "Приморски парк, Варна",
+                    City = "Варна",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Zoo,
+                    AgeFromMonths = 18,
+                    AgeToMonths = null,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-9),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Ресторант Дино",
+                    Description = "Семеен ресторант с тематична детска стая и кът за игра. Има специално детско меню, детски стол и пеленален кът. Персоналът е много внимателен към семействата.",
+                    Address = "ул. Витоша 45",
+                    City = "София",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Restaurant,
+                    AgeFromMonths = 0,
+                    AgeToMonths = 96,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-6),
+                },
+                new MomVibe.Domain.Entities.ChildFriendlyPlace
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = botId,
+                    Name = "Плаж Кабакум",
+                    Description = "Семеен плаж с плитка вода — перфектен за малки деца. Има чадъри под наем, детски атракциони и добра инфраструктура. Водата е чиста и топла през лятото.",
+                    Address = "Кабакум, Варна",
+                    City = "Варна",
+                    PlaceType = MomVibe.Domain.Enums.PlaceType.Beach,
+                    AgeFromMonths = 6,
+                    AgeToMonths = null,
+                    PhotoUrl = null,
+                    Website = null,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow.AddDays(-4),
+                },
+            };
+
+            dbContext.ChildFriendlyPlaces.AddRange(places);
+            await dbContext.SaveChangesAsync();
+        }
+    }
 }

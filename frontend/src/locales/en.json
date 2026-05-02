@@ -464,6 +464,20 @@
     "issued": "Issued",
     "seller": "Seller"
   },
+  "doctorReviews": {
+    "title": "Doctor Reviews",
+    "subtitle": "Community experiences shared by moms — in collaboration with superdoc.bg",
+    "writeReview": "Write a Review",
+    "filterCity": "Filter by city",
+    "filterSpecialization": "Filter by specialization",
+    "noReviews": "No reviews yet. Be the first to share your experience!"
+  },
+  "childFriendlyPlaces": {
+    "title": "Child-Friendly Places",
+    "subtitle": "Discover places loved by moms across Bulgaria",
+    "addPlace": "Add a Place",
+    "noPlaces": "No places yet. Add the first one!"
+  },
   "donate": {
     "title": "You're kind of a big deal",
     "subtitle": "MamVibe runs on love — and a tiny bit of servers. If this place has made life a little easier, a small contribution keeps the magic alive.",

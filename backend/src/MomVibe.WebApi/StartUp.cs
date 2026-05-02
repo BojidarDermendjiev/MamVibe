@@ -288,6 +288,7 @@ using (var scope = app.Services.CreateScope())
     await DataSeeder.SeedAdminAsync(userManager, app.Configuration);
     await DataSeeder.SeedAiBotAsync(userManager);
     await DataSeeder.SeedDemoDataAsync(userManager, dbContext, app.Environment);
+    await DataSeeder.SeedCommunityDataAsync(dbContext, app.Environment);
 }
 
 // Middleware pipeline
