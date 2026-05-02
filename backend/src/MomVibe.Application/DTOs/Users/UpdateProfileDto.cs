@@ -16,5 +16,5 @@ public class UpdateProfileDto
     public string? AvatarUrl { get; set; }
     public ProfileType? ProfileType { get; set; }
     public string? LanguagePreference { get; set; }
-    public string? Iban { get; set; }
+    public string? RevolutTag { get; set; }
 }

@@ -12,7 +12,6 @@ import HomeScreen from '@/screens/main/HomeScreen';
 import BrowseScreen from '@/screens/main/BrowseScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
 import ItemDetailScreen from '@/screens/main/ItemDetailScreen';
-import WalletScreen from '@/screens/main/WalletScreen';
 import PaymentScreen from '@/screens/main/PaymentScreen';
 import DashboardScreen from '@/screens/main/DashboardScreen';
 import ShipmentDetailScreen from '@/screens/main/ShipmentDetailScreen';
@@ -119,11 +118,6 @@ function MainNavigator() {
         name="ItemDetail"
         component={ItemDetailScreen}
         options={{ headerShown: true, title: '', headerTintColor: '#d4938f' }}
-      />
-      <RootStack.Screen
-        name="Wallet"
-        component={WalletScreen}
-        options={{ headerShown: true, title: t('profile.wallet'), headerTintColor: '#d4938f' }}
       />
       <RootStack.Screen
         name="Payment"

@@ -24,7 +24,6 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   MainTabs: undefined;
   ItemDetail: { itemId: string };
-  Wallet: undefined;
   Payment: { itemId: string };
   Dashboard: undefined;
   ShipmentDetail: { shipmentId: string };

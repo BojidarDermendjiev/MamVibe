@@ -17,7 +17,6 @@ export default function EBillCard({ bill }: EBillCardProps) {
 
   const methodLabel = () => {
     if (bill.paymentMethod === PaymentMethod.Card) return t('payment.card');
-    if (bill.paymentMethod === PaymentMethod.Wallet) return t('payment.wallet');
     return String(bill.paymentMethod);
   };
 

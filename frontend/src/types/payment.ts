@@ -2,7 +2,6 @@ export const PaymentMethod = {
   Card: 0,
   OnSpot: 1,
   Booking: 2,
-  Wallet: 3,
 } as const;
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
 

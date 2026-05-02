@@ -4,7 +4,6 @@ export * from './types/message';
 export * from './types/payment';
 export * from './types/purchaseRequest';
 export * from './types/shipping';
-export * from './types/wallet';
 export * from './types/feedback';
 export * from './types/ebill';
 export * from './types/sellerReview';

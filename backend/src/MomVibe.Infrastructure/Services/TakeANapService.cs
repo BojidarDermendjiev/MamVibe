@@ -53,68 +53,6 @@ public class TakeANapService : ITakeANapService
         }
     }
 
-    public async Task<string?> CreateWalletReceiptAsync(WalletTransaction transaction, string customerEmail)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(this._settings.ApiKey) || this._settings.ApiKey.Contains("YOUR_"))
-            {
-                this._logger.LogWarning("TakeANap is not configured. Skipping wallet receipt.");
-                return null;
-            }
-
-            var lineItemName = transaction.Kind switch
-            {
-                WalletTransactionKind.TopUp       => "Зареждане на портфейл",
-                WalletTransactionKind.Transfer    => "Превод между потребители",
-                WalletTransactionKind.ItemPayment => transaction.Description ?? "Плащане за артикул",
-                WalletTransactionKind.Refund      => "Възстановяване на плащане",
-                _                                 => "Транзакция"
-            };
-
-            var body = new
-            {
-                shopId     = _settings.ShopId,
-                internalId = transaction.Id.ToString(),
-                currency   = "EUR",
-                paymentType = "PAYMENT_PROCESSOR",
-                customer   = new { email = customerEmail },
-                lineItems  = new[]
-                {
-                    new
-                    {
-                        name      = lineItemName,
-                        quantity  = 1,
-                        price     = transaction.Amount,
-                        vatGroup  = "GROUP_B",
-                        vatRate   = 20
-                    }
-                }
-            };
-
-            var jsonBody  = JsonSerializer.Serialize(body);
-            var path      = "/public-api/v2/order";
-            var request   = CreateSignedRequest(HttpMethod.Post, path, jsonBody);
-            var response  = await _httpClient.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                this._logger.LogWarning("TakeANap CreateOrder (wallet) failed: {Status} {Error}", response.StatusCode, error);
-                return null;
-            }
-
-            var result  = await response.Content.ReadFromJsonAsync<JsonElement>();
-            var orderId = result.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
-            return orderId == null ? null : await GetReceiptUrlAsync(orderId);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Failed to create TakeANap receipt for wallet transaction {TxId}", transaction.Id);
-            return null;
-        }
-    }
-
     private async Task<string?> CreateOrderAsync(Payment payment)
     {
         var path = "/public-api/v2/order";

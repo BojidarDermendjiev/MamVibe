@@ -86,7 +86,7 @@ public class UsersController : ControllerBase
         if (dto.AvatarUrl != null) user.AvatarUrl = dto.AvatarUrl;
         if (dto.ProfileType.HasValue) user.ProfileType = dto.ProfileType.Value;
         if (dto.LanguagePreference != null) user.LanguagePreference = dto.LanguagePreference;
-        if (dto.Iban != null) user.Iban = dto.Iban;
+        if (dto.RevolutTag != null) user.RevolutTag = dto.RevolutTag;
 
         await this._userManager.UpdateAsync(user);
         return Ok(new UserDto
@@ -98,7 +98,7 @@ public class UsersController : ControllerBase
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,
             CreatedAt = user.CreatedAt,
-            Iban = user.Iban
+            RevolutTag = user.RevolutTag
         });
     }
 

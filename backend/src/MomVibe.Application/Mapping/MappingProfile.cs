@@ -10,7 +10,8 @@ using DTOs.Payments;
 using DTOs.Feedbacks;
 using DTOs.Shipping;
 using DTOs.PurchaseRequests;
-using DTOs.Wallet;
+using DTOs.DoctorReviews;
+using DTOs.ChildFriendlyPlaces;
 using Domain.Entities;
 
 /// <summary>
@@ -74,18 +75,7 @@ public class MappingProfile : Profile
             .ForMember(d => d.BuyerDisplayName, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.DisplayName : null))
             .ForMember(d => d.BuyerAvatarUrl, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.AvatarUrl : null));
 
-        // Wallet mappings
-        // Balance is intentionally excluded — callers must compute it from WalletTransaction.BalanceAfter
-        // and set it on the DTO manually after mapping.
-        CreateMap<Wallet, WalletDto>()
-            .ForMember(d => d.Balance, opt => opt.Ignore());
-
-        CreateMap<WalletTransaction, WalletTransactionDto>();
-
-        CreateMap<WalletTransfer, WalletTransferDto>()
-            .ForMember(d => d.SenderDisplayName, opt => opt.MapFrom(s =>
-                s.SenderWallet != null && s.SenderWallet.User != null ? s.SenderWallet.User.DisplayName : null))
-            .ForMember(d => d.ReceiverDisplayName, opt => opt.MapFrom(s =>
-                s.ReceiverWallet != null && s.ReceiverWallet.User != null ? s.ReceiverWallet.User.DisplayName : null));
+        CreateMap<DoctorReview, DoctorReviewDto>();
+        CreateMap<ChildFriendlyPlace, ChildFriendlyPlaceDto>();
     }
 }

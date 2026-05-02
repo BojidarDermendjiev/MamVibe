@@ -16,7 +16,8 @@ using Infrastructure.Services.Shipping;
 /// - Registers ApplicationDbContext with PostgreSQL and migrations assembly.
 /// - Binds IApplicationDbContext to ApplicationDbContext.
 /// - Adds scoped services for tokens, auth, current user, items, messages, photos, payments,
-///   admin operations, feedback, Cloudflare Turnstile verification, and shipping (Econt, Speedy).
+///   admin operations, feedback, doctor reviews, child-friendly places,
+///   Cloudflare Turnstile verification, and shipping (Econt, Speedy, BoxNow, PigeonExpress).
 /// Provides the AddInfrastructureServices extension to wire these into the DI container.
 /// </summary>
 public static class DependencyInjection
@@ -38,10 +39,11 @@ public static class DependencyInjection
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<IEBillService, EBillService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
+        services.AddScoped<IDoctorReviewService, DoctorReviewService>();
+        services.AddScoped<IChildFriendlyPlaceService, ChildFriendlyPlaceService>();
         services.AddScoped<ITurnstileService, TurnstileService>();
         services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
 

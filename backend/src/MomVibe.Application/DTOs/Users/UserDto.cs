@@ -24,5 +24,5 @@ public class UserDto
     public List<string> Roles { get; set; } = [];
     public bool IsBlocked { get; set; }
     public DateTime CreatedAt { get; set; }
-    public string? Iban { get; set; }
+    public string? RevolutTag { get; set; }
 }
