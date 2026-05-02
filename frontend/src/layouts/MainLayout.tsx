@@ -13,6 +13,8 @@ import {
   LogIn,
   Sun,
   Moon,
+  Stethoscope,
+  Baby,
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useAuthStore } from "../store/authStore";
@@ -57,6 +59,8 @@ export default function MainLayout() {
   const navItems: NavItem[] = [
     { name: t("nav.home") || "Home", url: "/", icon: Home },
     { name: t("nav.browse") || "Browse", url: "/browse", icon: Search },
+    { name: t("nav.doctors") || "Doctors", url: "/doctor-reviews", icon: Stethoscope },
+    { name: t("nav.places") || "Places", url: "/child-friendly-places", icon: Baby },
     ...(isAuthenticated
       ? [
           {
