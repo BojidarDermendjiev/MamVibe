@@ -10,106 +10,116 @@ namespace MomVibe.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Drop wallet tables
-            migrationBuilder.DropTable(name: "WalletTransfers");
-            migrationBuilder.DropTable(name: "WalletTransactions");
-            migrationBuilder.DropTable(name: "Wallets");
+            // Drop wallet tables (IF EXISTS so this is safe on any database state)
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"WalletTransfers\" CASCADE");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"WalletTransactions\" CASCADE");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"Wallets\" CASCADE");
 
-            // Remove IBAN column (was only used for wallet withdrawals)
-            migrationBuilder.DropColumn(table: "AspNetUsers", name: "Iban");
+            // Remove IBAN column if it exists
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'AspNetUsers' AND column_name = 'Iban'
+                    ) THEN
+                        ALTER TABLE ""AspNetUsers"" DROP COLUMN ""Iban"";
+                    END IF;
+                END $$;
+            ");
 
-            // Add RevolutTag
-            migrationBuilder.AddColumn<string>(
-                name: "RevolutTag",
-                table: "AspNetUsers",
-                type: "character varying(50)",
-                maxLength: 50,
-                nullable: true,
-                comment: "Revolut username or tag for peer-to-peer payments via the Revolut app.");
+            // Add RevolutTag if it doesn't already exist
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'AspNetUsers' AND column_name = 'RevolutTag'
+                    ) THEN
+                        ALTER TABLE ""AspNetUsers""
+                            ADD COLUMN ""RevolutTag"" character varying(50) NULL;
+                    END IF;
+                END $$;
+            ");
 
-            // Create DoctorReviews table
-            migrationBuilder.CreateTable(
-                name: "DoctorReviews",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    DoctorName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Specialization = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    ClinicName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Rating = table.Column<int>(type: "integer", nullable: false),
-                    Content = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    SuperdocUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
-                    IsAnonymous = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DoctorReviews", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DoctorReviews_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            // Create DoctorReviews table if it doesn't exist
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS ""DoctorReviews"" (
+                    ""Id""             uuid                        NOT NULL,
+                    ""UserId""         text                        NOT NULL,
+                    ""DoctorName""     character varying(100)      NOT NULL,
+                    ""Specialization"" character varying(100)      NOT NULL,
+                    ""ClinicName""     character varying(150)      NULL,
+                    ""City""           character varying(100)      NOT NULL,
+                    ""Rating""         integer                     NOT NULL,
+                    ""Content""        character varying(2000)     NOT NULL,
+                    ""SuperdocUrl""    character varying(2048)     NULL,
+                    ""IsAnonymous""    boolean                     NOT NULL DEFAULT false,
+                    ""CreatedAt""      timestamp with time zone    NOT NULL,
+                    ""UpdatedAt""      timestamp with time zone    NULL,
+                    CONSTRAINT ""PK_DoctorReviews"" PRIMARY KEY (""Id""),
+                    CONSTRAINT ""FK_DoctorReviews_AspNetUsers_UserId""
+                        FOREIGN KEY (""UserId"") REFERENCES ""AspNetUsers""(""Id"") ON DELETE CASCADE
+                );
+            ");
 
-            migrationBuilder.CreateIndex(name: "IX_DoctorReviews_City", table: "DoctorReviews", column: "City");
-            migrationBuilder.CreateIndex(name: "IX_DoctorReviews_Specialization", table: "DoctorReviews", column: "Specialization");
-            migrationBuilder.CreateIndex(name: "IX_DoctorReviews_UserId", table: "DoctorReviews", column: "UserId");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_DoctorReviews_City""           ON ""DoctorReviews""(""City"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_DoctorReviews_Specialization"" ON ""DoctorReviews""(""Specialization"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_DoctorReviews_UserId""         ON ""DoctorReviews""(""UserId"");");
 
-            // Create ChildFriendlyPlaces table
-            migrationBuilder.CreateTable(
-                name: "ChildFriendlyPlaces",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    Address = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    PlaceType = table.Column<int>(type: "integer", nullable: false),
-                    AgeFromMonths = table.Column<int>(type: "integer", nullable: true),
-                    AgeToMonths = table.Column<int>(type: "integer", nullable: true),
-                    PhotoUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
-                    Website = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
-                    IsApproved = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChildFriendlyPlaces", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChildFriendlyPlaces_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            // Create ChildFriendlyPlaces table if it doesn't exist
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS ""ChildFriendlyPlaces"" (
+                    ""Id""             uuid                        NOT NULL,
+                    ""UserId""         text                        NOT NULL,
+                    ""Name""           character varying(150)      NOT NULL,
+                    ""Description""    character varying(2000)     NOT NULL,
+                    ""Address""        character varying(300)      NULL,
+                    ""City""           character varying(100)      NOT NULL,
+                    ""PlaceType""      integer                     NOT NULL,
+                    ""AgeFromMonths""  integer                     NULL,
+                    ""AgeToMonths""    integer                     NULL,
+                    ""PhotoUrl""       character varying(2048)     NULL,
+                    ""Website""        character varying(2048)     NULL,
+                    ""IsApproved""     boolean                     NOT NULL DEFAULT false,
+                    ""CreatedAt""      timestamp with time zone    NOT NULL,
+                    ""UpdatedAt""      timestamp with time zone    NULL,
+                    CONSTRAINT ""PK_ChildFriendlyPlaces"" PRIMARY KEY (""Id""),
+                    CONSTRAINT ""FK_ChildFriendlyPlaces_AspNetUsers_UserId""
+                        FOREIGN KEY (""UserId"") REFERENCES ""AspNetUsers""(""Id"") ON DELETE CASCADE
+                );
+            ");
 
-            migrationBuilder.CreateIndex(name: "IX_ChildFriendlyPlaces_City", table: "ChildFriendlyPlaces", column: "City");
-            migrationBuilder.CreateIndex(name: "IX_ChildFriendlyPlaces_PlaceType", table: "ChildFriendlyPlaces", column: "PlaceType");
-            migrationBuilder.CreateIndex(name: "IX_ChildFriendlyPlaces_IsApproved", table: "ChildFriendlyPlaces", column: "IsApproved");
-            migrationBuilder.CreateIndex(name: "IX_ChildFriendlyPlaces_UserId", table: "ChildFriendlyPlaces", column: "UserId");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_ChildFriendlyPlaces_City""      ON ""ChildFriendlyPlaces""(""City"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_ChildFriendlyPlaces_PlaceType"" ON ""ChildFriendlyPlaces""(""PlaceType"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_ChildFriendlyPlaces_IsApproved"" ON ""ChildFriendlyPlaces""(""IsApproved"");");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_ChildFriendlyPlaces_UserId""    ON ""ChildFriendlyPlaces""(""UserId"");");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "DoctorReviews");
-            migrationBuilder.DropTable(name: "ChildFriendlyPlaces");
-            migrationBuilder.DropColumn(table: "AspNetUsers", name: "RevolutTag");
-            migrationBuilder.AddColumn<string>(
-                name: "Iban",
-                table: "AspNetUsers",
-                type: "character varying(34)",
-                maxLength: 34,
-                nullable: true);
-            // Note: wallet tables not restored in Down() — data loss intentional
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"DoctorReviews\"");
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"ChildFriendlyPlaces\"");
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'AspNetUsers' AND column_name = 'RevolutTag'
+                    ) THEN
+                        ALTER TABLE ""AspNetUsers"" DROP COLUMN ""RevolutTag"";
+                    END IF;
+                END $$;
+            ");
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'AspNetUsers' AND column_name = 'Iban'
+                    ) THEN
+                        ALTER TABLE ""AspNetUsers""
+                            ADD COLUMN ""Iban"" character varying(34) NULL;
+                    END IF;
+                END $$;
+            ");
         }
     }
 }
