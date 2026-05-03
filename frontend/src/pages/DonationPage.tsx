@@ -201,11 +201,11 @@ export default function DonationPage() {
           <div className="relative -rotate-2 bg-yellow-200 rounded-md px-6 py-5 shadow-md w-72 z-10">
             {/* Tape strip */}
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-14 h-6 bg-red-200/70 rounded-sm rotate-3 shadow-sm" />
-            <p className="font-bold text-gray-700 text-sm mb-2.5">Together we can:</p>
+            <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>Together we can:</p>
             <ul className="space-y-1.5">
               {['Support families', 'Share baby items', 'Build a kinder community'].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="text-primary font-bold">✓</span>
+                <li key={item} className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+                  <span className="font-bold" style={{ color: '#945c67' }}>✓</span>
                   {item}
                 </li>
               ))}
@@ -214,7 +214,7 @@ export default function DonationPage() {
 
           {/* Purple sticky note */}
           <div className="relative rotate-3 bg-purple-200 rounded-md px-6 py-5 shadow-md w-60 -mt-3 -ml-8 z-0">
-            <p className="font-semibold text-gray-700 text-sm italic leading-relaxed">
+            <p className="font-semibold text-sm italic leading-relaxed" style={{ color: '#374151' }}>
               Every little bit creates a big change! 🤍
             </p>
           </div>
