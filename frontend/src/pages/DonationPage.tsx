@@ -50,9 +50,9 @@ export default function DonationPage() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-6xl"
       >
-        {/* Header — "Small vibes, big impact!" */}
+        {/* ── Header ── */}
         <div className="text-center mb-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -73,133 +73,204 @@ export default function DonationPage() {
               <span className="text-4xl select-none">💗</span>
             </div>
           </motion.div>
-
           <p className="text-gray-500 text-base max-w-sm mx-auto leading-relaxed mt-4">
             {t('donate.subtitle')}
           </p>
         </div>
 
-        {/* Amount picker card */}
-        <div className="bg-white rounded-2xl border shadow-sm p-6 mb-4" style={{ borderColor: 'rgba(148,92,103,0.18)' }}>
-          {/* Section label */}
-          <div className="flex justify-center mb-5">
-            <span className="px-5 py-1.5 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-widest shadow-sm">
-              Choose your superpower
-            </span>
-          </div>
+        {/* ── 3-column layout ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
 
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            {PRESET_AMOUNTS.map(({ value, emoji, labelKey, subtitle, activeColor, activeBorder }) => {
-              const isThisCustom = value === 0;
-              const isActive = isThisCustom ? isCustom : !isCustom && selected === value;
-              return (
-                <motion.button
-                  key={labelKey}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handlePreset(value, isThisCustom)}
-                  className="flex flex-col items-center gap-1.5 p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer"
-                  style={{
-                    backgroundColor: isActive ? activeColor : '#f9fafb',
-                    borderColor: isActive ? activeBorder : 'transparent',
-                  }}
-                >
-                  <span className="text-4xl leading-none select-none">{emoji}</span>
-                  {!isThisCustom && (
-                    <span
-                      className="text-xl font-bold"
-                      style={{ color: isActive ? activeBorder : '#374151' }}
-                    >
-                      {value} лв.
-                    </span>
-                  )}
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: isActive ? activeBorder : '#6b7280' }}
-                  >
-                    {t(labelKey)}
-                  </span>
-                  {subtitle && (
-                    <span
-                      className="text-xs"
-                      style={{ color: isActive ? activeBorder : '#9ca3af' }}
-                    >
-                      {subtitle}
-                    </span>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Custom amount input */}
-          {isCustom && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              transition={{ duration: 0.2 }}
-              className="mb-1"
-            >
-              <input
-                type="number"
-                min="1"
-                max="500"
-                step="0.50"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder={t('donate.custom_placeholder')}
-                className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none text-lg font-semibold text-gray-700 placeholder:text-gray-400 transition-colors bg-peach-light/40"
-                style={{ borderColor: 'rgba(148,92,103,0.3)' }}
-                autoFocus
-              />
-            </motion.div>
-          )}
-
-          {/* Donate button */}
-          <motion.button
-            whileHover={canDonate ? { scale: 1.02 } : {}}
-            whileTap={canDonate ? { scale: 0.98 } : {}}
-            onClick={handleDonate}
-            disabled={!canDonate}
-            className={`
-              w-full mt-4 py-3.5 rounded-xl font-semibold text-base transition-all duration-200
-              ${canDonate
-                ? 'bg-primary text-white shadow-md hover:bg-primary-dark hover:shadow-lg cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }
-            `}
+          {/* ── LEFT: Astronaut ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="hidden lg:flex flex-col items-center justify-center gap-6"
           >
-            {donateLabel} {canDonate && '→'}
-          </motion.button>
+            {/* Speech bubble */}
+            <div className="relative">
+              <div className="bg-white rounded-2xl px-5 py-3 shadow-lg border-2 border-purple-300">
+                <p className="text-sm font-black leading-snug" style={{ color: '#2d1b69' }}>You're</p>
+                <p className="text-sm font-black leading-snug" style={{ color: '#f59e0b' }}>awesome! <span style={{ color: '#8b5cf6' }}>💜</span></p>
+              </div>
+              {/* Bubble tail */}
+              <div
+                className="absolute -bottom-2.5 left-8 w-4 h-4 bg-white border-b-2 border-r-2 border-purple-300 rotate-45"
+              />
+            </div>
+
+            {/* Astronaut + moon scene */}
+            <div className="flex flex-col items-center">
+              {/* Stars */}
+              <div className="flex gap-8 text-yellow-300 text-sm mb-2 opacity-80">
+                <span>✦</span><span>✦</span><span>✦</span>
+              </div>
+              <span className="text-[7rem] select-none leading-none">🧑‍🚀</span>
+              <span className="text-4xl select-none -mt-4">💗</span>
+              {/* Moon surface */}
+              <div
+                className="w-44 h-10 rounded-full mt-1 flex items-center justify-center gap-3"
+                style={{ backgroundColor: '#c9a73e' }}
+              >
+                <div className="w-3 h-3 rounded-full bg-yellow-900/30" />
+                <div className="w-5 h-5 rounded-full bg-yellow-900/20" />
+                <div className="w-2 h-2 rounded-full bg-yellow-900/30" />
+              </div>
+            </div>
+
+            {/* Flag on moon */}
+            <div className="flex items-center gap-1 -mt-4 self-end mr-12">
+              <div className="w-px h-8 bg-gray-400" />
+              <div className="w-8 h-5 rounded-sm flex items-center justify-center text-xs" style={{ backgroundColor: '#e07b9a' }}>💗</div>
+            </div>
+          </motion.div>
+
+          {/* ── CENTER: Donation form ── */}
+          <div>
+            <div className="bg-white rounded-2xl border shadow-sm p-6 mb-4" style={{ borderColor: 'rgba(148,92,103,0.18)' }}>
+              <div className="flex justify-center mb-5">
+                <span className="px-5 py-1.5 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-widest shadow-sm">
+                  Choose your superpower
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                {PRESET_AMOUNTS.map(({ value, emoji, labelKey, subtitle, activeColor, activeBorder }) => {
+                  const isThisCustom = value === 0;
+                  const isActive = isThisCustom ? isCustom : !isCustom && selected === value;
+                  return (
+                    <motion.button
+                      key={labelKey}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handlePreset(value, isThisCustom)}
+                      className="flex flex-col items-center gap-1.5 p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer"
+                      style={{
+                        backgroundColor: isActive ? activeColor : '#f9fafb',
+                        borderColor: isActive ? activeBorder : 'transparent',
+                      }}
+                    >
+                      <span className="text-4xl leading-none select-none">{emoji}</span>
+                      {!isThisCustom && (
+                        <span className="text-xl font-bold" style={{ color: isActive ? activeBorder : '#374151' }}>
+                          {value} лв.
+                        </span>
+                      )}
+                      <span className="text-xs font-semibold" style={{ color: isActive ? activeBorder : '#6b7280' }}>
+                        {t(labelKey)}
+                      </span>
+                      {subtitle && (
+                        <span className="text-xs" style={{ color: isActive ? activeBorder : '#9ca3af' }}>
+                          {subtitle}
+                        </span>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {isCustom && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-1"
+                >
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    step="0.50"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    placeholder={t('donate.custom_placeholder')}
+                    className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none text-lg font-semibold text-gray-700 placeholder:text-gray-400 transition-colors bg-peach-light/40"
+                    style={{ borderColor: 'rgba(148,92,103,0.3)' }}
+                    autoFocus
+                  />
+                </motion.div>
+              )}
+
+              <motion.button
+                whileHover={canDonate ? { scale: 1.02 } : {}}
+                whileTap={canDonate ? { scale: 0.98 } : {}}
+                onClick={handleDonate}
+                disabled={!canDonate}
+                className={`w-full mt-4 py-3.5 rounded-xl font-semibold text-base transition-all duration-200 ${
+                  canDonate
+                    ? 'bg-primary text-white shadow-md hover:bg-primary-dark hover:shadow-lg cursor-pointer'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {donateLabel} {canDonate && '→'}
+              </motion.button>
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+                <Lock className="w-3 h-3" />
+                {t('donate.secure_note')}
+              </p>
+              <p className="text-xs text-gray-400 italic">{t('donate.fun_note')}</p>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Sticky notes + piggy bank ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="hidden lg:flex flex-col items-center gap-2 relative"
+          >
+            {/* Decorations */}
+            <span className="absolute -left-6 top-4 text-xl select-none opacity-70">💜</span>
+            <span className="absolute -right-4 top-0 text-sm select-none opacity-60">✨</span>
+            <span className="absolute right-2 bottom-28 text-lg select-none opacity-50">💜</span>
+            <span className="absolute -left-4 bottom-36 text-xs select-none opacity-60">✨</span>
+
+            {/* Yellow sticky note */}
+            <div className="relative -rotate-2 bg-yellow-200 rounded-md px-6 py-5 shadow-md w-72 z-10">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-14 h-6 bg-red-200/70 rounded-sm rotate-3 shadow-sm" />
+              <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>Together we can:</p>
+              <ul className="space-y-1.5">
+                {['Support families', 'Share baby items', 'Build a kinder community'].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+                    <span className="font-bold" style={{ color: '#945c67' }}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Purple sticky note */}
+            <div className="relative rotate-3 bg-purple-200 rounded-md px-6 py-5 shadow-md w-60 -mt-3 -ml-8 z-0">
+              <p className="font-semibold text-sm italic leading-relaxed" style={{ color: '#374151' }}>
+                Every little bit creates a big change! 🤍
+              </p>
+            </div>
+
+            {/* Coins + piggy bank */}
+            <div className="flex flex-col items-center mt-4">
+              <div className="flex items-end gap-1 mb-1">
+                <motion.span animate={{ y: [0, -6, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0 }} className="text-2xl select-none">🪙</motion.span>
+                <motion.span animate={{ y: [0, -10, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }} className="text-3xl select-none">🪙</motion.span>
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.6 }} className="text-xl select-none">🪙</motion.span>
+              </div>
+              <span className="text-8xl select-none leading-none">🐷</span>
+            </div>
+          </motion.div>
+
         </div>
 
-        {/* Footer notes */}
-        <div className="text-center space-y-1.5">
-          <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
-            <Lock className="w-3 h-3" />
-            {t('donate.secure_note')}
-          </p>
-          <p className="text-xs text-gray-400 italic">
-            {t('donate.fun_note')}
-          </p>
-        </div>
-
-        {/* ── Fun sticky notes + piggy bank ── */}
+        {/* Mobile-only sticky notes below form */}
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="relative mt-10 flex flex-col items-center"
+          className="lg:hidden flex flex-col items-center mt-10 gap-2"
         >
-          {/* Scattered decorations */}
-          <span className="absolute -left-4 top-6 text-xl select-none opacity-70">💜</span>
-          <span className="absolute -right-2 top-0 text-sm select-none opacity-60">✨</span>
-          <span className="absolute right-6 bottom-32 text-lg select-none opacity-50">💜</span>
-          <span className="absolute -left-2 bottom-40 text-xs select-none opacity-60">✨</span>
-
-          {/* Yellow sticky note */}
           <div className="relative -rotate-2 bg-yellow-200 rounded-md px-6 py-5 shadow-md w-72 z-10">
-            {/* Tape strip */}
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-14 h-6 bg-red-200/70 rounded-sm rotate-3 shadow-sm" />
             <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>Together we can:</p>
             <ul className="space-y-1.5">
@@ -211,42 +282,21 @@ export default function DonationPage() {
               ))}
             </ul>
           </div>
-
-          {/* Purple sticky note */}
           <div className="relative rotate-3 bg-purple-200 rounded-md px-6 py-5 shadow-md w-60 -mt-3 -ml-8 z-0">
             <p className="font-semibold text-sm italic leading-relaxed" style={{ color: '#374151' }}>
               Every little bit creates a big change! 🤍
             </p>
           </div>
-
-          {/* Falling coins + piggy bank */}
           <div className="flex flex-col items-center mt-4">
             <div className="flex items-end gap-1 mb-1">
-              <motion.span
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
-                className="text-2xl select-none"
-              >
-                🪙
-              </motion.span>
-              <motion.span
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }}
-                className="text-3xl select-none"
-              >
-                🪙
-              </motion.span>
-              <motion.span
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: 0.6 }}
-                className="text-xl select-none"
-              >
-                🪙
-              </motion.span>
+              <motion.span animate={{ y: [0, -6, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0 }} className="text-2xl select-none">🪙</motion.span>
+              <motion.span animate={{ y: [0, -10, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }} className="text-3xl select-none">🪙</motion.span>
+              <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.6 }} className="text-xl select-none">🪙</motion.span>
             </div>
             <span className="text-8xl select-none leading-none">🐷</span>
           </div>
         </motion.div>
+
       </motion.div>
     </div>
   );
