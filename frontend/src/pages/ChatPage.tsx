@@ -11,6 +11,9 @@ import type { Message, Conversation } from '../types/message';
 import { AI_BOT_USER_ID } from '../types/message';
 import Avatar from '../components/common/Avatar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import PrivacyWarningModal from '../components/chat/PrivacyWarningModal';
+import { detectSensitiveData } from '../utils/sensitiveDataDetector';
+import type { SensitiveMatch } from '../utils/sensitiveDataDetector';
 
 function groupConversationsByDate(conversations: Conversation[]) {
   const today: Conversation[] = [];
@@ -49,7 +52,10 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [privacyWarning, setPrivacyWarning] = useState<SensitiveMatch[] | null>(null);
+  const [pendingMessage, setPendingMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const scrollToBottom = useCallback(() => {
@@ -147,12 +153,8 @@ export default function ChatPage() {
         'User';
   const activePeerAvatarUrl = activeConversation?.avatarUrl ?? navState?.avatarUrl ?? null;
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const content = newMessage.trim();
-    if (!content || !activeChat) return;
-    setNewMessage('');
-
+  const doSend = async (content: string) => {
+    if (!activeChat) return;
     // Optimistically add the user's message before awaiting the hub call.
     // This ensures correct ordering when the bot reply arrives via SignalR
     // before sendMessage() resolves.
@@ -202,6 +204,37 @@ export default function ChatPage() {
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const content = newMessage.trim();
+    if (!content || !activeChat) return;
+
+    // Skip privacy check for the AI bot — it's not a real person.
+    if (activeChat !== AI_BOT_USER_ID) {
+      const matches = detectSensitiveData(content);
+      if (matches.length > 0) {
+        setPendingMessage(content);
+        setPrivacyWarning(matches);
+        return;
+      }
+    }
+
+    setNewMessage('');
+    await doSend(content);
+  };
+
+  const handlePrivacyEdit = () => {
+    setPrivacyWarning(null);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handlePrivacySendAnyway = async () => {
+    const content = pendingMessage;
+    setPrivacyWarning(null);
+    setNewMessage('');
+    await doSend(content);
   };
 
   const handleTyping = () => {
@@ -326,6 +359,13 @@ export default function ChatPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-4">
+      {privacyWarning && (
+        <PrivacyWarningModal
+          matches={privacyWarning}
+          onEdit={handlePrivacyEdit}
+          onSendAnyway={handlePrivacySendAnyway}
+        />
+      )}
       <div className="bg-white dark:bg-[#1e1b2e] rounded-2xl border border-lavender/20 dark:border-white/10 shadow-sm flex h-[calc(100vh-8rem)] overflow-hidden">
         {/* Left sidebar — Inbox */}
         <div className="w-80 border-r border-lavender/20 dark:border-white/10 flex flex-col bg-white dark:bg-[#1e1b2e]">
@@ -418,6 +458,7 @@ export default function ChatPage() {
               <div className="px-6 py-4 bg-white dark:bg-[#1e1b2e] border-t border-lavender/20 dark:border-white/10">
                 <form onSubmit={handleSend} className="flex items-center gap-3">
                   <input
+                    ref={inputRef}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleTyping}

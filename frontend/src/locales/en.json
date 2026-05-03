@@ -517,5 +517,22 @@
     "star_4": "Very Good",
     "star_5": "Excellent!",
     "no_ratings": "No ratings yet"
+  },
+  "privacy": {
+    "warning_title": "Privacy Warning",
+    "warning_subtitle": "Your message may contain sensitive personal information",
+    "detected_label": "Detected",
+    "type_phone": "Phone number",
+    "type_email": "Email address",
+    "type_national_id": "Personal ID number (EGN)",
+    "type_iban": "Bank account / IBAN",
+    "type_card": "Bank card number",
+    "tips_title": "Stay safe from phishing",
+    "tip_1": "Never share your EGN, bank account details, or passwords in chat",
+    "tip_2": "MamVibe will never ask you to pay or transfer money outside the platform",
+    "tip_3": "Be suspicious of users who want to move the conversation to WhatsApp, Telegram, or email",
+    "tip_4": "Always check the other person's ratings and reviews before sharing personal data",
+    "btn_edit": "Edit My Message",
+    "btn_send_anyway": "Send anyway"
   }
 }
