@@ -7,7 +7,7 @@ using Application.Interfaces;
 using Application.DTOs.DoctorReviews;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/doctor-reviews")]
 public class DoctorReviewsController : ControllerBase
 {
     private readonly IDoctorReviewService _service;

@@ -190,16 +190,14 @@ export default function ItemDetailPage() {
               <Avatar src={item.userAvatarUrl} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-primary">{item.userDisplayName}</p>
-                {sellerRating && sellerRating.count > 0 ? (
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <StarRating value={Math.round(sellerRating.average ?? 0)} readonly size="sm" />
-                    <span className="text-xs text-gray-500">
-                      {sellerRating.average?.toFixed(1)} ({sellerRating.count})
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400">Listed {new Date(item.createdAt).toLocaleDateString()}</p>
-                )}
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <StarRating value={Math.round(sellerRating?.average ?? 0)} readonly size="sm" />
+                  <span className="text-xs text-gray-500">
+                    {sellerRating && sellerRating.count > 0
+                      ? `${sellerRating.average?.toFixed(1)} (${sellerRating.count})`
+                      : t('rating.no_ratings')}
+                  </span>
+                </div>
               </div>
               {isSellerReported && (
                 <a

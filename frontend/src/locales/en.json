@@ -509,6 +509,7 @@
     "star_2": "Fair",
     "star_3": "Good",
     "star_4": "Very Good",
-    "star_5": "Excellent!"
+    "star_5": "Excellent!",
+    "no_ratings": "No ratings yet"
   }
 }
