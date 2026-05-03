@@ -400,68 +400,6 @@ cd backend
 dotnet list package --vulnerable
 ```
 
-## Screenshots
-
-### Landing Page
-
-<img src="docs/screenshots/web-home-light.png" width="49%" alt="Homepage – light mode" /> <img src="docs/screenshots/web-home-dark.png" width="49%" alt="Homepage – dark mode (logged in)" />
-
-<img src="docs/screenshots/web-home-how-it-works.png" width="49%" alt="How It Works & Shop by Age sections" /> <img src="docs/screenshots/web-browse-items.png" width="49%" alt="Browse Items with filters and item grid" />
-
-### Authentication
-
-<img src="docs/screenshots/web-auth-login-dark.png" width="49%" alt="Login – dark mode" /> <img src="docs/screenshots/web-auth-login-light.png" width="49%" alt="Login – light mode" />
-
-<img src="docs/screenshots/web-auth-register-dark.png" width="49%" alt="Register – dark mode" /> <img src="docs/screenshots/web-auth-register-light.png" width="49%" alt="Register – light mode" />
-
-### Create & Manage Listings
-
-<img src="docs/screenshots/web-create-listing.png" width="49%" alt="Create Listing with AI assistant" /> <img src="docs/screenshots/web-messages.png" width="49%" alt="Messages – real-time chat and AI-powered assistant" />
-
-### User Dashboard
-
-<img src="docs/screenshots/web-dashboard-listings.png" width="49%" alt="Dashboard – My Listings" /> <img src="docs/screenshots/web-dashboard-liked.png" width="49%" alt="Dashboard – Liked Items" />
-
-<img src="docs/screenshots/web-dashboard-purchases.png" width="49%" alt="Dashboard – My Purchases" /> <img src="docs/screenshots/web-dashboard-requests.png" width="49%" alt="Dashboard – My Requests with status badges" />
-
-<img src="docs/screenshots/web-dashboard-shipments.png" width="49%" alt="Dashboard – My Shipments" /> <img src="docs/screenshots/web-dashboard-ebills.png" width="49%" alt="Dashboard – E-Bills" />
-
-### Profile, Settings & Wallet
-
-<img src="docs/screenshots/web-profile.png" width="49%" alt="User profile page" /> <img src="docs/screenshots/web-settings.png" width="49%" alt="Settings – display name, bio, IBAN, language, password change" />
-
-<img src="docs/screenshots/web-wallet.png" width="49%" alt="Wallet – balance, top-up, transfer, withdraw" /> <img src="docs/screenshots/web-feedback.png" width="49%" alt="Platform Feedback with star rating form" />
-
-### Donations & Payments
-
-<img src="docs/screenshots/web-donation.png" width="49%" alt="Donation page – amount picker" /> <img src="docs/screenshots/web-donation-payment.png" width="49%" alt="Donation card payment form" />
-
-### Admin Panel
-
-<img src="docs/screenshots/web-admin-dashboard.png" width="49%" alt="Admin Dashboard – users, items, donations, revenue stats" /> <img src="docs/screenshots/web-admin-users.png" width="49%" alt="Admin – Users management with block actions" />
-
-<img src="docs/screenshots/web-admin-items.png" width="49%" alt="Admin – Items approval and management" /> <img src="docs/screenshots/web-admin-shipping.png" width="49%" alt="Admin – Shipping Management (Econt, Speedy, Box Now)" />
-
-<img src="docs/screenshots/web-admin-wallets.png" width="49%" alt="Admin – Wallet Management with freeze controls" />
-
-### Mobile App (Expo / React Native)
-
-**Home & Browse**
-
-<img src="docs/screenshots/mobile/home-dark.jpg" width="30%" alt="Mobile home – dark mode" /> <img src="docs/screenshots/mobile/home-light.jpg" width="30%" alt="Mobile home – light mode" /> <img src="docs/screenshots/mobile/home-shop-by-age.jpg" width="30%" alt="Mobile home – Shop by Age" />
-
-<img src="docs/screenshots/mobile/browse-items.jpg" width="30%" alt="Mobile browse items" /> <img src="docs/screenshots/mobile/item-detail.jpg" width="30%" alt="Mobile item detail" /> <img src="docs/screenshots/mobile/messages.jpg" width="30%" alt="Mobile messages" />
-
-**Profile, Orders & Wallet**
-
-<img src="docs/screenshots/mobile/profile-dark.jpg" width="30%" alt="Mobile profile – dark mode" /> <img src="docs/screenshots/mobile/profile-light.jpg" width="30%" alt="Mobile profile – light mode" /> <img src="docs/screenshots/mobile/wallet.jpg" width="30%" alt="Mobile wallet" />
-
-<img src="docs/screenshots/mobile/orders-incoming.jpg" width="30%" alt="Mobile my orders – incoming" /> <img src="docs/screenshots/mobile/my-items.jpg" width="30%" alt="Mobile my items" /> <img src="docs/screenshots/mobile/settings.jpg" width="30%" alt="Mobile settings" />
-
-**Authentication**
-
-<img src="docs/screenshots/mobile/login.jpg" width="30%" alt="Mobile login screen" />
-
 ## License
 
 This project is proprietary. All rights reserved.
