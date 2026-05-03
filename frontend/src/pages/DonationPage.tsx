@@ -81,48 +81,48 @@ export default function DonationPage() {
         {/* ── 3-column layout ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
 
-          {/* ── LEFT: Astronaut ── */}
+          {/* ── LEFT: Sticky notes + bunny ── */}
           <motion.div
             initial={{ opacity: 0, x: -32 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="hidden lg:flex flex-col items-center justify-center gap-6"
+            className="hidden lg:flex flex-col items-center gap-2 relative"
           >
-            {/* Speech bubble */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl px-5 py-3 shadow-lg border-2 border-purple-300">
-                <p className="text-sm font-black leading-snug" style={{ color: '#2d1b69' }}>You're</p>
-                <p className="text-sm font-black leading-snug" style={{ color: '#f59e0b' }}>awesome! <span style={{ color: '#8b5cf6' }}>💜</span></p>
-              </div>
-              {/* Bubble tail */}
-              <div
-                className="absolute -bottom-2.5 left-8 w-4 h-4 bg-white border-b-2 border-r-2 border-purple-300 rotate-45"
-              />
+            {/* Decorations */}
+            <span className="absolute -right-6 top-4 text-xl select-none opacity-70">💜</span>
+            <span className="absolute -left-4 top-0 text-sm select-none opacity-60">✨</span>
+            <span className="absolute left-2 bottom-28 text-lg select-none opacity-50">💜</span>
+            <span className="absolute -right-4 bottom-36 text-xs select-none opacity-60">✨</span>
+
+            {/* Yellow sticky note */}
+            <div className="relative rotate-2 bg-yellow-200 rounded-md px-6 py-5 shadow-md w-72 z-10">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-14 h-6 bg-red-200/70 rounded-sm -rotate-3 shadow-sm" />
+              <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>Together we can:</p>
+              <ul className="space-y-1.5">
+                {['Support families', 'Share baby items', 'Build a kinder community'].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+                    <span className="font-bold" style={{ color: '#945c67' }}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Astronaut + moon scene */}
-            <div className="flex flex-col items-center">
-              {/* Stars */}
-              <div className="flex gap-8 text-yellow-300 text-sm mb-2 opacity-80">
-                <span>✦</span><span>✦</span><span>✦</span>
-              </div>
-              <span className="text-[7rem] select-none leading-none">🧑‍🚀</span>
-              <span className="text-4xl select-none -mt-4">💗</span>
-              {/* Moon surface */}
-              <div
-                className="w-44 h-10 rounded-full mt-1 flex items-center justify-center gap-3"
-                style={{ backgroundColor: '#c9a73e' }}
-              >
-                <div className="w-3 h-3 rounded-full bg-yellow-900/30" />
-                <div className="w-5 h-5 rounded-full bg-yellow-900/20" />
-                <div className="w-2 h-2 rounded-full bg-yellow-900/30" />
-              </div>
+            {/* Purple sticky note */}
+            <div className="relative -rotate-3 bg-purple-200 rounded-md px-6 py-5 shadow-md w-60 -mt-3 ml-8 z-0">
+              <p className="font-semibold text-sm italic leading-relaxed" style={{ color: '#374151' }}>
+                Every little bit creates a big change! 🤍
+              </p>
             </div>
 
-            {/* Flag on moon */}
-            <div className="flex items-center gap-1 -mt-4 self-end mr-12">
-              <div className="w-px h-8 bg-gray-400" />
-              <div className="w-8 h-5 rounded-sm flex items-center justify-center text-xs" style={{ backgroundColor: '#e07b9a' }}>💗</div>
+            {/* Coins + bunny */}
+            <div className="flex flex-col items-center mt-4">
+              <div className="flex items-end gap-1 mb-1">
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.6 }} className="text-xl select-none">🪙</motion.span>
+                <motion.span animate={{ y: [0, -10, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }} className="text-3xl select-none">🪙</motion.span>
+                <motion.span animate={{ y: [0, -6, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0 }} className="text-2xl select-none">🪙</motion.span>
+              </div>
+              <span className="text-8xl select-none leading-none">🐰</span>
             </div>
           </motion.div>
 
