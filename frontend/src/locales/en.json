@@ -61,7 +61,13 @@
     "age_preschool": "Preschool",
     "age_preschool_range": "3–4 years",
     "age_kids": "Kids",
-    "age_kids_range": "5–6 years"
+    "age_kids_range": "5–6 years",
+    "doctors_title": "Doctor Reviews",
+    "doctors_subtitle": "Community experiences shared by parents",
+    "doctors_view_all": "View All Reviews",
+    "places_title": "Child-Friendly Places",
+    "places_subtitle": "Discover spots loved by families across Bulgaria",
+    "places_view_all": "Explore All Places"
   },
   "auth": {
     "login_title": "Welcome Back",

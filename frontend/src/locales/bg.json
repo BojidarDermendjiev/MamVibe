@@ -61,7 +61,13 @@
     "age_preschool": "Предучилищна",
     "age_preschool_range": "3–4 години",
     "age_kids": "Деца",
-    "age_kids_range": "5–6 години"
+    "age_kids_range": "5–6 години",
+    "doctors_title": "Отзиви за лекари",
+    "doctors_subtitle": "Споделен опит от родители от общността",
+    "doctors_view_all": "Виж всички отзиви",
+    "places_title": "Места за деца",
+    "places_subtitle": "Открий места, харесани от семейства из България",
+    "places_view_all": "Разгледай всички места"
   },
   "auth": {
     "login_title": "Добре дошли отново",
