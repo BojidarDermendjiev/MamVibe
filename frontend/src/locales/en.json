@@ -496,5 +496,19 @@
     "card_pay": "Send {amount} лв. with love",
     "thanks_title": "You're a legend!",
     "thanks_sub": "Seriously. Thank you from the whole MamVibe team."
+  },
+  "rating": {
+    "rate_seller": "Rate Seller",
+    "rating_for": "Rating for",
+    "select_stars": "Select a star rating",
+    "comment_placeholder": "Share your experience (optional)...",
+    "submit": "Submit Rating",
+    "submitted": "Thank you for your rating!",
+    "rated": "Rated",
+    "star_1": "Poor",
+    "star_2": "Fair",
+    "star_3": "Good",
+    "star_4": "Very Good",
+    "star_5": "Excellent!"
   }
 }

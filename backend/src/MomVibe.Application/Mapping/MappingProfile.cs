@@ -12,6 +12,7 @@ using DTOs.Shipping;
 using DTOs.PurchaseRequests;
 using DTOs.DoctorReviews;
 using DTOs.ChildFriendlyPlaces;
+using DTOs.UserRatings;
 using Domain.Entities;
 
 /// <summary>
@@ -77,5 +78,9 @@ public class MappingProfile : Profile
 
         CreateMap<DoctorReview, DoctorReviewDto>();
         CreateMap<ChildFriendlyPlace, ChildFriendlyPlaceDto>();
+
+        CreateMap<UserRating, UserRatingDto>()
+            .ForMember(d => d.RaterDisplayName, opt => opt.MapFrom(s => s.Rater != null ? s.Rater.DisplayName : null))
+            .ForMember(d => d.RaterAvatarUrl, opt => opt.MapFrom(s => s.Rater != null ? s.Rater.AvatarUrl : null));
     }
 }

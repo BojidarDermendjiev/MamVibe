@@ -52,4 +52,6 @@ public class ApplicationUser : IdentityUser
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
     public ICollection<DoctorReview> DoctorReviews { get; set; } = [];
     public ICollection<ChildFriendlyPlace> ChildFriendlyPlaces { get; set; } = [];
+    public ICollection<UserRating> RatingsGiven { get; set; } = [];
+    public ICollection<UserRating> RatingsReceived { get; set; } = [];
 }

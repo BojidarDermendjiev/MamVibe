@@ -23,18 +23,18 @@ public class UsersController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ICurrentUserService _currentUserService;
     private readonly IItemService _itemService;
+    private readonly IUserRatingService _ratingService;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UsersController"/>.
-    /// </summary>
-    /// <param name="userManager">ASP.NET Core Identity user manager.</param>
-    /// <param name="currentUserService">Service providing current user context.</param>
-    /// <param name="itemService">Service for item operations related to users.</param>
-    public UsersController(UserManager<ApplicationUser> userManager, ICurrentUserService currentUserService, IItemService itemService)
+    public UsersController(
+        UserManager<ApplicationUser> userManager,
+        ICurrentUserService currentUserService,
+        IItemService itemService,
+        IUserRatingService ratingService)
     {
         this._userManager = userManager;
         this._currentUserService = currentUserService;
         this._itemService = itemService;
+        this._ratingService = ratingService;
     }
 
     /// <summary>
@@ -50,6 +50,7 @@ public class UsersController : ControllerBase
     {
         var user = await this._userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
+        var (avgRating, ratingCount) = await _ratingService.GetSummaryAsync(id);
         return Ok(new UserDto
         {
             Id = user.Id,
@@ -59,6 +60,8 @@ public class UsersController : ControllerBase
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,
             CreatedAt = user.CreatedAt,
+            AverageRating = avgRating,
+            RatingCount = ratingCount,
         });
     }
 

@@ -19,6 +19,7 @@ public interface IApplicationDbContext
     DbSet<PurchaseRequest> PurchaseRequests { get; }
     DbSet<DoctorReview> DoctorReviews { get; }
     DbSet<ChildFriendlyPlace> ChildFriendlyPlaces { get; }
+    DbSet<UserRating> UserRatings { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

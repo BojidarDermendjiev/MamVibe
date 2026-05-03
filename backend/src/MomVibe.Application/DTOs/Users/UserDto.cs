@@ -25,4 +25,6 @@ public class UserDto
     public bool IsBlocked { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? RevolutTag { get; set; }
+    public double? AverageRating { get; set; }
+    public int RatingCount { get; set; }
 }

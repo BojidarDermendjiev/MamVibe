@@ -17,6 +17,7 @@ import ShipmentCard from '../components/shipping/ShipmentCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Avatar from '../components/common/Avatar';
 import BuyerReputationModal from '../components/purchase/BuyerReputationModal';
+import RateSellerModal from '../components/purchase/RateSellerModal';
 
 
 
@@ -40,6 +41,8 @@ export default function DashboardPage() {
   };
 
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [ratedRequestIds, setRatedRequestIds] = useState<Set<string>>(new Set());
+  const [rateModal, setRateModal] = useState<{ requestId: string; sellerName: string | null } | null>(null);
   const [reputationModal, setReputationModal] = useState<{
     request: PurchaseRequest;
     result: BuyerCheckResult;
@@ -104,6 +107,16 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+      {/* ── Rate Seller Modal ── */}
+      {rateModal && (
+        <RateSellerModal
+          purchaseRequestId={rateModal.requestId}
+          sellerName={rateModal.sellerName}
+          onClose={() => setRateModal(null)}
+          onRated={() => setRatedRequestIds(prev => new Set(prev).add(rateModal.requestId))}
+        />
+      )}
+
       {/* ── Buyer Reputation Modal ── */}
       {reputationModal && (
         <BuyerReputationModal
@@ -303,9 +316,18 @@ export default function DashboardPage() {
                           </span>
                         )}
                         {r.status === PurchaseRequestStatus.Completed && (
-                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
-                            {t('dashboard.req_order_complete')}
-                          </span>
+                          ratedRequestIds.has(r.id) ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
+                              ⭐ {t('rating.rated')}
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setRateModal({ requestId: r.id, sellerName: null })}
+                              className="px-3 py-1.5 text-sm font-medium bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors whitespace-nowrap"
+                            >
+                              ⭐ {t('rating.rate_seller')}
+                            </button>
+                          )
                         )}
                       </div>
                     </div>

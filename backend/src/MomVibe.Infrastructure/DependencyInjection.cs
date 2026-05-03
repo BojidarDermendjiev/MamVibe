@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IDoctorReviewService, DoctorReviewService>();
         services.AddScoped<IChildFriendlyPlaceService, ChildFriendlyPlaceService>();
+        services.AddScoped<IUserRatingService, UserRatingService>();
         services.AddScoped<ITurnstileService, TurnstileService>();
         services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
 

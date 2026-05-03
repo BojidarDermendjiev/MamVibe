@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 using MomVibe.Domain.Entities;
 using MomVibe.Domain.Constants;
+using MomVibe.Domain.Enums;
 
 /// <summary>
 /// Seeds initial roles, admin user, and demo data into the database.
@@ -127,6 +128,100 @@ public static class DataSeeder
         };
 
         dbContext.Categories.AddRange(categories);
+        await dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Seeds demo user accounts, listings, and feedback for development.
+    /// Runs only in Development and only when the Items table is empty.
+    /// </summary>
+    public static async Task SeedDemoUsersAndItemsAsync(
+        UserManager<ApplicationUser> userManager,
+        ApplicationDbContext dbContext,
+        IWebHostEnvironment environment)
+    {
+        if (!environment.IsDevelopment())
+            return;
+
+        if (dbContext.Items.Any())
+            return;
+
+        // Fixed IDs so re-runs never create duplicates
+        const string user1Id = "demo-user-sofia-001";
+        const string user2Id = "demo-user-plovdiv-002";
+        const string user3Id = "demo-user-varna-003";
+
+        async Task EnsureUser(string id, string email, string displayName, string? bio, ProfileType profileType)
+        {
+            if (await userManager.FindByIdAsync(id) != null) return;
+            var user = new ApplicationUser
+            {
+                Id = id,
+                UserName = email,
+                Email = email,
+                DisplayName = displayName,
+                Bio = bio,
+                ProfileType = profileType,
+                EmailConfirmed = true,
+                LanguagePreference = "bg",
+                CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(30, 90)),
+            };
+            await userManager.CreateAsync(user);
+        }
+
+        await EnsureUser(user1Id, "maria.sofia@demo.mamvibe.com", "Мария", "Майка на две деца от София. Продавам неизползвани вещи с любов.", ProfileType.Female);
+        await EnsureUser(user2Id, "elena.plovdiv@demo.mamvibe.com", "Елена", "Харесвам устойчивото потребление — даря и продавам бебешки вещи.", ProfileType.Female);
+        await EnsureUser(user3Id, "ivan.varna@demo.mamvibe.com", "Иван", "Татко от Варна. Имаме двойни близнаци и много вещи за продаване!", ProfileType.Male);
+
+        var categories = dbContext.Categories.ToList();
+        Guid Cat(string slug) => categories.First(c => c.Slug == slug).Id;
+
+        var items = new List<Item>
+        {
+            // Clothing - sell
+            new() { Id = Guid.NewGuid(), Title = "Боди Chicco 3-6 месеца", Description = "Бяло боди с копчета, носено само 2 пъти. Размер 68, Chicco. Отлично състояние.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 68, Price = 5.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 23, LikeCount = 4 },
+            new() { Id = Guid.NewGuid(), Title = "Зимен гащеризон за бебе", Description = "Топъл пухен гащеризон за зимата. Размер 86, ярко жълт. Ползван един сезон.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = 18.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 41, LikeCount = 7 },
+            new() { Id = Guid.NewGuid(), Title = "Пакет дрехи 12-18 месеца (10 бр.)", Description = "Смесен пакет: 3 боди, 3 потника, 2 панталончета, 2 блузки. Всичко в добро състояние.", CategoryId = Cat("clothing"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = null, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 67, LikeCount = 15 },
+            new() { Id = Guid.NewGuid(), Title = "Лятна рокля H&M 2-3 години", Description = "Сладка флорална рокля H&M Kids. Размер 98. Носена само за снимки, практически нова.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ClothingSize = 98, Price = 8.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 19, LikeCount = 3 },
+
+            // Shoes - sell/donate
+            new() { Id = Guid.NewGuid(), Title = "Буйки Lupilu 20 номер", Description = "Меки кожени буйки за първи стъпки. Номер 20. Леко ползвани, без следи.", CategoryId = Cat("shoes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ShoeSize = 20, Price = 12.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 34, LikeCount = 6 },
+            new() { Id = Guid.NewGuid(), Title = "Зимни ботушки Elefanten 24", Description = "Топли ватирани ботушки за зима. Водоустойчиви. Ползвани един сезон.", CategoryId = Cat("shoes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ShoeSize = 24, Price = 22.00m, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 28, LikeCount = 5 },
+            new() { Id = Guid.NewGuid(), Title = "Спортни обувки Nike 30", Description = "Детски маратонки Nike, размер 30. Почти нови — купени голям номер и не се носиха.", CategoryId = Cat("shoes"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Preschool, ShoeSize = 30, Price = null, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 52, LikeCount = 11 },
+
+            // Toys
+            new() { Id = Guid.NewGuid(), Title = "Дървена железница Brio (40+ части)", Description = "Голям сет Brio с локомотив, вагони и релси. Всички части налични. Децата го обичаха!", CategoryId = Cat("toys"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, Price = 45.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 89, LikeCount = 22 },
+            new() { Id = Guid.NewGuid(), Title = "Играчки за баня — сет", Description = "8 броя играчки за баня: жаби, рибки, лодка. Отлично за бебета и малки деца.", CategoryId = Cat("toys"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Infant, Price = null, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 31, LikeCount = 8 },
+            new() { Id = Guid.NewGuid(), Title = "Лего Duplo 60 части", Description = "Класически Duplo блокчета, 60 броя в различни цветове. Почистени и готови за игра.", CategoryId = Cat("toys"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, Price = 28.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 73, LikeCount = 18 },
+
+            // Strollers
+            new() { Id = Guid.NewGuid(), Title = "Бебешка количка Hauck 3в1", Description = "Количка Hauck Rapid 3в1 — включва кош, седалка и база за столче. Ползвана 1 година.", CategoryId = Cat("strollers"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Newborn, Price = 250.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 156, LikeCount = 31 },
+
+            // Car Seats
+            new() { Id = Guid.NewGuid(), Title = "Столче за кола Britax 0-13 кг", Description = "Britax B-Safe столче за кола, група 0+. Никога не е участвало в катастрофа. Пълна документация.", CategoryId = Cat("car-seats"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Newborn, Price = 80.00m, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 112, LikeCount = 24 },
+
+            // Feeding
+            new() { Id = Guid.NewGuid(), Title = "Електрическа помпа Medela Swing", Description = "Medela Swing Single електрическа помпа. Комплектована с всички аксесоари. Отлично работи.", CategoryId = Cat("feeding"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Newborn, Price = 65.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 94, LikeCount = 17 },
+            new() { Id = Guid.NewGuid(), Title = "Биберони Avent 3 бр. (0-6 м)", Description = "Три броя Philips Avent биберони. Само веднъж стерилизирани, никога не са ползвани.", CategoryId = Cat("feeding"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Newborn, Price = null, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 44, LikeCount = 9 },
+
+            // Furniture
+            new() { Id = Guid.NewGuid(), Title = "Бебешко легло с матрак Ikea Sniglar", Description = "IKEA Sniglar легло 60x120, включва матрак. Лесно сгъваемо. Много добро състояние.", CategoryId = Cat("furniture"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Newborn, Price = 70.00m, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 138, LikeCount = 26 },
+        };
+
+        dbContext.Items.AddRange(items);
+        await dbContext.SaveChangesAsync();
+
+        var feedbacks = new List<Feedback>
+        {
+            new() { Id = Guid.NewGuid(), UserId = user1Id, Rating = 5, Category = FeedbackCategory.Praise, Content = "Страхотно приложение! Намерих страхотни неща за бебето на много добри цени. Много лесно за ползване.", IsContactable = true },
+            new() { Id = Guid.NewGuid(), UserId = user2Id, Rating = 4, Category = FeedbackCategory.FeatureRequest, Content = "Много ми харесва идеята! Бих искала да има и опция за размяна на вещи, не само продажба и дарение.", IsContactable = false },
+            new() { Id = Guid.NewGuid(), UserId = user3Id, Rating = 5, Category = FeedbackCategory.Praise, Content = "Дарих детски дрехи и намерих купувач за 2 часа. Невероятно! Препоръчвам на всички родители.", IsContactable = true },
+            new() { Id = Guid.NewGuid(), UserId = user1Id, Rating = 4, Category = FeedbackCategory.Improvement, Content = "Би помогнало ако има филтри за окръг/квартал, а не само по град. Понякога транспортирането е проблем.", IsContactable = false },
+            new() { Id = Guid.NewGuid(), UserId = user2Id, Rating = 5, Category = FeedbackCategory.FeatureRequest, Content = "Искам чат функция — да мога директно да говоря с продавача без да излизам от приложението.", IsContactable = true },
+            new() { Id = Guid.NewGuid(), UserId = user3Id, Rating = 3, Category = FeedbackCategory.BugReport, Content = "На телефон с Android понякога снимките не се зареждат веднага. Малко бавно при слаб интернет.", IsContactable = false },
+        };
+
+        dbContext.Feedbacks.AddRange(feedbacks);
         await dbContext.SaveChangesAsync();
     }
 

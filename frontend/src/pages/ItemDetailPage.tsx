@@ -5,7 +5,9 @@ import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
+import { userRatingsApi } from '../api/userRatingsApi';
 import { type Item, ListingType } from '../types/item';
+import type { UserRatingSummary } from '../types/userRating';
 import { useAuthStore } from '../store/authStore';
 import { getCategoryImage } from '../utils/categoryImages';
 import { formatPrice } from '../utils/currency';
@@ -13,6 +15,7 @@ import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import StarRating from '../components/common/StarRating';
 import NekorektenWarningModal from '../components/common/NekorektenWarningModal';
 
 export default function ItemDetailPage() {
@@ -27,6 +30,7 @@ export default function ItemDetailPage() {
   const [requestSent, setRequestSent] = useState(false);
   const [showNekorektenWarning, setShowNekorektenWarning] = useState(false);
   const [isSellerReported, setIsSellerReported] = useState(false);
+  const [sellerRating, setSellerRating] = useState<UserRatingSummary | null>(null);
   const nekorektenReportUrl = 'https://nekorekten.com/';
   const viewCounted = useRef(false);
 
@@ -42,6 +46,9 @@ export default function ItemDetailPage() {
         }
         itemsApi.checkSeller(id)
           .then(({ data: check }) => setIsSellerReported(check.hasReports))
+          .catch(() => {});
+        userRatingsApi.getSummary(data.userId)
+          .then(({ data: summary }) => setSellerRating(summary))
           .catch(() => {});
       } catch {
         toast.error('Item not found');
@@ -183,7 +190,16 @@ export default function ItemDetailPage() {
               <Avatar src={item.userAvatarUrl} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-primary">{item.userDisplayName}</p>
-                <p className="text-xs text-gray-400">Listed {new Date(item.createdAt).toLocaleDateString()}</p>
+                {sellerRating && sellerRating.count > 0 ? (
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <StarRating value={Math.round(sellerRating.average ?? 0)} readonly size="sm" />
+                    <span className="text-xs text-gray-500">
+                      {sellerRating.average?.toFixed(1)} ({sellerRating.count})
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">Listed {new Date(item.createdAt).toLocaleDateString()}</p>
+                )}
               </div>
               {isSellerReported && (
                 <a
