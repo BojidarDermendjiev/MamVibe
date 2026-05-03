@@ -31,8 +31,7 @@ public class EBillServiceTests
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase($"EBillTest_{Guid.NewGuid()}")
             .Options;
-        var config = new ConfigurationBuilder().Build();
-        return new ApplicationDbContext(options, config);
+        return new ApplicationDbContext(options);
     }
 
     private static IMapper CreateMapper()

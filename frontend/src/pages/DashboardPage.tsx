@@ -8,7 +8,7 @@ import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi, type BuyerCheckResult } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
 import type { PurchaseRequest } from '../types/purchaseRequest';
-import { PaymentMethod, PaymentStatus } from '../types/payment';
+import { PaymentMethod } from '../types/payment';
 import { ListingType } from '../types/item';
 import { useNotification } from '../contexts/NotificationContext';
 import { formatPrice } from '../utils/currency';
