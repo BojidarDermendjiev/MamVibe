@@ -326,7 +326,7 @@ export default function HomePage() {
 
       {/* ── Child-Friendly Places ── */}
       {childPlaces.length > 0 && (
-        <section className="py-20 px-4" style={{ backgroundColor: '#FAF3EE' }}>
+        <section className="bg-[#FAF3EE] dark:bg-[#201d30] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
