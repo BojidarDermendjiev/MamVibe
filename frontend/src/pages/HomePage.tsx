@@ -125,7 +125,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/45 to-black/30" />
 
         <div className="relative z-10 container mx-auto px-4 w-full">
-          <div className="flex gap-8 py-20 lg:py-32 items-center justify-center flex-col">
+          <div className="flex gap-8 pt-32 pb-20 lg:pt-44 lg:pb-28 items-center justify-center flex-col">
             <div className="flex gap-4 flex-col items-center">
               <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tight text-center font-bold drop-shadow-lg">
                 <span className="text-white">{t("home.hero_title")} </span>

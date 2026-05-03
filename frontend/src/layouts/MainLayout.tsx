@@ -130,13 +130,13 @@ export default function MainLayout() {
             onClick={() => setActiveTab(item.name)}
             className={clsx(
               "relative cursor-pointer text-sm font-semibold rounded-full transition-colors",
-              mobile ? "px-4 py-2" : "px-6 py-2",
+              mobile ? "px-4 py-2" : "px-3.5 py-2",
               "text-gray-500 hover:text-gray-900",
               isActive && "text-gray-900",
             )}
           >
             {/* Desktop: text label */}
-            <span className={mobile ? "hidden" : "hidden md:inline"}>
+            <span className={mobile ? "hidden" : "hidden md:inline whitespace-nowrap"}>
               {item.name}
             </span>
 
