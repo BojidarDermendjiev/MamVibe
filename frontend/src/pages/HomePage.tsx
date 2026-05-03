@@ -7,35 +7,35 @@ import { HiCamera, HiTag, HiTruck, HiHeart } from "react-icons/hi";
 import { FaBaby, FaSmile, FaTshirt, FaChild } from "react-icons/fa";
 import { GiFootprint } from "react-icons/gi";
 import { MapPin, ChevronRight } from "lucide-react";
-import { doctorReviewsApi } from '../api/doctorReviewsApi';
-import { childFriendlyPlacesApi } from '../api/childFriendlyPlacesApi';
-import type { DoctorReviewDto } from '../types/doctorReview';
-import type { ChildFriendlyPlaceDto } from '../types/childFriendlyPlace';
-import StarRating from '../components/common/StarRating';
+import { doctorReviewsApi } from "../api/doctorReviewsApi";
+import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
+import type { DoctorReviewDto } from "../types/doctorReview";
+import type { ChildFriendlyPlaceDto } from "../types/childFriendlyPlace";
+import StarRating from "../components/common/StarRating";
 
 // ── Brand data ─────────────────────────────────────────────────────────────
 // Icons fetched via Google's s2/favicons service.
 // Unlike faviconV2, s2/favicons never returns 404 — unknown domains get a
 // default placeholder icon, so there are no console errors.
 const BRANDS = [
-  { name: "Cybex",          domain: "cybex-online.com",    accent: "#1a1a2e" },
-  { name: "Little Dutch",   domain: "little-dutch.com",    accent: "#e8734a" },
-  { name: "Nuna",           domain: "nunababy.com",        accent: "#2d6a4f" },
-  { name: "Bugaboo",        domain: "bugaboo.com",         accent: "#d62828" },
-  { name: "Ergobaby",       domain: "ergobaby.com",        accent: "#3a7dbf" },
-  { name: "UPPAbaby",       domain: "uppababy.com",        accent: "#2b2d42" },
-  { name: "Joie",           domain: "joiebaby.com",        accent: "#e07b39" },
-  { name: "Chicco",         domain: "chicco.com",          accent: "#0057a8" },
-  { name: "Maxi-Cosi",      domain: "maxi-cosi.com",       accent: "#c1121f" },
-  { name: "BabyBjörn",      domain: "babybjorn.com",       accent: "#005f73" },
-  { name: "Stokke",         domain: "stokke.com",          accent: "#6a4c93" },
-  { name: "Graco",          domain: "graco.com",           accent: "#e07b39" },
-  { name: "Britax",         domain: "britax.co.uk",        accent: "#c1121f" },
-  { name: "Mamas & Papas",  domain: "mamasandpapas.com",   accent: "#8e6b9e" },
-  { name: "Skip Hop",       domain: "skiphop.com",         accent: "#f4a261" },
-  { name: "Hauck",          domain: "hauck.de",            accent: "#2b2d42" },
-  { name: "Peg Perego",     domain: "pegperego.com",       accent: "#c1121f" },
-  { name: "BABYZEN",        domain: "babyzen.com",          accent: "#1a1a2e" },
+  { name: "Cybex", domain: "cybex-online.com", accent: "#1a1a2e" },
+  { name: "Little Dutch", domain: "little-dutch.com", accent: "#e8734a" },
+  { name: "Nuna", domain: "nunababy.com", accent: "#2d6a4f" },
+  { name: "Bugaboo", domain: "bugaboo.com", accent: "#d62828" },
+  { name: "Ergobaby", domain: "ergobaby.com", accent: "#3a7dbf" },
+  { name: "UPPAbaby", domain: "uppababy.com", accent: "#2b2d42" },
+  { name: "Joie", domain: "joiebaby.com", accent: "#e07b39" },
+  { name: "Chicco", domain: "chicco.com", accent: "#0057a8" },
+  { name: "Maxi-Cosi", domain: "maxi-cosi.com", accent: "#c1121f" },
+  { name: "BabyBjörn", domain: "babybjorn.com", accent: "#005f73" },
+  { name: "Stokke", domain: "stokke.com", accent: "#6a4c93" },
+  { name: "Graco", domain: "graco.com", accent: "#e07b39" },
+  { name: "Britax", domain: "britax.co.uk", accent: "#c1121f" },
+  { name: "Mamas & Papas", domain: "mamasandpapas.com", accent: "#8e6b9e" },
+  { name: "Skip Hop", domain: "skiphop.com", accent: "#f4a261" },
+  { name: "Hauck", domain: "hauck.de", accent: "#2b2d42" },
+  { name: "Peg Perego", domain: "pegperego.com", accent: "#c1121f" },
+  { name: "BABYZEN", domain: "babyzen.com", accent: "#1a1a2e" },
 ];
 
 function googleFaviconUrl(domain: string, size = 64) {
@@ -46,13 +46,29 @@ function googleFaviconUrl(domain: string, size = 64) {
 const BRAND_STRIP = [...BRANDS, ...BRANDS];
 
 const PLACE_TYPE_LABELS: Record<number, string> = {
-  0: 'Walk', 1: 'Playground', 2: 'Restaurant', 3: 'Café',
-  4: 'Museum', 5: 'Zoo', 6: 'Beach', 7: 'Park',
-  8: 'Attraction', 9: 'Sports', 10: 'Other',
+  0: "Walk",
+  1: "Playground",
+  2: "Restaurant",
+  3: "Café",
+  4: "Museum",
+  5: "Zoo",
+  6: "Beach",
+  7: "Park",
+  8: "Attraction",
+  9: "Sports",
+  10: "Other",
 };
 
 // ── BrandCard ───────────────────────────────────────────────────────────────
-function BrandCard({ name, domain, accent }: { name: string; domain: string; accent: string }) {
+function BrandCard({
+  name,
+  domain,
+  accent,
+}: {
+  name: string;
+  domain: string;
+  accent: string;
+}) {
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -86,11 +102,46 @@ function BrandCard({ name, domain, accent }: { name: string; domain: string; acc
 
 // ── Age groups ──────────────────────────────────────────────────────────────
 const AGE_GROUPS = [
-  { labelKey: "home.age_newborn",   rangeKey: "home.age_newborn_range",   icon: FaBaby,       bg: "#FDDDD6", color: "#D96B58", query: "newborn"   },
-  { labelKey: "home.age_infant",    rangeKey: "home.age_infant_range",    icon: FaSmile,      bg: "#D4EDE8", color: "#5AAFA0", query: "infant"    },
-  { labelKey: "home.age_toddler",   rangeKey: "home.age_toddler_range",   icon: GiFootprint,  bg: "#F5E6C0", color: "#B8922E", query: "toddler"   },
-  { labelKey: "home.age_preschool", rangeKey: "home.age_preschool_range", icon: FaTshirt,     bg: "#FDDDE0", color: "#D96B7B", query: "preschool" },
-  { labelKey: "home.age_kids",      rangeKey: "home.age_kids_range",      icon: FaChild,      bg: "#D4E8E8", color: "#5AAFAF", query: "kids"      },
+  {
+    labelKey: "home.age_newborn",
+    rangeKey: "home.age_newborn_range",
+    icon: FaBaby,
+    bg: "#FDDDD6",
+    color: "#D96B58",
+    query: "newborn",
+  },
+  {
+    labelKey: "home.age_infant",
+    rangeKey: "home.age_infant_range",
+    icon: FaSmile,
+    bg: "#D4EDE8",
+    color: "#5AAFA0",
+    query: "infant",
+  },
+  {
+    labelKey: "home.age_toddler",
+    rangeKey: "home.age_toddler_range",
+    icon: GiFootprint,
+    bg: "#F5E6C0",
+    color: "#B8922E",
+    query: "toddler",
+  },
+  {
+    labelKey: "home.age_preschool",
+    rangeKey: "home.age_preschool_range",
+    icon: FaTshirt,
+    bg: "#FDDDE0",
+    color: "#D96B7B",
+    query: "preschool",
+  },
+  {
+    labelKey: "home.age_kids",
+    rangeKey: "home.age_kids_range",
+    icon: FaChild,
+    bg: "#D4E8E8",
+    color: "#5AAFAF",
+    query: "kids",
+  },
 ];
 
 // ── Page component ──────────────────────────────────────────────────────────
@@ -118,15 +169,49 @@ export default function HomePage() {
   }, [titleNumber, titles]);
 
   useEffect(() => {
-    doctorReviewsApi.getAll({ pageSize: 3 }).then(setDoctorReviews).catch(() => {});
-    childFriendlyPlacesApi.getAll({ pageSize: 3 }).then(setChildPlaces).catch(() => {});
+    doctorReviewsApi
+      .getAll({ pageSize: 3 })
+      .then(setDoctorReviews)
+      .catch(() => {});
+    childFriendlyPlacesApi
+      .getAll({ pageSize: 3 })
+      .then(setChildPlaces)
+      .catch(() => {});
   }, []);
 
   const steps = [
-    { icon: HiCamera, titleKey: "home.step1_title", descKey: "home.step1_desc", bg: "#FDDDD6", color: "#C4705A", badge: "1" },
-    { icon: HiTag,    titleKey: "home.step2_title", descKey: "home.step2_desc", bg: "#D4EDE8", color: "#4A9E8E", badge: "2" },
-    { icon: HiTruck,  titleKey: "home.step3_title", descKey: "home.step3_desc", bg: "#F5E6C0", color: "#9A7A2A", badge: "3" },
-    { icon: HiHeart,  titleKey: "home.step4_title", descKey: "home.step4_desc", bg: "#FDDDE0", color: "#C4607A", badge: "4" },
+    {
+      icon: HiCamera,
+      titleKey: "home.step1_title",
+      descKey: "home.step1_desc",
+      bg: "#FDDDD6",
+      color: "#C4705A",
+      badge: "1",
+    },
+    {
+      icon: HiTag,
+      titleKey: "home.step2_title",
+      descKey: "home.step2_desc",
+      bg: "#D4EDE8",
+      color: "#4A9E8E",
+      badge: "2",
+    },
+    {
+      icon: HiTruck,
+      titleKey: "home.step3_title",
+      descKey: "home.step3_desc",
+      bg: "#F5E6C0",
+      color: "#9A7A2A",
+      badge: "3",
+    },
+    {
+      icon: HiHeart,
+      titleKey: "home.step4_title",
+      descKey: "home.step4_desc",
+      bg: "#FDDDE0",
+      color: "#C4607A",
+      badge: "4",
+    },
   ];
 
   return (
@@ -198,7 +283,12 @@ export default function HomePage() {
         <div className="group relative w-full overflow-hidden [--duration:40s]">
           <div className="flex w-max gap-4 px-4 animate-marquee group-hover:[animation-play-state:paused]">
             {BRAND_STRIP.map((b, i) => (
-              <BrandCard key={`r1-${i}`} name={b.name} domain={b.domain} accent={b.accent} />
+              <BrandCard
+                key={`r1-${i}`}
+                name={b.name}
+                domain={b.domain}
+                accent={b.accent}
+              />
             ))}
           </div>
           <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#201d30]" />
@@ -207,27 +297,34 @@ export default function HomePage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="dark-section pt-40 pb-[6.5rem] px-4" style={{ backgroundColor: "#FAF3EE" }}>
+      <section
+        className="dark-section pt-40 pb-[6.5rem] px-4"
+        style={{ backgroundColor: "#FAF3EE" }}
+      >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
               {t("home.how_it_works")}
             </h2>
-            <p className="text-gray-500">
-              {t("home.how_it_works_subtitle")}
-            </p>
+            <p className="text-gray-500">{t("home.how_it_works_subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
             {steps.map((step, i) => (
-              <div key={i} className="flex flex-col items-center text-center gap-4">
+              <div
+                key={i}
+                className="flex flex-col items-center text-center gap-4"
+              >
                 {/* Icon box with badge */}
                 <div className="relative">
                   <div
                     className="w-20 h-20 rounded-2xl flex items-center justify-center"
                     style={{ backgroundColor: step.bg }}
                   >
-                    <step.icon className="w-9 h-9" style={{ color: step.color }} />
+                    <step.icon
+                      className="w-9 h-9"
+                      style={{ color: step.color }}
+                    />
                   </div>
                   <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#E8724A] text-white text-xs font-bold flex items-center justify-center shadow-sm">
                     {step.badge}
@@ -235,8 +332,12 @@ export default function HomePage() {
                 </div>
                 {/* Text */}
                 <div>
-                  <h3 className="font-bold text-gray-800 text-base mb-2">{t(step.titleKey)}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{t(step.descKey)}</p>
+                  <h3 className="font-bold text-gray-800 text-base mb-2">
+                    {t(step.titleKey)}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    {t(step.descKey)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -245,7 +346,10 @@ export default function HomePage() {
       </section>
 
       {/* ── Shop by Age ── */}
-      <section className="dark-section pt-[6.5rem] pb-40 px-4" style={{ backgroundColor: "#FAF3EE" }}>
+      <section
+        className="dark-section pt-[6.5rem] pb-40 px-4"
+        style={{ backgroundColor: "#FAF3EE" }}
+      >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
@@ -267,8 +371,12 @@ export default function HomePage() {
                   <group.icon size={26} style={{ color: group.color }} />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-gray-800 text-sm">{t(group.labelKey)}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t(group.rangeKey)}</p>
+                  <p className="font-bold text-gray-800 text-sm">
+                    {t(group.labelKey)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {t(group.rangeKey)}
+                  </p>
                 </div>
               </Link>
             ))}
@@ -278,7 +386,7 @@ export default function HomePage() {
 
       {/* ── Doctor Reviews ── */}
       {doctorReviews.length > 0 && (
-        <section className="bg-white dark:bg-[#201d30] py-20 px-4">
+        <section className="bg-white dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
@@ -291,33 +399,51 @@ export default function HomePage() {
                 to="/doctor-reviews"
                 className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
               >
-                {t("home.doctors_view_all")} <ChevronRight className="w-4 h-4" />
+                {t("home.doctors_view_all")}{" "}
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {doctorReviews.map((review) => (
-                <div key={review.id} className="bg-[#FAF3EE] rounded-2xl p-5 flex flex-col gap-3 border border-gray-100 hover:shadow-md transition-shadow duration-300">
+                <div
+                  key={review.id}
+                  className="bg-[#FAF3EE] rounded-2xl p-5 flex flex-col gap-3 border border-gray-100 hover:shadow-md transition-shadow duration-300"
+                >
                   <StarRating value={review.rating} readonly size="sm" />
                   <div>
-                    <p className="font-bold text-gray-800 text-base">{review.doctorName}</p>
-                    <p className="text-sm text-gray-500">{review.specialization}</p>
+                    <p className="font-bold text-gray-800 text-base">
+                      {review.doctorName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {review.specialization}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-gray-400">
                     <MapPin className="w-3 h-3" /> {review.city}
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-3 flex-1">{review.content}</p>
+                  <p className="text-sm text-gray-600 line-clamp-3 flex-1">
+                    {review.content}
+                  </p>
                   <div className="flex items-center gap-2 pt-2 border-t border-gray-100 text-xs text-gray-400">
                     <div className="w-6 h-6 rounded-full bg-peach-light flex items-center justify-center font-bold text-primary text-xs">
-                      {review.isAnonymous ? '?' : (review.authorDisplayName?.charAt(0) ?? '?')}
+                      {review.isAnonymous
+                        ? "?"
+                        : (review.authorDisplayName?.charAt(0) ?? "?")}
                     </div>
-                    {review.isAnonymous ? t('feedback.anonymous') : review.authorDisplayName}
+                    {review.isAnonymous
+                      ? t("feedback.anonymous")
+                      : review.authorDisplayName}
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex justify-center mt-8 sm:hidden">
-              <Link to="/doctor-reviews" className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
-                {t("home.doctors_view_all")} <ChevronRight className="w-4 h-4" />
+              <Link
+                to="/doctor-reviews"
+                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+              >
+                {t("home.doctors_view_all")}{" "}
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -326,7 +452,7 @@ export default function HomePage() {
 
       {/* ── Child-Friendly Places ── */}
       {childPlaces.length > 0 && (
-        <section className="bg-[#FAF3EE] dark:bg-[#201d30] py-20 px-4">
+        <section className="bg-[#FAF3EE] dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
@@ -344,29 +470,45 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {childPlaces.map((place) => (
-                <div key={place.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300 flex flex-col">
+                <div
+                  key={place.id}
+                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300 flex flex-col"
+                >
                   {place.photoUrl ? (
-                    <img src={place.photoUrl} alt={place.name} className="w-full h-40 object-cover" />
+                    <img
+                      src={place.photoUrl}
+                      alt={place.name}
+                      className="w-full h-40 object-cover"
+                    />
                   ) : (
-                    <div className="w-full h-40 bg-cream-dark flex items-center justify-center text-4xl">🏡</div>
+                    <div className="w-full h-40 bg-cream-dark flex items-center justify-center text-4xl">
+                      🏡
+                    </div>
                   )}
                   <div className="p-5 flex flex-col gap-2 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-bold text-gray-800 text-base leading-tight">{place.name}</p>
+                      <p className="font-bold text-gray-800 text-base leading-tight">
+                        {place.name}
+                      </p>
                       <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-peach-light text-primary">
-                        {PLACE_TYPE_LABELS[place.placeType] ?? 'Place'}
+                        {PLACE_TYPE_LABELS[place.placeType] ?? "Place"}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <MapPin className="w-3 h-3" /> {place.city}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 flex-1">{place.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2 flex-1">
+                      {place.description}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex justify-center mt-8 sm:hidden">
-              <Link to="/child-friendly-places" className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+              <Link
+                to="/child-friendly-places"
+                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+              >
                 {t("home.places_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -388,7 +530,7 @@ export default function HomePage() {
             animate={{ scale: [1, 1.15, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6"
-            style={{ backgroundColor: 'rgba(148,92,103,0.1)' }}
+            style={{ backgroundColor: "rgba(148,92,103,0.1)" }}
           >
             <Heart className="w-8 h-8 text-primary fill-primary/20" />
           </motion.div>
@@ -405,7 +547,7 @@ export default function HomePage() {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
               className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-semibold text-base text-white transition-all duration-200 shadow-md hover:shadow-lg"
-              style={{ backgroundColor: '#945c67' }}
+              style={{ backgroundColor: "#945c67" }}
             >
               <Heart className="w-4 h-4 fill-white/30" />
               {t("home.support_btn")}
@@ -413,7 +555,6 @@ export default function HomePage() {
           </Link>
         </motion.div>
       </section>
-
     </div>
   );
 }
