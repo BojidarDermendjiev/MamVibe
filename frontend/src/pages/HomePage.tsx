@@ -388,19 +388,16 @@ export default function HomePage() {
       {doctorReviews.length > 0 && (
         <section className="bg-white dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
-                  {t("home.doctors_title")}
-                </h2>
-                <p className="text-gray-500">{t("home.doctors_subtitle")}</p>
-              </div>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+                {t("home.doctors_title")}
+              </h2>
+              <p className="text-gray-500 mb-4">{t("home.doctors_subtitle")}</p>
               <Link
                 to="/doctor-reviews"
-                className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
               >
-                {t("home.doctors_view_all")}{" "}
-                <ChevronRight className="w-4 h-4" />
+                {t("home.doctors_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -454,16 +451,14 @@ export default function HomePage() {
       {childPlaces.length > 0 && (
         <section className="bg-[#FAF3EE] dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
-                  {t("home.places_title")}
-                </h2>
-                <p className="text-gray-500">{t("home.places_subtitle")}</p>
-              </div>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+                {t("home.places_title")}
+              </h2>
+              <p className="text-gray-500 mb-4">{t("home.places_subtitle")}</p>
               <Link
                 to="/child-friendly-places"
-                className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
               >
                 {t("home.places_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
