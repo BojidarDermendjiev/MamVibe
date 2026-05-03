@@ -11,12 +11,12 @@ const PATTERNS: { type: SensitiveDataType; labelKey: string; regex: RegExp }[] =
     labelKey: 'privacy.type_phone',
     // Bulgarian mobile (087x / 088x / 089x / 098x / 099x) with optional spaces/dashes,
     // plus international +359 prefix variants.
-    regex: /(\+?359[\s\-]?|0)[89]\d[\s\-]?\d{3}[\s\-]?\d{3}/,
+    regex: /(\+?359[\s-]?|0)[89]\d[\s-]?\d{3}[\s-]?\d{3}/,
   },
   {
     type: 'email',
     labelKey: 'privacy.type_email',
-    regex: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/,
+    regex: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,
   },
   {
     type: 'national-id',
@@ -36,7 +36,7 @@ const PATTERNS: { type: SensitiveDataType; labelKey: string; regex: RegExp }[] =
     type: 'card',
     labelKey: 'privacy.type_card',
     // 16-digit card number, optionally formatted as 4 groups of 4.
-    regex: /\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b/,
+    regex: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/,
   },
 ];
 

@@ -34,7 +34,9 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             new Category { Id = Guid.Parse("c3d4e5f6-a7b8-9012-cdef-123456789012"), Name = "Other", Description = "Other baby supplies and essentials", Slug = "other", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Category { Id = Guid.Parse("d4e5f6a7-b8c9-0123-def0-234567890123"), Name = "Car Seats", Description = "Baby and toddler car seats", Slug = "car-seats", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Category { Id = Guid.Parse("e5f6a7b8-c9d0-1234-ef01-345678901234"), Name = "Toys", Description = "Baby and toddler toys", Slug = "toys", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Category { Id = Guid.Parse("f6a7b8c9-d0e1-2345-f012-456789012345"), Name = "Furniture", Description = "Baby furniture and nursery items", Slug = "furniture", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Category { Id = Guid.Parse("f6a7b8c9-d0e1-2345-f012-456789012345"), Name = "Furniture", Description = "Baby furniture and nursery items", Slug = "furniture", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Category { Id = Guid.Parse("a7b8c9d0-e1f2-3456-0123-567890123456"), Name = "Shoes", Description = "Kids shoes and footwear", Slug = "shoes", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Category { Id = Guid.Parse("b8c9d0e1-f2a3-4567-1234-678901234567"), Name = "Feeding", Description = "Bottles, breast pumps, and feeding accessories", Slug = "feeding", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 }
