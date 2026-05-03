@@ -97,11 +97,11 @@ export default function DonationPage() {
             {/* Yellow sticky note */}
             <div className="relative rotate-2 bg-yellow-200 rounded-md px-6 py-5 shadow-md w-72 z-10">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-14 h-6 bg-red-200/70 rounded-sm -rotate-3 shadow-sm" />
-              <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>Together we can:</p>
+              <p className="font-bold text-sm mb-2.5" style={{ color: '#374151' }}>MamVibe magic: ✨</p>
               <ul className="space-y-1.5">
-                {['Support families', 'Share baby items', 'Build a kinder community'].map((item) => (
+                {['Babies grow fast 👶', 'Clothes find new adventures', 'Less waste, more smiles 🌱'].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
-                    <span className="font-bold" style={{ color: '#945c67' }}>✓</span>
+                    <span className="font-bold" style={{ color: '#945c67' }}>•</span>
                     {item}
                   </li>
                 ))}
@@ -111,7 +111,7 @@ export default function DonationPage() {
             {/* Purple sticky note */}
             <div className="relative -rotate-3 bg-purple-200 rounded-md px-6 py-5 shadow-md w-60 -mt-3 ml-8 z-0">
               <p className="font-semibold text-sm italic leading-relaxed" style={{ color: '#374151' }}>
-                Every little bit creates a big change! 🤍
+                Your kindness fits perfectly 💛
               </p>
             </div>
 
