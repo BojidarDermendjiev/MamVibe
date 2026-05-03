@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Star, ExternalLink, User, Plus, X } from "lucide-react";
+import { Star, ExternalLink, User, Plus, X, Clock } from "lucide-react";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import type { DoctorReviewDto, CreateDoctorReviewDto } from "../types/doctorReview";
 import { useAuthStore } from "../store/authStore";
@@ -53,7 +53,8 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 
 export default function DoctorReviewsPage() {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isAdmin = user?.roles?.includes("Admin") ?? false;
 
   const [reviews, setReviews] = useState<DoctorReviewDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +66,7 @@ export default function DoctorReviewsPage() {
   const [form, setForm] = useState<CreateDoctorReviewDto>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -99,14 +101,17 @@ export default function DoctorReviewsPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const created = await doctorReviewsApi.create({
+      await doctorReviewsApi.create({
         ...form,
         clinicName: form.clinicName || undefined,
         superdocUrl: form.superdocUrl || undefined,
       });
-      setReviews((prev) => [created, ...prev]);
-      setShowModal(false);
+      setSubmitSuccess(true);
       setForm(EMPTY_FORM);
+      setTimeout(() => {
+        setShowModal(false);
+        setSubmitSuccess(false);
+      }, 2500);
     } catch {
       setSubmitError("Failed to submit review. Please check your input and try again.");
     } finally {
@@ -120,7 +125,7 @@ export default function DoctorReviewsPage() {
       await doctorReviewsApi.delete(id);
       setReviews((prev) => prev.filter((r) => r.id !== id));
     } catch {
-      // ignore
+      alert("Failed to delete review.");
     }
   };
 
@@ -241,7 +246,7 @@ export default function DoctorReviewsPage() {
                 <span>·</span>
                 <span>{new Date(review.createdAt).toLocaleDateString()}</span>
               </div>
-              {isAuthenticated && (
+              {(isAdmin || (isAuthenticated && review.userId === user?.id)) && (
                 <button
                   onClick={() => handleDelete(review.id)}
                   className="text-xs text-red-400 hover:text-red-500 transition-colors"
@@ -283,13 +288,22 @@ export default function DoctorReviewsPage() {
                 {t("doctorReviews.writeReview") || "Write a Review"}
               </h2>
               <button
-                onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); }}
+                onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); setSubmitSuccess(false); }}
                 className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
                 <X size={18} className="text-gray-500" />
               </button>
             </div>
 
+            {submitSuccess ? (
+              <div className="p-8 text-center">
+                <div className="flex justify-center mb-3">
+                  <Clock size={40} className="text-amber-500" />
+                </div>
+                <p className="font-semibold text-gray-900 dark:text-white">Review submitted!</p>
+                <p className="text-sm text-gray-500 mt-1">Your review will appear after admin approval.</p>
+              </div>
+            ) : (
             <form onSubmit={handleSubmitReview} className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -415,6 +429,7 @@ export default function DoctorReviewsPage() {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

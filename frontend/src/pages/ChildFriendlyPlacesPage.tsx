@@ -57,7 +57,8 @@ const EMPTY_FORM: CreateChildFriendlyPlaceDto = {
 
 export default function ChildFriendlyPlacesPage() {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const isAdmin = user?.roles?.includes("Admin") ?? false;
 
   const [places, setPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,7 +254,7 @@ export default function ChildFriendlyPlacesPage() {
                       Website <ExternalLink size={10} />
                     </a>
                   )}
-                  {isAuthenticated && (
+                  {(isAdmin || (isAuthenticated && place.userId === user?.id)) && (
                     <button
                       onClick={() => handleDelete(place.id)}
                       className="text-xs text-red-400 hover:text-red-500 transition-colors"

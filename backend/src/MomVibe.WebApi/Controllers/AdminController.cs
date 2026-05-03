@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 
 using Domain.Enums;
 using Application.Interfaces;
+using Application.DTOs.DoctorReviews;
+using Application.DTOs.ChildFriendlyPlaces;
 
 /// <summary>
 /// Admin-only API controller providing endpoints for:
@@ -25,19 +27,25 @@ public class AdminController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IShippingService _shippingService;
     private readonly IPaymentService _paymentService;
+    private readonly IDoctorReviewService _doctorReviewService;
+    private readonly IChildFriendlyPlaceService _childFriendlyPlaceService;
 
     public AdminController(
         IAdminService adminService,
         IItemService itemService,
         ICurrentUserService currentUserService,
         IShippingService shippingService,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IDoctorReviewService doctorReviewService,
+        IChildFriendlyPlaceService childFriendlyPlaceService)
     {
         this._adminService = adminService;
         this._itemService = itemService;
         this._currentUserService = currentUserService;
         this._shippingService = shippingService;
         this._paymentService = paymentService;
+        this._doctorReviewService = doctorReviewService;
+        this._childFriendlyPlaceService = childFriendlyPlaceService;
     }
 
     /// <summary>
@@ -153,5 +161,71 @@ public class AdminController : ControllerBase
     {
         var payments = await this._paymentService.GetAllPaymentsAsync();
         return Ok(payments);
+    }
+
+    // --- Community moderation: Doctor Reviews ---
+
+    [HttpGet("doctor-reviews/pending")]
+    public async Task<IActionResult> GetPendingDoctorReviews()
+    {
+        var reviews = await this._doctorReviewService.GetPendingAsync();
+        return Ok(reviews);
+    }
+
+    [HttpPost("doctor-reviews/{id:guid}/approve")]
+    public async Task<IActionResult> ApproveDoctorReview(Guid id)
+    {
+        try
+        {
+            await this._doctorReviewService.ApproveAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpDelete("doctor-reviews/{id:guid}")]
+    public async Task<IActionResult> DeleteDoctorReview(Guid id)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            await this._doctorReviewService.DeleteAsync(id, userId, isAdmin: true);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    // --- Community moderation: Child-Friendly Places ---
+
+    [HttpGet("child-friendly-places/pending")]
+    public async Task<IActionResult> GetPendingChildFriendlyPlaces()
+    {
+        var places = await this._childFriendlyPlaceService.GetPendingAsync();
+        return Ok(places);
+    }
+
+    [HttpPost("child-friendly-places/{id:guid}/approve")]
+    public async Task<IActionResult> ApproveChildFriendlyPlace(Guid id)
+    {
+        try
+        {
+            await this._childFriendlyPlaceService.ApproveAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpDelete("child-friendly-places/{id:guid}")]
+    public async Task<IActionResult> DeleteChildFriendlyPlace(Guid id)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            await this._childFriendlyPlaceService.DeleteAsync(id, userId, isAdmin: true);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
     }
 }

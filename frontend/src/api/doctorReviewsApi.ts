@@ -16,4 +16,13 @@ export const doctorReviewsApi = {
 
   delete: (id: string) =>
     axiosClient.delete(`/doctor-reviews/${id}`),
+
+  getPending: () =>
+    axiosClient.get<DoctorReviewDto[]>('/admin/doctor-reviews/pending').then(r => r.data),
+
+  approve: (id: string) =>
+    axiosClient.post(`/admin/doctor-reviews/${id}/approve`),
+
+  adminDelete: (id: string) =>
+    axiosClient.delete(`/admin/doctor-reviews/${id}`),
 };

@@ -67,7 +67,7 @@ public class DoctorReviewsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            await _service.DeleteAsync(id, userId);
+            await _service.DeleteAsync(id, userId, isAdmin: _currentUser.IsAdmin);
             return NoContent();
         }
         catch (KeyNotFoundException) { return NotFound(); }

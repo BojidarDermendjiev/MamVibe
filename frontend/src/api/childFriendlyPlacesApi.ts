@@ -14,4 +14,13 @@ export const childFriendlyPlacesApi = {
 
   delete: (id: string) =>
     axiosClient.delete(`/child-friendly-places/${id}`),
+
+  getPending: () =>
+    axiosClient.get<ChildFriendlyPlaceDto[]>('/admin/child-friendly-places/pending').then(r => r.data),
+
+  approve: (id: string) =>
+    axiosClient.post(`/admin/child-friendly-places/${id}/approve`),
+
+  adminDelete: (id: string) =>
+    axiosClient.delete(`/admin/child-friendly-places/${id}`),
 };

@@ -469,6 +469,9 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<bool>("IsAnonymous")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Rating")
                         .HasColumnType("integer");
 

@@ -14,5 +14,6 @@ public class DoctorReviewDto
     public string Content { get; set; } = string.Empty;
     public string? SuperdocUrl { get; set; }
     public bool IsAnonymous { get; set; }
+    public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }
 }

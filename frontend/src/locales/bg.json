@@ -205,7 +205,10 @@
     "approve_item": "Одобри",
     "no_pending": "Няма обяви за одобрение",
     "track_shipment": "Проследи",
-    "all_shipments": "Всички пратки"
+    "all_shipments": "Всички пратки",
+    "community": "Общност",
+    "pending_doctor_reviews": "Чакащи рецензии за лекари",
+    "pending_places": "Чакащи места за деца"
   },
   "payment": {
     "title": "Плащане",

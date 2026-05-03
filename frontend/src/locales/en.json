@@ -205,7 +205,10 @@
     "approve_item": "Approve",
     "no_pending": "No items pending approval",
     "track_shipment": "Track",
-    "all_shipments": "All Shipments"
+    "all_shipments": "All Shipments",
+    "community": "Community",
+    "pending_doctor_reviews": "Pending Doctor Reviews",
+    "pending_places": "Pending Child-Friendly Places"
   },
   "payment": {
     "title": "Payment",

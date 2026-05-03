@@ -21,7 +21,7 @@ public class DoctorReviewService : IDoctorReviewService
 
     public async Task<IEnumerable<DoctorReviewDto>> GetAllAsync(string? city = null, string? specialization = null, int page = 1, int pageSize = 20)
     {
-        var query = _db.DoctorReviews.Include(r => r.User).AsQueryable();
+        var query = _db.DoctorReviews.Include(r => r.User).Where(r => r.IsApproved).AsQueryable();
         if (!string.IsNullOrWhiteSpace(city))
             query = query.Where(r => r.City.ToLower().Contains(city.ToLower()));
         if (!string.IsNullOrWhiteSpace(specialization))
@@ -52,6 +52,24 @@ public class DoctorReviewService : IDoctorReviewService
         return reviews.Select(r => MapToDto(r));
     }
 
+    public async Task<IEnumerable<DoctorReviewDto>> GetPendingAsync()
+    {
+        var reviews = await _db.DoctorReviews
+            .Include(r => r.User)
+            .Where(r => !r.IsApproved)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+        return reviews.Select(r => MapToDto(r));
+    }
+
+    public async Task ApproveAsync(Guid id)
+    {
+        var review = await _db.DoctorReviews.FindAsync(id)
+            ?? throw new KeyNotFoundException("Review not found.");
+        review.IsApproved = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<DoctorReviewDto> CreateAsync(string userId, CreateDoctorReviewDto dto)
     {
         var review = new DoctorReview
@@ -66,6 +84,7 @@ public class DoctorReviewService : IDoctorReviewService
             Content = dto.Content,
             SuperdocUrl = dto.SuperdocUrl,
             IsAnonymous = dto.IsAnonymous,
+            IsApproved = false,
         };
         _db.DoctorReviews.Add(review);
         await _db.SaveChangesAsync();
@@ -97,6 +116,7 @@ public class DoctorReviewService : IDoctorReviewService
         Content = r.Content,
         SuperdocUrl = r.SuperdocUrl,
         IsAnonymous = r.IsAnonymous,
+        IsApproved = r.IsApproved,
         CreatedAt = r.CreatedAt,
     };
 }

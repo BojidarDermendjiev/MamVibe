@@ -37,6 +37,16 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         return places.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync()
+    {
+        var places = await _db.ChildFriendlyPlaces
+            .Include(p => p.User)
+            .Where(p => !p.IsApproved)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+        return places.Select(MapToDto);
+    }
+
     public async Task<ChildFriendlyPlaceDto?> GetByIdAsync(Guid id)
     {
         var place = await _db.ChildFriendlyPlaces.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);

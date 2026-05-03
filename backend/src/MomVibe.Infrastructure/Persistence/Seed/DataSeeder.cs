@@ -254,6 +254,7 @@ public static class DataSeeder
                     Content = "Изключителен лекар! Много внимателна и търпелива с детето ни. Обяснява всичко подробно и никога не бърза. Горещо препоръчвам!",
                     SuperdocUrl = null,
                     IsAnonymous = false,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-14),
                 },
                 new MomVibe.Domain.Entities.DoctorReview
@@ -268,6 +269,7 @@ public static class DataSeeder
                     Content = "Много компетентен специалист. Операцията мина перфектно и проследяването беше отлично. Малко трудно се вземат часове, но си струва чакането.",
                     SuperdocUrl = null,
                     IsAnonymous = true,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-10),
                 },
                 new MomVibe.Domain.Entities.DoctorReview
@@ -282,6 +284,7 @@ public static class DataSeeder
                     Content = "Д-р Стоянова е невероятна! Децата я обичат и никога не плачат при нея. Дава изчерпателни съвети за хранене и развитие. Нашият семеен педиатър от 3 години.",
                     SuperdocUrl = null,
                     IsAnonymous = false,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-7),
                 },
                 new MomVibe.Domain.Entities.DoctorReview
@@ -296,6 +299,7 @@ public static class DataSeeder
                     Content = "Открихме проблем с тазобедрените стави на бебето ни на 3 месеца. Д-р Димитров беше изключително внимателен и ни обясни всичко. Сега детето е напълно здраво!",
                     SuperdocUrl = null,
                     IsAnonymous = false,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-5),
                 },
                 new MomVibe.Domain.Entities.DoctorReview
@@ -310,6 +314,7 @@ public static class DataSeeder
                     Content = "Много добър специалист с голям опит. Установи проблема бързо и предложи ефективно лечение. Препоръчвам за деца с неврологични въпроси.",
                     SuperdocUrl = null,
                     IsAnonymous = true,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-3),
                 },
                 new MomVibe.Domain.Entities.DoctorReview
@@ -324,6 +329,7 @@ public static class DataSeeder
                     Content = "Синът ми имаше тежка алергия към хранителни продукти. Д-р Велков направи пълна диагностика и разработи план. 6 месеца по-късно животът ни се промени напълно!",
                     SuperdocUrl = null,
                     IsAnonymous = false,
+                    IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
                 },
             };
