@@ -24,11 +24,17 @@ export default function Avatar({ src, profileType, size = 'md', className }: Ava
   const avatarSrc = src || (profileType != null ? defaultAvatars[profileType] : null);
 
   if (avatarSrc) {
+    const fallbackSrc = profileType != null ? defaultAvatars[profileType] : '/avatars/family.svg';
     return (
       <img
         src={avatarSrc}
         alt="Avatar"
         className={clsx('rounded-full object-cover', sizeClasses[size], className)}
+        onError={(e) => {
+          if (e.currentTarget.src !== fallbackSrc) {
+            e.currentTarget.src = fallbackSrc;
+          }
+        }}
       />
     );
   }

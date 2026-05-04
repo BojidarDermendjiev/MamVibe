@@ -158,6 +158,18 @@ public class AuthService : IAuthService
         if (user.IsBlocked)
             throw new UnauthorizedAccessException("Your account has been blocked.");
 
+        // Refresh the Google avatar URL only when the stored URL is also from Google
+        // (or absent). If the user has set a custom avatar we must not overwrite it.
+        bool storedIsGoogle = string.IsNullOrEmpty(user.AvatarUrl)
+            || user.AvatarUrl.StartsWith("https://lh3.googleusercontent.com", StringComparison.OrdinalIgnoreCase)
+            || user.AvatarUrl.StartsWith("https://googleusercontent.com", StringComparison.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrEmpty(payload.Picture) && storedIsGoogle && user.AvatarUrl != payload.Picture)
+        {
+            user.AvatarUrl = payload.Picture;
+            await this._userManager.UpdateAsync(user);
+        }
+
         return await GenerateAuthResponseAsync(user);
     }
 

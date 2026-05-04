@@ -38,4 +38,7 @@ export type RootStackParamList = {
     itemTitle: string;
     itemPrice: number | null;
   };
+  DoctorReviews: undefined;
+  ChildFriendlyPlaces: undefined;
+  AdminCommunity: undefined;
 };

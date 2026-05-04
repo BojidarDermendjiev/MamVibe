@@ -62,7 +62,11 @@
     "age3_label": "Предучилищна",
     "age3_range": "3–4 г",
     "age4_label": "Деца",
-    "age4_range": "5–6 г"
+    "age4_range": "5–6 г",
+    "communityTitle": "Общност",
+    "doctorReviewsLabel": "Отзиви за Лекари",
+    "childFriendlyPlacesLabel": "Места за Деца",
+    "seeAll": "Виж всички →"
   },
   "browse": {
     "searchPlaceholder": "Търси артикули...",
@@ -164,6 +168,55 @@
     "cancel": "Откажи",
     "error": "Грешка",
     "validation": "Валидация",
-    "done": "Готово"
+    "done": "Готово",
+    "delete": "Изтрий",
+    "confirm": "Потвърди",
+    "approve": "Одобри",
+    "submit": "Изпрати",
+    "loading": "Зареждане...",
+    "deleteConfirmTitle": "Изтриване",
+    "deleteConfirmMsg": "Сигурни ли сте, че искате да изтриете това?",
+    "pendingApproval": "Изчаква одобрение",
+    "pendingApprovalMsg": "Вашата публикация ще се появи след преглед от администратор."
+  },
+  "doctorReviews": {
+    "title": "Отзиви за Лекари",
+    "addReview": "Добави Отзив",
+    "doctorName": "Име на Лекар *",
+    "specialization": "Специалност *",
+    "clinicName": "Клиника",
+    "city": "Град *",
+    "rating": "Оценка *",
+    "content": "Вашият Опит *",
+    "superdocUrl": "Superdoc Линк",
+    "isAnonymous": "Публикувай анонимно",
+    "noReviews": "Все още няма отзиви. Бъдете първи!",
+    "anonymous": "Анонимен",
+    "submitError": "Неуспешно изпращане на отзив.",
+    "deleteError": "Неуспешно изтриване на отзив."
+  },
+  "childFriendlyPlaces": {
+    "title": "Места за Деца",
+    "addPlace": "Добави Място",
+    "name": "Име на Място *",
+    "description": "Описание *",
+    "address": "Адрес",
+    "city": "Град *",
+    "placeType": "Тип *",
+    "ageFrom": "Възраст От (месеца)",
+    "ageTo": "Възраст До (месеца)",
+    "website": "Уебсайт",
+    "noPlaces": "Все още няма места. Бъдете първи!",
+    "submitError": "Неуспешно изпращане на място.",
+    "deleteError": "Неуспешно изтриване на място.",
+    "ageRange": "Възраст"
+  },
+  "adminCommunity": {
+    "title": "Модериране на Общността",
+    "pendingReviews": "Чакащи Отзиви",
+    "pendingPlaces": "Чакащи Места",
+    "noItems": "Няма чакащи",
+    "approveError": "Неуспешно одобрение.",
+    "deleteError": "Неуспешно изтриване."
   }
 }

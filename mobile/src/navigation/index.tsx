@@ -22,6 +22,9 @@ import SettingsScreen from '@/screens/main/SettingsScreen';
 import DonateScreen from '@/screens/main/DonateScreen';
 import CreateItemScreen from '@/screens/main/CreateItemScreen';
 import LeaveReviewScreen from '@/screens/main/LeaveReviewScreen';
+import DoctorReviewsScreen from '@/screens/main/DoctorReviewsScreen';
+import ChildFriendlyPlacesScreen from '@/screens/main/ChildFriendlyPlacesScreen';
+import AdminCommunityScreen from '@/screens/main/AdminCommunityScreen';
 import type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList } from './types';
 
 export type { AuthStackParamList, ChatStackParamList, MainTabParamList, RootStackParamList };
@@ -163,6 +166,21 @@ function MainNavigator() {
           headerTintColor: '#d4938f',
           headerSubtitle: `With ${route.params.sellerName}`,
         })}
+      />
+      <RootStack.Screen
+        name="DoctorReviews"
+        component={DoctorReviewsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="ChildFriendlyPlaces"
+        component={ChildFriendlyPlacesScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="AdminCommunity"
+        component={AdminCommunityScreen}
+        options={{ headerShown: false }}
       />
     </RootStack.Navigator>
   );

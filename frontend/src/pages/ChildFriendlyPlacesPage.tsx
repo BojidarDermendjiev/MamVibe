@@ -273,21 +273,24 @@ export default function ChildFriendlyPlacesPage() {
       </div>
 
       {/* Pagination */}
-      {places.length === 20 && (
-        <div className="flex justify-center gap-3 mt-8">
+      {(page > 1 || places.length === 20) && (
+        <div className="flex items-center justify-center gap-3 mt-8">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             disabled={page === 1}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm disabled:opacity-40"
+            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
           >
-            Previous
+            ← Previous
           </button>
-          <span className="px-4 py-2 text-sm text-gray-500">Page {page}</span>
+          <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
+            Page {page}
+          </span>
           <button
-            onClick={() => setPage((p) => p + 1)}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm"
+            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            disabled={places.length < 20}
+            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
           >
-            Next
+            Next →
           </button>
         </div>
       )}

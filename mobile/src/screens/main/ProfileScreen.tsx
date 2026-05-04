@@ -18,6 +18,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { user, logout } = useAuthStore();
   const { colors, isDark, toggleTheme } = useTheme();
+  const isAdmin = user?.roles?.includes('Admin') ?? false;
 
   const handleLogout = async () => {
     await tokenStorage.clearTokens();
@@ -28,6 +29,9 @@ export default function ProfileScreen({ navigation }: Props) {
     { icon: '👜', label: t('profile.wallet'),    onPress: () => (navigation as any).navigate('Wallet') },
     { icon: '🗂️', label: t('profile.myOrders'), onPress: () => (navigation as any).navigate('Dashboard') },
     { icon: '📦', label: t('profile.myItems'),  onPress: () => (navigation as any).navigate('MyItems') },
+    { icon: '🩺', label: t('doctorReviews.title'), onPress: () => (navigation as any).navigate('DoctorReviews') },
+    { icon: '🌳', label: t('childFriendlyPlaces.title'), onPress: () => (navigation as any).navigate('ChildFriendlyPlaces') },
+    ...(isAdmin ? [{ icon: '🛡️', label: t('adminCommunity.title'), onPress: () => (navigation as any).navigate('AdminCommunity') }] : []),
     { icon: '⚙️', label: t('profile.settings'),  onPress: () => (navigation as any).navigate('Settings') },
   ];
 

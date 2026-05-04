@@ -15,6 +15,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ROSE, MIST, SAGE, SAND } from '@/constants/palette';
+import { doctorReviewsApi, type DoctorReviewDto } from '@/api/doctorReviewsApi';
+import { childFriendlyPlacesApi, placeTypeLabel, type ChildFriendlyPlaceDto } from '@/api/childFriendlyPlacesApi';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -58,6 +60,13 @@ export default function HomeScreen({ navigation }: Props) {
 
   const [titleIndex, setTitleIndex] = useState(0);
   const opacity = useRef(new Animated.Value(1)).current;
+  const [recentReviews, setRecentReviews] = useState<DoctorReviewDto[]>([]);
+  const [recentPlaces, setRecentPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
+
+  useEffect(() => {
+    doctorReviewsApi.getAll().then((d) => setRecentReviews(d.slice(0, 5))).catch(() => {});
+    childFriendlyPlacesApi.getAll().then((d) => setRecentPlaces(d.slice(0, 5))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -135,6 +144,68 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       </View>
 
+      {/* ── Community ── */}
+      {(recentReviews.length > 0 || recentPlaces.length > 0) && (
+        <View style={[s.section, { backgroundColor: sectionBg, paddingBottom: 8 }]}>
+          <Text style={[s.sectionTitle, { color: SAGE }]}>{t('home.communityTitle')}</Text>
+        </View>
+      )}
+
+      {/* Doctor Reviews strip */}
+      {recentReviews.length > 0 && (
+        <View style={{ backgroundColor: sectionBg, paddingBottom: 20 }}>
+          <View style={s.stripHeader}>
+            <Text style={[s.stripTitle, { color: colors.text }]}>🩺 {t('home.doctorReviewsLabel')}</Text>
+            <TouchableOpacity onPress={() => (navigation as any).navigate('DoctorReviews')} activeOpacity={0.7}>
+              <Text style={[s.seeAll, { color: ROSE }]}>{t('home.seeAll')}</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.stripScroll}>
+            {recentReviews.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={[s.reviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => (navigation as any).navigate('DoctorReviews')}
+                activeOpacity={0.8}
+              >
+                <Text style={[s.reviewDoctor, { color: colors.text }]} numberOfLines={1}>{r.doctorName}</Text>
+                <Text style={[s.reviewSpec, { color: ROSE }]} numberOfLines={1}>{r.specialization}</Text>
+                <Text style={[s.reviewStars, { color: '#f5a623' }]}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>
+                <Text style={[s.reviewContent, { color: colors.text2 }]} numberOfLines={2}>{r.content}</Text>
+                <Text style={[s.reviewCity, { color: colors.text2 }]}>📍 {r.city}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Child-Friendly Places strip */}
+      {recentPlaces.length > 0 && (
+        <View style={{ backgroundColor: sectionBg, paddingBottom: 28 }}>
+          <View style={s.stripHeader}>
+            <Text style={[s.stripTitle, { color: colors.text }]}>🌳 {t('home.childFriendlyPlacesLabel')}</Text>
+            <TouchableOpacity onPress={() => (navigation as any).navigate('ChildFriendlyPlaces')} activeOpacity={0.7}>
+              <Text style={[s.seeAll, { color: ROSE }]}>{t('home.seeAll')}</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.stripScroll}>
+            {recentPlaces.map((p) => (
+              <TouchableOpacity
+                key={p.id}
+                style={[s.reviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={() => (navigation as any).navigate('ChildFriendlyPlaces')}
+                activeOpacity={0.8}
+              >
+                <Text style={[s.reviewDoctor, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
+                <Text style={[s.reviewSpec, { color: ROSE }]} numberOfLines={1}>{placeTypeLabel[p.placeType]}</Text>
+                <Text style={[s.reviewContent, { color: colors.text2 }]} numberOfLines={2}>{p.description}</Text>
+                <Text style={[s.reviewCity, { color: colors.text2 }]}>📍 {p.city}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {/* ── Support ── */}
       <View style={[s.supportSection, { backgroundColor: colors.section, borderTopColor: colors.border }]}>
         <Text style={s.supportHeart}>💛</Text>
@@ -206,6 +277,27 @@ const s = StyleSheet.create({
   ageEmoji: { fontSize: 24 },
   ageLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   ageRange: { fontSize: 11, marginTop: 2, textAlign: 'center' },
+
+  stripHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 12 },
+  stripTitle: { fontSize: 16, fontWeight: '700' },
+  seeAll: { fontSize: 13, fontWeight: '600' },
+  stripScroll: { paddingHorizontal: 20, gap: 12 },
+  reviewCard: {
+    width: 200,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  reviewDoctor: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
+  reviewSpec: { fontSize: 12, marginBottom: 6 },
+  reviewStars: { fontSize: 13, marginBottom: 6 },
+  reviewContent: { fontSize: 12, lineHeight: 17, marginBottom: 8 },
+  reviewCity: { fontSize: 11 },
 
   supportSection: { paddingHorizontal: 28, paddingVertical: 40, paddingBottom: 48, alignItems: 'center', borderTopWidth: 1 },
   supportHeart: { fontSize: 40, marginBottom: 12 },

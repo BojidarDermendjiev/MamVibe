@@ -62,7 +62,11 @@
     "age3_label": "Preschool",
     "age3_range": "3–4 yr",
     "age4_label": "Kids",
-    "age4_range": "5–6 yr"
+    "age4_range": "5–6 yr",
+    "communityTitle": "Community",
+    "doctorReviewsLabel": "Doctor Reviews",
+    "childFriendlyPlacesLabel": "Child-Friendly Places",
+    "seeAll": "See all →"
   },
   "browse": {
     "searchPlaceholder": "Search items...",
@@ -164,6 +168,55 @@
     "cancel": "Cancel",
     "error": "Error",
     "validation": "Validation",
-    "done": "Done"
+    "done": "Done",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "approve": "Approve",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "deleteConfirmTitle": "Delete",
+    "deleteConfirmMsg": "Are you sure you want to delete this?",
+    "pendingApproval": "Awaiting Approval",
+    "pendingApprovalMsg": "Your submission will appear after an admin reviews it."
+  },
+  "doctorReviews": {
+    "title": "Doctor Reviews",
+    "addReview": "Add Review",
+    "doctorName": "Doctor Name *",
+    "specialization": "Specialization *",
+    "clinicName": "Clinic Name",
+    "city": "City *",
+    "rating": "Rating *",
+    "content": "Your Experience *",
+    "superdocUrl": "Superdoc Link",
+    "isAnonymous": "Post Anonymously",
+    "noReviews": "No reviews yet. Be the first!",
+    "anonymous": "Anonymous",
+    "submitError": "Could not submit review.",
+    "deleteError": "Could not delete review."
+  },
+  "childFriendlyPlaces": {
+    "title": "Child-Friendly Places",
+    "addPlace": "Add Place",
+    "name": "Place Name *",
+    "description": "Description *",
+    "address": "Address",
+    "city": "City *",
+    "placeType": "Type *",
+    "ageFrom": "Age From (months)",
+    "ageTo": "Age To (months)",
+    "website": "Website",
+    "noPlaces": "No places yet. Be the first!",
+    "submitError": "Could not submit place.",
+    "deleteError": "Could not delete place.",
+    "ageRange": "Ages"
+  },
+  "adminCommunity": {
+    "title": "Community Moderation",
+    "pendingReviews": "Pending Reviews",
+    "pendingPlaces": "Pending Places",
+    "noItems": "Nothing pending",
+    "approveError": "Could not approve.",
+    "deleteError": "Could not delete."
   }
 }
