@@ -138,7 +138,8 @@ public class PaymentService : IPaymentService
                 catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for payment {PaymentId}. Buyer's delivery details were recorded but no waybill was generated.", payment.Id); }
             }
 
-            try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
+            try { await CompletePurchaseRequestAsync(itemId, buyerId); }
+            catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
 
             return successUrl + "?session_id=test_simulated";
         }
@@ -372,7 +373,8 @@ public class PaymentService : IPaymentService
                     this._logger.LogError(ex, "E-bill issuance failed for payment {PaymentId}.", payment.Id);
                 }
 
-                try { await CompletePurchaseRequestAsync(payment.ItemId, payment.BuyerId); } catch { }
+                try { await CompletePurchaseRequestAsync(payment.ItemId, payment.BuyerId); }
+                catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", payment.ItemId, payment.BuyerId); }
             }
         }
     }
@@ -420,7 +422,8 @@ public class PaymentService : IPaymentService
             catch { /* Shipment creation failure must not break payment flow */ }
         }
 
-        try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
+        try { await CompletePurchaseRequestAsync(itemId, buyerId); }
+        catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
 
         return this._mapper.Map<PaymentDto>(payment);
     }
@@ -470,7 +473,8 @@ public class PaymentService : IPaymentService
             catch { /* Shipment creation failure must not break payment flow */ }
         }
 
-        try { await CompletePurchaseRequestAsync(itemId, buyerId); } catch { }
+        try { await CompletePurchaseRequestAsync(itemId, buyerId); }
+        catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
 
         return this._mapper.Map<PaymentDto>(payment);
     }
@@ -506,8 +510,10 @@ public class PaymentService : IPaymentService
     public async Task<List<PaymentDto>> GetAllPaymentsAsync()
     {
         var payments = await this._context.Payments
+            .AsNoTracking()
             .Include(p => p.Item)
             .OrderByDescending(p => p.CreatedAt)
+            .Take(1000)
             .ToListAsync();
 
         return this._mapper.Map<List<PaymentDto>>(payments);

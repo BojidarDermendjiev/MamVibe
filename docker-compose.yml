@@ -29,7 +29,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme}"
-      JwtSettings__Secret: "${JWT_SECRET:-MamVibe-Super-Secret-Key-That-Is-At-Least-32-Characters-Long-2024!}"
+      JwtSettings__Secret: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
     ports:
       - "8080:8080"
