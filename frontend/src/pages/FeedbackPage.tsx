@@ -286,19 +286,19 @@ export default function FeedbackPage() {
 
                 {/* Attached file badge */}
                 {attachedFile && (
-                  <div className="flex items-center gap-1.5 mx-2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-peach-light/50 border border-lavender/30 text-xs text-primary">
-                    <Paperclip size={12} className="shrink-0 text-primary" />
-                    <span className="truncate max-w-[200px] font-medium">{attachedFile.name}</span>
-                    <span className="text-gray-400 ml-0.5">
-                      ({(attachedFile.size / 1024).toFixed(0)} KB)
+                  <div className="flex items-center gap-1.5 mx-2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-lavender/20 dark:bg-white/10 border border-lavender/40 dark:border-white/20 text-xs">
+                    <Paperclip size={12} className="shrink-0 text-[#945c67] dark:text-[#c1c4e3]" />
+                    <span className="truncate max-w-[200px] font-semibold text-gray-800 dark:text-gray-100">{attachedFile.name}</span>
+                    <span className="text-gray-500 dark:text-gray-400 ml-0.5 shrink-0">
+                      {(attachedFile.size / 1024).toFixed(0)} KB
                     </span>
                     <button
                       type="button"
                       onClick={() => setAttachedFile(null)}
-                      className="ml-auto shrink-0 p-0.5 rounded text-gray-400 hover:text-red-400 transition-colors"
+                      className="ml-auto shrink-0 p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       title="Remove attachment"
                     >
-                      <X size={12} />
+                      <X size={13} />
                     </button>
                   </div>
                 )}
@@ -322,8 +322,8 @@ export default function FeedbackPage() {
                     onClick={() => fileInputRef.current?.click()}
                     className={`p-1.5 rounded-md transition-colors ${
                       attachedFile
-                        ? 'text-primary bg-peach-light/60'
-                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                        ? 'text-[#945c67] dark:text-[#c1c4e3] bg-lavender/30 dark:bg-white/10'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
                   >
                     <Paperclip size={15} />
@@ -337,8 +337,8 @@ export default function FeedbackPage() {
                     onClick={handleMicClick}
                     className={`p-1.5 rounded-md transition-colors ${
                       isRecording
-                        ? 'text-red-500 bg-red-50 animate-pulse'
-                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                        ? 'text-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse'
+                        : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
                   >
                     {isRecording ? <MicOff size={15} /> : <Mic size={15} />}
@@ -351,7 +351,7 @@ export default function FeedbackPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#945c67] text-white text-xs font-semibold hover:bg-[#7d4d57] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {t('feedback.submit')}
                       <CornerDownLeft size={13} />
