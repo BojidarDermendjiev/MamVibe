@@ -183,9 +183,13 @@ export default function SettingsPage() {
           <textarea
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
+            maxLength={500}
             rows={3}
             className="w-full px-4 py-2.5 rounded-lg border border-lavender bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
+          <p className={`text-xs mt-1 text-right ${form.bio.length >= 480 ? 'text-red-500' : 'text-gray-400'}`}>
+            {form.bio.length}/500
+          </p>
         </div>
 
         <Input

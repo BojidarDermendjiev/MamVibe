@@ -6,7 +6,7 @@ public static class ApplicationUserConstants
     {
         public const int DisplayNameMin = 2;
         public const int DisplayNameMax = 64;
-        public const int BioMax = 512;
+        public const int BioMax = 500;
         public const int LanguageCodeMax = 10;
         public const int AvatarUrlMax = 2048;
         public const int RevolutTagMax = 50;

@@ -126,12 +126,16 @@ export default function SettingsScreen({}: Props) {
             <TextInput
               style={[inputStyle, s.textArea]}
               value={form.bio}
-              onChangeText={(v) => setForm({ ...form, bio: v })}
+              onChangeText={(v) => setForm({ ...form, bio: v.slice(0, 500) })}
               placeholder={t('settings.bioPlaceholder')}
               placeholderTextColor={colors.text2}
               multiline
               numberOfLines={3}
+              maxLength={500}
             />
+            <Text style={[s.charCount, { color: form.bio.length >= 480 ? '#e57373' : colors.text2 }]}>
+              {form.bio.length}/500
+            </Text>
 
             <Text style={labelStyle}>{t('settings.iban')}</Text>
             <TextInput
@@ -214,4 +218,5 @@ const s = StyleSheet.create({
   langBtnActive: { backgroundColor: PRIMARY, borderColor: PRIMARY },
   langTxt: { fontSize: 14, fontWeight: '600' },
   langTxtActive: { color: '#fff' },
+  charCount: { fontSize: 11, textAlign: 'right', marginTop: 2 },
 });

@@ -1,20 +1,25 @@
 ﻿namespace MomVibe.Application.DTOs.Users;
 
+using System.ComponentModel.DataAnnotations;
 using Domain.Enums;
+using Domain.Constants;
 
-/// <summary>
-/// DTO for updating user profile settings:
-/// - DisplayName, Bio, AvatarUrl: optional personal info updates.
-/// - ProfileType: optional change to user profile classification.
-/// - LanguagePreference: optional preferred locale/language code.
-/// Only provided fields should be applied; unspecified fields remain unchanged.
-/// </summary>
 public class UpdateProfileDto
 {
+    [MaxLength(ApplicationUserConstants.Lengths.DisplayNameMax)]
     public string? DisplayName { get; set; }
+
+    [MaxLength(ApplicationUserConstants.Lengths.BioMax)]
     public string? Bio { get; set; }
+
+    [MaxLength(ApplicationUserConstants.Lengths.AvatarUrlMax)]
     public string? AvatarUrl { get; set; }
+
     public ProfileType? ProfileType { get; set; }
+
+    [MaxLength(ApplicationUserConstants.Lengths.LanguageCodeMax)]
     public string? LanguagePreference { get; set; }
+
+    [MaxLength(ApplicationUserConstants.Lengths.RevolutTagMax)]
     public string? RevolutTag { get; set; }
 }
