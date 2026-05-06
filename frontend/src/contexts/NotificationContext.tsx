@@ -30,13 +30,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
 
-  // Reset counts on logout; fetch initial counts on login
+  // Fetch counts on login; skip entirely on logout (values derived below)
   useEffect(() => {
-    if (!isAuthenticated) {
-      setUnreadCount(0);
-      setPendingRequestCount(0);
-      return;
-    }
+    if (!isAuthenticated) return;
 
     let cancelled = false;
 
@@ -62,6 +58,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     return () => { cancelled = true; };
   }, [isAuthenticated]);
+
+  // Derive: when logged out always show 0 without calling setState in an effect
+  const effectiveUnreadCount = isAuthenticated ? unreadCount : 0;
+  const effectivePendingCount = isAuthenticated ? pendingRequestCount : 0;
 
   // Increment unread count on new messages from others,
   // but NOT if the message is from the currently active chat
@@ -175,7 +175,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   return (
     <NotificationContext.Provider
-      value={{ unreadCount, pendingRequestCount, markConversationRead, setActiveChatUserId, decrementPendingRequestCount }}
+      value={{ unreadCount: effectiveUnreadCount, pendingRequestCount: effectivePendingCount, markConversationRead, setActiveChatUserId, decrementPendingRequestCount }}
     >
       {children}
     </NotificationContext.Provider>
