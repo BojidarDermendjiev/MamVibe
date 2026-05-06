@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -58,23 +58,39 @@ export default function ModernAuthPage() {
     }
   };
 
+  // On mount: check if Google redirected back with an id_token in the hash
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const idToken = hash.get("id_token");
+    if (!idToken) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    let cancelled = false;
+    authApi
+      .googleLogin({ idToken })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setAuth(data.user, data.accessToken);
+        toast.success("Welcome!");
+        navigate("/");
+      })
+      .catch(() => { if (!cancelled) toast.error("Google login failed"); });
+    return () => { cancelled = true; };
+  }, [navigate, setAuth]);
+
   const handleGoogleLogin = () => {
-    if (typeof google !== "undefined") {
-      google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
-        callback: async (response: { credential: string }) => {
-          try {
-            const { data } = await authApi.googleLogin({ idToken: response.credential });
-            setAuth(data.user, data.accessToken);
-            toast.success("Welcome!");
-            navigate("/");
-          } catch {
-            toast.error("Google login failed");
-          }
-        },
-      });
-      (google.accounts.id as unknown as { prompt: () => void }).prompt();
-    }
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) { toast.error("Google login is not configured"); return; }
+    const nonce = crypto.randomUUID();
+    sessionStorage.setItem("google_nonce", nonce);
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: `${window.location.origin}/login`,
+      response_type: "id_token",
+      scope: "openid email profile",
+      nonce,
+      prompt: "select_account",
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   };
 
   const validate = () => {
