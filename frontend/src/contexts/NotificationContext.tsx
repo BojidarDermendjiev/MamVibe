@@ -33,9 +33,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Reset counts on logout; fetch initial counts on login
   useEffect(() => {
     if (!isAuthenticated) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on auth change
       setUnreadCount(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on auth change
       setPendingRequestCount(0);
       return;
     }
