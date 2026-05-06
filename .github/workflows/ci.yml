@@ -76,3 +76,5 @@ jobs:
 
       - name: Build Docker images
         run: docker compose build
+        env:
+          JWT_SECRET: ci-build-placeholder-not-used-at-runtime
