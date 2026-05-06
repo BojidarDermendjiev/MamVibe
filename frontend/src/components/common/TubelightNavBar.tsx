@@ -54,7 +54,7 @@ export function TubelightNavBar({ items, className }: TubelightNavBarProps) {
               onClick={() => setActiveTab(item.name)}
               className={clsx(
                 "relative cursor-pointer text-sm font-semibold px-5 py-2 rounded-full transition-colors whitespace-nowrap",
-                "text-primary-dark/60 hover:text-primary",
+                "text-gray-500 dark:text-gray-400 hover:text-primary",
                 isActive && "text-primary"
               )}
             >

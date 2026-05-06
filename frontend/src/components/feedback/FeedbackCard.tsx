@@ -10,10 +10,10 @@ interface FeedbackCardProps {
 }
 
 const categoryConfig: Record<number, { labelKey: string; color: string }> = {
-  [FeedbackCategory.Praise]: { labelKey: 'feedback.cat_praise', color: 'bg-green-100 text-green-700' },
-  [FeedbackCategory.Improvement]: { labelKey: 'feedback.cat_improvement', color: 'bg-amber-100 text-amber-700' },
-  [FeedbackCategory.FeatureRequest]: { labelKey: 'feedback.cat_feature', color: 'bg-blue-100 text-blue-700' },
-  [FeedbackCategory.BugReport]: { labelKey: 'feedback.cat_bug', color: 'bg-red-100 text-red-700' },
+  [FeedbackCategory.Praise]: { labelKey: 'feedback.cat_praise', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
+  [FeedbackCategory.Improvement]: { labelKey: 'feedback.cat_improvement', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
+  [FeedbackCategory.FeatureRequest]: { labelKey: 'feedback.cat_feature', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  [FeedbackCategory.BugReport]: { labelKey: 'feedback.cat_bug', color: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
 };
 
 export default function FeedbackCard({ feedback, onDelete, canDelete }: FeedbackCardProps) {
@@ -22,7 +22,7 @@ export default function FeedbackCard({ feedback, onDelete, canDelete }: Feedback
   const date = new Date(feedback.createdAt).toLocaleDateString();
 
   return (
-    <div className="bg-white rounded-xl border border-lavender/30 p-5 space-y-3 hover:shadow-md transition-shadow duration-300 animate-fade-in">
+    <div className="bg-white dark:bg-[#2d2a42] rounded-xl border border-lavender/30 dark:border-white/10 p-5 space-y-3 hover:shadow-md transition-shadow duration-300 animate-fade-in">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           {feedback.userAvatarUrl ? (
@@ -33,7 +33,7 @@ export default function FeedbackCard({ feedback, onDelete, canDelete }: Feedback
             </div>
           )}
           <div>
-            <p className="font-medium text-primary-dark">{feedback.userDisplayName ?? t('feedback.anonymous')}</p>
+            <p className="font-medium text-gray-900 dark:text-white">{feedback.userDisplayName ?? t('feedback.anonymous')}</p>
             <p className="text-xs text-gray-400">{date}</p>
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function FeedbackCard({ feedback, onDelete, canDelete }: Feedback
 
       <StarRating value={feedback.rating} readonly size="sm" />
 
-      <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{feedback.content}</p>
+      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{feedback.content}</p>
     </div>
   );
 }

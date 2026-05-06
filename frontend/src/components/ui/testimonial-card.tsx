@@ -60,7 +60,7 @@ export function TestimonialCard({
             {initials}
           </AvatarFallback>
         </Avatar>
-        <span className="text-sm font-medium text-primary-dark">{author}</span>
+        <span className="text-sm font-medium text-gray-900 dark:text-white">{author}</span>
       </div>
     </div>
   );

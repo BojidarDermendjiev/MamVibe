@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-2xl font-bold text-primary-dark text-center">{t('auth.forgot_password_title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center">{t('auth.forgot_password_title')}</h1>
       <p className="text-gray-500 text-center mt-1 mb-6">{t('auth.forgot_password_desc')}</p>
 
       {sent ? (

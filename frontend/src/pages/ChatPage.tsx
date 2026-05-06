@@ -274,7 +274,7 @@ export default function ChatPage() {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
-          <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-semibold text-primary-dark' : 'font-medium text-gray-700'}`}>
+          <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'font-medium text-gray-700'}`}>
             {conv.displayName}
           </p>
           <span className="text-[11px] text-gray-400 ml-2 flex-shrink-0">
@@ -371,7 +371,7 @@ export default function ChatPage() {
         <div className="w-80 border-r border-lavender/20 dark:border-white/10 flex flex-col bg-white dark:bg-[#1e1b2e]">
           {/* Inbox header */}
           <div className="px-5 pt-5 pb-3">
-            <h2 className="text-lg font-bold text-primary-dark">{t('chat.title')}</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('chat.title')}</h2>
           </div>
 
           {/* Search */}
@@ -436,7 +436,7 @@ export default function ChatPage() {
                     <Avatar src={activePeerAvatarUrl} size="md" />
                   )}
                   <div>
-                    <p className="font-semibold text-primary-dark">{activePeerName}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{activePeerName}</p>
                     {typingUser && typingUser === activeChat ? (
                       <p className="text-xs text-primary animate-pulse">{t('chat.typing')}</p>
                     ) : activeChat === AI_BOT_USER_ID ? (

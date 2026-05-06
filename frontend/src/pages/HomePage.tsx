@@ -93,7 +93,7 @@ function BrandCard({
       )}
 
       {/* Brand name */}
-      <span className="font-semibold text-gray-500 group-hover/card:text-primary-dark text-sm whitespace-nowrap transition-colors duration-300">
+      <span className="font-semibold text-gray-500 group-hover/card:text-gray-900 dark:group-hover/card:text-white text-sm whitespace-nowrap transition-colors duration-300">
         {name}
       </span>
     </div>
@@ -303,7 +303,7 @@ export default function HomePage() {
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
               {t("home.how_it_works")}
             </h2>
             <p className="text-gray-500">{t("home.how_it_works_subtitle")}</p>
@@ -352,7 +352,7 @@ export default function HomePage() {
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
               {t("home.shop_by_age")}
             </h2>
             <p className="text-gray-500">{t("home.shop_by_age_subtitle")}</p>
@@ -389,13 +389,13 @@ export default function HomePage() {
         <section className="bg-white dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
                 {t("home.doctors_title")}
               </h2>
               <p className="text-gray-500 mb-4">{t("home.doctors_subtitle")}</p>
               <Link
                 to="/doctor-reviews"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 {t("home.doctors_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
@@ -437,7 +437,7 @@ export default function HomePage() {
             <div className="flex justify-center mt-8 sm:hidden">
               <Link
                 to="/doctor-reviews"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 {t("home.doctors_view_all")}{" "}
                 <ChevronRight className="w-4 h-4" />
@@ -452,13 +452,13 @@ export default function HomePage() {
         <section className="bg-[#FAF3EE] dark-section py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
                 {t("home.places_title")}
               </h2>
               <p className="text-gray-500 mb-4">{t("home.places_subtitle")}</p>
               <Link
                 to="/child-friendly-places"
-                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 {t("home.places_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
@@ -502,7 +502,7 @@ export default function HomePage() {
             <div className="flex justify-center mt-8 sm:hidden">
               <Link
                 to="/child-friendly-places"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 {t("home.places_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>
@@ -530,7 +530,7 @@ export default function HomePage() {
             <Heart className="w-8 h-8 text-primary fill-primary/20" />
           </motion.div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             {t("home.support_title")}
           </h2>
           <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-10 max-w-md mx-auto">

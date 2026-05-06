@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
   if (!email || !token) {
     return (
       <div className="animate-fade-in text-center">
-        <h1 className="text-2xl font-bold text-primary-dark">{t('auth.reset_password_title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('auth.reset_password_title')}</h1>
         <p className="text-red-500 mt-4">{t('auth.reset_password_invalid')}</p>
       </div>
     );
@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-2xl font-bold text-primary-dark text-center">{t('auth.reset_password_title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center">{t('auth.reset_password_title')}</h1>
       <p className="text-gray-500 text-center mt-1 mb-6">{email}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

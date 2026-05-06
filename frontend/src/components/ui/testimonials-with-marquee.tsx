@@ -32,7 +32,7 @@ export function TestimonialsWithMarquee({
     <section className={cn("py-16 overflow-hidden", className)}>
       {/* Header */}
       <div className="max-w-4xl mx-auto text-center px-4 mb-12">
-        <h2 className="text-2xl font-bold text-primary-dark mb-3">{title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
         <p className="text-text/70">{description}</p>
       </div>
 

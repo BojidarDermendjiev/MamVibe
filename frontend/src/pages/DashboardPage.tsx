@@ -130,7 +130,7 @@ export default function DashboardPage() {
           onCancel={() => setReputationModal(null)}
         />
       )}
-      <h1 className="text-3xl font-bold text-primary-dark mb-6">{t('dashboard.title')}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('dashboard.title')}</h1>
 
       <div className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit">
         {tabs.map((t) => (
@@ -138,7 +138,7 @@ export default function DashboardPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              tab === t.key ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:text-primary-dark hover:bg-lavender/20'
+              tab === t.key ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-lavender/20'
             }`}
           >
             {t.label}
