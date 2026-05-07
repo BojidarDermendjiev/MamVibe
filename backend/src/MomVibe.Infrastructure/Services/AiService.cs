@@ -34,6 +34,14 @@ public class AiService : IAiService
         _httpClient = httpClientFactory.CreateClient("Anthropic");
     }
 
+    private async Task<string> GetModelAsync()
+    {
+        var setting = await _context.AppSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Key == "AI:Model");
+        return setting?.Value ?? _settings.Model;
+    }
+
     public async Task<AiListingSuggestionDto> SuggestListingAsync(IFormFile photo)
     {
         if (photo.Length > 5 * 1024 * 1024)
@@ -54,7 +62,7 @@ public class AiService : IAiService
 
         var requestBody = new
         {
-            model = _settings.Model,
+            model = await GetModelAsync(),
             max_tokens = 500,
             messages = new[]
             {
@@ -217,7 +225,7 @@ public class AiService : IAiService
 
         var requestBody = new
         {
-            model = _settings.Model,
+            model = await GetModelAsync(),
             max_tokens = 300,
             messages = new[] { new { role = "user", content = prompt } }
         };
@@ -319,7 +327,7 @@ public class AiService : IAiService
 
         var requestBody = new
         {
-            model = _settings.Model,
+            model = await GetModelAsync(),
             max_tokens = 200,
             messages = new[] { new { role = "user", content = prompt } }
         };
@@ -380,7 +388,7 @@ public class AiService : IAiService
 
         var requestBody = new
         {
-            model = _settings.Model,
+            model = await GetModelAsync(),
             max_tokens = 500,
             system = systemPrompt,
             messages

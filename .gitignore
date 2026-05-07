@@ -52,6 +52,13 @@ frontend/.tsbuildinfo
 frontend/*.tsbuildinfo
 
 # ──────────────────────────────────────────────────────────────
+# Project Presentation Documents (local only, not for version control)
+# ──────────────────────────────────────────────────────────────
+*.docx
+*.pptx
+generate_presentation.py
+
+# ──────────────────────────────────────────────────────────────
 # Database Backups (NEVER commit — can contain sensitive data)
 # ──────────────────────────────────────────────────────────────
 backups/

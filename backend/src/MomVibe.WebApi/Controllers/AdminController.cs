@@ -2,8 +2,10 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 using Domain.Enums;
+using Domain.Entities;
 using Application.Interfaces;
 using Application.DTOs.DoctorReviews;
 using Application.DTOs.ChildFriendlyPlaces;
@@ -29,6 +31,14 @@ public class AdminController : ControllerBase
     private readonly IPaymentService _paymentService;
     private readonly IDoctorReviewService _doctorReviewService;
     private readonly IChildFriendlyPlaceService _childFriendlyPlaceService;
+    private readonly IApplicationDbContext _context;
+
+    private static readonly string[] AllowedModels =
+    [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-4-6",
+        "claude-opus-4-7"
+    ];
 
     public AdminController(
         IAdminService adminService,
@@ -37,7 +47,8 @@ public class AdminController : ControllerBase
         IShippingService shippingService,
         IPaymentService paymentService,
         IDoctorReviewService doctorReviewService,
-        IChildFriendlyPlaceService childFriendlyPlaceService)
+        IChildFriendlyPlaceService childFriendlyPlaceService,
+        IApplicationDbContext context)
     {
         this._adminService = adminService;
         this._itemService = itemService;
@@ -46,6 +57,7 @@ public class AdminController : ControllerBase
         this._paymentService = paymentService;
         this._doctorReviewService = doctorReviewService;
         this._childFriendlyPlaceService = childFriendlyPlaceService;
+        this._context = context;
     }
 
     /// <summary>
@@ -228,4 +240,50 @@ public class AdminController : ControllerBase
         }
         catch (KeyNotFoundException) { return NotFound(); }
     }
+
+    // --- AI Settings ---
+
+    [HttpGet("ai-settings")]
+    public async Task<IActionResult> GetAiSettings()
+    {
+        var setting = await this._context.AppSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Key == "AI:Model");
+
+        return Ok(new
+        {
+            model = setting?.Value ?? "claude-haiku-4-5-20251001",
+            availableModels = AllowedModels
+        });
+    }
+
+    [HttpPut("ai-settings")]
+    public async Task<IActionResult> UpdateAiSettings([FromBody] AiSettingsUpdateDto dto)
+    {
+        if (!AllowedModels.Contains(dto.Model))
+            return BadRequest("Unknown model. Allowed: " + string.Join(", ", AllowedModels));
+
+        var setting = await this._context.AppSettings
+            .FirstOrDefaultAsync(s => s.Key == "AI:Model");
+
+        if (setting is null)
+        {
+            this._context.AppSettings.Add(new AppSetting
+            {
+                Key = "AI:Model",
+                Value = dto.Model,
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            setting.Value = dto.Model;
+            setting.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await this._context.SaveChangesAsync(CancellationToken.None);
+        return NoContent();
+    }
 }
+
+public record AiSettingsUpdateDto(string Model);

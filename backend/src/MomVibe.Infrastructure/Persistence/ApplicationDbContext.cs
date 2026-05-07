@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<DoctorReview> DoctorReviews => Set<DoctorReview>();
     public DbSet<ChildFriendlyPlace> ChildFriendlyPlaces => Set<ChildFriendlyPlace>();
     public DbSet<UserRating> UserRatings => Set<UserRating>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

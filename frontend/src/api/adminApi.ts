@@ -57,4 +57,10 @@ export const adminApi = {
 
   trackShipment: (id: string) =>
     axiosClient.get<TrackingEvent[]>(`/admin/shipments/${id}/track`),
+
+  getAiSettings: () =>
+    axiosClient.get<{ model: string; availableModels: string[] }>('/admin/ai-settings'),
+
+  updateAiSettings: (model: string) =>
+    axiosClient.put('/admin/ai-settings', { model }),
 };

@@ -20,6 +20,7 @@ public interface IApplicationDbContext
     DbSet<DoctorReview> DoctorReviews { get; }
     DbSet<ChildFriendlyPlace> ChildFriendlyPlaces { get; }
     DbSet<UserRating> UserRatings { get; }
+    DbSet<AppSetting> AppSettings { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

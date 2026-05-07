@@ -154,6 +154,25 @@ namespace MomVibe.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.AppSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("AppSettings");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
