@@ -1,4 +1,5 @@
 using Serilog;
+using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 using MomVibe.WebApi;
 using MomVibe.Application;
@@ -307,6 +309,23 @@ else
     });
 }
 
+// ForwardedHeaders MUST be first so that RemoteIpAddress is resolved from X-Forwarded-For
+// before rate limiting, authentication, and all other middleware inspect it.
+// Without this, rate limits and IP-based checks apply to the reverse-proxy IP, not the real client.
+//
+// KnownNetworks restricts which upstream proxies are trusted to set X-Forwarded-For.
+// The 172.16.0.0/12 block covers the default Docker bridge network; adjust to match your
+// actual infrastructure. This prevents external clients from spoofing X-Forwarded-For.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+// Trust the Docker internal network (172.16.0.0/12) and standard loopback.
+// In production, replace/extend with the actual IP range of your load balancer / Cloudflare egress.
+forwardedHeadersOptions.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+forwardedHeadersOptions.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 app.UseSerilogRequestLogging(options =>
 {
     options.GetLevel = (httpContext, elapsed, ex) =>
@@ -322,12 +341,6 @@ app.UseSerilogRequestLogging(options =>
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
-// If behind a reverse proxy (Kestrel behind Nginx/Apache/Azure App Service, etc.)
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -339,9 +352,13 @@ app.UseRateLimiter();
 app.UseCors(CorsPolicy.MamVibe);
 
 app.UseAuthentication();
-app.UseAuthorization();
 
+// BlockedUserMiddleware MUST run after UseAuthentication (needs User identity) but BEFORE
+// UseAuthorization so that blocked users are denied before policy evaluation grants access
+// to admin or other protected endpoints.
 app.UseMiddleware<BlockedUserMiddleware>();
+
+app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
