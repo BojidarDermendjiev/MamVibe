@@ -5,10 +5,12 @@ import { adminApi, type DashboardStats } from '../../api/adminApi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const MODEL_LABELS: Record<string, { name: string; tier: string; color: string }> = {
-  'claude-haiku-4-5-20251001': { name: 'Claude Haiku', tier: 'Fast & Cheap', color: 'text-green-600 dark:text-green-400' },
-  'claude-sonnet-4-6':         { name: 'Claude Sonnet', tier: 'Balanced',    color: 'text-blue-600 dark:text-blue-400' },
-  'claude-opus-4-7':           { name: 'Claude Opus',   tier: 'Best Quality', color: 'text-purple-600 dark:text-purple-400' },
+  'claude-haiku-4-5-20251001': { name: 'Claude Haiku 4.5',  tier: 'Fastest & Cheapest', color: 'text-green-600 dark:text-green-400' },
+  'claude-sonnet-4-6':         { name: 'Claude Sonnet 4.6', tier: 'Balanced',             color: 'text-blue-600 dark:text-blue-400' },
+  'claude-opus-4-5':           { name: 'Claude Opus 4.5',   tier: 'Best Quality',         color: 'text-purple-600 dark:text-purple-400' },
 };
+
+const DEFAULT_MODELS = Object.keys(MODEL_LABELS);
 
 export default function AdminDashboardPage() {
   const { t } = useTranslation();
@@ -16,7 +18,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const [aiModel, setAiModel] = useState('claude-haiku-4-5-20251001');
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>(DEFAULT_MODELS);
   const [aiSaving, setAiSaving] = useState(false);
   const [aiSaved, setAiSaved] = useState(false);
 
