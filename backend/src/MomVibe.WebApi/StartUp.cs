@@ -280,7 +280,7 @@ using (var scope = app.Services.CreateScope())
     {
         // Only auto-migrate outside production — in production apply migrations via CI/CD pipeline
         if (!app.Environment.IsProduction())
-            await dbContext.Database.MigrateAsync();
+            await dbContext.Database.MigrateAsync();    
     }
     else
         await dbContext.Database.EnsureCreatedAsync();

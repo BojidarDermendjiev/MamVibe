@@ -20,11 +20,19 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCard
     <div className="bg-white rounded-xl shadow-sm border border-lavender/30 hover-lift hover-glow group animate-fade-in">
       <Link to={`/items/${item.id}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-cream-dark">
-          <img
-            src={photo ? photo.url : getCategoryImage(item.categoryName)}
-            alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          {photo ? (
+            <img
+              src={photo.url}
+              alt={item.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <img
+              src={getCategoryImage(item.categoryName)}
+              alt=""
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            />
+          )}
           <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${
             item.listingType === ListingType.Donate ? 'bg-green-500' : 'bg-mauve'
           }`}>

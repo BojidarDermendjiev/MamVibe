@@ -306,9 +306,11 @@ public class PaymentsController : ControllerBase
             await this._paymentService.HandleWebhookAsync(json, signature);
             return Ok();
         }
-        catch (Stripe.StripeException ex)
+        catch (Stripe.StripeException)
         {
-            return BadRequest(new { error = ex.Message });
+            // Do not expose Stripe exception details (signature mismatch, config errors) to the caller.
+            // Stripe interprets any 4xx as "do not retry"; a generic message is sufficient.
+            return BadRequest(new { error = "Webhook signature verification failed or event processing error." });
         }
     }
 

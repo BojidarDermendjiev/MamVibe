@@ -116,13 +116,43 @@ public class AuthService : IAuthService
         if (storedToken == null || !storedToken.IsActive)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
-        storedToken.RevokedAt = DateTime.UtcNow;
-
         var user = await this._userManager.FindByIdAsync(storedToken.UserId);
         if (user == null || user.IsBlocked)
             throw new UnauthorizedAccessException("User not found or blocked.");
 
-        return await GenerateAuthResponseAsync(user);
+        // Generate new tokens before revoking old one so we can record the replacement chain.
+        var roles = await this._userManager.GetRolesAsync(user);
+        var newAccessToken = await this._tokenService.GenerateAccessTokenAsync(user, roles);
+        var newRefreshToken = this._tokenService.GenerateRefreshToken();
+        var newTokenHash = HashToken(newRefreshToken);
+
+        // Revoke the consumed token and record which token replaces it (rotation chain).
+        // This allows detecting reuse: if an attacker uses a revoked token, the family can be revoked.
+        storedToken.RevokedAt = DateTime.UtcNow;
+        storedToken.ReplacedByToken = newTokenHash;
+
+        var newRefreshTokenEntity = new RefreshToken
+        {
+            Token = newTokenHash,
+            UserId = user.Id,
+            ExpiresAt = DateTime.UtcNow.AddDays(
+                int.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7"))
+        };
+
+        this._context.RefreshTokens.Add(newRefreshTokenEntity);
+        await this._context.SaveChangesAsync();
+
+        var userDto = this._mapper.Map<UserDto>(user);
+        userDto.Roles = roles.ToList();
+
+        return new AuthResponseDto
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(
+                int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "15")),
+            User = userDto
+        };
     }
 
     public async Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginRequestDto request)

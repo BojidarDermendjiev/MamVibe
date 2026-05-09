@@ -125,13 +125,13 @@ public class ItemsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            return StatusCode(502, new { error = "AI service unavailable. Check your Anthropic API key.", detail = ex.Message });
+            return StatusCode(502, new { error = "AI service is currently unavailable. Please try again later." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "AI suggestion failed.", detail = ex.Message });
+            return StatusCode(500, new { error = "AI suggestion failed. Please try again later." });
         }
     }
 
@@ -147,13 +147,13 @@ public class ItemsController : ControllerBase
             var result = await this._itemService.SuggestPriceAsync(dto);
             return Ok(result);
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            return StatusCode(502, new { error = "AI service unavailable. Check your Anthropic API key.", detail = ex.Message });
+            return StatusCode(502, new { error = "AI service is currently unavailable. Please try again later." });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = "Price suggestion failed.", detail = ex.Message });
+            return StatusCode(500, new { error = "Price suggestion failed. Please try again later." });
         }
     }
 

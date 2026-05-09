@@ -181,7 +181,7 @@ export default function FeedbackPage() {
 
       {/* ── Community Testimonials Marquee ── */}
       {!listLoading && feedbacks.length > 0 && (
-        <section className="bg-peach dark:bg-[#201d30] py-12 px-0">
+        <section className="bg-[#e3b7ac] dark:bg-[#282440] py-12 px-0">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white text-center mb-8 px-4">
             {t('feedback.community')}
           </h2>
@@ -197,26 +197,26 @@ export default function FeedbackPage() {
                 />
               ))}
             </div>
-            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#e3b7ac] dark:from-[#201d30] to-transparent sm:block" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-32 bg-gradient-to-l from-[#e3b7ac] dark:from-[#201d30] to-transparent sm:block" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#e3b7ac] dark:from-[#282440] to-transparent sm:block" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-32 bg-gradient-to-l from-[#e3b7ac] dark:from-[#282440] to-transparent sm:block" />
           </div>
         </section>
       )}
 
       {listLoading && (
-        <section className="py-10 text-center text-gray-400 bg-peach dark:bg-[#201d30]">
+        <section className="py-10 text-center text-gray-400 bg-[#e3b7ac] dark:bg-[#282440]">
           {t('common.loading')}
         </section>
       )}
 
       {!listLoading && feedbacks.length === 0 && (
-        <section className="py-10 text-center bg-peach dark:bg-[#201d30]">
+        <section className="py-10 text-center bg-[#e3b7ac] dark:bg-[#282440]">
           <p className="text-gray-400">{t('feedback.no_feedback')}</p>
         </section>
       )}
 
       {/* ── Feedback Form ── */}
-      <section className="bg-gray-50 dark:bg-[#1a1825] py-16 px-4">
+      <section className="bg-[#f9fafb] dark:bg-[#2d2a42] py-16 px-4">
         <div className="max-w-2xl mx-auto">
           <form
             onSubmit={handleSubmit}
@@ -395,7 +395,7 @@ function FeedbackMarqueeCard({
   const date = new Date(feedback.createdAt).toLocaleDateString();
 
   return (
-    <div className="flex flex-col rounded-xl border border-lavender/30 bg-white dark:bg-[#2d2a42] p-5 max-w-[300px] min-w-[280px] transition-shadow duration-300 hover:shadow-md">
+    <div className="flex flex-col rounded-xl border border-lavender/30 bg-white dark:bg-[#1a1825] p-5 max-w-[300px] min-w-[280px] transition-shadow duration-300 hover:shadow-md">
       <div className="flex items-center gap-3 mb-3">
         {feedback.userAvatarUrl ? (
           <img

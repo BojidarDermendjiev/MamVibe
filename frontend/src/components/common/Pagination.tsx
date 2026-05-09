@@ -24,7 +24,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg hover:bg-cream-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg hover:bg-cream-dark dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <HiChevronLeft className="h-5 w-5" />
       </button>
@@ -39,7 +39,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
               'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
               page === currentPage
                 ? 'bg-primary text-white'
-                : 'hover:bg-cream-dark text-gray-600'
+                : 'hover:bg-cream-dark dark:hover:bg-white/10 text-gray-600 dark:text-gray-300'
             )}
           >
             {page}
@@ -49,7 +49,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg hover:bg-cream-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg hover:bg-cream-dark dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <HiChevronRight className="h-5 w-5" />
       </button>

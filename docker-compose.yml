@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-MamVibeDb}
       POSTGRES_USER: ${POSTGRES_USER:-mamvibe}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -54,8 +52,13 @@ services:
     image: n8nio/n8n:latest
     restart: unless-stopped
     environment:
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-changeme-replace-in-production}
+      # N8N_ENCRYPTION_KEY MUST be set in .env — the default is insecure and must not be used in production.
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY must be set in .env}
       - WEBHOOK_URL=http://localhost:5678/
+      # Basic auth protects n8n even in local dev — prevents accidental exposure if host is not localhost-only.
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_ADMIN_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:?N8N_ADMIN_PASSWORD must be set in .env}
     volumes:
       - n8n_data:/home/node/.n8n
     ports:

@@ -51,10 +51,17 @@ public class UsersController : ControllerBase
         var user = await this._userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
         var (avgRating, ratingCount) = await _ratingService.GetSummaryAsync(id);
+
+        // Email is only returned to the user viewing their own profile (or admins).
+        // Public profiles must not expose email to prevent enumeration and spam.
+        var requestingUserId = this._currentUserService.UserId;
+        var isOwnProfile = requestingUserId == id;
+        var isAdmin = this._currentUserService.IsAdmin;
+
         return Ok(new UserDto
         {
             Id = user.Id,
-            Email = user.Email!,
+            Email = (isOwnProfile || isAdmin) ? user.Email! : string.Empty,
             DisplayName = user.DisplayName,
             ProfileType = user.ProfileType,
             AvatarUrl = user.AvatarUrl,
