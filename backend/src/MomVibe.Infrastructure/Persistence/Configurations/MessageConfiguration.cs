@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="Message"/> entity.
+/// </summary>
 public class MessageConfiguration : IEntityTypeConfiguration<Message>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Message> builder)
     {
         builder.Property(m => m.Content).HasMaxLength(2000).IsRequired();

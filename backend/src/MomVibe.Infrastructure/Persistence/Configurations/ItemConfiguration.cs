@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="Item"/> entity.
+/// </summary>
 public class ItemConfiguration : IEntityTypeConfiguration<Item>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Item> builder)
     {
         builder.Property(i => i.Title).HasMaxLength(200).IsRequired();

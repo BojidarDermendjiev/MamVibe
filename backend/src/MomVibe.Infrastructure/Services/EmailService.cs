@@ -7,15 +7,24 @@ using Microsoft.Extensions.Options;
 using Application.Interfaces;
 using Infrastructure.Configuration;
 
+/// <summary>
+/// SMTP-based implementation of <see cref="IEmailService"/> that sends transactional emails
+/// using the configured SMTP server credentials.
+/// </summary>
 public class EmailService : IEmailService
 {
     private readonly SmtpSettings _settings;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EmailService"/> with the given SMTP settings.
+    /// </summary>
+    /// <param name="settings">The bound SMTP configuration options.</param>
     public EmailService(IOptions<SmtpSettings> settings)
     {
         this._settings = settings.Value;
     }
 
+    /// <inheritdoc/>
     public async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
         using var message = new MailMessage();

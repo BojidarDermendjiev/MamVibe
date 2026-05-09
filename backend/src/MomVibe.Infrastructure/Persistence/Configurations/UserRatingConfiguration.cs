@@ -5,8 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="UserRating"/> entity.
+/// Enforces a unique index on <c>PurchaseRequestId</c> so each completed transaction can be rated at most once.
+/// </summary>
 public class UserRatingConfiguration : IEntityTypeConfiguration<UserRating>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<UserRating> builder)
     {
         builder.HasIndex(r => r.RatedUserId);

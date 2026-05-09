@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="Payment"/> entity.
+/// </summary>
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
         builder.Property(p => p.Amount).HasColumnType("numeric(18,2)");

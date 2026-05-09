@@ -8,17 +8,26 @@ using Domain.Enums;
 using Application.Interfaces;
 using Application.DTOs.UserRatings;
 
+/// <summary>
+/// EF Core-backed implementation of <see cref="IUserRatingService"/>.
+/// </summary>
 public class UserRatingService : IUserRatingService
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="UserRatingService"/> with the given dependencies.
+    /// </summary>
+    /// <param name="context">The application database context.</param>
+    /// <param name="mapper">The AutoMapper instance used for object projection.</param>
     public UserRatingService(IApplicationDbContext context, IMapper mapper)
     {
         this._context = context;
         this._mapper = mapper;
     }
 
+    /// <inheritdoc/>
     public async Task<UserRatingDto> CreateAsync(string raterId, Guid purchaseRequestId, CreateUserRatingDto dto)
     {
         var purchase = await _context.PurchaseRequests.FindAsync(purchaseRequestId)
@@ -53,6 +62,7 @@ public class UserRatingService : IUserRatingService
         return _mapper.Map<UserRatingDto>(created);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<UserRatingDto>> GetForUserAsync(string userId)
     {
         var ratings = await _context.UserRatings
@@ -63,6 +73,7 @@ public class UserRatingService : IUserRatingService
         return _mapper.Map<IEnumerable<UserRatingDto>>(ratings);
     }
 
+    /// <inheritdoc/>
     public async Task<(double? Average, int Count)> GetSummaryAsync(string userId)
     {
         var ratings = await _context.UserRatings

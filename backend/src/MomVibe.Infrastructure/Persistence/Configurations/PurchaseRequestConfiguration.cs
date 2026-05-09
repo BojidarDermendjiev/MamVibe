@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="PurchaseRequest"/> entity.
+/// </summary>
 public class PurchaseRequestConfiguration : IEntityTypeConfiguration<PurchaseRequest>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<PurchaseRequest> builder)
     {
         builder.HasIndex(r => r.ItemId);

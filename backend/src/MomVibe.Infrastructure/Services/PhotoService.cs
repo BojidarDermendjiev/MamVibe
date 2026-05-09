@@ -5,6 +5,12 @@ using Microsoft.AspNetCore.Hosting;
 
 using Application.Interfaces;
 
+/// <summary>
+/// File-system implementation of <see cref="IPhotoService"/> that validates, sanitises,
+/// and stores uploaded images in the <c>wwwroot/uploads/items/</c> directory.
+/// Validation includes extension allowlist, content-type checking, magic-byte verification,
+/// dimension limits, and EXIF/GPS metadata stripping for JPEG files.
+/// </summary>
 public class PhotoService : IPhotoService
 {
     private readonly IWebHostEnvironment _env;
@@ -20,11 +26,16 @@ public class PhotoService : IPhotoService
         { ".webp", [new byte[] { 0x52, 0x49, 0x46, 0x46 }] }
     };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="PhotoService"/> with the given hosting environment.
+    /// </summary>
+    /// <param name="env">The web hosting environment used to resolve the <c>wwwroot</c> path.</param>
     public PhotoService(IWebHostEnvironment env)
     {
         this._env = env;
     }
 
+    /// <inheritdoc/>
     public async Task<string> UploadPhotoAsync(IFormFile file)
     {
         if (file.Length == 0)
@@ -201,6 +212,7 @@ public class PhotoService : IPhotoService
         return output;
     }
 
+    /// <inheritdoc/>
     public Task DeletePhotoAsync(string url)
     {
         if (string.IsNullOrEmpty(url)) return Task.CompletedTask;

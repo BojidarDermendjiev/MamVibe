@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="Shipment"/> entity.
+/// </summary>
 public class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Shipment> builder)
     {
         builder.Property(s => s.ShippingPrice).HasColumnType("numeric(18,2)");

@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="DoctorReview"/> entity.
+/// </summary>
 public class DoctorReviewConfiguration : IEntityTypeConfiguration<DoctorReview>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<DoctorReview> builder)
     {
         builder.HasKey(x => x.Id);

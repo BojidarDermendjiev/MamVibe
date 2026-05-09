@@ -8,17 +8,26 @@ using Application.DTOs.DoctorReviews;
 using Domain.Entities;
 using Persistence;
 
+/// <summary>
+/// EF Core-backed implementation of <see cref="IDoctorReviewService"/>.
+/// </summary>
 public class DoctorReviewService : IDoctorReviewService
 {
     private readonly IApplicationDbContext _db;
     private readonly IMapper _mapper;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DoctorReviewService"/> with the given dependencies.
+    /// </summary>
+    /// <param name="db">The application database context.</param>
+    /// <param name="mapper">The AutoMapper instance used for object projection.</param>
     public DoctorReviewService(IApplicationDbContext db, IMapper mapper)
     {
         _db = db;
         _mapper = mapper;
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<DoctorReviewDto>> GetAllAsync(string? city = null, string? specialization = null, int page = 1, int pageSize = 20)
     {
         var query = _db.DoctorReviews.Include(r => r.User).Where(r => r.IsApproved).AsQueryable();
@@ -36,12 +45,14 @@ public class DoctorReviewService : IDoctorReviewService
         return reviews.Select(r => MapToDto(r));
     }
 
+    /// <inheritdoc/>
     public async Task<DoctorReviewDto?> GetByIdAsync(Guid id)
     {
         var review = await _db.DoctorReviews.Include(r => r.User).FirstOrDefaultAsync(r => r.Id == id);
         return review == null ? null : MapToDto(review);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<DoctorReviewDto>> GetByUserAsync(string userId)
     {
         var reviews = await _db.DoctorReviews
@@ -52,6 +63,7 @@ public class DoctorReviewService : IDoctorReviewService
         return reviews.Select(r => MapToDto(r));
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<DoctorReviewDto>> GetPendingAsync()
     {
         var reviews = await _db.DoctorReviews
@@ -62,6 +74,7 @@ public class DoctorReviewService : IDoctorReviewService
         return reviews.Select(r => MapToDto(r));
     }
 
+    /// <inheritdoc/>
     public async Task ApproveAsync(Guid id)
     {
         var review = await _db.DoctorReviews.FindAsync(id)
@@ -70,6 +83,7 @@ public class DoctorReviewService : IDoctorReviewService
         await _db.SaveChangesAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<DoctorReviewDto> CreateAsync(string userId, CreateDoctorReviewDto dto)
     {
         var review = new DoctorReview
@@ -92,6 +106,7 @@ public class DoctorReviewService : IDoctorReviewService
         return MapToDto(review);
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(Guid id, string userId, bool isAdmin = false)
     {
         var review = await _db.DoctorReviews.FindAsync(id)
@@ -102,6 +117,7 @@ public class DoctorReviewService : IDoctorReviewService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>Maps a <see cref="DoctorReview"/> entity to a <see cref="DoctorReviewDto"/>, honouring the anonymous flag.</summary>
     private static DoctorReviewDto MapToDto(DoctorReview r) => new()
     {
         Id = r.Id,

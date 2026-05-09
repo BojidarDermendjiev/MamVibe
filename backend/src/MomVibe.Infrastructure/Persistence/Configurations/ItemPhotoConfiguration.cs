@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="ItemPhoto"/> entity.
+/// </summary>
 public class ItemPhotoConfiguration : IEntityTypeConfiguration<ItemPhoto>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<ItemPhoto> builder)
     {
         builder.Property(p => p.Url).HasMaxLength(500).IsRequired();

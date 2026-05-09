@@ -7,15 +7,23 @@ using Application.DTOs.ChildFriendlyPlaces;
 using Domain.Entities;
 using Domain.Enums;
 
+/// <summary>
+/// EF Core-backed implementation of <see cref="IChildFriendlyPlaceService"/>.
+/// </summary>
 public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
 {
     private readonly IApplicationDbContext _db;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ChildFriendlyPlaceService"/> with the given database context.
+    /// </summary>
+    /// <param name="db">The application database context.</param>
     public ChildFriendlyPlaceService(IApplicationDbContext db)
     {
         _db = db;
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetAllAsync(string? city = null, PlaceType? placeType = null, int? maxAgeMonths = null, int page = 1, int pageSize = 20)
     {
         var query = _db.ChildFriendlyPlaces.Include(p => p.User)
@@ -37,6 +45,7 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         return places.Select(MapToDto);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync()
     {
         var places = await _db.ChildFriendlyPlaces
@@ -47,12 +56,14 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         return places.Select(MapToDto);
     }
 
+    /// <inheritdoc/>
     public async Task<ChildFriendlyPlaceDto?> GetByIdAsync(Guid id)
     {
         var place = await _db.ChildFriendlyPlaces.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
         return place == null ? null : MapToDto(place);
     }
 
+    /// <inheritdoc/>
     public async Task<ChildFriendlyPlaceDto> CreateAsync(string userId, CreateChildFriendlyPlaceDto dto)
     {
         var place = new ChildFriendlyPlace
@@ -76,6 +87,7 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         return MapToDto(place);
     }
 
+    /// <inheritdoc/>
     public async Task ApproveAsync(Guid id)
     {
         var place = await _db.ChildFriendlyPlaces.FindAsync(id)
@@ -84,6 +96,7 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         await _db.SaveChangesAsync();
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(Guid id, string userId, bool isAdmin = false)
     {
         var place = await _db.ChildFriendlyPlaces.FindAsync(id)
@@ -94,6 +107,7 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>Maps a <see cref="ChildFriendlyPlace"/> entity to a <see cref="ChildFriendlyPlaceDto"/>.</summary>
     private static ChildFriendlyPlaceDto MapToDto(ChildFriendlyPlace p) => new()
     {
         Id = p.Id,

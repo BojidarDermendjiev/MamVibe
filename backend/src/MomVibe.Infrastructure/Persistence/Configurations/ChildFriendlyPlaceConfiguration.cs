@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Domain.Entities;
 
+/// <summary>
+/// Configures the EF Core schema for the <see cref="ChildFriendlyPlace"/> entity.
+/// </summary>
 public class ChildFriendlyPlaceConfiguration : IEntityTypeConfiguration<ChildFriendlyPlace>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<ChildFriendlyPlace> builder)
     {
         builder.HasKey(x => x.Id);
