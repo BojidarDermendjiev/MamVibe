@@ -78,6 +78,14 @@ public class ItemsController : ControllerBase
         return Ok(item);
     }
 
+    /// <summary>
+    /// Increments the view count for the specified item.
+    /// Intended to be called by the client after rendering an item detail page.
+    /// </summary>
+    /// <param name="id">The GUID of the item whose view count should be incremented.</param>
+    /// <returns>
+    /// 204 No Content on success.
+    /// </returns>
     [HttpPost("{id:guid}/view")]
     public async Task<IActionResult> IncrementView(Guid id)
     {
@@ -85,6 +93,15 @@ public class ItemsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Checks the seller's reputation on nekorekten.com for the item's owner.
+    /// Returns any fraud reports found for the seller.
+    /// </summary>
+    /// <param name="id">The GUID of the item whose seller should be checked.</param>
+    /// <returns>
+    /// 404 Not Found if the item does not exist.<br/>
+    /// 200 OK with the seller reputation check result on success.
+    /// </returns>
     [Authorize]
     [HttpGet("{id:guid}/seller-check")]
     public async Task<IActionResult> CheckSeller(Guid id)
@@ -138,6 +155,12 @@ public class ItemsController : ControllerBase
     /// <summary>
     /// Suggests a fair selling price based on comparable active listings and item context.
     /// </summary>
+    /// <param name="dto">Request payload describing the item for which a price suggestion is needed.</param>
+    /// <returns>
+    /// 502 Bad Gateway if the AI service is unavailable.<br/>
+    /// 500 Internal Server Error if price suggestion fails unexpectedly.<br/>
+    /// 200 OK with the suggested price details on success.
+    /// </returns>
     [Authorize]
     [HttpPost("suggest-price")]
     public async Task<IActionResult> SuggestPrice([FromBody] PriceSuggestionRequestDto dto)

@@ -185,12 +185,13 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the profile of the currently authenticated user.
+    /// Changes the password for the currently authenticated user.
     /// </summary>
+    /// <param name="dto">Payload containing the current password and the desired new password.</param>
     /// <returns>
     /// 401 Unauthorized if the current user context is missing.<br/>
-    /// 404 Not Found if the user cannot be located.<br/>
-    /// 200 OK with the user profile on success.
+    /// 400 Bad Request with an error message if the current password is incorrect or the new password fails validation.<br/>
+    /// 200 OK with a success message on completion.
     /// </returns>
     [Authorize]
     [HttpPost("change-password")]
@@ -209,6 +210,14 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Initiates the password reset flow by sending a reset link to the user's email address.
+    /// Errors are suppressed to prevent email enumeration attacks.
+    /// </summary>
+    /// <param name="dto">Payload containing the email address for which to send the reset link.</param>
+    /// <returns>
+    /// 200 OK with a confirmation message regardless of whether the email exists.
+    /// </returns>
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
@@ -223,6 +232,14 @@ public class AuthController : ControllerBase
         return Ok(new { message = "If an account with that email exists, a reset link has been sent." });
     }
 
+    /// <summary>
+    /// Resets a user's password using a token issued by the forgot-password flow.
+    /// </summary>
+    /// <param name="dto">Payload containing the reset token, email, and new password.</param>
+    /// <returns>
+    /// 400 Bad Request with an error message if the token is invalid or expired.<br/>
+    /// 200 OK with a success message on completion.
+    /// </returns>
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
@@ -237,6 +254,14 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieves the profile of the currently authenticated user.
+    /// </summary>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the user cannot be located.<br/>
+    /// 200 OK with the user profile on success.
+    /// </returns>
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> Me()

@@ -39,8 +39,11 @@ public class PaymentsController : ControllerBase
     /// Creates a Stripe checkout session for the specified item.
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>
+    /// <param name="delivery">Optional delivery details (courier, address) to associate with the purchase.</param>
     /// <returns>
     /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the item does not exist.<br/>
+    /// 400 Bad Request if the purchase cannot proceed (e.g., item already sold).<br/>
     /// 200 OK with a session URL for redirection on success.
     /// </returns>
     [Authorize]
@@ -77,6 +80,7 @@ public class PaymentsController : ControllerBase
     /// Creates an on-spot (immediate) payment record for the specified item.
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>
+    /// <param name="delivery">Optional delivery details to associate with the purchase.</param>
     /// <returns>
     /// 401 Unauthorized if the current user context is missing.<br/>
     /// 200 OK with the created payment details on success.
@@ -95,6 +99,13 @@ public class PaymentsController : ControllerBase
     /// Creates a free booking for a donated item.
     /// </summary>
     /// <param name="itemId">The GUID of the donate item to book.</param>
+    /// <param name="delivery">Optional delivery details to associate with the booking.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the item does not exist.<br/>
+    /// 400 Bad Request if the booking cannot proceed (e.g., item already booked).<br/>
+    /// 200 OK with the created booking details on success.
+    /// </returns>
     [Authorize]
     [HttpPost("booking/{itemId:guid}")]
     public async Task<IActionResult> CreateBooking(Guid itemId, [FromBody] PaymentDeliveryRequest? delivery = null)
@@ -121,6 +132,9 @@ public class PaymentsController : ControllerBase
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>
     /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the item does not exist.<br/>
+    /// 400 Bad Request if the purchase cannot proceed.<br/>
     /// 200 OK with the client secret for Stripe Elements.
     /// </returns>
     [Authorize]
@@ -149,17 +163,15 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// Stripe webhook endpoint to process asynchronous payment events.
-    /// </summary>
-    /// <remarks>
-    /// Expects the raw request body and the <c>Stripe-Signature</c> header to validate the event.
-    /// </remarks>
-    /// <returns>
-    /// 200 OK after successfully handling the event.
-    /// </returns>
-    /// <summary>
     /// Creates a Stripe checkout session for multiple items (bulk cart checkout).
     /// </summary>
+    /// <param name="request">Request body containing the list of item GUIDs to include in the session.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 400 Bad Request if no items are provided or the list exceeds 50 items.<br/>
+    /// 404 Not Found if any item does not exist.<br/>
+    /// 200 OK with a session URL for redirection on success.
+    /// </returns>
     [Authorize]
     [HttpPost("bulk-checkout")]
     public async Task<IActionResult> BulkCheckout([FromBody] BulkCheckoutRequest request)
@@ -199,6 +211,13 @@ public class PaymentsController : ControllerBase
     /// <summary>
     /// Creates booking records for multiple donated items.
     /// </summary>
+    /// <param name="request">Request body containing the list of donated item GUIDs to book.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if any item does not exist.<br/>
+    /// 400 Bad Request if any booking cannot proceed.<br/>
+    /// 200 OK with the list of created booking records on success.
+    /// </returns>
     [Authorize]
     [HttpPost("bulk-booking")]
     public async Task<IActionResult> BulkBooking([FromBody] BulkCheckoutRequest request)
@@ -223,6 +242,13 @@ public class PaymentsController : ControllerBase
     /// <summary>
     /// Creates on-spot payment records for multiple items.
     /// </summary>
+    /// <param name="request">Request body containing the list of item GUIDs to mark as on-spot purchases.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if any item does not exist.<br/>
+    /// 400 Bad Request if any purchase cannot proceed.<br/>
+    /// 200 OK with the list of created payment records on success.
+    /// </returns>
     [Authorize]
     [HttpPost("bulk-onspot")]
     public async Task<IActionResult> BulkOnSpot([FromBody] BulkCheckoutRequest request)
@@ -245,15 +271,14 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a Stripe checkout session for a donation.
+    /// Creates a Stripe PaymentIntent for a mobile donation, returning a clientSecret for use with Stripe PaymentSheet.
     /// No authentication required — anyone can support MamVibe.
-    /// Payouts go to whatever bank account (e.g. Revolut Business IBAN) is
-    /// connected under Stripe Dashboard → Settings → Payouts.
     /// </summary>
-    /// <summary>
-    /// Creates a Stripe PaymentIntent for a mobile donation (returns clientSecret for PaymentSheet).
-    /// No authentication required.
-    /// </summary>
+    /// <param name="request">Request body containing the donation amount in the smallest currency unit (e.g., stotinki).</param>
+    /// <returns>
+    /// 400 Bad Request if the amount is invalid.<br/>
+    /// 200 OK with the client secret for Stripe PaymentSheet on success.
+    /// </returns>
     [HttpPost("donation/intent")]
     public async Task<IActionResult> CreateDonationIntent([FromBody] DonationCheckoutRequest request)
     {
@@ -272,6 +297,15 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a Stripe hosted checkout session for a donation.
+    /// No authentication required — anyone can support MamVibe.
+    /// </summary>
+    /// <param name="request">Request body containing the donation amount in the smallest currency unit (e.g., stotinki).</param>
+    /// <returns>
+    /// 400 Bad Request if the amount is invalid.<br/>
+    /// 200 OK with a session URL for redirection to the Stripe-hosted checkout page.
+    /// </returns>
     [HttpPost("donation/checkout")]
     public async Task<IActionResult> CreateDonationCheckout([FromBody] DonationCheckoutRequest request)
     {
@@ -294,6 +328,14 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Stripe webhook endpoint that processes asynchronous payment lifecycle events.
+    /// Validates the request using the <c>Stripe-Signature</c> header before processing.
+    /// </summary>
+    /// <returns>
+    /// 400 Bad Request if signature verification fails or the event cannot be processed.<br/>
+    /// 200 OK after successfully handling the event.
+    /// </returns>
     [HttpPost("webhook")]
     [RequestSizeLimit(65_536)] // 64KB max for webhook payloads
     public async Task<IActionResult> Webhook()

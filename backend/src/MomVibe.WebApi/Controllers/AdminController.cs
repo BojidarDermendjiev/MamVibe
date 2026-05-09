@@ -138,6 +138,14 @@ public class AdminController : ControllerBase
 
     // --- Feature 2: Item approval ---
 
+    /// <summary>
+    /// Retrieves a paginated list of item listings awaiting admin approval.
+    /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of items per page (default: 50).</param>
+    /// <returns>
+    /// 200 OK with a paged result of pending items.
+    /// </returns>
     [HttpGet("items/pending")]
     public async Task<IActionResult> GetPendingItems([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
@@ -145,6 +153,13 @@ public class AdminController : ControllerBase
         return Ok(items);
     }
 
+    /// <summary>
+    /// Approves a pending item listing, making it publicly visible in the marketplace.
+    /// </summary>
+    /// <param name="id">The GUID of the item to approve.</param>
+    /// <returns>
+    /// 204 No Content on success.
+    /// </returns>
     [HttpPost("items/{id:guid}/approve")]
     public async Task<IActionResult> ApproveItem(Guid id)
     {
@@ -154,6 +169,14 @@ public class AdminController : ControllerBase
 
     // --- Feature 3: Admin shipping & payments ---
 
+    /// <summary>
+    /// Retrieves a paginated list of all shipments across all users.
+    /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of shipments per page (default: 50).</param>
+    /// <returns>
+    /// 200 OK with a paged result of shipments.
+    /// </returns>
     [HttpGet("shipments")]
     public async Task<IActionResult> GetAllShipments([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
@@ -161,6 +184,13 @@ public class AdminController : ControllerBase
         return Ok(shipments);
     }
 
+    /// <summary>
+    /// Retrieves tracking events for the specified shipment with admin-level access.
+    /// </summary>
+    /// <param name="id">The GUID of the shipment to track.</param>
+    /// <returns>
+    /// 200 OK with a list of tracking events.
+    /// </returns>
     [HttpGet("shipments/{id:guid}/track")]
     public async Task<IActionResult> TrackShipment(Guid id)
     {
@@ -168,6 +198,12 @@ public class AdminController : ControllerBase
         return Ok(events);
     }
 
+    /// <summary>
+    /// Retrieves all payment records across all users for admin oversight.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with the complete list of payments.
+    /// </returns>
     [HttpGet("payments")]
     public async Task<IActionResult> GetAllPayments()
     {
@@ -177,6 +213,12 @@ public class AdminController : ControllerBase
 
     // --- Community moderation: Doctor Reviews ---
 
+    /// <summary>
+    /// Retrieves all doctor reviews that are pending admin approval.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with the list of pending doctor reviews.
+    /// </returns>
     [HttpGet("doctor-reviews/pending")]
     public async Task<IActionResult> GetPendingDoctorReviews()
     {
@@ -184,6 +226,14 @@ public class AdminController : ControllerBase
         return Ok(reviews);
     }
 
+    /// <summary>
+    /// Approves a pending doctor review, making it publicly visible.
+    /// </summary>
+    /// <param name="id">The GUID of the doctor review to approve.</param>
+    /// <returns>
+    /// 404 Not Found if the review does not exist.<br/>
+    /// 204 No Content on success.
+    /// </returns>
     [HttpPost("doctor-reviews/{id:guid}/approve")]
     public async Task<IActionResult> ApproveDoctorReview(Guid id)
     {
@@ -195,6 +245,15 @@ public class AdminController : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
+    /// <summary>
+    /// Deletes a doctor review as an administrator.
+    /// </summary>
+    /// <param name="id">The GUID of the doctor review to delete.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the review does not exist.<br/>
+    /// 204 No Content on successful deletion.
+    /// </returns>
     [HttpDelete("doctor-reviews/{id:guid}")]
     public async Task<IActionResult> DeleteDoctorReview(Guid id)
     {
@@ -210,6 +269,12 @@ public class AdminController : ControllerBase
 
     // --- Community moderation: Child-Friendly Places ---
 
+    /// <summary>
+    /// Retrieves all child-friendly places that are pending admin approval.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with the list of pending child-friendly places.
+    /// </returns>
     [HttpGet("child-friendly-places/pending")]
     public async Task<IActionResult> GetPendingChildFriendlyPlaces()
     {
@@ -217,6 +282,14 @@ public class AdminController : ControllerBase
         return Ok(places);
     }
 
+    /// <summary>
+    /// Approves a pending child-friendly place, making it publicly visible.
+    /// </summary>
+    /// <param name="id">The GUID of the place to approve.</param>
+    /// <returns>
+    /// 404 Not Found if the place does not exist.<br/>
+    /// 204 No Content on success.
+    /// </returns>
     [HttpPost("child-friendly-places/{id:guid}/approve")]
     public async Task<IActionResult> ApproveChildFriendlyPlace(Guid id)
     {
@@ -228,6 +301,15 @@ public class AdminController : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
+    /// <summary>
+    /// Deletes a child-friendly place as an administrator.
+    /// </summary>
+    /// <param name="id">The GUID of the place to delete.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the place does not exist.<br/>
+    /// 204 No Content on successful deletion.
+    /// </returns>
     [HttpDelete("child-friendly-places/{id:guid}")]
     public async Task<IActionResult> DeleteChildFriendlyPlace(Guid id)
     {
@@ -243,6 +325,12 @@ public class AdminController : ControllerBase
 
     // --- AI Settings ---
 
+    /// <summary>
+    /// Retrieves the current AI model configuration and the list of allowed models.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with the active model identifier and the available model list.
+    /// </returns>
     [HttpGet("ai-settings")]
     public async Task<IActionResult> GetAiSettings()
     {
@@ -257,6 +345,15 @@ public class AdminController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Updates the AI model used by the platform's listing assistant and price suggester.
+    /// Only models from the approved allowlist are accepted.
+    /// </summary>
+    /// <param name="dto">Payload containing the model identifier to activate.</param>
+    /// <returns>
+    /// 400 Bad Request if the requested model is not in the allowed list.<br/>
+    /// 204 No Content on successful update.
+    /// </returns>
     [HttpPut("ai-settings")]
     public async Task<IActionResult> UpdateAiSettings([FromBody] AiSettingsUpdateDto dto)
     {

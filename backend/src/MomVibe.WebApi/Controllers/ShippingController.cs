@@ -48,7 +48,10 @@ public class ShippingController : ControllerBase
     /// Calculates the shipping price for the given parameters.
     /// </summary>
     /// <param name="request">Calculation parameters including courier, delivery type, weight, etc.</param>
-    /// <returns>200 OK with calculated price result.</returns>
+    /// <returns>
+    /// 400 Bad Request if validation fails.<br/>
+    /// 200 OK with the calculated price result.
+    /// </returns>
     [Authorize]
     [HttpPost("calculate")]
     public async Task<IActionResult> CalculatePrice([FromBody] CalculateShippingDto request)
@@ -65,7 +68,10 @@ public class ShippingController : ControllerBase
     /// Creates a shipment (waybill) with the specified courier.
     /// </summary>
     /// <param name="request">Shipment creation parameters.</param>
-    /// <returns>200 OK with the created shipment details.</returns>
+    /// <returns>
+    /// 400 Bad Request if validation fails.<br/>
+    /// 200 OK with the created shipment details.
+    /// </returns>
     [Authorize]
     [HttpPost("create")]
     public async Task<IActionResult> CreateShipment([FromBody] CreateShipmentDto request)
@@ -81,8 +87,11 @@ public class ShippingController : ControllerBase
     /// <summary>
     /// Downloads the shipping label PDF for the specified shipment.
     /// </summary>
-    /// <param name="id">The shipment ID.</param>
-    /// <returns>PDF file content or 404 if not found.</returns>
+    /// <param name="id">The GUID of the shipment whose label should be downloaded.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 200 OK with the PDF label as a file attachment.
+    /// </returns>
     [Authorize]
     [HttpGet("{id:guid}/label")]
     public async Task<IActionResult> GetLabel(Guid id)
@@ -96,8 +105,11 @@ public class ShippingController : ControllerBase
     /// <summary>
     /// Gets tracking events for the specified shipment.
     /// </summary>
-    /// <param name="id">The shipment ID.</param>
-    /// <returns>200 OK with list of tracking events.</returns>
+    /// <param name="id">The GUID of the shipment to track.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 200 OK with the list of tracking events.
+    /// </returns>
     [Authorize]
     [HttpGet("{id:guid}/track")]
     public async Task<IActionResult> TrackShipment(Guid id)
@@ -111,8 +123,11 @@ public class ShippingController : ControllerBase
     /// <summary>
     /// Cancels the specified shipment.
     /// </summary>
-    /// <param name="id">The shipment ID.</param>
-    /// <returns>200 OK on success.</returns>
+    /// <param name="id">The GUID of the shipment to cancel.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 200 OK on success.
+    /// </returns>
     [Authorize]
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> CancelShipment(Guid id)
@@ -128,7 +143,9 @@ public class ShippingController : ControllerBase
     /// </summary>
     /// <param name="provider">Courier provider enum value (0=Econt, 1=Speedy).</param>
     /// <param name="city">Optional city name to filter offices.</param>
-    /// <returns>200 OK with list of offices.</returns>
+    /// <returns>
+    /// 200 OK with the list of offices.
+    /// </returns>
     [Authorize]
     [HttpGet("offices")]
     public async Task<IActionResult> GetOffices([FromQuery] CourierProvider provider, [FromQuery] string? city = null)
@@ -140,8 +157,12 @@ public class ShippingController : ControllerBase
     /// <summary>
     /// Gets the shipment associated with a specific payment.
     /// </summary>
-    /// <param name="paymentId">The payment ID.</param>
-    /// <returns>200 OK with shipment details or 404 if not found.</returns>
+    /// <param name="paymentId">The GUID of the payment whose shipment should be returned.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if no shipment is associated with the payment.<br/>
+    /// 200 OK with the shipment details on success.
+    /// </returns>
     [Authorize]
     [HttpGet("payment/{paymentId:guid}")]
     public async Task<IActionResult> GetShipmentByPayment(Guid paymentId)

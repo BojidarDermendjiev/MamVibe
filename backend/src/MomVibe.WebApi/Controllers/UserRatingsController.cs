@@ -22,6 +22,15 @@ public class UserRatingsController : ControllerBase
     /// <summary>
     /// Submits a star rating for the seller after a completed purchase.
     /// </summary>
+    /// <param name="purchaseRequestId">The GUID of the purchase request associated with the transaction being rated.</param>
+    /// <param name="dto">Rating payload containing the star value (1–5) and an optional comment.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 400 Bad Request if the rating is outside the 1–5 range or the purchase request is ineligible.<br/>
+    /// 403 Forbid if the user is not the buyer of this purchase request.<br/>
+    /// 404 Not Found if the purchase request does not exist.<br/>
+    /// 201 Created with the submitted rating details on success.
+    /// </returns>
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(Guid purchaseRequestId, [FromBody] CreateUserRatingDto dto)
@@ -64,8 +73,12 @@ public class UserRatingsByUserController : ControllerBase
     }
 
     /// <summary>
-    /// Returns all ratings received by a user (their seller reputation).
+    /// Returns all ratings received by a user, representing their seller reputation.
     /// </summary>
+    /// <param name="userId">The identifier of the user whose received ratings should be returned.</param>
+    /// <returns>
+    /// 200 OK with a list of rating records for the specified user.
+    /// </returns>
     [HttpGet]
     public async Task<IActionResult> GetForUser(string userId)
     {
@@ -74,8 +87,12 @@ public class UserRatingsByUserController : ControllerBase
     }
 
     /// <summary>
-    /// Returns the average rating and count for a user.
+    /// Returns the average rating and total rating count for a user.
     /// </summary>
+    /// <param name="userId">The identifier of the user whose rating summary should be returned.</param>
+    /// <returns>
+    /// 200 OK with a JSON object containing <c>average</c> and <c>count</c> fields.
+    /// </returns>
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary(string userId)
     {
