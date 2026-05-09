@@ -131,7 +131,7 @@ export default function MainLayout() {
             className={clsx(
               "relative cursor-pointer text-sm font-semibold rounded-full transition-colors",
               mobile ? "px-4 py-2" : "px-3.5 py-2",
-              "text-gray-500 hover:text-gray-900",
+              "text-gray-500 hover:text-gray-900 hover:bg-white/20 dark:hover:bg-white/10",
               isActive && "text-gray-900",
             )}
           >
@@ -186,7 +186,7 @@ export default function MainLayout() {
         onClick={toggleTheme}
         title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-colors text-gray-700 dark:text-gray-200"
+        className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 hover:scale-110 active:scale-95 transition-all duration-200 text-gray-700 dark:text-gray-200"
       >
         {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
       </button>
