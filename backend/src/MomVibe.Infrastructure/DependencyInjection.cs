@@ -22,6 +22,13 @@ using Infrastructure.Services.Shipping;
 /// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registers all infrastructure services: EF Core DbContext, courier providers, payment, shipping,
+    /// email, AI, n8n webhook integration, and all scoped application service implementations.
+    /// </summary>
+    /// <param name="services">The service collection to extend.</param>
+    /// <param name="configuration">The application configuration used to bind settings sections.</param>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>

@@ -15,5 +15,6 @@ public class AiModerationResultDto
     /// <summary>Brief explanation shown to the admin.</summary>
     public string Reason { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the list of specific flags or concerns raised by the AI moderation model.</summary>
     public List<string> Flags { get; set; } = [];
 }

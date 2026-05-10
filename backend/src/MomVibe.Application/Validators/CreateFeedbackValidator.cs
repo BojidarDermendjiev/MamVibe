@@ -11,6 +11,9 @@ using DTOs.Feedbacks;
 /// </summary>
 public class CreateFeedbackValidator : AbstractValidator<CreateFeedbackDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CreateFeedbackValidator"/> and registers all validation rules.
+    /// </summary>
     public CreateFeedbackValidator()
     {
         RuleFor(x => x.Content).NotEmpty().MaximumLength(2000);

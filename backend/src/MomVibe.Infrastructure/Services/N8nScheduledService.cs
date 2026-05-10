@@ -21,6 +21,10 @@ public class N8nScheduledService : BackgroundService
     private readonly N8nSettings _settings;
     private readonly ILogger<N8nScheduledService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="N8nScheduledService"/> with the required scope factory,
+    /// webhook dispatcher, settings, and logger.
+    /// </summary>
     public N8nScheduledService(
         IServiceScopeFactory scopeFactory,
         IN8nWebhookService webhook,
@@ -33,6 +37,8 @@ public class N8nScheduledService : BackgroundService
         this._logger = logger;
     }
 
+    /// <summary>Waits until 8:00 AM UTC each day, then triggers the daily platform health checks.</summary>
+    /// <param name="stoppingToken">Cancellation token signalled when the host is shutting down.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -57,6 +63,11 @@ public class N8nScheduledService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Queries the database for stale items, stuck shipments, deliveries needing feedback,
+    /// and platform totals, then dispatches the corresponding n8n webhook events.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
     private async Task RunDailyChecksAsync(CancellationToken ct)
     {
         if (!this._settings.Enabled) return;

@@ -27,12 +27,20 @@ public class ChatHub : Hub<IChatClient>
     private readonly IMessageService _messageService;
     private readonly UserPresenceTracker _presenceTracker;
 
+    /// <summary>Initializes a new instance of <see cref="ChatHub"/> with the message service and presence tracker.</summary>
     public ChatHub(IMessageService messageService, UserPresenceTracker presenceTracker)
     {
         this._messageService = messageService;
         this._presenceTracker = presenceTracker;
     }
 
+    /// <summary>
+    /// Sends a chat message from the current user to the specified receiver, persists it, and
+    /// pushes it in real time. If the receiver is the AI bot, also streams the bot reply.
+    /// </summary>
+    /// <param name="receiverId">The identifier of the message recipient.</param>
+    /// <param name="content">The message text (max 2000 characters).</param>
+    /// <returns>The persisted <see cref="MessageDto"/>.</returns>
     public async Task<MessageDto> SendMessage(string receiverId, string content)
     {
         if (string.IsNullOrWhiteSpace(receiverId))
@@ -65,6 +73,8 @@ public class ChatHub : Hub<IChatClient>
         return message;
     }
 
+    /// <summary>Marks all messages from <paramref name="senderId"/> to the current user as read and notifies the sender.</summary>
+    /// <param name="senderId">The identifier of the user whose messages should be marked read.</param>
     public async Task MarkAsRead(string senderId)
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -72,12 +82,15 @@ public class ChatHub : Hub<IChatClient>
         await Clients.Group($"user_{senderId}").MessageRead(userId);
     }
 
+    /// <summary>Broadcasts a typing indicator to the specified receiver, identifying the current user as the typist.</summary>
+    /// <param name="receiverId">The identifier of the user who should see the typing indicator.</param>
     public async Task SendTyping(string receiverId)
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
         await Clients.Group($"user_{receiverId}").UserTyping(userId);
     }
 
+    /// <summary>Registers the connection in the presence tracker, joins the user's group, and broadcasts an online notification to other clients.</summary>
     public override async Task OnConnectedAsync()
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -89,6 +102,8 @@ public class ChatHub : Hub<IChatClient>
         await base.OnConnectedAsync();
     }
 
+    /// <summary>Removes the connection from the presence tracker and, if it was the user's last connection, broadcasts an offline notification.</summary>
+    /// <param name="exception">The exception that caused the disconnect, if any.</param>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -108,18 +123,28 @@ public class ChatHub : Hub<IChatClient>
 /// </summary>
 public interface IChatClient
 {
+    /// <summary>Invoked when a new chat message is received.</summary>
     Task ReceiveMessage(MessageDto message);
+    /// <summary>Invoked to notify that a message has been read by the specified user.</summary>
     Task MessageRead(string readByUserId);
+    /// <summary>Invoked to show a typing indicator for the specified user.</summary>
     Task UserTyping(string userId);
+    /// <summary>Invoked when the specified user comes online.</summary>
     Task UserOnline(string userId);
+    /// <summary>Invoked when the specified user goes offline.</summary>
     Task UserOffline(string userId);
 
     // Purchase-request events
+    /// <summary>Invoked when a new purchase request is received by the seller.</summary>
     Task ReceivePurchaseRequest(PurchaseRequestDto request);
+    /// <summary>Invoked when an existing purchase request's status has been updated.</summary>
     Task PurchaseRequestUpdated(PurchaseRequestDto request);
+    /// <summary>Invoked when the buyer has chosen a payment method for a purchase request.</summary>
     Task PaymentMethodChosen(object notification);
 
     // Shipment events
+    /// <summary>Invoked when a new shipment has been created for a purchase.</summary>
     Task ShipmentCreated(ShipmentDto shipment);
+    /// <summary>Invoked when the status of an existing shipment has changed.</summary>
     Task ShipmentStatusChanged(ShipmentDto shipment);
 }

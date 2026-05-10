@@ -1,14 +1,22 @@
 namespace MomVibe.WebApi.Middleware;
 
+/// <summary>
+/// Middleware that appends OWASP-recommended security headers to every HTTP response:
+/// X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy,
+/// Permissions-Policy, Content-Security-Policy, and cross-origin isolation headers.
+/// </summary>
 public class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
 
+    /// <summary>Initializes a new instance of <see cref="SecurityHeadersMiddleware"/> with the next middleware delegate.</summary>
     public SecurityHeadersMiddleware(RequestDelegate next)
     {
         this._next = next;
     }
 
+    /// <summary>Appends all security headers to the response and forwards the request to the next middleware.</summary>
+    /// <param name="context">The current HTTP context.</param>
     public async Task InvokeAsync(HttpContext context)
     {
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");

@@ -9,5 +9,9 @@ namespace MomVibe.Domain.Exceptions;
 /// </summary>
 public class DomainException : Exception
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="DomainException"/> with the specified user-facing message.
+    /// </summary>
+    /// <param name="message">The error message that is safe to expose to end-users.</param>
     public DomainException(string message) : base(message) { }
 }

@@ -27,6 +27,9 @@ using Domain.Entities;
 /// </summary>
 public class MappingProfile : Profile
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="MappingProfile"/> and registers all entity-to-DTO mappings.
+    /// </summary>
     public MappingProfile()
     {
         CreateMap<ApplicationUser, UserDto>();

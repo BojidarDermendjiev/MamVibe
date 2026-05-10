@@ -10,6 +10,12 @@ using Microsoft.EntityFrameworkCore.Design;
 /// </summary>
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
+    /// <summary>
+    /// Creates and returns a configured <see cref="ApplicationDbContext"/> using settings loaded from
+    /// appsettings.json in the MomVibe.WebApi project directory.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed by the EF Core tooling (unused).</param>
+    /// <returns>A fully configured <see cref="ApplicationDbContext"/> ready for migration operations.</returns>
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         var basePath = Path.GetFullPath(

@@ -28,6 +28,10 @@ public class N8nWebhookService : BackgroundService, IN8nWebhookService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="N8nWebhookService"/> with the required HTTP client factory,
+    /// n8n settings, and logger.
+    /// </summary>
     public N8nWebhookService(
         IHttpClientFactory httpClientFactory,
         IOptions<N8nSettings> settings,
@@ -38,6 +42,9 @@ public class N8nWebhookService : BackgroundService, IN8nWebhookService
         this._logger = logger;
     }
 
+    /// <summary>Enqueues a payload to be POSTed to the specified n8n webhook path; drops the event if the channel is full.</summary>
+    /// <param name="webhookPath">The relative n8n webhook path (e.g. "payment-completed").</param>
+    /// <param name="payload">The object to serialize as JSON and send.</param>
     public void Send(string webhookPath, object payload)
     {
         if (!this._settings.Enabled) return;
@@ -48,6 +55,8 @@ public class N8nWebhookService : BackgroundService, IN8nWebhookService
         }
     }
 
+    /// <summary>Continuously drains the bounded channel and POSTs each payload to the configured n8n webhook URL.</summary>
+    /// <param name="stoppingToken">Cancellation token signalled when the host is shutting down.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await foreach (var (path, payload) in this._channel.Reader.ReadAllAsync(stoppingToken))

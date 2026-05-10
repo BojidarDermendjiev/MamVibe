@@ -3,8 +3,19 @@ namespace MomVibe.Application.Validators;
 using FluentValidation;
 using DTOs.ChildFriendlyPlaces;
 
+/// <summary>
+/// Validates <see cref="CreateChildFriendlyPlaceDto"/> using FluentValidation:
+/// - Name: required, max 150 characters.
+/// - Description: required, max 2000 characters.
+/// - City: required, max 100 characters.
+/// - AgeFromMonths/AgeToMonths: non-negative and ordered when provided.
+/// - PhotoUrl/Website: max 2048 characters.
+/// </summary>
 public class CreateChildFriendlyPlaceValidator : AbstractValidator<CreateChildFriendlyPlaceDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CreateChildFriendlyPlaceValidator"/> and registers all validation rules.
+    /// </summary>
     public CreateChildFriendlyPlaceValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(150);

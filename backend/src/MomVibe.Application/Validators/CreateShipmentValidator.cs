@@ -18,6 +18,9 @@ using DTOs.Shipping;
 /// </summary>
 public class CreateShipmentValidator : AbstractValidator<CreateShipmentDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CreateShipmentValidator"/> and registers all validation rules.
+    /// </summary>
     public CreateShipmentValidator()
     {
         RuleFor(x => x.PaymentId).NotEmpty();

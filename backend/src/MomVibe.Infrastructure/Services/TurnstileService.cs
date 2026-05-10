@@ -19,6 +19,7 @@ public class TurnstileService : ITurnstileService
     private readonly HttpClient _httpClient;
     private readonly string _secretKey;
 
+    /// <summary>Initializes a new instance of <see cref="TurnstileService"/>, resolving the Turnstile secret key from configuration.</summary>
     public TurnstileService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         this._httpClient = httpClientFactory.CreateClient();
@@ -26,6 +27,7 @@ public class TurnstileService : ITurnstileService
             ?? throw new InvalidOperationException("Cloudflare:TurnstileSecretKey is not configured.");
     }
 
+    /// <inheritdoc/>
     public async Task<bool> VerifyAsync(string token, string ip)
     {
         var form = new FormUrlEncodedContent(new[]
@@ -40,6 +42,7 @@ public class TurnstileService : ITurnstileService
         var json = await resp.Content.ReadFromJsonAsync<TurnstileVerifyResponse>();
         return json?.Success == true;
     }
+    /// <inheritdoc/>
     public async Task<bool> VerifyTokenAsync(string token)
     {
         // Cloudflare test secret keys always pass without calling the API
@@ -61,8 +64,10 @@ public class TurnstileService : ITurnstileService
         return result?.Success ?? false;
     }
 
+    /// <summary>Minimal deserialization model for the Cloudflare Turnstile siteverify API response.</summary>
     private class TurnstileVerifyResponse
     {
+        /// <summary>Gets or sets a value indicating whether the Turnstile challenge was passed successfully.</summary>
         [System.Text.Json.Serialization.JsonPropertyName("success")]
         public bool Success { get; set; }
     }

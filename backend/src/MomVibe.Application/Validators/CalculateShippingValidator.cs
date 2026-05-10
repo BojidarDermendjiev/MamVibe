@@ -13,6 +13,9 @@ using DTOs.Shipping;
 /// </summary>
 public class CalculateShippingValidator : AbstractValidator<CalculateShippingDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CalculateShippingValidator"/> and registers all validation rules.
+    /// </summary>
     public CalculateShippingValidator()
     {
         RuleFor(x => x.CourierProvider).IsInEnum();

@@ -90,12 +90,20 @@ public class N8nSettings
     // Wallet events
     // -------------------------------------------------------------------------
 
+    /// <summary>Webhook endpoint for wallet top-up events.</summary>
     public string WalletTopUp { get; set; } = "wallet-topup";
+    /// <summary>Webhook endpoint for wallet-to-wallet transfer events.</summary>
     public string WalletTransfer { get; set; } = "wallet-transfer";
+    /// <summary>Webhook endpoint for wallet frozen (administrative hold) events.</summary>
     public string WalletFrozen { get; set; } = "wallet-frozen";
+    /// <summary>Webhook endpoint for withdrawal request submission events.</summary>
     public string WalletWithdrawalRequested { get; set; } = "wallet-withdrawal-requested";
+    /// <summary>Webhook endpoint for approved withdrawal events.</summary>
     public string WalletWithdrawalApproved { get; set; } = "wallet-withdrawal-approved";
+    /// <summary>Webhook endpoint for rejected withdrawal events.</summary>
     public string WalletWithdrawalRejected { get; set; } = "wallet-withdrawal-rejected";
+    /// <summary>Webhook endpoint for wallet refund events.</summary>
     public string WalletRefund { get; set; } = "wallet-refund";
+    /// <summary>Webhook endpoint for escrow funds released to the seller events.</summary>
     public string WalletEscrowReleased { get; set; } = "wallet-escrow-released";
 }

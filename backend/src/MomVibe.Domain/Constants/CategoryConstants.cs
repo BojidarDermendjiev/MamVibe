@@ -6,6 +6,9 @@
 /// </summary>
 public static class CategoryConstants
 {
+    /// <summary>
+    /// Length-related constraints for <see cref="MomVibe.Domain.Entities.Category"/> properties.
+    /// </summary>
     public static class Lengths
     {
         /// <summary>Minimum length for <c>Name</c>.</summary>
@@ -24,6 +27,9 @@ public static class CategoryConstants
         public const int SlugMax = 128;
     }
 
+    /// <summary>
+    /// Regular-expression patterns used for validation of <see cref="MomVibe.Domain.Entities.Category"/> properties.
+    /// </summary>
     public static class Regex
     {
         /// <summary>

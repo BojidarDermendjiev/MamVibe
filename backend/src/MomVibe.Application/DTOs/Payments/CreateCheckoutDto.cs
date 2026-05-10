@@ -6,5 +6,6 @@
 /// </summary>
 public class CreateCheckoutDto
 {
+    /// <summary>Gets or sets the identifier of the item to create a checkout session for.</summary>
     public Guid ItemId { get; set; }
 }

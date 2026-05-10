@@ -14,6 +14,9 @@ using Domain.Enums;
 /// </summary>
 public class UpdateItemValidator : AbstractValidator<UpdateItemDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="UpdateItemValidator"/> and registers all validation rules.
+    /// </summary>
     public UpdateItemValidator()
     {
         RuleFor(x => x.Title).MaximumLength(200).When(x => x.Title != null);

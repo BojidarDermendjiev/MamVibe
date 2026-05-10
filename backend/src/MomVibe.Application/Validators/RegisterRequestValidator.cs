@@ -15,6 +15,9 @@ using DTOs.Auth;
 /// </summary>
 public class RegisterRequestValidator : AbstractValidator<RegisterRequestDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="RegisterRequestValidator"/> and registers all validation rules.
+    /// </summary>
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress();

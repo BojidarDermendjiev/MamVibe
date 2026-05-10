@@ -11,8 +11,15 @@ using Domain.Enums;
 /// </summary>
 public class CreateFeedbackDto
 {
+    /// <summary>Gets or sets the numeric rating from 1 (lowest) to 5 (highest).</summary>
     public int Rating { get; set; }
+
+    /// <summary>Gets or sets the category classifying the type of feedback.</summary>
     public FeedbackCategory Category { get; set; }
+
+    /// <summary>Gets or sets the textual content of the feedback.</summary>
     public required string Content { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the user consents to being contacted for follow-up.</summary>
     public bool IsContactable { get; set; }
 }

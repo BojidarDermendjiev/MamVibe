@@ -17,13 +17,20 @@ public class BlockedUserMiddleware
 {
     private readonly RequestDelegate _next;
 
+    /// <summary>Returns the IMemoryCache key used to store the blocked-status for a given user.</summary>
+    /// <param name="userId">The user identifier.</param>
     public static string CacheKey(string userId) => $"blocked:{userId}";
 
+    /// <summary>Initializes a new instance of <see cref="BlockedUserMiddleware"/> with the next middleware delegate.</summary>
     public BlockedUserMiddleware(RequestDelegate next)
     {
         this._next = next;
     }
 
+    /// <summary>Checks whether the authenticated user is blocked and short-circuits with 403 if so; otherwise forwards the request.</summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="userManager">The Identity UserManager used to look up the user's blocked status.</param>
+    /// <param name="cache">The memory cache used to avoid a DB hit on every request.</param>
     public async Task InvokeAsync(HttpContext context, UserManager<ApplicationUser> userManager, IMemoryCache cache)
     {
         if (context.User.Identity?.IsAuthenticated == true)

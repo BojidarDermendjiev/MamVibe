@@ -16,6 +16,9 @@ using Domain.Enums;
 /// </summary>
 public class CreateItemValidator : AbstractValidator<CreateItemDto>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="CreateItemValidator"/> and registers all validation rules.
+    /// </summary>
     public CreateItemValidator()
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
