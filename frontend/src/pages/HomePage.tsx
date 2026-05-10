@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import { usePageSEO } from "@/hooks/useSEO";
 import { MoveRight, ShoppingBag, Heart } from "lucide-react";
 import { HiCamera, HiTag, HiTruck, HiHeart } from "react-icons/hi";
 import { FaBaby, FaSmile, FaTshirt, FaChild } from "react-icons/fa";
@@ -144,10 +145,54 @@ const AGE_GROUPS = [
   },
 ];
 
+// ── Organisation schema (homepage) ─────────────────────────────────────────
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "MamVibe",
+  url: "https://mamvibe.com",
+  logo: "https://mamvibe.com/logo.png",
+  description:
+    "MamVibe is a free platform for families to buy, sell, and donate second-hand baby clothes, strollers, toys and more.",
+  foundingDate: "2024",
+  sameAs: [],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    email: "support@mamvibe.com",
+  },
+};
+
+const WEBSITE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "MamVibe",
+  url: "https://mamvibe.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://mamvibe.com/browse?search={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 // ── Page component ──────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t } = useTranslation();
   const [titleNumber, setTitleNumber] = useState(0);
+
+  // SEO: inject unique title, description, Open Graph, and structured data
+  // for the homepage. The Organisation + WebSite schemas tell Google about
+  // our brand identity and enable the Sitelinks Search Box in SERPs.
+  usePageSEO({
+    title: "Buy, Sell & Donate Baby Items",
+    description:
+      "MamVibe is a free platform for Bulgarian families to buy, sell, and donate second-hand baby clothes, strollers, toys, car seats and more. Give baby items a second life.",
+    canonical: "https://mamvibe.com/",
+    structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA],
+  });
   const [doctorReviews, setDoctorReviews] = useState<DoctorReviewDto[]>([]);
   const [childPlaces, setChildPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
   const titles = useMemo(
@@ -218,11 +263,18 @@ export default function HomePage() {
     <div>
       {/* ── Hero ── */}
       <section className="relative w-full overflow-hidden min-h-[560px] flex items-center">
-        {/* Background image — place your own at /hero-bg.jpg or swap this URL */}
+        {/* LCP candidate: hero image must NOT be lazy-loaded.
+            fetchpriority="high" signals the browser to load it immediately
+            as it is the Largest Contentful Paint element on the homepage. */}
         <img
           src="/hero-bg.jpg"
           alt=""
           aria-hidden="true"
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+          width={1920}
+          height={1080}
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         {/* Gradient overlay for text readability */}
@@ -274,10 +326,11 @@ export default function HomePage() {
       </section>
 
       {/* ── Trusted Brands ── */}
-      <section className="bg-white dark:bg-[#201d30] py-12 overflow-hidden">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-8">
+      <section aria-labelledby="brands-heading" className="bg-white dark:bg-[#201d30] py-12 overflow-hidden">
+        {/* h2 styled to look like a small label — semantically correct for heading hierarchy */}
+        <h2 id="brands-heading" className="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-8">
           Items from brands you know &amp; love
-        </p>
+        </h2>
 
         {/* Single row — left → right */}
         <div className="group relative w-full overflow-hidden [--duration:40s]">
@@ -298,12 +351,13 @@ export default function HomePage() {
 
       {/* ── How it works ── */}
       <section
+        aria-labelledby="how-it-works-heading"
         className="dark-section pt-40 pb-[6.5rem] px-4"
         style={{ backgroundColor: "#FAF3EE" }}
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
               {t("home.how_it_works")}
             </h2>
             <p className="text-gray-500">{t("home.how_it_works_subtitle")}</p>
@@ -478,6 +532,10 @@ export default function HomePage() {
                     <img
                       src={place.photoUrl}
                       alt={place.name}
+                      loading="lazy"
+                      decoding="async"
+                      width={400}
+                      height={160}
                       className="w-full h-40 object-cover"
                     />
                   ) : (

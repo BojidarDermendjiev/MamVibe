@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePageSEO } from "@/hooks/useSEO";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
 import { HiOutlineUser, HiOutlineLockClosed, HiOutlineMail, HiSun, HiMoon } from "react-icons/hi";
@@ -17,6 +18,16 @@ export default function ModernAuthPage() {
   const { setAuth } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(location.pathname === "/register");
+
+  // Auth pages: noindex to prevent thin/duplicate content in the index.
+  usePageSEO({
+    title: isSignUp ? "Create Your Free Account" : "Sign In to MamVibe",
+    description: isSignUp
+      ? "Join MamVibe for free. Buy, sell, or donate second-hand baby items with families across Bulgaria."
+      : "Sign in to your MamVibe account to manage your listings, messages, and purchases.",
+    canonical: isSignUp ? "https://mamvibe.com/register" : "https://mamvibe.com/login",
+    index: false,
+  });
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");

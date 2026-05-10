@@ -1,9 +1,17 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../components/common/Button";
+import { usePageSEO } from "@/hooks/useSEO";
 
 export default function NotFoundPage() {
   const { t } = useTranslation();
+
+  // Noindex 404 pages — they must not consume crawl budget.
+  usePageSEO({
+    title: "Page Not Found",
+    description: "The page you are looking for does not exist. Return to MamVibe to browse baby items.",
+    index: false,
+  });
 
   return (
     <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">

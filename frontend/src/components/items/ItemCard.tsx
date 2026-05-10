@@ -19,17 +19,27 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCard
   return (
     <div className="bg-white rounded-xl shadow-sm border border-lavender/30 hover-lift hover-glow group animate-fade-in">
       <Link to={`/items/${item.id}`} className="block">
+        {/* aspect-[4/3] container prevents CLS: the browser reserves space
+            before the image loads, eliminating layout shift (Core Web Vitals). */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-cream-dark">
           {photo ? (
             <img
               src={photo.url}
               alt={item.title}
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={300}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <img
               src={getCategoryImage(item.categoryName)}
               alt=""
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={300}
               className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             />
           )}

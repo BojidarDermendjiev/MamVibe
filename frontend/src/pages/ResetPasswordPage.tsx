@@ -5,9 +5,12 @@ import toast from '@/utils/toast';
 import { authApi } from '../api/authApi';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import { usePageSEO } from '@/hooks/useSEO';
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
+
+  usePageSEO({ title: "Set New Password", description: "Create a new password for your MamVibe account.", index: false });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';

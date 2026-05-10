@@ -385,6 +385,81 @@ a:hover {
   }
 }
 
+/* ─── Navigate CTA Button (UIverse alexmaracinaru/brown-bobcat-65 adapted) ─── */
+.btn-navigate {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-navigate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  border-radius: 50px;
+  background: #f0d0c7;
+  width: 28px;
+  height: 28px;
+  transition: all 0.3s ease;
+}
+
+.btn-navigate span {
+  position: relative;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #945c67;
+}
+
+.btn-navigate svg {
+  position: relative;
+  margin-left: 8px;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke: #945c67;
+  stroke-width: 2;
+  transform: translateX(-4px);
+  transition: all 0.3s ease;
+}
+
+.btn-navigate:hover::before {
+  width: 100%;
+  background: #f0d0c7;
+}
+
+.btn-navigate:hover svg {
+  transform: translateX(0);
+}
+
+.btn-navigate:active {
+  transform: scale(0.95);
+}
+
+.dark .btn-navigate::before {
+  background: rgba(148, 92, 103, 0.25);
+}
+
+.dark .btn-navigate span {
+  color: #e3b7ac;
+}
+
+.dark .btn-navigate svg {
+  stroke: #e3b7ac;
+}
+
+.dark .btn-navigate:hover::before {
+  background: rgba(148, 92, 103, 0.4);
+}
+
 /* ─── Auth Slide Layout ─────────────────────────────────────────────────── */
 .auth-wrapper {
   position: relative;

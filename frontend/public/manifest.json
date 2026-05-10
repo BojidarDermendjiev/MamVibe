@@ -1,0 +1,22 @@
+{
+  "name": "MamVibe — Buy, Sell & Donate Baby Items",
+  "short_name": "MamVibe",
+  "description": "A free platform for Bulgarian families to buy, sell, and donate second-hand baby clothes, strollers, toys and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#945c67",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

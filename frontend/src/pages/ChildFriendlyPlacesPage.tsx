@@ -1,24 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { MapPin, ExternalLink, Plus, X, Clock } from "lucide-react";
+import { usePageSEO } from "@/hooks/useSEO";
 import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
 import { PlaceType } from "../types/childFriendlyPlace";
 import type { ChildFriendlyPlaceDto, CreateChildFriendlyPlaceDto } from "../types/childFriendlyPlace";
 import { useAuthStore } from "../store/authStore";
-
-const PLACE_TYPE_LABELS: Record<PlaceType, string> = {
-  [PlaceType.Walk]: "Walk",
-  [PlaceType.Playground]: "Playground",
-  [PlaceType.Restaurant]: "Restaurant",
-  [PlaceType.Cafe]: "Cafe",
-  [PlaceType.Museum]: "Museum",
-  [PlaceType.Zoo]: "Zoo",
-  [PlaceType.Beach]: "Beach",
-  [PlaceType.Park]: "Park",
-  [PlaceType.ThemeAttraction]: "Theme Attraction",
-  [PlaceType.SportsActivity]: "Sports Activity",
-  [PlaceType.Other]: "Other",
-};
 
 const PLACE_TYPE_COLORS: Record<PlaceType, string> = {
   [PlaceType.Walk]: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -34,13 +21,9 @@ const PLACE_TYPE_COLORS: Record<PlaceType, string> = {
   [PlaceType.Other]: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 };
 
-function formatAge(from: number | null, to: number | null): string {
-  if (!from && !to) return "";
-  const fmt = (m: number) => m >= 12 ? `${Math.floor(m / 12)}y${m % 12 ? ` ${m % 12}m` : ""}` : `${m}m`;
-  if (from && to) return `${fmt(from)} – ${fmt(to)}`;
-  if (from) return `${fmt(from)}+`;
-  if (to) return `Up to ${fmt(to)}`;
-  return "";
+function buildMapsUrl(place: ChildFriendlyPlaceDto): string {
+  const destination = [place.name, place.address, place.city].filter(Boolean).join(", ");
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 }
 
 const EMPTY_FORM: CreateChildFriendlyPlaceDto = {
@@ -58,6 +41,51 @@ const EMPTY_FORM: CreateChildFriendlyPlaceDto = {
 export default function ChildFriendlyPlacesPage() {
   const { t } = useTranslation();
   const { isAuthenticated, user } = useAuthStore();
+
+  const placeTypeLabels = useMemo<Record<PlaceType, string>>(() => ({
+    [PlaceType.Walk]: t("childFriendlyPlaces.type_walk"),
+    [PlaceType.Playground]: t("childFriendlyPlaces.type_playground"),
+    [PlaceType.Restaurant]: t("childFriendlyPlaces.type_restaurant"),
+    [PlaceType.Cafe]: t("childFriendlyPlaces.type_cafe"),
+    [PlaceType.Museum]: t("childFriendlyPlaces.type_museum"),
+    [PlaceType.Zoo]: t("childFriendlyPlaces.type_zoo"),
+    [PlaceType.Beach]: t("childFriendlyPlaces.type_beach"),
+    [PlaceType.Park]: t("childFriendlyPlaces.type_park"),
+    [PlaceType.ThemeAttraction]: t("childFriendlyPlaces.type_theme"),
+    [PlaceType.SportsActivity]: t("childFriendlyPlaces.type_sports"),
+    [PlaceType.Other]: t("childFriendlyPlaces.type_other"),
+  }), [t]);
+
+  const formatAge = useCallback((from: number | null, to: number | null): string => {
+    if (!from && !to) return "";
+    const y = t("childFriendlyPlaces.year_short");
+    const m = t("childFriendlyPlaces.month_short");
+    const upTo = t("childFriendlyPlaces.age_up_to");
+    const fmt = (months: number) =>
+      months >= 12
+        ? `${Math.floor(months / 12)}${y}${months % 12 ? ` ${months % 12}${m}` : ""}`
+        : `${months}${m}`;
+    if (from && to) return `${fmt(from)} – ${fmt(to)}`;
+    if (from) return `${fmt(from)}+`;
+    if (to) return `${upTo} ${fmt(to)}`;
+    return "";
+  }, [t]);
+
+  usePageSEO({
+    title: "Child-Friendly Places in Bulgaria",
+    description:
+      "Discover playgrounds, parks, restaurants, museums, and family-friendly attractions across Bulgaria. Community-curated places loved by parents on MamVibe.",
+    canonical: "https://mamvibe.com/child-friendly-places",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Child-Friendly Places in Bulgaria",
+      description:
+        "Community-curated child-friendly places across Bulgaria, shared by parents on MamVibe.",
+      url: "https://mamvibe.com/child-friendly-places",
+    },
+  });
+
   const isAdmin = user?.roles?.includes("Admin") ?? false;
 
   const [places, setPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
@@ -86,11 +114,11 @@ export default function ChildFriendlyPlacesPage() {
       });
       setPlaces(data);
     } catch {
-      setError("Failed to load places. Please try again.");
+      setError(t("childFriendlyPlaces.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [cityFilter, placeTypeFilter, ageMonthsFilter, page]);
+  }, [cityFilter, placeTypeFilter, ageMonthsFilter, page, t]);
 
   useEffect(() => {
     fetchPlaces();
@@ -120,14 +148,14 @@ export default function ChildFriendlyPlacesPage() {
         setSubmitSuccess(false);
       }, 2000);
     } catch {
-      setSubmitError("Failed to submit place. Please check your input and try again.");
+      setSubmitError(t("childFriendlyPlaces.submitError"));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this place?")) return;
+    if (!confirm(t("childFriendlyPlaces.deleteConfirm"))) return;
     try {
       await childFriendlyPlacesApi.delete(id);
       setPlaces((prev) => prev.filter((p) => p.id !== id));
@@ -141,10 +169,10 @@ export default function ChildFriendlyPlacesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t("childFriendlyPlaces.title") || "Child-Friendly Places"}
+            {t("childFriendlyPlaces.title")}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t("childFriendlyPlaces.subtitle") || "Discover places loved by moms in Bulgaria"}
+            {t("childFriendlyPlaces.subtitle")}
           </p>
         </div>
         {isAuthenticated && (
@@ -153,7 +181,7 @@ export default function ChildFriendlyPlacesPage() {
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
           >
             <Plus size={16} />
-            {t("childFriendlyPlaces.addPlace") || "Add a Place"}
+            {t("childFriendlyPlaces.addPlace")}
           </button>
         )}
       </div>
@@ -162,7 +190,7 @@ export default function ChildFriendlyPlacesPage() {
       <form onSubmit={handleFilterSubmit} className="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
-          placeholder="City"
+          placeholder={t("childFriendlyPlaces.cityPlaceholder")}
           value={cityFilter}
           onChange={(e) => setCityFilter(e.target.value)}
           className="flex-1 min-w-[140px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -172,8 +200,8 @@ export default function ChildFriendlyPlacesPage() {
           onChange={(e) => setPlaceTypeFilter(e.target.value === "" ? "" : Number(e.target.value) as PlaceType)}
           className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
-          <option value="">All types</option>
-          {Object.entries(PLACE_TYPE_LABELS).map(([val, label]) => (
+          <option value="">{t("childFriendlyPlaces.allTypes")}</option>
+          {Object.entries(placeTypeLabels).map(([val, label]) => (
             <option key={val} value={val}>{label}</option>
           ))}
         </select>
@@ -181,7 +209,7 @@ export default function ChildFriendlyPlacesPage() {
           type="number"
           min={0}
           max={216}
-          placeholder="Child age (months)"
+          placeholder={t("childFriendlyPlaces.agePlaceholder")}
           value={ageMonthsFilter}
           onChange={(e) => setAgeMonthsFilter(e.target.value)}
           className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -190,19 +218,20 @@ export default function ChildFriendlyPlacesPage() {
           type="submit"
           className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
         >
-          Search
+          {t("childFriendlyPlaces.searchBtn")}
         </button>
       </form>
 
       {/* Content */}
-      {loading && <div className="text-center py-12 text-gray-400">Loading...</div>}
+      {loading && <div className="text-center py-12 text-gray-400">{t("common.loading")}</div>}
       {error && <div className="text-center py-8 text-red-500">{error}</div>}
       {!loading && !error && places.length === 0 && (
         <div className="text-center py-12 text-gray-400 dark:text-gray-500">
-          {t("childFriendlyPlaces.noPlaces") || "No places found. Add the first one!"}
+          {t("childFriendlyPlaces.noPlaces")}
         </div>
       )}
 
+      <h2 className="sr-only">{t("childFriendlyPlaces.title")}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {places.map((place) => (
           <div
@@ -221,7 +250,7 @@ export default function ChildFriendlyPlacesPage() {
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-semibold text-gray-900 dark:text-white leading-tight">{place.name}</h3>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${PLACE_TYPE_COLORS[place.placeType]}`}>
-                  {PLACE_TYPE_LABELS[place.placeType]}
+                  {placeTypeLabels[place.placeType]}
                 </span>
               </div>
 
@@ -234,7 +263,7 @@ export default function ChildFriendlyPlacesPage() {
               {(place.ageFromMonths || place.ageToMonths) && (
                 <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
                   <Clock size={11} />
-                  <span>Age: {formatAge(place.ageFromMonths, place.ageToMonths)}</span>
+                  <span>{t("childFriendlyPlaces.ageLabel")} {formatAge(place.ageFromMonths, place.ageToMonths)}</span>
                 </div>
               )}
 
@@ -244,6 +273,19 @@ export default function ChildFriendlyPlacesPage() {
 
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  <a
+                    href={buildMapsUrl(place)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-navigate"
+                    aria-label={`${t("childFriendlyPlaces.navigate")} ${place.name}`}
+                  >
+                    <span>{t("childFriendlyPlaces.navigate")}</span>
+                    <svg width="13px" height="10px" viewBox="0 0 13 10">
+                      <path d="M1,5 L11,5" />
+                      <polyline points="8 1 12 5 8 9" />
+                    </svg>
+                  </a>
                   {place.website && (
                     <a
                       href={place.website}
@@ -251,7 +293,7 @@ export default function ChildFriendlyPlacesPage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
                     >
-                      Website <ExternalLink size={10} />
+                      {t("childFriendlyPlaces.website")} <ExternalLink size={10} />
                     </a>
                   )}
                   {(isAdmin || (isAuthenticated && place.userId === user?.id)) && (
@@ -259,7 +301,7 @@ export default function ChildFriendlyPlacesPage() {
                       onClick={() => handleDelete(place.id)}
                       className="text-xs text-red-400 hover:text-red-500 transition-colors"
                     >
-                      Delete
+                      {t("childFriendlyPlaces.delete")}
                     </button>
                   )}
                 </div>
@@ -276,21 +318,21 @@ export default function ChildFriendlyPlacesPage() {
       {(page > 1 || places.length === 20) && (
         <div className="flex items-center justify-center gap-3 mt-8">
           <button
-            onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
             disabled={page === 1}
             className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
           >
-            ← Previous
+            {t("childFriendlyPlaces.prevPage")}
           </button>
           <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
-            Page {page}
+            {t("childFriendlyPlaces.page", { n: page })}
           </span>
           <button
-            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
             disabled={places.length < 20}
             className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
           >
-            Next →
+            {t("childFriendlyPlaces.nextPage")}
           </button>
         </div>
       )}
@@ -301,7 +343,7 @@ export default function ChildFriendlyPlacesPage() {
           <div className="bg-white dark:bg-[#2d2a42] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">
-                {t("childFriendlyPlaces.addPlace") || "Add a Child-Friendly Place"}
+                {t("childFriendlyPlaces.addPlace")}
               </h2>
               <button
                 onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); setSubmitSuccess(false); }}
@@ -314,14 +356,14 @@ export default function ChildFriendlyPlacesPage() {
             {submitSuccess ? (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">✓</div>
-                <p className="font-semibold text-gray-900 dark:text-white">Submitted for review!</p>
-                <p className="text-sm text-gray-500 mt-1">Your place will appear after admin approval.</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{t("childFriendlyPlaces.successTitle")}</p>
+                <p className="text-sm text-gray-500 mt-1">{t("childFriendlyPlaces.successDesc")}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmitPlace} className="p-5 space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Name *
+                    {t("childFriendlyPlaces.nameLabel")}
                   </label>
                   <input
                     required
@@ -329,13 +371,13 @@ export default function ChildFriendlyPlacesPage() {
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="Place name"
+                    placeholder={t("childFriendlyPlaces.namePlaceholder")}
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Description *
+                    {t("childFriendlyPlaces.descLabel")}
                   </label>
                   <textarea
                     required
@@ -344,14 +386,14 @@ export default function ChildFriendlyPlacesPage() {
                     value={form.description}
                     onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
-                    placeholder="Tell other moms about this place..."
+                    placeholder={t("childFriendlyPlaces.descPlaceholder")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      City *
+                      {t("childFriendlyPlaces.cityLabel")}
                     </label>
                     <input
                       required
@@ -359,19 +401,19 @@ export default function ChildFriendlyPlacesPage() {
                       value={form.city}
                       onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                      placeholder="e.g. Sofia"
+                      placeholder={t("childFriendlyPlaces.cityInputPlaceholder")}
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      Place Type *
+                      {t("childFriendlyPlaces.placeTypeLabel")}
                     </label>
                     <select
                       value={form.placeType}
                       onChange={(e) => setForm((f) => ({ ...f, placeType: Number(e.target.value) as PlaceType }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     >
-                      {Object.entries(PLACE_TYPE_LABELS).map(([val, label]) => (
+                      {Object.entries(placeTypeLabels).map(([val, label]) => (
                         <option key={val} value={val}>{label}</option>
                       ))}
                     </select>
@@ -380,21 +422,21 @@ export default function ChildFriendlyPlacesPage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Address (optional)
+                    {t("childFriendlyPlaces.addressLabel")}
                   </label>
                   <input
                     maxLength={300}
                     value={form.address}
                     onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="Street address"
+                    placeholder={t("childFriendlyPlaces.cityInputPlaceholder")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      Age from (months)
+                      {t("childFriendlyPlaces.ageFromLabel")}
                     </label>
                     <input
                       type="number"
@@ -403,12 +445,12 @@ export default function ChildFriendlyPlacesPage() {
                       value={form.ageFromMonths ?? ""}
                       onChange={(e) => setForm((f) => ({ ...f, ageFromMonths: e.target.value ? Number(e.target.value) : undefined }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                      placeholder="e.g. 6"
+                      placeholder={t("childFriendlyPlaces.ageFromPlaceholder")}
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      Age to (months)
+                      {t("childFriendlyPlaces.ageToLabel")}
                     </label>
                     <input
                       type="number"
@@ -417,7 +459,7 @@ export default function ChildFriendlyPlacesPage() {
                       value={form.ageToMonths ?? ""}
                       onChange={(e) => setForm((f) => ({ ...f, ageToMonths: e.target.value ? Number(e.target.value) : undefined }))}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                      placeholder="e.g. 72"
+                      placeholder={t("childFriendlyPlaces.ageToPlaceholder")}
                     />
                   </div>
                 </div>
@@ -425,7 +467,7 @@ export default function ChildFriendlyPlacesPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      Photo URL (optional)
+                      {t("childFriendlyPlaces.photoLabel")}
                     </label>
                     <input
                       maxLength={2048}
@@ -437,7 +479,7 @@ export default function ChildFriendlyPlacesPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                      Website (optional)
+                      {t("childFriendlyPlaces.websiteLabel")}
                     </label>
                     <input
                       maxLength={2048}
@@ -450,7 +492,7 @@ export default function ChildFriendlyPlacesPage() {
                 </div>
 
                 <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
-                  Your submission will be reviewed by an admin before appearing publicly.
+                  {t("childFriendlyPlaces.reviewNote")}
                 </p>
 
                 {submitError && (
@@ -463,14 +505,14 @@ export default function ChildFriendlyPlacesPage() {
                     onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); }}
                     className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60"
                   >
-                    {submitting ? "Submitting..." : "Submit Place"}
+                    {submitting ? t("childFriendlyPlaces.submitting") : t("childFriendlyPlaces.submitBtn")}
                   </button>
                 </div>
               </form>

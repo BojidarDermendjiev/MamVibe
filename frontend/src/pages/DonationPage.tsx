@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
+import { usePageSEO } from "@/hooks/useSEO";
 
 interface PresetTier {
   value: number;
@@ -49,6 +50,14 @@ export default function DonationPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<number>(10);
+
+  // Noindex: transactional page — not a primary SEO landing target.
+  usePageSEO({
+    title: "Support MamVibe — Donate",
+    description: "MamVibe is free for all families. If this platform has helped your family, consider supporting us with a small donation.",
+    canonical: "https://mamvibe.com/donate",
+    index: false,
+  });
   const [customAmount, setCustomAmount] = useState("");
   const [isCustom, setIsCustom] = useState(false);
 

@@ -89,24 +89,6 @@ export default function MainLayout() {
       : []),
   ];
 
-  const getActive = (): string | null => {
-    const match = navItems.find(
-      (item) =>
-        (item.url === "/" && location.pathname === "/") ||
-        (item.url !== "/" && location.pathname.startsWith(item.url)),
-    );
-    return match?.name ?? null;
-  };
-
-  const [activeTab, setActiveTab] = useState<string | null>(getActive);
-
-  useEffect(() => {
-    // getActive() reads navItems which is derived from isAuthenticated and location.pathname.
-    // Both deps are required: pathname drives which tab is active, isAuthenticated controls
-    // which nav items exist (authenticated-only items appear on login).
-    setActiveTab(getActive());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, isAuthenticated]);
 
   const handleLogout = async () => {
     const name = user?.displayName;
@@ -121,13 +103,14 @@ export default function MainLayout() {
     <div className="flex items-center gap-3 bg-white/10 border border-white/20 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = activeTab === item.name;
+        const isActive = item.url === "/"
+          ? location.pathname === "/"
+          : location.pathname.startsWith(item.url);
 
         return (
           <Link
-            key={item.name}
+            key={item.url}
             to={item.url}
-            onClick={() => setActiveTab(item.name)}
             className={clsx(
               "relative cursor-pointer text-sm font-semibold rounded-full transition-colors",
               mobile ? "px-4 py-2" : "px-3.5 py-2",
@@ -282,7 +265,8 @@ export default function MainLayout() {
             left: logo pill  |  center: tubelight nav pill  |  right: auth controls
           All use pointer-events-none on wrapper so page is still scrollable
       ══════════════════════════════════════════════════════ */}
-      <div
+      <nav
+        aria-label="Main navigation"
         className={clsx(
           "hidden md:block fixed top-0 left-0 right-0 z-50 pointer-events-none",
           "transition-transform duration-300 ease-in-out",
@@ -294,10 +278,13 @@ export default function MainLayout() {
           <Link
             to="/"
             className="pointer-events-auto flex items-center gap-2 bg-white/10 border border-white/20 backdrop-blur-lg rounded-full px-4 py-2 shadow-lg hover:bg-white/20 transition-colors"
+            aria-label="MamVibe — go to homepage"
           >
             <img
               src="/logo.png"
               alt="MamVibe"
+              width={28}
+              height={28}
               className="h-7 w-7 object-contain"
             />
             <span className="text-sm font-bold text-gray-800">MamVibe</span>
@@ -313,7 +300,7 @@ export default function MainLayout() {
             <AuthControls />
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* ══════════════════════════════════════════════════════
           MOBILE  < md
@@ -328,10 +315,12 @@ export default function MainLayout() {
           headerVisible ? "translate-y-0" : "-translate-y-full",
         )}
       >
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2" aria-label="MamVibe — go to homepage">
           <img
             src="/logo.png"
             alt="MamVibe"
+            width={38}
+            height={38}
             className="h-[38px] w-[38px] object-contain"
           />
           <span className="text-base font-bold text-gray-800">MamVibe</span>
@@ -343,16 +332,16 @@ export default function MainLayout() {
           MOBILE bottom floating pill — exactly like reference
           fixed bottom-0 … mb-6
       ══════════════════════════════════════════════════════ */}
-      <div className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-50 mb-6">
+      <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-50 mb-6">
         <NavPill mobile />
-      </div>
+      </nav>
 
       {/* ── Main content ── */}
       {/*
         Desktop: pt-20 clears the top floating row (pt-6 + ~44px pill + 8px gap ≈ 78px → pt-20)
         Mobile:  pt-16 clears the solid top bar; pb-24 clears the bottom pill
       */}
-      <main className="flex-1 animate-fade-in pt-14 pb-24 md:pt-20 md:pb-0">
+      <main id="main-content" className="flex-1 animate-fade-in pt-14 pb-24 md:pt-20 md:pb-0">
         <Outlet />
       </main>
 
@@ -360,11 +349,12 @@ export default function MainLayout() {
       <footer className="bg-white dark:bg-[#1a1825] border-t border-gray-200 dark:border-gray-700/60 py-10 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Brand / About — E-E-A-T: brand statement establishes trustworthiness */}
             <div>
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-gray-800 dark:text-gray-100">
                 <img
                   src="/logo.png"
-                  alt="MamVibe"
+                  alt="MamVibe logo"
                   className="h-6 w-6 object-contain"
                 />
                 {t("footer.about")}
@@ -373,28 +363,59 @@ export default function MainLayout() {
                 {t("footer.about_text")}
               </p>
             </div>
-            <div>
+
+            {/* Quick Links — semantic <nav> improves crawlability of footer links */}
+            <nav aria-label="Footer navigation">
               <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">{t("footer.links")}</h3>
-              <div className="space-y-2 text-sm">
-                <Link
-                  to="/browse"
-                  className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
-                >
-                  {t("nav.browse")}
-                </Link>
-                {!isAuthenticated && (
+              <ul className="space-y-2 text-sm">
+                <li>
                   <Link
-                    to="/register"
+                    to="/browse"
                     className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
                   >
-                    {t("nav.register")}
+                    {t("nav.browse")}
                   </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/doctor-reviews"
+                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
+                  >
+                    {t("nav.doctors")}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/child-friendly-places"
+                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
+                  >
+                    {t("nav.places")}
+                  </Link>
+                </li>
+                {!isAuthenticated && (
+                  <li>
+                    <Link
+                      to="/register"
+                      className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
+                    >
+                      {t("nav.register")}
+                    </Link>
+                  </li>
                 )}
-              </div>
-            </div>
+              </ul>
+            </nav>
+
+            {/* Contact — E-E-A-T: visible contact info is a Google trustworthiness signal */}
             <div>
               <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">{t("footer.contact")}</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">support@mamvibe.com</p>
+              <address className="not-italic">
+                <a
+                  href="mailto:support@mamvibe.com"
+                  className="text-gray-500 dark:text-gray-400 text-sm hover:text-primary transition-colors"
+                >
+                  support@mamvibe.com
+                </a>
+              </address>
             </div>
 
             {/* Download the app */}

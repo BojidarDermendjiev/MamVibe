@@ -1,0 +1,26 @@
+# robots.txt for MamVibe (https://mamvibe.com)
+# Generated: 2026-05-10
+
+User-agent: *
+Allow: /
+
+# Disallow admin, authenticated-only, and API routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /shipments/
+Disallow: /feedback
+Disallow: /donate/card
+
+# Disallow backend API and upload proxy paths
+Disallow: /api/
+Disallow: /hubs/
+Disallow: /uploads/
+
+# Sitemap location
+Sitemap: https://mamvibe.com/sitemap.xml

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
+import { usePageSEO } from '@/hooks/useSEO';
 import { Paperclip, Mic, MicOff, CornerDownLeft, X } from 'lucide-react';
 import { feedbackApi } from '../api/feedbackApi';
 import { FeedbackCategory } from '../types/feedback';
@@ -26,6 +27,14 @@ const categoryColor: Record<number, string> = {
 export default function FeedbackPage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuthStore();
+
+  // Noindex: feedback is authenticated/UGC content, not a primary landing page.
+  usePageSEO({
+    title: "Share Your Feedback",
+    description: "Help improve MamVibe. Share your experience, report bugs, or suggest new features.",
+    canonical: "https://mamvibe.com/feedback",
+    index: false,
+  });
 
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);

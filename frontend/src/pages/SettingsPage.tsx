@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import toast from "@/utils/toast";
+import { usePageSEO } from "@/hooks/useSEO";
 import {
   HiCamera,
   HiUser,
@@ -20,6 +21,8 @@ type Section = "profile" | "security" | "language" | "payment";
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
   const { user, setUser } = useAuthStore();
+
+  usePageSEO({ title: "Account Settings", description: "Manage your MamVibe account settings.", index: false });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState<Section>("profile");
 

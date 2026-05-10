@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePageSEO } from "@/hooks/useSEO";
 import toast from "@/utils/toast";
 import { itemsApi } from "../api/itemsApi";
 import { photosApi } from "../api/photosApi";
@@ -17,6 +18,9 @@ import CategorySpecificSection from "../components/items/CategorySpecificSection
 export default function CreateItemPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  // Noindex: authenticated form page — not a public SEO target.
+  usePageSEO({ title: "Create a Listing", description: "List your baby items for sale or donation on MamVibe.", index: false });
   const { categories } = useCategories();
   const { user } = useAuthStore();
   const [photos, setPhotos] = useState<File[]>([]);

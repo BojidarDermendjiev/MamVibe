@@ -14,11 +14,45 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     build: {
       sourcemap: false,
+      // Manual chunk splitting improves cache longevity:
+      // vendor libs change infrequently → long-lived browser cache.
+      // Page chunks change often → short cache with content-hash busting.
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            // Core React runtime — almost never changes
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'vendor-react';
+            }
+            // React Router — changes infrequently
+            if (id.includes('node_modules/react-router')) {
+              return 'vendor-router';
+            }
+            // Framer Motion — large; isolate to avoid polluting main bundle
+            if (id.includes('node_modules/framer-motion')) {
+              return 'vendor-motion';
+            }
+            // SignalR — large; only needed post-login
+            if (id.includes('node_modules/@microsoft/signalr')) {
+              return 'vendor-signalr';
+            }
+            // Stripe — large; only needed on payment pages
+            if (id.includes('node_modules/@stripe')) {
+              return 'vendor-stripe';
+            }
+            // i18n
+            if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
+              return 'vendor-i18n';
+            }
+          },
+        },
+      },
     },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+      dedupe: ["react", "react-dom", "react-dom/client"],
     },
     server: {
       headers: {

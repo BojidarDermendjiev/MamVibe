@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Star, ExternalLink, User, Plus, X, Clock } from "lucide-react";
+import { usePageSEO } from "@/hooks/useSEO";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import type { DoctorReviewDto, CreateDoctorReviewDto } from "../types/doctorReview";
 import { useAuthStore } from "../store/authStore";
@@ -54,6 +55,24 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 export default function DoctorReviewsPage() {
   const { t } = useTranslation();
   const { isAuthenticated, user } = useAuthStore();
+
+  // SEO: Community health content — E-E-A-T signals via schema markup.
+  // LocalBusiness/Physician schema helps Google surface these reviews
+  // for queries like "pediatrician reviews Sofia Bulgaria".
+  usePageSEO({
+    title: "Doctor Reviews for Parents in Bulgaria",
+    description:
+      "Read parent reviews of pediatricians, gynecologists, and other doctors across Bulgaria. Community-shared experiences to help you find the right doctor for your family.",
+    canonical: "https://mamvibe.com/doctor-reviews",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Doctor Reviews for Parents",
+      description:
+        "Community reviews of doctors across Bulgaria, shared by parents on MamVibe.",
+      url: "https://mamvibe.com/doctor-reviews",
+    },
+  });
   const isAdmin = user?.roles?.includes("Admin") ?? false;
 
   const [reviews, setReviews] = useState<DoctorReviewDto[]>([]);
@@ -188,6 +207,8 @@ export default function DoctorReviewsPage() {
         </div>
       )}
 
+      {/* Visually hidden h2 preserves heading hierarchy for crawlers. */}
+      <h2 className="sr-only">Reviews list</h2>
       <div className="space-y-4">
         {reviews.map((review) => (
           <div

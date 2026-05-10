@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageSEO } from '@/hooks/useSEO';
 import { itemsApi } from '../api/itemsApi';
 import { useCategories } from '../hooks/useCategories';
 import { useItems } from '../hooks/useItems';
@@ -16,6 +17,34 @@ export default function BrowseItemsPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { categories } = useCategories();
+
+  // SEO: the browse page is the primary commercial landing page.
+  // We set noindex on paginated / heavily-filtered views (page > 1)
+  // to prevent thin-content duplication in the index.
+  const currentPage = Number(searchParams.get('page') ?? 1);
+  const hasFilters = Boolean(
+    searchParams.get('category') ||
+    searchParams.get('search') ||
+    searchParams.get('age') ||
+    searchParams.get('listingType'),
+  );
+
+  usePageSEO({
+    title: "Browse Baby Items for Sale & Donation",
+    description:
+      "Browse hundreds of second-hand baby clothes, strollers, toys, car seats and more. Filter by category, age group, or price. Free to browse on MamVibe.",
+    canonical: "https://mamvibe.com/browse",
+    // Paginated and filtered URLs are supplementary — noindex prevents
+    // duplicate content dilution while keeping them crawlable via the base URL.
+    index: currentPage === 1 && !hasFilters,
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Browse Baby Items",
+      description: "Browse second-hand baby items for sale or donation on MamVibe.",
+      url: "https://mamvibe.com/browse",
+    },
+  });
   const { isAuthenticated } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -49,7 +78,12 @@ export default function BrowseItemsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
-      <h1 className="text-3xl font-bold mb-6 text-[#364153] dark:text-[#bdb9bc]">{t('nav.browse')}</h1>
+      {/* SEO: h1 must match the page's primary keyword intent.
+          "Browse Items" (from the nav key) is too generic — use the full
+          keyword phrase that matches the page's search intent. */}
+      <h1 className="text-3xl font-bold mb-6 text-[#364153] dark:text-[#bdb9bc]">
+        {t('nav.browse')}
+      </h1>
 
       <form onSubmit={handleSearch} className="mb-6">
         <Input

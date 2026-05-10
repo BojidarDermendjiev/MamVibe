@@ -4,10 +4,14 @@ import { HiPencil } from 'react-icons/hi';
 import { useAuthStore } from '../store/authStore';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
+import { usePageSEO } from '@/hooks/useSEO';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+
+  // Noindex: private profile page, not a public SEO landing target.
+  usePageSEO({ title: "My Profile", description: "View and edit your MamVibe profile.", index: false });
 
   if (!user) return null;
 

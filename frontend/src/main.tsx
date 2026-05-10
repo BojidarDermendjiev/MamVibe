@@ -25,7 +25,6 @@ createRoot(document.getElementById("root")!).render(
               borderRadius: '12px',
               border: '1px solid #c1c4e3',
             },
-            // Custom renders (our beautiful toast cards) handle their own styling
             custom: {
               style: {
                 background: 'transparent',

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageSEO } from '@/hooks/useSEO';
 import { HiPaperAirplane, HiSearch } from 'react-icons/hi';
 import { format, isToday, isYesterday } from 'date-fns';
 import { messagesApi } from '../api/messagesApi';
@@ -43,6 +44,8 @@ export default function ChatPage() {
   const navState = location.state as { displayName?: string; avatarUrl?: string } | null;
   const { t } = useTranslation();
   const { user } = useAuthStore();
+
+  usePageSEO({ title: "Messages", description: "Your MamVibe messages.", index: false });
   const { sendMessage, sendTyping, onMessage, onTyping } = useSignalR();
   const { markConversationRead, setActiveChatUserId } = useNotification();
   const [conversations, setConversations] = useState<Conversation[]>([]);

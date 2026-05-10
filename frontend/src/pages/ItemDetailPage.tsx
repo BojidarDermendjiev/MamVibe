@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageSEO } from '@/hooks/useSEO';
 import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
@@ -109,6 +110,105 @@ export default function ItemDetailPage() {
     } catch { /* ignore */ }
   };
 
+  // SEO: build Product + BreadcrumbList structured data from the loaded item.
+  // Product schema enables Google rich results (price, availability) in SERPs.
+  // BreadcrumbList enables the breadcrumb trail displayed under the title in SERPs.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const productSchema = useMemo(() => {
+    if (!item) return undefined;
+    const itemUrl = `https://mamvibe.com/items/${item.id}`;
+    const firstPhoto = item.photos?.[0]?.url;
+
+    const product = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: item.title,
+      description: item.description,
+      ...(firstPhoto ? { image: firstPhoto } : {}),
+      url: itemUrl,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "BGN",
+        price: item.price ?? 0,
+        availability: item.isActive
+          ? "https://schema.org/InStock"
+          : "https://schema.org/SoldOut",
+        url: itemUrl,
+        seller: {
+          "@type": "Person",
+          name: item.userDisplayName,
+        },
+      },
+      ...(sellerRating && sellerRating.count > 0
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: sellerRating.average,
+              reviewCount: sellerRating.count,
+              bestRating: 5,
+              worstRating: 1,
+            },
+          }
+        : {}),
+    };
+
+    const breadcrumb = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mamvibe.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Browse",
+          item: "https://mamvibe.com/browse",
+        },
+        ...(item.categoryName
+          ? [
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: item.categoryName,
+                item: `https://mamvibe.com/browse?category=${encodeURIComponent(item.categoryName)}`,
+              },
+              {
+                "@type": "ListItem",
+                position: 4,
+                name: item.title,
+                item: itemUrl,
+              },
+            ]
+          : [
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: item.title,
+                item: itemUrl,
+              },
+            ]),
+      ],
+    };
+
+    return [product, breadcrumb];
+  }, [item, sellerRating]);
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  usePageSEO({
+    title: item ? `${item.title} — ${item.categoryName}` : "Item Detail",
+    description: item
+      ? `${item.title} for ${item.price ? `${item.price} BGN` : "free"} on MamVibe. ${item.description?.slice(0, 100) ?? ""}`
+      : "View this item on MamVibe.",
+    canonical: item ? `https://mamvibe.com/items/${item.id}` : undefined,
+    image: item?.photos?.[0]?.url,
+    ogType: "product",
+    structuredData: productSchema,
+  });
+
   if (loading) return <LoadingSpinner size="lg" className="py-20" />;
   if (!item) return null;
 
@@ -116,6 +216,36 @@ export default function ItemDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Breadcrumb — improves navigation UX and enables BreadcrumbList rich result in SERPs */}
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-1.5 text-sm text-gray-400 flex-wrap">
+          <li>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link to="/browse" className="hover:text-primary transition-colors">Browse</Link>
+          </li>
+          {item.categoryName && (
+            <>
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link
+                  to={`/browse?category=${encodeURIComponent(item.categoryName)}`}
+                  className="hover:text-primary transition-colors"
+                >
+                  {item.categoryName}
+                </Link>
+              </li>
+            </>
+          )}
+          <li aria-hidden="true">/</li>
+          <li className="text-gray-600 dark:text-gray-300 truncate max-w-[200px]" aria-current="page">
+            {item.title}
+          </li>
+        </ol>
+      </nav>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Photo gallery */}
         <div>
@@ -180,9 +310,15 @@ export default function ItemDetailPage() {
             />
           </div>
 
-          <div className="prose prose-sm text-gray-700 mb-8">
-            <p className="whitespace-pre-wrap">{item.description}</p>
-          </div>
+          <section aria-labelledby="item-description-heading" className="mb-8">
+            {/* h2 establishes heading hierarchy: h1 (item title) → h2 (description section) */}
+            <h2 id="item-description-heading" className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Description
+            </h2>
+            <div className="prose prose-sm text-gray-700 dark:text-gray-300">
+              <p className="whitespace-pre-wrap">{item.description}</p>
+            </div>
+          </section>
 
           {/* Seller card */}
           <div className={`rounded-xl p-4 mb-6 ${isSellerReported ? 'bg-red-50 border border-red-200' : 'bg-peach-light'}`}>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { usePageSEO } from '@/hooks/useSEO';
 import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import EBillCard from '../components/payment/EBillCard';
@@ -24,6 +25,9 @@ import RateSellerModal from '../components/purchase/RateSellerModal';
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, ebills, loading, removeLikedItem, refreshTab } = useDashboard();
+
+  // Noindex: private, user-specific page. Should never appear in search results.
+  usePageSEO({ title: "My Dashboard", description: "Manage your MamVibe listings, purchases, and messages.", index: false });
   const { decrementPendingRequestCount } = useNotification();
 
   const handleListingLikeToggle = async (id: string) => {

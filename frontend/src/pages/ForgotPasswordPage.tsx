@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { authApi } from '../api/authApi';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import { usePageSEO } from '@/hooks/useSEO';
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
+
+  usePageSEO({ title: "Reset Your Password", description: "Reset your MamVibe account password.", index: false });
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);

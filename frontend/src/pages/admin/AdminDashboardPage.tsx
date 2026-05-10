@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageSEO } from '@/hooks/useSEO';
 import { HiUsers, HiCollection, HiGift, HiCurrencyDollar, HiSparkles } from 'react-icons/hi';
 import { adminApi, type DashboardStats } from '../../api/adminApi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -13,6 +14,7 @@ const MODEL_LABELS: Record<string, { name: string; tier: string; color: string }
 const DEFAULT_MODELS = Object.keys(MODEL_LABELS);
 
 export default function AdminDashboardPage() {
+  usePageSEO({ title: "Admin Dashboard", description: "MamVibe admin control panel.", index: false });
   const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
