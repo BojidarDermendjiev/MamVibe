@@ -190,6 +190,17 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    // Assistant chat: 20 messages per minute per IP — enough for real users, blocks abuse.
+    options.AddPolicy(RateLimitPolicies.Assistant, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
     // E-bill resend: 3 re-sends per minute per authenticated user.
     // Prevents email abuse while allowing reasonable retries.
     options.AddPolicy(RateLimitPolicies.EBillResend, context =>

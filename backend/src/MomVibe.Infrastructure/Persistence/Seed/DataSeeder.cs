@@ -179,10 +179,10 @@ public static class DataSeeder
         var items = new List<Item>
         {
             // Clothing - sell
-            new() { Id = Guid.NewGuid(), Title = "Боди Chicco 3-6 месеца", Description = "Бяло боди с копчета, носено само 2 пъти. Размер 68, Chicco. Отлично състояние.", CategoryId = Cat("clothes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 68, Price = 5.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 23, LikeCount = 4 },
-            new() { Id = Guid.NewGuid(), Title = "Зимен гащеризон за бебе", Description = "Топъл пухен гащеризон за зимата. Размер 86, ярко жълт. Ползван един сезон.", CategoryId = Cat("clothes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = 18.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 41, LikeCount = 7 },
-            new() { Id = Guid.NewGuid(), Title = "Пакет дрехи 12-18 месеца (10 бр.)", Description = "Смесен пакет: 3 боди, 3 потника, 2 панталончета, 2 блузки. Всичко в добро състояние.", CategoryId = Cat("clothes"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = null, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 67, LikeCount = 15 },
-            new() { Id = Guid.NewGuid(), Title = "Лятна рокля H&M 2-3 години", Description = "Сладка флорална рокля H&M Kids. Размер 98. Носена само за снимки, практически нова.", CategoryId = Cat("clothes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ClothingSize = 98, Price = 8.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 19, LikeCount = 3 },
+            new() { Id = Guid.NewGuid(), Title = "Боди Chicco 3-6 месеца", Description = "Бяло боди с копчета, носено само 2 пъти. Размер 68, Chicco. Отлично състояние.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 68, Price = 5.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 23, LikeCount = 4 },
+            new() { Id = Guid.NewGuid(), Title = "Зимен гащеризон за бебе", Description = "Топъл пухен гащеризон за зимата. Размер 86, ярко жълт. Ползван един сезон.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = 18.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 41, LikeCount = 7 },
+            new() { Id = Guid.NewGuid(), Title = "Пакет дрехи 12-18 месеца (10 бр.)", Description = "Смесен пакет: 3 боди, 3 потника, 2 панталончета, 2 блузки. Всичко в добро състояние.", CategoryId = Cat("clothing"), ListingType = ListingType.Donate, AgeGroup = AgeGroup.Infant, ClothingSize = 86, Price = null, UserId = user3Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 67, LikeCount = 15 },
+            new() { Id = Guid.NewGuid(), Title = "Лятна рокля H&M 2-3 години", Description = "Сладка флорална рокля H&M Kids. Размер 98. Носена само за снимки, практически нова.", CategoryId = Cat("clothing"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ClothingSize = 98, Price = 8.00m, UserId = user1Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 19, LikeCount = 3 },
 
             // Shoes - sell/donate
             new() { Id = Guid.NewGuid(), Title = "Буйки Lupilu 20 номер", Description = "Меки кожени буйки за първи стъпки. Номер 20. Леко ползвани, без следи.", CategoryId = Cat("shoes"), ListingType = ListingType.Sell, AgeGroup = AgeGroup.Toddler, ShoeSize = 20, Price = 12.00m, UserId = user2Id, IsActive = true, AiModerationStatus = AiModerationStatus.AutoApproved, ViewCount = 34, LikeCount = 6 },
@@ -268,7 +268,7 @@ public static class DataSeeder
                     Rating = 4,
                     Content = "Много компетентен специалист. Операцията мина перфектно и проследяването беше отлично. Малко трудно се вземат часове, но си струва чакането.",
                     SuperdocUrl = null,
-                    IsAnonymous = true,
+                    IsAnonymous = false,
                     IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-10),
                 },
@@ -313,7 +313,7 @@ public static class DataSeeder
                     Rating = 4,
                     Content = "Много добър специалист с голям опит. Установи проблема бързо и предложи ефективно лечение. Препоръчвам за деца с неврологични въпроси.",
                     SuperdocUrl = null,
-                    IsAnonymous = true,
+                    IsAnonymous = false,
                     IsApproved = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-3),
                 },

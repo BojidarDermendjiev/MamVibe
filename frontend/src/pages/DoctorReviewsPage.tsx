@@ -14,7 +14,6 @@ const EMPTY_FORM: CreateDoctorReviewDto = {
   rating: 5,
   content: "",
   superdocUrl: "",
-  isAnonymous: false,
 };
 
 function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
@@ -256,14 +255,8 @@ export default function DoctorReviewsPage() {
 
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                {review.isAnonymous ? (
-                  <span>Anonymous</span>
-                ) : (
-                  <>
-                    <User size={12} />
-                    <span>{review.authorDisplayName || "User"}</span>
-                  </>
-                )}
+                <User size={12} />
+                <span>{review.authorDisplayName || "User"}</span>
                 <span>·</span>
                 <span>{new Date(review.createdAt).toLocaleDateString()}</span>
               </div>
@@ -421,16 +414,6 @@ export default function DoctorReviewsPage() {
                   placeholder="https://superdoc.bg/..."
                 />
               </div>
-
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={form.isAnonymous}
-                  onChange={(e) => setForm((f) => ({ ...f, isAnonymous: e.target.checked }))}
-                  className="rounded"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Post anonymously</span>
-              </label>
 
               {submitError && (
                 <p className="text-sm text-red-500">{submitError}</p>

@@ -24,10 +24,11 @@ namespace MomVibe.Infrastructure.Migrations
                 });
 
             // Seed the default AI model setting
-            migrationBuilder.InsertData(
-                table: "AppSettings",
-                columns: new[] { "Key", "Value", "UpdatedAt" },
-                values: new object[] { "AI:Model", "claude-haiku-4-5-20251001", DateTime.UtcNow });
+            migrationBuilder.Sql("""
+                INSERT INTO "AppSettings" ("Key", "Value", "UpdatedAt")
+                VALUES ('AI:Model', 'claude-haiku-4-5-20251001', NOW() AT TIME ZONE 'UTC')
+                ON CONFLICT DO NOTHING;
+                """);
         }
 
         /// <inheritdoc />

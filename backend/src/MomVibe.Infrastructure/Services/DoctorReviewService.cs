@@ -97,7 +97,7 @@ public class DoctorReviewService : IDoctorReviewService
             Rating = dto.Rating,
             Content = dto.Content,
             SuperdocUrl = dto.SuperdocUrl,
-            IsAnonymous = dto.IsAnonymous,
+            IsAnonymous = false,
             IsApproved = false,
         };
         _db.DoctorReviews.Add(review);
@@ -117,13 +117,12 @@ public class DoctorReviewService : IDoctorReviewService
         await _db.SaveChangesAsync();
     }
 
-    /// <summary>Maps a <see cref="DoctorReview"/> entity to a <see cref="DoctorReviewDto"/>, honouring the anonymous flag.</summary>
     private static DoctorReviewDto MapToDto(DoctorReview r) => new()
     {
         Id = r.Id,
         UserId = r.UserId,
-        AuthorDisplayName = r.IsAnonymous ? null : r.User?.DisplayName,
-        AuthorAvatarUrl = r.IsAnonymous ? null : r.User?.AvatarUrl,
+        AuthorDisplayName = r.User?.DisplayName,
+        AuthorAvatarUrl = r.User?.AvatarUrl,
         DoctorName = r.DoctorName,
         Specialization = r.Specialization,
         ClinicName = r.ClinicName,

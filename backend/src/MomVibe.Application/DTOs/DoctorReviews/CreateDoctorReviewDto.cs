@@ -25,7 +25,4 @@ public class CreateDoctorReviewDto
 
     /// <summary>Gets or sets an optional link to the doctor's profile on Superdoc.</summary>
     public string? SuperdocUrl { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether the review should be published without the author's identity.</summary>
-    public bool IsAnonymous { get; set; }
 }

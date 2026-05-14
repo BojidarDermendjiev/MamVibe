@@ -25,7 +25,7 @@ export default function ScrollToTop() {
           transition={{ duration: 0.2, ease: 'easeOut' }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-28 right-5 md:bottom-8 md:right-8 z-50
+          className="fixed bottom-[5.5rem] right-4 md:bottom-6 md:right-6 z-50
                      w-10 h-10 rounded-full shadow-lg
                      bg-primary text-white
                      flex items-center justify-center

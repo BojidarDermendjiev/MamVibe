@@ -26,6 +26,7 @@ import Avatar from "../components/common/Avatar";
 import Button from "../components/common/Button";
 import CookieConsent from "../components/common/CookieConsent";
 import ScrollToTop from "../components/common/ScrollToTop";
+import MamVibeAssistantWidget from "../components/common/MamVibeAssistantWidget";
 import toast from "../utils/toast";
 
 export default function MainLayout() {
@@ -466,6 +467,7 @@ export default function MainLayout() {
 
       <CookieConsent />
       <ScrollToTop />
+      <MamVibeAssistantWidget />
     </div>
   );
 }

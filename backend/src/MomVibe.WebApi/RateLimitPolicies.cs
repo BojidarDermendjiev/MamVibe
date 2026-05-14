@@ -15,4 +15,6 @@ public static class RateLimitPolicies
     public const string Upload = "upload";
     /// <summary>Rate limit policy applied to the e-bill resend endpoint to prevent abuse.</summary>
     public const string EBillResend = "ebill_resend";
+    /// <summary>Rate limit policy applied to the AI assistant chat endpoint.</summary>
+    public const string Assistant = "assistant";
 }

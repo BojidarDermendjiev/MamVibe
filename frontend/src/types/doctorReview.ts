@@ -10,7 +10,6 @@ export interface DoctorReviewDto {
   rating: number;
   content: string;
   superdocUrl: string | null;
-  isAnonymous: boolean;
   isApproved: boolean;
   createdAt: string;
 }
@@ -23,5 +22,4 @@ export interface CreateDoctorReviewDto {
   rating: number;
   content: string;
   superdocUrl?: string;
-  isAnonymous: boolean;
 }

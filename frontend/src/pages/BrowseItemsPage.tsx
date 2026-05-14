@@ -12,6 +12,15 @@ import Pagination from '../components/common/Pagination';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
+import { AgeGroup } from '../types/item';
+
+const AGE_QUERY_MAP: Record<string, AgeGroup> = {
+  newborn: AgeGroup.Newborn,
+  infant: AgeGroup.Infant,
+  toddler: AgeGroup.Toddler,
+  preschool: AgeGroup.Preschool,
+  kids: AgeGroup.SchoolAge,
+};
 
 export default function BrowseItemsPage() {
   const { t } = useTranslation();
@@ -51,6 +60,7 @@ export default function BrowseItemsPage() {
   const { items, totalPages, loading, filter, setFilter, searchTerm, setSearchTerm } = useItems({
     initialFilter: {
       categoryId: searchParams.get('category') || undefined,
+      ageGroup: AGE_QUERY_MAP[searchParams.get('age') ?? ''],
       page: 1,
       pageSize: 12,
       sortBy: 'newest',
