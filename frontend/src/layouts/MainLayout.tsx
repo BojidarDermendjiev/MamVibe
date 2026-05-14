@@ -424,7 +424,7 @@ export default function MainLayout() {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-cyan-500 dark:text-cyan-400">{t("footer.download")}</h3>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 uppercase tracking-wide">
-                  Coming Soon
+                  {t("footer.coming_soon")}
                 </span>
               </div>
               <div className="flex flex-col gap-3">
@@ -437,7 +437,7 @@ export default function MainLayout() {
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                   </svg>
                   <div className="leading-tight">
-                    <div className="text-gray-400 dark:text-white/40 text-[10px]">Download on the</div>
+                    <div className="text-gray-400 dark:text-white/40 text-[10px]">{t("footer.app_store_label")}</div>
                     <div className="text-gray-500 dark:text-white/50 font-semibold text-sm">App Store</div>
                   </div>
                 </div>
@@ -454,13 +454,13 @@ export default function MainLayout() {
                     <path d="M3 20.5l9-9 6 6-13.5 3.5z" fill="#34A853"/>
                   </svg>
                   <div className="leading-tight">
-                    <div className="text-gray-400 dark:text-white/40 text-[10px]">GET IT ON</div>
+                    <div className="text-gray-400 dark:text-white/40 text-[10px]">{t("footer.google_play_label")}</div>
                     <div className="text-gray-500 dark:text-white/50 font-semibold text-sm">Google Play</div>
                   </div>
                 </div>
 
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center pt-1">
-                  Mobile app is in development — stay tuned!
+                  {t("footer.app_coming_soon")}
                 </p>
               </div>
             </div>

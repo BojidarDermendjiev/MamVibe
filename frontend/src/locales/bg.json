@@ -419,7 +419,11 @@
     "rights": "Всички права запазени.",
     "download": "Свалете приложението",
     "app_store": "Изтеглете от App Store",
-    "google_play": "Вземете от Google Play"
+    "google_play": "Вземете от Google Play",
+    "coming_soon": "Очаквайте",
+    "app_store_label": "Изтеглете от",
+    "google_play_label": "ВЗЕМЕТЕ ОТ",
+    "app_coming_soon": "Мобилното приложение е в разработка — очаквайте!"
   },
   "wallet": {
     "title": "Моят портфейл",

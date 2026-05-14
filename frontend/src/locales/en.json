@@ -419,7 +419,11 @@
     "rights": "All rights reserved.",
     "download": "Download the app",
     "app_store": "Download on the App Store",
-    "google_play": "Get it on Google Play"
+    "google_play": "Get it on Google Play",
+    "coming_soon": "Coming Soon",
+    "app_store_label": "Download on the",
+    "google_play_label": "GET IT ON",
+    "app_coming_soon": "Mobile app is in development — stay tuned!"
   },
   "wallet": {
     "title": "My Wallet",
