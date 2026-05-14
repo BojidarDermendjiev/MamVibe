@@ -423,7 +423,10 @@
     "coming_soon": "Очаквайте",
     "app_store_label": "Изтеглете от",
     "google_play_label": "ВЗЕМЕТЕ ОТ",
-    "app_coming_soon": "Мобилното приложение е в разработка — очаквайте!"
+    "app_coming_soon": "Мобилното приложение е в разработка — очаквайте!",
+    "social_instagram": "Последвайте ни в Instagram",
+    "social_tiktok": "Последвайте ни в TikTok",
+    "social_linkedin": "Последвайте ни в LinkedIn"
   },
   "wallet": {
     "title": "Моят портфейл",

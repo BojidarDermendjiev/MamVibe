@@ -423,7 +423,10 @@
     "coming_soon": "Coming Soon",
     "app_store_label": "Download on the",
     "google_play_label": "GET IT ON",
-    "app_coming_soon": "Mobile app is in development — stay tuned!"
+    "app_coming_soon": "Mobile app is in development — stay tuned!",
+    "social_instagram": "Follow us on Instagram",
+    "social_tiktok": "Follow us on TikTok",
+    "social_linkedin": "Follow us on LinkedIn"
   },
   "wallet": {
     "title": "My Wallet",
