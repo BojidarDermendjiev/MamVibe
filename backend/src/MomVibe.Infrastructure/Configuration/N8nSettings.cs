@@ -106,4 +106,11 @@ public class N8nSettings
     public string WalletRefund { get; set; } = "wallet-refund";
     /// <summary>Webhook endpoint for escrow funds released to the seller events.</summary>
     public string WalletEscrowReleased { get; set; } = "wallet-escrow-released";
+
+    /// <summary>
+    /// HMAC-SHA256 shared secret used to sign outbound webhook payloads.
+    /// n8n workflows should validate the <c>X-MamVibe-Signature</c> header.
+    /// Generate with: <c>openssl rand -base64 32</c>
+    /// </summary>
+    public string WebhookSecret { get; set; } = string.Empty;
 }

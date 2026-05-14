@@ -92,10 +92,13 @@ public static class DependencyInjection
 
         // n8n Webhook integration
         services.Configure<N8nSettings>(configuration.GetSection("N8n"));
+        var n8nSecret = configuration["N8n:WebhookSecret"] ?? string.Empty;
+        services.AddTransient(_ => new N8nHmacHandler(n8nSecret));
         services.AddHttpClient("N8n", client =>
         {
             client.Timeout = TimeSpan.FromSeconds(5);
-        });
+        })
+        .AddHttpMessageHandler<N8nHmacHandler>();
         services.AddSingleton<N8nWebhookService>();
         services.AddSingleton<IN8nWebhookService>(sp => sp.GetRequiredService<N8nWebhookService>());
         services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<N8nWebhookService>());

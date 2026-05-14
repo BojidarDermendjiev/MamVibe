@@ -27,8 +27,61 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme}"
-      JwtSettings__Secret: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
+
+      # ── Auth ────────────────────────────────────────────────────────────────
+      JwtSettings__Secret: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
+      GoogleAuth__ClientId: "${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID must be set in .env}"
+      GoogleAuth__ClientSecret: "${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET must be set in .env}"
+
+      # ── Stripe ──────────────────────────────────────────────────────────────
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY:?STRIPE_SECRET_KEY must be set in .env}"
+      Stripe__PublishableKey: "${STRIPE_PUBLISHABLE_KEY}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET must be set in .env}"
+      Stripe__WalletWebhookSecret: "${STRIPE_WALLET_WEBHOOK_SECRET}"
+
+      # ── Anthropic AI ────────────────────────────────────────────────────────
+      Anthropic__ApiKey: "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY must be set in .env}"
+
+      # ── Cloudflare Turnstile ────────────────────────────────────────────────
+      Cloudflare__TurnstileSiteKey: "${TURNSTILE_SITE_KEY}"
+      Cloudflare__TurnstileSecretKey: "${TURNSTILE_SECRET_KEY:?TURNSTILE_SECRET_KEY must be set in .env}"
+
+      # ── SMTP ────────────────────────────────────────────────────────────────
+      Smtp__Host: "${SMTP_HOST}"
+      Smtp__Port: "${SMTP_PORT:-587}"
+      Smtp__Username: "${SMTP_USERNAME}"
+      Smtp__Password: "${SMTP_PASSWORD}"
+      Smtp__FromEmail: "${SMTP_FROM_EMAIL:-noreply@mamvibe.com}"
+      Smtp__FromName: "${SMTP_FROM_NAME:-MamVibe}"
+      Smtp__EnableSsl: "true"
+
+      # ── Couriers ────────────────────────────────────────────────────────────
+      Econt__Username: "${ECONT_USERNAME}"
+      Econt__Password: "${ECONT_PASSWORD}"
+      Speedy__Username: "${SPEEDY_USERNAME}"
+      Speedy__Password: "${SPEEDY_PASSWORD}"
+      BoxNow__ApiKey: "${BOXNOW_API_KEY}"
+      PigeonExpress__ApiKey: "${PIGEONEXPRESS_API_KEY}"
+
+      # ── TakeANap receipts ───────────────────────────────────────────────────
+      TakeANap__ApiKey: "${TAKEANAP_API_KEY}"
+      TakeANap__ApiSecret: "${TAKEANAP_API_SECRET}"
+      TakeANap__ShopId: "${TAKEANAP_SHOP_ID}"
+
+      # ── Nekorekten ──────────────────────────────────────────────────────────
+      Nekorekten__ApiKey: "${NEKOREKTEN_API_KEY}"
+
+      # ── n8n ─────────────────────────────────────────────────────────────────
+      N8n__BaseUrl: "${N8N_BASE_URL:-http://n8n:5678/webhook/}"
+      N8n__Enabled: "${N8N_ENABLED:-false}"
+      N8n__WebhookSecret: "${N8N_WEBHOOK_SECRET:?N8N_WEBHOOK_SECRET must be set in .env}"
+
+      # ── Admin seed (disable after first deploy) ──────────────────────────────
+      AdminSeed__Enabled: "${ADMIN_SEED_ENABLED:-false}"
+      AdminSeed__Email: "${ADMIN_EMAIL}"
+      AdminSeed__Password: "${ADMIN_PASSWORD}"
+      AdminSeed__DisplayName: "${ADMIN_DISPLAY_NAME:-Admin}"
     ports:
       - "8080:8080"
     volumes:

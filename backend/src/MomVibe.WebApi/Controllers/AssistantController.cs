@@ -1,5 +1,6 @@
 namespace MomVibe.WebApi.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Application.Interfaces;
@@ -11,6 +12,7 @@ using Application.DTOs.Assistant;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = AuthorizationPolicies.ActiveUser)]
 [EnableRateLimiting(RateLimitPolicies.Assistant)]
 public class AssistantController : ControllerBase
 {
