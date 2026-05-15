@@ -117,7 +117,7 @@ public static class DataSeeder
 
         var categories = new[]
         {
-            new Category { Name = "Clothes", Slug = "clothes", Description = "Baby and maternity clothing" },
+            new Category { Name = "Clothing", Slug = "clothing", Description = "Baby and maternity clothing" },
             new Category { Name = "Shoes", Slug = "shoes", Description = "Kids shoes and footwear" },
             new Category { Name = "Toys", Slug = "toys", Description = "Toys and games" },
             new Category { Name = "Car Seats", Slug = "car-seats", Description = "Child car seats and boosters" },
