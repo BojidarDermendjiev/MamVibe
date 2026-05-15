@@ -81,3 +81,9 @@ jobs:
           N8N_ENCRYPTION_KEY: ci-build-placeholder-not-used-at-runtime
           N8N_ADMIN_PASSWORD: ci-build-placeholder-not-used-at-runtime
           N8N_WEBHOOK_SECRET: ci-build-placeholder-not-used-at-runtime
+          GOOGLE_CLIENT_ID: ci-build-placeholder-not-used-at-runtime
+          GOOGLE_CLIENT_SECRET: ci-build-placeholder-not-used-at-runtime
+          STRIPE_SECRET_KEY: ci-build-placeholder-not-used-at-runtime
+          STRIPE_WEBHOOK_SECRET: ci-build-placeholder-not-used-at-runtime
+          ANTHROPIC_API_KEY: ci-build-placeholder-not-used-at-runtime
+          TURNSTILE_SECRET_KEY: ci-build-placeholder-not-used-at-runtime
