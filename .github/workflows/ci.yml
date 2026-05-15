@@ -80,3 +80,4 @@ jobs:
           JWT_SECRET: ci-build-placeholder-not-used-at-runtime
           N8N_ENCRYPTION_KEY: ci-build-placeholder-not-used-at-runtime
           N8N_ADMIN_PASSWORD: ci-build-placeholder-not-used-at-runtime
+          N8N_WEBHOOK_SECRET: ci-build-placeholder-not-used-at-runtime
