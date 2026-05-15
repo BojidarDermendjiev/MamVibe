@@ -29,7 +29,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasIndex(c => c.Slug).IsUnique();
 
         builder.HasData(
-            new Category { Id = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), Name = "Clothes", Description = "Baby clothing and accessories", Slug = "clothes", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Category { Id = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), Name = "Clothing", Description = "Baby clothing and accessories", Slug = "clothing", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Category { Id = Guid.Parse("b2c3d4e5-f6a7-8901-bcde-f12345678901"), Name = "Strollers", Description = "Baby strollers and carriers", Slug = "strollers", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Category { Id = Guid.Parse("c3d4e5f6-a7b8-9012-cdef-123456789012"), Name = "Other", Description = "Other baby supplies and essentials", Slug = "other", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Category { Id = Guid.Parse("d4e5f6a7-b8c9-0123-def0-234567890123"), Name = "Car Seats", Description = "Baby and toddler car seats", Slug = "car-seats", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },

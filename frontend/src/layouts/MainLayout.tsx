@@ -29,84 +29,22 @@ import ScrollToTop from "../components/common/ScrollToTop";
 import MamVibeAssistantWidget from "../components/common/MamVibeAssistantWidget";
 import toast from "../utils/toast";
 
-export default function MainLayout() {
-  const { t } = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const { unreadCount, pendingRequestCount } = useNotification();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+/* ─── NavPill ─────────────────────────────────────────────────────────────── */
 
-  // Hide header on scroll-down, reveal on scroll-up
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (y < 10) {
-        setHeaderVisible(true);
-      } else if (y > lastScrollY.current + 4) {
-        setHeaderVisible(false);
-      } else if (y < lastScrollY.current - 4) {
-        setHeaderVisible(true);
-      }
-      lastScrollY.current = y;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+interface NavPillProps {
+  navItems: NavItem[];
+  pathname: string;
+  mobile?: boolean;
+}
 
-  const navItems: NavItem[] = [
-    { name: t("nav.home") || "Home", url: "/", icon: Home },
-    { name: t("nav.browse") || "Browse", url: "/browse", icon: Search },
-    { name: t("nav.doctors") || "Doctors", url: "/doctor-reviews", icon: Stethoscope },
-    { name: t("nav.places") || "Places", url: "/child-friendly-places", icon: Baby },
-    ...(isAuthenticated
-      ? [
-          {
-            name: t("nav.create") || "Create",
-            url: "/create",
-            icon: PlusCircle,
-          },
-          {
-            name: t("nav.chat") || "Chat",
-            url: "/chat",
-            icon: MessageCircle,
-            badge: unreadCount > 0 ? unreadCount : undefined,
-          },
-          {
-            name: t("nav.dashboard") || "Dashboard",
-            url: "/dashboard",
-            icon: LayoutDashboard,
-            badge: pendingRequestCount > 0 ? pendingRequestCount : undefined,
-          },
-          {
-            name: t("nav.feedback") || "Feedback",
-            url: "/feedback",
-            icon: MessageSquare,
-          },
-        ]
-      : []),
-  ];
-
-
-  const handleLogout = async () => {
-    const name = user?.displayName;
-    try { await authApi.revoke(); } catch { /* best effort */ }
-    logout();
-    navigate("/");
-    toast.success(name ? `See you soon, ${name}! 👋` : 'See you soon! 👋');
-  };
-
-  /* ─── Shared pill nav (used by both desktop center + mobile bottom) ─── */
-  const NavPill = ({ mobile = false }: { mobile?: boolean }) => (
+function NavPill({ navItems, pathname, mobile = false }: NavPillProps) {
+  return (
     <div className="flex items-center gap-3 bg-white/10 border border-white/20 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = item.url === "/"
-          ? location.pathname === "/"
-          : location.pathname.startsWith(item.url);
+          ? pathname === "/"
+          : pathname.startsWith(item.url);
 
         return (
           <Link
@@ -119,12 +57,10 @@ export default function MainLayout() {
               isActive && "text-gray-900",
             )}
           >
-            {/* Desktop: text label */}
             <span className={mobile ? "hidden" : "hidden md:inline whitespace-nowrap"}>
               {item.name}
             </span>
 
-            {/* Icon (always on mobile pill, md:hidden on desktop) */}
             <span className={clsx("relative", mobile ? "block" : "md:hidden")}>
               <Icon size={18} strokeWidth={2.5} />
               {!!item.badge && item.badge > 0 && (
@@ -134,14 +70,12 @@ export default function MainLayout() {
               )}
             </span>
 
-            {/* Desktop badge on text label */}
             {!mobile && !!item.badge && item.badge > 0 && (
               <span className="hidden md:flex absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full h-3.5 min-w-3.5 items-center justify-center px-0.5 leading-none">
                 {item.badge > 9 ? "9+" : item.badge}
               </span>
             )}
 
-            {/* Tubelight glow — exactly as reference */}
             {isActive && (
               <motion.div
                 layoutId={mobile ? "lamp-mobile" : "lamp"}
@@ -161,24 +95,46 @@ export default function MainLayout() {
       })}
     </div>
   );
+}
 
-  /* ─── Auth controls (shared) ─── */
-  const AuthControls = () => (
-    <div className="flex items-center gap-2">
-      {/* Dark mode toggle */}
-      <button
-        onClick={toggleTheme}
-        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 hover:scale-110 active:scale-95 transition-all duration-200 text-gray-700 dark:text-gray-200"
-      >
-        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-      </button>
-      <LanguageSwitcher />
+/* ─── AuthControls ────────────────────────────────────────────────────────── */
 
-      {isAuthenticated ? (
-        <>
-          {/* Avatar dropdown */}
+function AuthControls() {
+  const { theme, toggleTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = async () => {
+    const name = user?.displayName;
+    try { await authApi.revoke(); } catch { /* best effort */ }
+    logout();
+    navigate("/");
+    toast.success(name ? `See you soon, ${name}! 👋` : 'See you soon! 👋');
+  };
+
+  return (
+    <>
+      {dropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setDropdownOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 hover:scale-110 active:scale-95 transition-all duration-200 text-gray-700 dark:text-gray-200"
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+        <LanguageSwitcher />
+
+        {isAuthenticated ? (
           <div className="relative">
             <button
               onClick={() => setDropdownOpen((v) => !v)}
@@ -232,34 +188,86 @@ export default function MainLayout() {
               </div>
             )}
           </div>
-        </>
-      ) : (
-        <Button
-          size="sm"
-          variant="primary"
-          onClick={() => navigate("/login")}
-          className="rounded-full gap-1.5"
-        >
-          <LogIn size={14} />
-          <span className="hidden sm:inline">
-            {t("nav.login") || "Sign In"}
-          </span>
-        </Button>
-      )}
-    </div>
+        ) : (
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => navigate("/login")}
+            className="rounded-full gap-1.5"
+          >
+            <LogIn size={14} />
+            <span className="hidden sm:inline">
+              {t("nav.login") || "Sign In"}
+            </span>
+          </Button>
+        )}
+      </div>
+    </>
   );
+}
+
+/* ─── MainLayout ──────────────────────────────────────────────────────────── */
+
+export default function MainLayout() {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const { isAuthenticated } = useAuthStore();
+  const { unreadCount, pendingRequestCount } = useNotification();
+
+  // Hide header on scroll-down, reveal on scroll-up
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 10) {
+        setHeaderVisible(true);
+      } else if (y > lastScrollY.current + 4) {
+        setHeaderVisible(false);
+      } else if (y < lastScrollY.current - 4) {
+        setHeaderVisible(true);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const navItems: NavItem[] = [
+    { name: t("nav.home") || "Home", url: "/", icon: Home },
+    { name: t("nav.browse") || "Browse", url: "/browse", icon: Search },
+    { name: t("nav.doctors") || "Doctors", url: "/doctor-reviews", icon: Stethoscope },
+    { name: t("nav.places") || "Places", url: "/child-friendly-places", icon: Baby },
+    ...(isAuthenticated
+      ? [
+          {
+            name: t("nav.create") || "Create",
+            url: "/create",
+            icon: PlusCircle,
+          },
+          {
+            name: t("nav.chat") || "Chat",
+            url: "/chat",
+            icon: MessageCircle,
+            badge: unreadCount > 0 ? unreadCount : undefined,
+          },
+          {
+            name: t("nav.dashboard") || "Dashboard",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+            badge: pendingRequestCount > 0 ? pendingRequestCount : undefined,
+          },
+          {
+            name: t("nav.feedback") || "Feedback",
+            url: "/feedback",
+            icon: MessageSquare,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#1a1825] transition-colors duration-300">
-      {/* Full-screen overlay — closes dropdown when clicking anywhere on the page */}
-      {dropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setDropdownOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
       {/* ══════════════════════════════════════════════════════
           DESKTOP  ≥ md
           Three floating elements at top — exactly like reference:
@@ -293,7 +301,7 @@ export default function MainLayout() {
 
           {/* Tubelight pill — perfectly centered (absolute) */}
           <div className="pointer-events-auto absolute left-1/2 top-6 -translate-x-1/2">
-            <NavPill />
+            <NavPill navItems={navItems} pathname={location.pathname} />
           </div>
 
           {/* Auth — top right (ml-auto pushes it right) */}
@@ -334,7 +342,7 @@ export default function MainLayout() {
           fixed bottom-0 … mb-6
       ══════════════════════════════════════════════════════ */}
       <nav aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-50 mb-6">
-        <NavPill mobile />
+        <NavPill navItems={navItems} pathname={location.pathname} mobile />
       </nav>
 
       {/* ── Main content ── */}
