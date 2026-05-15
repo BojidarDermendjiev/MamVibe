@@ -10,6 +10,7 @@ export interface DoctorReviewDto {
   rating: number;
   content: string;
   superdocUrl: string | null;
+  isAnonymous: boolean;
   isApproved: boolean;
   createdAt: string;
 }
