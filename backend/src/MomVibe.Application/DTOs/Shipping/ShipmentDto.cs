@@ -60,4 +60,6 @@ public class ShipmentDto
     public string? LabelUrl { get; set; }
     /// <summary>Gets or sets the timestamp when this shipment record was created.</summary>
     public DateTime CreatedAt { get; set; }
+    /// <summary>Gets or sets the seller (sender) user ID, used by the frontend to distinguish role.</summary>
+    public string? SellerId { get; set; }
 }

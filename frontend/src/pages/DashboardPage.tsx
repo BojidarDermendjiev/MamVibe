@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/useSEO';
 import toast from '@/utils/toast';
+import { useAuthStore } from '../store/authStore';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import EBillCard from '../components/payment/EBillCard';
 import { itemsApi } from '../api/itemsApi';
@@ -24,6 +25,7 @@ import RateSellerModal from '../components/purchase/RateSellerModal';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const { user } = useAuthStore();
   const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, shipments, ebills, loading, removeLikedItem, refreshTab } = useDashboard();
 
   // Noindex: private, user-specific page. Should never appear in search results.
@@ -258,15 +260,33 @@ export default function DashboardPage() {
           )}
 
           {/* ── My Shipments ── */}
-          {tab === 'shipments' && (
-            shipments.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>
-            ) : (
-              <div className="space-y-3">
-                {shipments.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
+          {tab === 'shipments' && (() => {
+            const toSend = shipments.filter(s => s.sellerId === user?.id);
+            const incoming = shipments.filter(s => s.sellerId !== user?.id);
+            if (shipments.length === 0) {
+              return <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>;
+            }
+            return (
+              <div className="space-y-8">
+                {toSend.length > 0 && (
+                  <section>
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.to_send_section')}</h2>
+                    <div className="space-y-3">
+                      {toSend.map((s) => <ShipmentCard key={s.id} shipment={s} currentUserId={user?.id} />)}
+                    </div>
+                  </section>
+                )}
+                {incoming.length > 0 && (
+                  <section>
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.incoming_section')}</h2>
+                    <div className="space-y-3">
+                      {incoming.map((s) => <ShipmentCard key={s.id} shipment={s} currentUserId={user?.id} />)}
+                    </div>
+                  </section>
+                )}
               </div>
-            )
-          )}
+            );
+          })()}
 
           {/* ── E-Bills ── */}
           {tab === 'ebills' && (

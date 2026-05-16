@@ -48,6 +48,7 @@ export interface Shipment {
   weight: number;
   labelUrl: string | null;
   createdAt: string;
+  sellerId: string | null;
 }
 
 export interface CourierOffice {
