@@ -136,9 +136,9 @@ export default function DashboardPage() {
           onCancel={() => setReputationModal(null)}
         />
       )}
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('dashboard.title')}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">{t('dashboard.title')}</h1>
 
-      <div className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit">
+      <div className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit mx-auto">
         {tabs.map((t) => (
           <button
             key={t.key}
