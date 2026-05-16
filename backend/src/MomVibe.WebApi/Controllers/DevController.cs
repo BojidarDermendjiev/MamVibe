@@ -163,4 +163,33 @@ public class DevController : ControllerBase
 
         return Ok(new { message = "Demo orders seeded. Open Dashboard → My Shipments." });
     }
+
+    /// <summary>
+    /// Removes all demo data created by seed-demo-order.
+    /// Development environment only.
+    /// </summary>
+    [HttpDelete("seed-demo-order")]
+    public async Task<IActionResult> CleanupDemoOrder()
+    {
+        if (!_env.IsDevelopment())
+            return NotFound();
+
+        var demoShipments = _context.Shipments
+            .Where(s => s.TrackingNumber != null && s.TrackingNumber.StartsWith("DEMO-"));
+        _context.Shipments.RemoveRange(demoShipments);
+
+        var demoItemIds = _context.Items
+            .Where(i => i.Description != null && i.Description.Contains("Seeded for UI demo"))
+            .Select(i => i.Id);
+
+        var demoPayments = _context.Payments.Where(p => demoItemIds.Contains(p.ItemId));
+        _context.Payments.RemoveRange(demoPayments);
+
+        var demoItems = _context.Items
+            .Where(i => i.Description != null && i.Description.Contains("Seeded for UI demo"));
+        _context.Items.RemoveRange(demoItems);
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Demo data removed." });
+    }
 }
