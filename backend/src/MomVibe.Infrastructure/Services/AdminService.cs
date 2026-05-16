@@ -28,6 +28,7 @@ public class AdminService : IAdminService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IMemoryCache _cache;
+    private readonly IAuditLogService _audit;
 
     public AdminService(
         UserManager<ApplicationUser> userManager,
@@ -36,7 +37,8 @@ public class AdminService : IAdminService
         IMapper mapper,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IAuditLogService audit)
     {
         this._userManager = userManager;
         this._context = context;
@@ -45,6 +47,7 @@ public class AdminService : IAdminService
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._cache = cache;
+        this._audit = audit;
     }
 
     public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(int page = 1, int pageSize = 20, string? search = null)
@@ -99,7 +102,8 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = true;
         await this._userManager.UpdateAsync(user);
-        this._cache.Remove($"blocked:{userId}"); // Invalidate immediately — don't wait for TTL
+        this._cache.Remove($"blocked:{userId}");
+        await this._audit.LogAsync("admin", "Admin.BlockUser", success: true, targetId: userId);
 
         try
         {
@@ -121,7 +125,8 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = false;
         await this._userManager.UpdateAsync(user);
-        this._cache.Remove($"blocked:{userId}"); // Invalidate immediately — don't wait for TTL
+        this._cache.Remove($"blocked:{userId}");
+        await this._audit.LogAsync("admin", "Admin.UnblockUser", success: true, targetId: userId);
     }
 
     public async Task<DashboardStatsDto> GetDashboardStatsAsync()

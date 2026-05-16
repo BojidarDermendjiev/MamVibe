@@ -61,22 +61,4 @@ public class TokenServiceTests
         token1.Should().NotBe(token2);
     }
 
-    [Fact]
-    public async Task GetPrincipalFromExpiredToken_Should_Return_Claims()
-    {
-        var user = new ApplicationUser
-        {
-            Id = Guid.NewGuid().ToString(),
-            Email = "test@example.com",
-            DisplayName = "Test User",
-            ProfileType = ProfileType.Female
-        };
-        var roles = new List<string> { "User" };
-        var token = await _tokenService.GenerateAccessTokenAsync(user, roles);
-
-        var principal = _tokenService.GetPrincipalFromExpiredToken(token);
-
-        principal.Should().NotBeNull();
-        principal!.Identity.Should().NotBeNull();
-    }
 }

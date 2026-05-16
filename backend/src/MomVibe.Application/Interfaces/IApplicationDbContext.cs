@@ -57,6 +57,9 @@ public interface IApplicationDbContext
     /// <summary>Gets the set of admin moderation action logs for items.</summary>
     DbSet<ItemModerationLog> ItemModerationLogs { get; }
 
+    /// <summary>Gets the append-only security audit log.</summary>
+    DbSet<AuditLog> AuditLogs { get; }
+
     /// <summary>Gets the underlying <see cref="DatabaseFacade"/> for executing raw SQL and managing transactions.</summary>
     DatabaseFacade Database { get; }
 

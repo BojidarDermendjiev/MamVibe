@@ -31,6 +31,7 @@ public class AuthService : IAuthService
     private readonly IEmailService _emailService;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly IAuditLogService _audit;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -40,7 +41,8 @@ public class AuthService : IAuthService
         IConfiguration configuration,
         IEmailService emailService,
         IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings)
+        IOptions<N8nSettings> n8nSettings,
+        IAuditLogService audit)
     {
         this._userManager = userManager;
         this._tokenService = tokenService;
@@ -50,6 +52,7 @@ public class AuthService : IAuthService
         this._emailService = emailService;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._audit = audit;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -95,16 +98,27 @@ public class AuthService : IAuthService
     {
         var user = await this._userManager.FindByEmailAsync(request.Email);
         if (user == null)
+        {
+            await this._audit.LogAsync("anonymous", "Auth.Login", success: false, details: "User not found");
             throw new UnauthorizedAccessException("Invalid email or password.");
+        }
 
         if (user.IsBlocked)
+        {
+            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, details: "Account blocked");
             throw new UnauthorizedAccessException("Your account has been blocked.");
+        }
 
         var isValid = await this._userManager.CheckPasswordAsync(user, request.Password);
         if (!isValid)
+        {
+            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, details: "Invalid password");
             throw new UnauthorizedAccessException("Invalid email or password.");
+        }
 
-        return await GenerateAuthResponseAsync(user);
+        var response = await GenerateAuthResponseAsync(user);
+        await this._audit.LogAsync(user.Id, "Auth.Login", success: true);
+        return response;
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)

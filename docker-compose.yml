@@ -14,7 +14,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - mamvibe-net
+      - db-net
 
   api:
     build:
@@ -86,8 +86,10 @@ services:
       - "8080:8080"
     volumes:
       - uploads:/app/wwwroot/uploads
+      - logs:/app/logs
     networks:
       - mamvibe-net
+      - db-net
 
   frontend:
     build:
@@ -97,7 +99,7 @@ services:
     depends_on:
       - api
     ports:
-      - "80:80"
+      - "80:8080"
     networks:
       - mamvibe-net
 
@@ -137,7 +139,10 @@ volumes:
   pgdata:
   n8n_data:
   uploads:
+  logs:
 
 networks:
   mamvibe-net:
+    driver: bridge
+  db-net:
     driver: bridge
