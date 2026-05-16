@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
 
 using Application.DTOs.Items;
@@ -81,12 +82,14 @@ public class ItemsController : ControllerBase
     /// <summary>
     /// Increments the view count for the specified item.
     /// Intended to be called by the client after rendering an item detail page.
+    /// Rate-limited to 30 increments per IP per minute to prevent artificial view inflation.
     /// </summary>
     /// <param name="id">The GUID of the item whose view count should be incremented.</param>
     /// <returns>
     /// 204 No Content on success.
     /// </returns>
     [HttpPost("{id:guid}/view")]
+    [EnableRateLimiting(RateLimitPolicies.IncrementView)]
     public async Task<IActionResult> IncrementView(Guid id)
     {
         await this._itemService.IncrementViewCountAsync(id);

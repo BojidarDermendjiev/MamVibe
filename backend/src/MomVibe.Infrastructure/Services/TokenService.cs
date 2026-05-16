@@ -12,8 +12,8 @@ using Domain.Entities;
 using Application.Interfaces;
 
 /// <summary>
-/// Service for JWT operations: generates signed access tokens with user and role claims,
-/// creates cryptographically secure refresh tokens, and extracts principals from expired tokens.
+/// Service for JWT operations: generates signed access tokens with user and role claims
+/// and creates cryptographically secure refresh tokens.
 /// Configured via JwtSettings (Secret, Issuer, Audience, expirations) and uses HMAC-SHA256 symmetric signing.
 /// </summary>
 public class TokenService : ITokenService
@@ -63,29 +63,5 @@ public class TokenService : ITokenService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
-    }
-
-    public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
-    {
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(this._configuration["JwtSettings:Secret"]!)),
-            ValidateLifetime = false,
-            ValidIssuer = this._configuration["JwtSettings:Issuer"],
-            ValidAudience = this._configuration["JwtSettings:Audience"]
-        };
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-
-        if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            return null;
-
-        return principal;
     }
 }

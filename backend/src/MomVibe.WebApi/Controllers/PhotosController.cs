@@ -9,7 +9,7 @@ using Application.Interfaces;
 /// <summary>
 /// Authenticated API controller for photo management:
 /// - Upload a single photo and receive its URL
-/// - Delete a photo by its URL
+/// - Delete a photo by its URL (ownership verified against the requesting user)
 /// All endpoints require authentication via the controller-level <c>[Authorize]</c> attribute.
 /// </summary>
 
@@ -20,14 +20,17 @@ using Application.Interfaces;
 public class PhotosController : ControllerBase
 {
     private readonly IPhotoService _photoService;
+    private readonly ICurrentUserService _currentUserService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PhotosController"/>.
     /// </summary>
     /// <param name="photoService">Service handling photo storage operations.</param>
-    public PhotosController(IPhotoService photoService)
+    /// <param name="currentUserService">Service providing the current authenticated user context.</param>
+    public PhotosController(IPhotoService photoService, ICurrentUserService currentUserService)
     {
         this._photoService = photoService;
+        this._currentUserService = currentUserService;
     }
 
     /// <summary>
@@ -57,15 +60,23 @@ public class PhotosController : ControllerBase
 
     /// <summary>
     /// Deletes a photo by its URL.
+    /// Only succeeds when the photo belongs to an item owned by the requesting user.
     /// </summary>
     /// <param name="url">The URL of the photo to delete.</param>
     /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 403 Forbidden if the photo does not belong to the requesting user.<br/>
     /// 204 No Content on successful deletion.
     /// </returns>
     [HttpDelete]
     public async Task<IActionResult> Delete([FromQuery] string url)
     {
-        await this._photoService.DeletePhotoAsync(url);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+
+        var deleted = await this._photoService.DeletePhotoWithOwnershipCheckAsync(url, userId);
+        if (!deleted) return StatusCode(403, new { message = "You do not have permission to delete this photo." });
+
         return NoContent();
     }
 }

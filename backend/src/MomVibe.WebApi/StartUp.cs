@@ -216,6 +216,20 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
+
+    // IncrementView: 30 view increments per minute per IP.
+    // Prevents a single IP from artificially inflating view counts in bulk.
+    // (Per-item keying would require the item ID in the partition key, which is not available
+    // at the rate-limiter middleware level; the per-IP cap is sufficient to block automated abuse.)
+    options.AddPolicy(RateLimitPolicies.IncrementView, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 // Request body size limit (10MB max)

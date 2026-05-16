@@ -689,6 +689,9 @@ public class PaymentService : IPaymentService
 
     public async Task<string> CreateDonationCheckoutAsync(decimal amount, string successUrl, string cancelUrl)
     {
+        if (amount < 1.00m || amount > 10000.00m)
+            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 BGN.");
+
         if (!IsStripeConfigured())
             return successUrl + "?session_id=test_donation_simulated";
 
@@ -729,6 +732,9 @@ public class PaymentService : IPaymentService
 
     public async Task<string> CreateDonationIntentAsync(decimal amount)
     {
+        if (amount < 1.00m || amount > 10000.00m)
+            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 BGN.");
+
         if (!IsStripeConfigured())
             return "test_simulated_donation_client_secret";
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 /// Photo service contract:
 /// - UploadPhotoAsync: accepts an IFormFile, stores it, and returns a relative URL.
 /// - DeletePhotoAsync: deletes a previously uploaded photo by its URL.
+/// - DeletePhotoWithOwnershipCheckAsync: deletes a photo only if it belongs to an item owned by the requesting user.
 /// </summary>
 public interface IPhotoService
 {
@@ -17,4 +18,13 @@ public interface IPhotoService
     /// <summary>Deletes a previously uploaded photo identified by its URL.</summary>
     /// <param name="url">The relative or absolute URL of the photo to delete.</param>
     Task DeletePhotoAsync(string url);
+
+    /// <summary>
+    /// Deletes a photo only when the <c>ItemPhoto</c> record with that URL belongs to an item
+    /// owned by <paramref name="userId"/>. Returns <c>false</c> if no matching owned record is
+    /// found (caller should respond with 403); returns <c>true</c> on successful deletion.
+    /// </summary>
+    /// <param name="url">The relative URL of the photo to delete.</param>
+    /// <param name="userId">The identifier of the user requesting the deletion.</param>
+    Task<bool> DeletePhotoWithOwnershipCheckAsync(string url, string userId);
 }

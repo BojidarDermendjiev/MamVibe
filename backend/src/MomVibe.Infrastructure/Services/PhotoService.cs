@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 using Application.Interfaces;
 
@@ -14,6 +15,7 @@ using Application.Interfaces;
 public class PhotoService : IPhotoService
 {
     private readonly IWebHostEnvironment _env;
+    private readonly IApplicationDbContext _context;
     private readonly string[] _allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
     private const long MaxFileSize = 5 * 1024 * 1024;
 
@@ -27,12 +29,15 @@ public class PhotoService : IPhotoService
     };
 
     /// <summary>
-    /// Initializes a new instance of <see cref="PhotoService"/> with the given hosting environment.
+    /// Initializes a new instance of <see cref="PhotoService"/> with the given hosting environment
+    /// and application database context.
     /// </summary>
     /// <param name="env">The web hosting environment used to resolve the <c>wwwroot</c> path.</param>
-    public PhotoService(IWebHostEnvironment env)
+    /// <param name="context">The application database context used for ownership verification.</param>
+    public PhotoService(IWebHostEnvironment env, IApplicationDbContext context)
     {
         this._env = env;
+        this._context = context;
     }
 
     /// <inheritdoc/>
@@ -237,5 +242,23 @@ public class PhotoService : IPhotoService
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> DeletePhotoWithOwnershipCheckAsync(string url, string userId)
+    {
+        if (string.IsNullOrEmpty(url)) return false;
+
+        // Verify the photo record exists and belongs to an item owned by the requesting user.
+        // The JOIN through Item ensures no cross-user deletions are possible.
+        var ownedPhoto = await this._context.ItemPhotos
+            .Include(p => p.Item)
+            .FirstOrDefaultAsync(p => p.Url == url && p.Item.UserId == userId);
+
+        if (ownedPhoto == null)
+            return false;
+
+        await DeletePhotoAsync(url);
+        return true;
     }
 }

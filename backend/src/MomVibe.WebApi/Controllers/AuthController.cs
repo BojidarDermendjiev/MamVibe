@@ -77,9 +77,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RegisterAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            // refreshToken is also included in the body so that native mobile clients
-            // (which cannot access httpOnly cookies) can store and rotate it.
-            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
+            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
+            object body = isMobile
+                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
+                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
+            return Ok(body);
         }
         catch (Exception ex)
         {
@@ -102,8 +104,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.LoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            // refreshToken also in body for native mobile clients.
-            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
+            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
+            object body = isMobile
+                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
+                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
+            return Ok(body);
         }
         catch (Exception ex)
         {
@@ -132,8 +137,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RefreshTokenAsync(refreshToken);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            // refreshToken also in body for native mobile clients.
-            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
+            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
+            object responseBody = isMobile
+                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
+                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
+            return Ok(responseBody);
         }
         catch (Exception ex)
         {
@@ -157,8 +165,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.GoogleLoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            // refreshToken also in body for native mobile clients.
-            return Ok(new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt });
+            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
+            object body = isMobile
+                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
+                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
+            return Ok(body);
         }
         catch (Exception ex)
         {

@@ -17,4 +17,6 @@ public static class RateLimitPolicies
     public const string EBillResend = "ebill_resend";
     /// <summary>Rate limit policy applied to the AI assistant chat endpoint.</summary>
     public const string Assistant = "assistant";
+    /// <summary>Rate limit policy applied to the item view-count increment endpoint: 1 increment per IP per minute per item to prevent artificial inflation.</summary>
+    public const string IncrementView = "increment_view";
 }

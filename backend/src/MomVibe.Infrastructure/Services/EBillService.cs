@@ -186,14 +186,21 @@ public class EBillService : IEBillService
             _                                 => bill.PaymentMethod.ToString()
         };
 
-        var downloadBtn = bill.ReceiptUrl is not null
+        // Only embed the receipt link when the URL is a secure https:// URL.
+        // An unsanitised URL from an external service could otherwise inject a javascript: URI.
+        var safeReceiptUrl = bill.ReceiptUrl is not null
+            && bill.ReceiptUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? bill.ReceiptUrl
+            : null;
+
+        var downloadBtn = safeReceiptUrl is not null
             ? $"""
               <tr>
                 <td align="center" style="padding-top:28px;">
-                  <a href="{System.Net.WebUtility.HtmlEncode(bill.ReceiptUrl)}"
+                  <a href="{System.Net.WebUtility.HtmlEncode(safeReceiptUrl)}"
                      style="background:#7c3aed;color:#fff;text-decoration:none;padding:12px 32px;
                             border-radius:8px;font-size:15px;font-weight:600;display:inline-block;">
-                    ⬇ Download Official Receipt / Изтегли фискален бон
+                    Download Official Receipt / Изтегли фискален бон
                   </a>
                 </td>
               </tr>
