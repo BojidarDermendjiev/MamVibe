@@ -159,7 +159,7 @@ export default function DashboardPage() {
               <p className="text-center py-20 text-gray-400">{t('dashboard.no_listings')}</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {myItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleListingLikeToggle} />)}
+                {myItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleListingLikeToggle} showStatus />)}
               </div>
             )
           )}

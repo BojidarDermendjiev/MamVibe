@@ -10,14 +10,20 @@ interface ItemCardProps {
   item: Item;
   onLikeToggle?: (id: string) => void;
   onRequireAuth?: () => void;
+  showStatus?: boolean;
 }
 
-export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCardProps) {
+export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus }: ItemCardProps) {
   const { t } = useTranslation();
   const photo = item.photos[0];
 
+  const isPending = showStatus && !item.isActive;
+  const isFlagged = isPending && item.aiModerationStatus === 3;
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-lavender/30 hover-lift hover-glow group animate-fade-in">
+    <div className={`bg-white rounded-xl shadow-sm border hover-lift hover-glow group animate-fade-in ${
+      isPending ? 'border-amber-300 dark:border-amber-700' : 'border-lavender/30'
+    }`}>
       <Link to={`/items/${item.id}`} className="block">
         {/* aspect-[4/3] container prevents CLS: the browser reserves space
             before the image loads, eliminating layout shift (Core Web Vitals). */}
@@ -30,7 +36,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCard
               decoding="async"
               width={400}
               height={300}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isPending ? 'opacity-60' : ''}`}
             />
           ) : (
             <img
@@ -40,7 +46,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCard
               decoding="async"
               width={400}
               height={300}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ${isPending ? 'opacity-60' : ''}`}
             />
           )}
           <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${
@@ -48,8 +54,25 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth }: ItemCard
           }`}>
             {item.listingType === ListingType.Donate ? t('items.donate') : t('items.sell')}
           </span>
+
+          {/* Pending / flagged overlay banner */}
+          {isPending && (
+            <div className={`absolute bottom-0 left-0 right-0 px-3 py-1.5 flex items-center gap-1.5 ${
+              isFlagged ? 'bg-red-500/90' : 'bg-amber-500/90'
+            }`}>
+              <span className="text-white text-xs">{isFlagged ? '⚠️' : '🕐'}</span>
+              <span className="text-white text-xs font-semibold truncate">
+                {isFlagged ? t('items.status_flagged') : t('items.status_pending')}
+              </span>
+            </div>
+          )}
         </div>
       </Link>
+      {isPending && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 text-center py-1 bg-amber-50 dark:bg-amber-900/20">
+          {t('items.status_pending_hint')}
+        </p>
+      )}
       <div className="p-3">
         <Link to={`/items/${item.id}`}>
           <h3 className="font-semibold text-primary truncate hover:text-mauve transition-colors">

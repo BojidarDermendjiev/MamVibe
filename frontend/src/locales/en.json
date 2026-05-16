@@ -137,6 +137,9 @@
     "sort_price_desc": "Price: High to Low",
     "sort_popular": "Most Popular",
     "all_categories": "All Categories",
+    "status_pending": "Pending approval",
+    "status_flagged": "Flagged for review",
+    "status_pending_hint": "Visible only to you until approved",
     "submission_modal": {
       "live_title": "Your listing is live!",
       "live_body": "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",
