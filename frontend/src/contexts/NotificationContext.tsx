@@ -24,15 +24,17 @@ const NotificationContext = createContext<NotificationContextValue>({
 });
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
   const { onMessage, onPurchaseRequest, onSellerShipmentReady, onShipmentStatusChanged } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
 
-  // Fetch counts on login; skip entirely on logout (values derived below)
+  // Fetch counts once auth is fully resolved (token in memory).
+  // Guarding on isLoading prevents firing before useAuth completes the silent
+  // refresh — without this, calls go out with no Bearer token and get 401.
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || isLoading) return;
 
     let cancelled = false;
 
@@ -57,7 +59,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       .catch((err) => console.warn('[NotificationContext] Failed to load purchase requests:', err));
 
     return () => { cancelled = true; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   // Derive: when logged out always show 0 without calling setState in an effect
   const effectiveUnreadCount = isAuthenticated ? unreadCount : 0;
