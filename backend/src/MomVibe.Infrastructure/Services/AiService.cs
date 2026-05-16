@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -20,6 +21,7 @@ public class AiService : IAiService
     private readonly AnthropicSettings _settings;
     private readonly IApplicationDbContext _context;
     private readonly HttpClient _httpClient;
+    private readonly IWebHostEnvironment _env;
 
     private static readonly string[] AllowedContentTypes =
         ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -27,11 +29,13 @@ public class AiService : IAiService
     public AiService(
         IOptions<AnthropicSettings> settings,
         IApplicationDbContext context,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IWebHostEnvironment env)
     {
         _settings = settings.Value;
         _context = context;
         _httpClient = httpClientFactory.CreateClient("Anthropic");
+        _env = env;
     }
 
     private async Task<string> GetModelAsync()
@@ -283,11 +287,23 @@ public class AiService : IAiService
     {
         try
         {
-            using var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return null;
+            // Only allow photos stored in our own uploads directory.
+            // Reject absolute URLs and anything outside /uploads/items/ to prevent SSRF.
+            if (!url.StartsWith("/uploads/items/", StringComparison.OrdinalIgnoreCase))
+                return null;
 
-            var bytes = await response.Content.ReadAsByteArrayAsync();
-            if (bytes.Length > 5 * 1024 * 1024) return null; // skip oversized images
+            var fileName = Path.GetFileName(url);
+            var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "items");
+            var filePath   = Path.GetFullPath(Path.Combine(uploadsDir, fileName));
+
+            // Path traversal guard: resolved path must stay inside uploads dir.
+            if (!filePath.StartsWith(Path.GetFullPath(uploadsDir), StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            if (!File.Exists(filePath)) return null;
+
+            var bytes = await File.ReadAllBytesAsync(filePath);
+            if (bytes.Length > 5 * 1024 * 1024) return null;
 
             return Convert.ToBase64String(bytes);
         }
