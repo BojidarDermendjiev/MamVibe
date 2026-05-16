@@ -21,8 +21,12 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
   const isFlagged = isPending && item.aiModerationStatus === 3;
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border hover-lift hover-glow group animate-fade-in ${
-      isPending ? 'border-amber-300 dark:border-amber-700' : 'border-lavender/30'
+    <div className={`bg-white rounded-xl shadow-sm border hover-lift group animate-fade-in transition-shadow duration-300 ${
+      isPending && !isFlagged
+        ? 'border-purple-400 dark:border-purple-500 shadow-purple-200 dark:shadow-purple-900/40 shadow-md'
+        : isPending && isFlagged
+        ? 'border-red-400 dark:border-red-600 shadow-red-200 dark:shadow-red-900/40 shadow-md'
+        : 'border-lavender/30 hover-glow'
     }`}>
       <Link to={`/items/${item.id}`} className="block">
         {/* aspect-[4/3] container prevents CLS: the browser reserves space
@@ -57,11 +61,15 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
 
           {/* Pending / flagged overlay banner */}
           {isPending && (
-            <div className={`absolute bottom-0 left-0 right-0 px-3 py-1.5 flex items-center gap-1.5 ${
-              isFlagged ? 'bg-red-500/90' : 'bg-amber-500/90'
+            <div className={`absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center gap-2 ${
+              isFlagged
+                ? 'bg-gradient-to-r from-red-600/90 to-rose-600/90'
+                : 'bg-gradient-to-r from-purple-600/90 to-violet-600/90'
             }`}>
-              <span className="text-white text-xs">{isFlagged ? '⚠️' : '🕐'}</span>
-              <span className="text-white text-xs font-semibold truncate">
+              <span className={`text-white text-xs ${!isFlagged ? 'animate-pulse' : ''}`}>
+                {isFlagged ? '⚠️' : '🕐'}
+              </span>
+              <span className="text-white text-xs font-semibold tracking-wide truncate">
                 {isFlagged ? t('items.status_flagged') : t('items.status_pending')}
               </span>
             </div>
@@ -69,7 +77,11 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
         </div>
       </Link>
       {isPending && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 text-center py-1 bg-amber-50 dark:bg-amber-900/20">
+        <p className={`text-xs text-center py-1.5 font-medium ${
+          isFlagged
+            ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+            : 'text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20'
+        }`}>
           {t('items.status_pending_hint')}
         </p>
       )}
