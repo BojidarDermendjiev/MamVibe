@@ -17,6 +17,7 @@ import CategorySpecificSection from "../components/items/CategorySpecificSection
 
 function SubmissionResultModal({ item, onClose }: { item: Item; onClose: () => void }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const isLive = item.isActive;
   const isFlagged = item.aiModerationStatus === 3;
@@ -25,35 +26,35 @@ function SubmissionResultModal({ item, onClose }: { item: Item; onClose: () => v
     ? {
         icon: "✅",
         iconBg: "bg-green-100 dark:bg-green-900/30",
-        title: "Your listing is live!",
-        body: "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",
+        title: t("items.submission_modal.live_title"),
+        body: t("items.submission_modal.live_body"),
         note: null,
-        primaryLabel: "View listing",
+        primaryLabel: t("items.submission_modal.view_listing"),
         primaryAction: () => navigate(`/items/${item.id}`),
-        secondaryLabel: "Create another",
+        secondaryLabel: t("items.submission_modal.create_another"),
         secondaryAction: onClose,
       }
     : isFlagged
     ? {
         icon: "⚠️",
         iconBg: "bg-amber-100 dark:bg-amber-900/30",
-        title: "Your listing needs closer review",
-        body: "Our AI flagged this listing for a more detailed check by our moderation team before it can go live. This may take a little longer than usual.",
+        title: t("items.submission_modal.flagged_title"),
+        body: t("items.submission_modal.flagged_body"),
         note: item.aiModerationNotes ?? null,
-        primaryLabel: "Go to Dashboard",
+        primaryLabel: t("items.submission_modal.go_dashboard"),
         primaryAction: () => navigate("/dashboard"),
-        secondaryLabel: "Browse items",
+        secondaryLabel: t("items.submission_modal.browse_items"),
         secondaryAction: () => navigate("/browse"),
       }
     : {
         icon: "🕐",
         iconBg: "bg-amber-100 dark:bg-amber-900/30",
-        title: "Your listing is under review",
-        body: "Your item has been submitted and is waiting for approval before it appears in the marketplace. This usually takes a short while.",
+        title: t("items.submission_modal.review_title"),
+        body: t("items.submission_modal.review_body"),
         note: null,
-        primaryLabel: "Go to Dashboard",
+        primaryLabel: t("items.submission_modal.go_dashboard"),
         primaryAction: () => navigate("/dashboard"),
-        secondaryLabel: "Browse items",
+        secondaryLabel: t("items.submission_modal.browse_items"),
         secondaryAction: () => navigate("/browse"),
       };
 
@@ -79,19 +80,21 @@ function SubmissionResultModal({ item, onClose }: { item: Item; onClose: () => v
         {/* What happens next — only for pending items */}
         {!isLive && (
           <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">What happens next</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              {t("items.submission_modal.what_next")}
+            </p>
             <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">1.</span>
-                Our team reviews your listing for quality and safety.
+                {t("items.submission_modal.step1")}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">2.</span>
-                Once approved, it appears in Browse and your Dashboard.
+                {t("items.submission_modal.step2")}
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">3.</span>
-                You can track the status anytime from your Dashboard.
+                {t("items.submission_modal.step3")}
               </li>
             </ul>
           </div>

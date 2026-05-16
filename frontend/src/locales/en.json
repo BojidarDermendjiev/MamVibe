@@ -136,7 +136,23 @@
     "sort_price_asc": "Price: Low to High",
     "sort_price_desc": "Price: High to Low",
     "sort_popular": "Most Popular",
-    "all_categories": "All Categories"
+    "all_categories": "All Categories",
+    "submission_modal": {
+      "live_title": "Your listing is live!",
+      "live_body": "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",
+      "review_title": "Your listing is under review",
+      "review_body": "Your item has been submitted and is waiting for approval before it appears in the marketplace. This usually takes a short while.",
+      "flagged_title": "Your listing needs closer review",
+      "flagged_body": "Our AI flagged this listing for a more detailed check by our moderation team before it can go live. This may take a little longer than usual.",
+      "what_next": "What happens next",
+      "step1": "Our team reviews your listing for quality and safety.",
+      "step2": "Once approved, it appears in Browse and your Dashboard.",
+      "step3": "You can track the status anytime from your Dashboard.",
+      "view_listing": "View listing",
+      "create_another": "Create another",
+      "go_dashboard": "Go to Dashboard",
+      "browse_items": "Browse items"
+    }
   },
   "chat": {
     "title": "Messages",
