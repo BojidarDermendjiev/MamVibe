@@ -42,20 +42,23 @@ public class DevController : ControllerBase
     /// Development environment only.
     /// </summary>
     [HttpPost("seed-demo-order")]
-    public async Task<IActionResult> SeedDemoOrder([FromQuery] string? userId = null)
+    public async Task<IActionResult> SeedDemoOrder([FromQuery] string? email = null)
     {
         if (!_env.IsDevelopment())
             return NotFound();
 
-        userId ??= _currentUserService.UserId;
+        string? userId = _currentUserService.UserId;
+
+        if (userId == null && email != null)
+        {
+            var byEmail = await _userManager.FindByEmailAsync(email);
+            if (byEmail == null)
+                return BadRequest(new { error = $"No user found with email '{email}'." });
+            userId = byEmail.Id;
+        }
 
         if (userId == null)
-        {
-            var admin = await _userManager.FindByEmailAsync("admin@mamvibe.com");
-            if (admin == null)
-                return BadRequest(new { error = "Pass ?userId=<your-id> or log in first." });
-            userId = admin.Id;
-        }
+            return BadRequest(new { error = "Pass ?email=your@email.com as a query parameter." });
 
         const string demoSellerId = "demo-user-sofia-001";
         const string demoBuyerId  = "demo-user-plovdiv-002";
