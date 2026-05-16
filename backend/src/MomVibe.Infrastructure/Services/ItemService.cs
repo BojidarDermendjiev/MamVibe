@@ -27,6 +27,8 @@ public class ItemService : IItemService
     private readonly INekorektenService _nekorekten;
 
     private const double AutoApproveThreshold = 0.85;
+    private const double NewSellerAutoApproveThreshold = 0.95;
+    private const int TrustedSellerMinSales = 3;
 
     public ItemService(
         IApplicationDbContext context,
@@ -186,17 +188,26 @@ public class ItemService : IItemService
         // AI Moderation — runs synchronously; failure must never block item creation
         try
         {
+            var completedSales = await this._context.Payments
+                .CountAsync(p => p.SellerId == userId && p.Status == PaymentStatus.Completed);
+            var threshold = completedSales >= TrustedSellerMinSales
+                ? AutoApproveThreshold
+                : NewSellerAutoApproveThreshold;
+
+            var firstPhotoUrl = dto.PhotoUrls.Count > 0 ? dto.PhotoUrls[0] : null;
+
             var modResult = await this._aiService.ModerateItemAsync(
                 dto.Title,
                 dto.Description,
                 createdItem?.Category?.Name ?? string.Empty,
                 dto.ListingType,
-                dto.Price);
+                dto.Price,
+                firstPhotoUrl);
 
             item.AiModerationScore = (float)modResult.Confidence;
             item.AiModerationNotes = modResult.Reason;
 
-            if (modResult.Recommendation == "approve" && modResult.Confidence >= AutoApproveThreshold)
+            if (modResult.Recommendation == "approve" && modResult.Confidence >= threshold)
             {
                 item.IsActive = true;
                 item.AiModerationStatus = AiModerationStatus.AutoApproved;

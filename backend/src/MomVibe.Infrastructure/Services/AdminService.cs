@@ -141,11 +141,44 @@ public class AdminService : IAdminService
         };
     }
 
-    public async Task ApproveItemAsync(Guid itemId)
+    public async Task ApproveItemAsync(Guid itemId, string adminId, string adminDisplayName)
     {
-        var item = await this._context.Items.FindAsync(itemId);
-        if (item == null) throw new KeyNotFoundException("Item not found.");
+        var item = await this._context.Items.FindAsync(itemId)
+            ?? throw new KeyNotFoundException("Item not found.");
+
         item.IsActive = true;
+
+        this._context.ItemModerationLogs.Add(new ItemModerationLog
+        {
+            ItemId = itemId,
+            AdminId = adminId,
+            AdminDisplayName = adminDisplayName,
+            Action = ModerationAction.Approved,
+            AiStatusAtTime = item.AiModerationStatus,
+            AiNotesAtTime = item.AiModerationNotes,
+            ItemTitle = item.Title
+        });
+
+        await this._context.SaveChangesAsync();
+    }
+
+    public async Task AdminDeleteItemAsync(Guid itemId, string adminId, string adminDisplayName)
+    {
+        var item = await this._context.Items.FindAsync(itemId)
+            ?? throw new KeyNotFoundException("Item not found.");
+
+        this._context.ItemModerationLogs.Add(new ItemModerationLog
+        {
+            ItemId = itemId,
+            AdminId = adminId,
+            AdminDisplayName = adminDisplayName,
+            Action = ModerationAction.Deleted,
+            AiStatusAtTime = item.AiModerationStatus,
+            AiNotesAtTime = item.AiModerationNotes,
+            ItemTitle = item.Title
+        });
+
+        this._context.Items.Remove(item);
         await this._context.SaveChangesAsync();
     }
 
@@ -166,5 +199,22 @@ public class AdminService : IAdminService
             .ToListAsync();
 
         return this._mapper.Map<List<ItemDto>>(items);
+    }
+
+    public async Task<List<ModerationLogEntryDto>> GetModerationHistoryAsync(Guid itemId)
+    {
+        return await this._context.ItemModerationLogs
+            .AsNoTracking()
+            .Where(l => l.ItemId == itemId)
+            .OrderByDescending(l => l.CreatedAt)
+            .Select(l => new ModerationLogEntryDto
+            {
+                AdminDisplayName = l.AdminDisplayName,
+                Action = l.Action.ToString(),
+                AiStatusAtTime = l.AiStatusAtTime.ToString(),
+                AiNotesAtTime = l.AiNotesAtTime,
+                Timestamp = l.CreatedAt
+            })
+            .ToListAsync();
     }
 }

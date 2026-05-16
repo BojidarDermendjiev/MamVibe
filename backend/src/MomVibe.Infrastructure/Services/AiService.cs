@@ -191,7 +191,8 @@ public class AiService : IAiService
         string description,
         string categoryName,
         ListingType listingType,
-        decimal? price)
+        decimal? price,
+        string? firstPhotoUrl = null)
     {
         var priceText = price.HasValue ? $"{price} BGN" : "Free / Donation";
         var typeText = listingType == ListingType.Sell ? "Sell" : "Donate";
@@ -220,14 +221,42 @@ public class AiService : IAiService
             - "reject": spam, adult content, dangerous item, completely unrelated to babies/children
 
             confidence: 0.0 (totally unsure) to 1.0 (completely certain)
-            flags: optional array of short concern tags, empty if none
+            flags: optional array of short concern tags from this list (use exact strings):
+            - "contact-info" — description contains phone number, email, social handle, or any attempt to move communication off-platform
+            - "price-anomaly" — price is suspiciously low or high for the item type
+            - "unsafe-item" — item may be recalled, banned, or unsafe for children (e.g. drop-side crib, certain car seats)
+            - "counterfeit-risk" — brand name used but item looks non-genuine
+            - "category-mismatch" — item does not belong in the selected category
+            - "spam" — duplicate listing or keyword stuffing
             """;
+
+        object messageContent;
+        if (!string.IsNullOrEmpty(firstPhotoUrl))
+        {
+            var photoBase64 = await FetchPhotoAsBase64Async(firstPhotoUrl);
+            if (photoBase64 != null)
+            {
+                messageContent = new object[]
+                {
+                    new { type = "image", source = new { type = "base64", media_type = "image/jpeg", data = photoBase64 } },
+                    new { type = "text", text = prompt }
+                };
+            }
+            else
+            {
+                messageContent = prompt;
+            }
+        }
+        else
+        {
+            messageContent = prompt;
+        }
 
         var requestBody = new
         {
             model = await GetModelAsync(),
             max_tokens = 300,
-            messages = new[] { new { role = "user", content = prompt } }
+            messages = new[] { new { role = "user", content = messageContent } }
         };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
@@ -248,6 +277,24 @@ public class AiService : IAiService
             .GetString() ?? "{}";
 
         return ParseModerationResult(ExtractJson(text));
+    }
+
+    private async Task<string?> FetchPhotoAsBase64Async(string url)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return null;
+
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            if (bytes.Length > 5 * 1024 * 1024) return null; // skip oversized images
+
+            return Convert.ToBase64String(bytes);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static AiModerationResultDto ParseModerationResult(string json)

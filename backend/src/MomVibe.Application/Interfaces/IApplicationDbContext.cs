@@ -54,6 +54,9 @@ public interface IApplicationDbContext
     /// <summary>Gets the set of application-wide key/value settings.</summary>
     DbSet<AppSetting> AppSettings { get; }
 
+    /// <summary>Gets the set of admin moderation action logs for items.</summary>
+    DbSet<ItemModerationLog> ItemModerationLogs { get; }
+
     /// <summary>Gets the underlying <see cref="DatabaseFacade"/> for executing raw SQL and managing transactions.</summary>
     DatabaseFacade Database { get; }
 

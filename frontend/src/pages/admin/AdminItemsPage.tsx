@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { HiX, HiChevronLeft, HiChevronRight, HiEye } from 'react-icons/hi';
 import toast from '@/utils/toast';
 import { itemsApi } from '../../api/itemsApi';
-import { adminApi } from '../../api/adminApi';
+import { adminApi, type ModerationLogEntry } from '../../api/adminApi';
 import { type Item, ListingType } from '../../types/item';
 import Button from '../../components/common/Button';
 import Avatar from '../../components/common/Avatar';
@@ -25,6 +25,14 @@ function ItemDetailModal({
 }) {
   const { t } = useTranslation();
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [showFlagConfirm, setShowFlagConfirm] = useState(false);
+  const [history, setHistory] = useState<ModerationLogEntry[]>([]);
+
+  useEffect(() => {
+    adminApi.getModerationHistory(item.id)
+      .then((res) => setHistory(res.data))
+      .catch(() => {});
+  }, [item.id]);
   const photos = item.photos.slice().sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
@@ -164,6 +172,28 @@ function ItemDetailModal({
             <Avatar src={item.userAvatarUrl} size="sm" />
             <span className="text-sm text-gray-600 dark:text-gray-300">{item.userDisplayName}</span>
           </div>
+
+          {/* Moderation history */}
+          {history.length > 0 && (
+            <div className="pt-2 border-t border-lavender/20 dark:border-white/10">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Moderation history</p>
+              <ul className="space-y-1.5">
+                {history.map((entry, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300">
+                    <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${entry.action === 'Approved' ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span>
+                      <span className="font-medium">{entry.adminDisplayName}</span>
+                      {' '}{entry.action === 'Approved' ? 'approved' : 'deleted'} this item
+                      {' '}·{' '}
+                      <span className="text-gray-400">{new Date(entry.timestamp).toLocaleString()}</span>
+                      {' '}·{' '}
+                      <span className="text-gray-400">AI was: {entry.aiStatusAtTime.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -171,7 +201,14 @@ function ItemDetailModal({
           {isPending && (
             <Button
               size="sm"
-              onClick={() => { onApprove(item.id); onClose(); }}
+              onClick={() => {
+                if (item.aiModerationStatus === 3) {
+                  setShowFlagConfirm(true);
+                } else {
+                  onApprove(item.id);
+                  onClose();
+                }
+              }}
             >
               {t('admin.approve_item')}
             </Button>
@@ -191,6 +228,46 @@ function ItemDetailModal({
           </button>
         </div>
       </div>
+
+      {/* Flagged-item confirmation overlay */}
+      {showFlagConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-white dark:bg-[#2d2a42] rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h3 className="font-bold text-red-600 dark:text-red-400 text-lg">AI flagged this item</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                  The AI moderation system marked this listing as potentially inappropriate.
+                </p>
+                {item.aiModerationNotes && (
+                  <p className="mt-2 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg px-3 py-2 border border-red-200 dark:border-red-900/40">
+                    {item.aiModerationNotes}
+                  </p>
+                )}
+                <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Are you sure you want to approve it anyway?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setShowFlagConfirm(false)}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+              >
+                Cancel
+              </button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => { onApprove(item.id); onClose(); }}
+              >
+                Approve anyway
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -330,9 +407,11 @@ export default function AdminItemsPage() {
                             >
                               <HiEye className="h-4 w-4" />
                             </button>
-                            <Button size="sm" onClick={() => handleApprove(item.id)}>
-                              {t('admin.approve_item')}
-                            </Button>
+                            {item.aiModerationStatus !== 3 && (
+                              <Button size="sm" onClick={() => handleApprove(item.id)}>
+                                {t('admin.approve_item')}
+                              </Button>
+                            )}
                             <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
                               {t('admin.delete_item')}
                             </Button>

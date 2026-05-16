@@ -132,7 +132,8 @@ public class AdminController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        await this._itemService.DeleteAsync(id, userId, isAdmin: true);
+        var adminName = User.Identity?.Name ?? userId;
+        await this._adminService.AdminDeleteItemAsync(id, userId, adminName);
         return NoContent();
     }
 
@@ -163,8 +164,18 @@ public class AdminController : ControllerBase
     [HttpPost("items/{id:guid}/approve")]
     public async Task<IActionResult> ApproveItem(Guid id)
     {
-        await this._adminService.ApproveItemAsync(id);
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var adminName = User.Identity?.Name ?? userId;
+        await this._adminService.ApproveItemAsync(id, userId, adminName);
         return NoContent();
+    }
+
+    [HttpGet("items/{id:guid}/moderation-history")]
+    public async Task<IActionResult> GetModerationHistory(Guid id)
+    {
+        var history = await this._adminService.GetModerationHistoryAsync(id);
+        return Ok(history);
     }
 
     // --- Feature 3: Admin shipping & payments ---

@@ -25,6 +25,14 @@ export interface DashboardStats {
   blockedUsers: number;
 }
 
+export interface ModerationLogEntry {
+  adminDisplayName: string;
+  action: string;
+  aiStatusAtTime: string;
+  aiNotesAtTime: string | null;
+  timestamp: string;
+}
+
 export const adminApi = {
   getDashboard: () =>
     axiosClient.get<DashboardStats>('/admin/dashboard'),
@@ -57,6 +65,9 @@ export const adminApi = {
 
   trackShipment: (id: string) =>
     axiosClient.get<TrackingEvent[]>(`/admin/shipments/${id}/track`),
+
+  getModerationHistory: (itemId: string) =>
+    axiosClient.get<ModerationLogEntry[]>(`/admin/items/${itemId}/moderation-history`),
 
   getAiSettings: () =>
     axiosClient.get<{ model: string; availableModels: string[] }>('/admin/ai-settings'),

@@ -64,6 +64,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     /// <inheritdoc/>
+    public DbSet<ItemModerationLog> ItemModerationLogs => Set<ItemModerationLog>();
+
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

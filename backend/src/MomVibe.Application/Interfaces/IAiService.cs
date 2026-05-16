@@ -15,7 +15,7 @@ public interface IAiService
     Task<AiListingSuggestionDto> SuggestListingAsync(IFormFile photo);
 
     /// <summary>
-    /// Runs text-based content moderation on a new listing.
+    /// Runs content moderation on a new listing using text and, when available, the first photo.
     /// Returns a recommendation (approve / review / reject) with confidence and reason.
     /// </summary>
     Task<AiModerationResultDto> ModerateItemAsync(
@@ -23,7 +23,8 @@ public interface IAiService
         string description,
         string categoryName,
         ListingType listingType,
-        decimal? price);
+        decimal? price,
+        string? firstPhotoUrl = null);
 
     /// <summary>
     /// Suggests a fair selling price based on comparable active listings and item context.

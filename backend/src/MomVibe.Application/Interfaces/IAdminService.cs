@@ -3,6 +3,7 @@
 using DTOs.Admin;
 using DTOs.Common;
 using DTOs.Items;
+using Domain.Enums;
 
 /// <summary>
 /// Administrative service contract for user management and platform metrics.
@@ -28,12 +29,17 @@ public interface IAdminService
     /// <summary>Returns aggregated platform statistics for the admin dashboard.</summary>
     Task<DashboardStatsDto> GetDashboardStatsAsync();
 
-    /// <summary>Approves the specified item, making it publicly visible on the marketplace.</summary>
-    /// <param name="itemId">The unique identifier of the item to approve.</param>
-    Task ApproveItemAsync(Guid itemId);
+    /// <summary>Approves the specified item and writes a moderation audit log entry.</summary>
+    Task ApproveItemAsync(Guid itemId, string adminId, string adminDisplayName);
+
+    /// <summary>Deletes the specified item as an admin and writes a moderation audit log entry.</summary>
+    Task AdminDeleteItemAsync(Guid itemId, string adminId, string adminDisplayName);
 
     /// <summary>Returns a paginated list of items that are awaiting admin approval.</summary>
     /// <param name="page">1-based page number.</param>
     /// <param name="pageSize">Number of results per page.</param>
     Task<List<ItemDto>> GetPendingItemsAsync(int page = 1, int pageSize = 50);
+
+    /// <summary>Returns the full moderation action history for a specific item.</summary>
+    Task<List<ModerationLogEntryDto>> GetModerationHistoryAsync(Guid itemId);
 }
