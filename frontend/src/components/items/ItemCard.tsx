@@ -61,7 +61,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
 
           {/* Pending / flagged overlay banner */}
           {isPending && (
-            <div className={`absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center gap-2 ${
+            <div className={`absolute bottom-0 left-0 right-0 py-2 flex items-center justify-center gap-2 ${
               isFlagged
                 ? 'bg-gradient-to-r from-red-600/90 to-rose-600/90'
                 : 'bg-gradient-to-r from-purple-600/90 to-violet-600/90'
@@ -69,7 +69,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
               <span className={`text-white text-xs ${!isFlagged ? 'animate-pulse' : ''}`}>
                 {isFlagged ? '⚠️' : '🕐'}
               </span>
-              <span className="text-white text-xs font-semibold tracking-wide truncate">
+              <span className="text-white text-xs font-semibold tracking-wide">
                 {isFlagged ? t('items.status_flagged') : t('items.status_pending')}
               </span>
             </div>
