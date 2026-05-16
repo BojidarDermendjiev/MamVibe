@@ -1,10 +1,9 @@
 namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 using Domain.Entities;
 using Domain.Enums;
@@ -12,65 +11,75 @@ using Application.Interfaces;
 
 /// <summary>
 /// Development-only helpers for seeding demo data while testing the UI.
-/// All endpoints are blocked in non-Development environments.
+/// All endpoints return 404 in non-Development environments.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class DevController : ControllerBase
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IWebHostEnvironment _env;
 
     public DevController(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
+        UserManager<ApplicationUser> userManager,
         IWebHostEnvironment env)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _userManager = userManager;
         _env = env;
     }
 
     /// <summary>
-    /// Seeds a complete demo order for the current user so the Dashboard
+    /// Seeds a complete demo order for the given user so the Dashboard
     /// shows both a "To Send" (seller) and an "Incoming" (buyer) shipment.
+    /// Pass ?userId=xxx to target a specific account, otherwise falls back
+    /// to the authenticated user, then to admin@mamvibe.com.
     /// Development environment only.
     /// </summary>
     [HttpPost("seed-demo-order")]
-    public async Task<IActionResult> SeedDemoOrder()
+    public async Task<IActionResult> SeedDemoOrder([FromQuery] string? userId = null)
     {
         if (!_env.IsDevelopment())
             return NotFound();
 
-        var userId = _currentUserService.UserId;
-        if (userId == null) return Unauthorized();
+        userId ??= _currentUserService.UserId;
+
+        if (userId == null)
+        {
+            var admin = await _userManager.FindByEmailAsync("admin@mamvibe.com");
+            if (admin == null)
+                return BadRequest(new { error = "Pass ?userId=<your-id> or log in first." });
+            userId = admin.Id;
+        }
 
         const string demoSellerId = "demo-user-sofia-001";
         const string demoBuyerId  = "demo-user-plovdiv-002";
 
-        // ── 1. User as BUYER: demo seller → current user ──────────────────
-        // Find any active sell item from the demo seller
+        // ── 1. Current user as BUYER: demo seller → current user ────────────
         var buyerItem = await _context.Items
             .Where(i => i.UserId == demoSellerId && i.ListingType == ListingType.Sell && i.IsActive)
             .FirstOrDefaultAsync();
 
         if (buyerItem == null)
         {
-            // Demo data not seeded yet — create a minimal placeholder item
             var cat = await _context.Categories.FirstOrDefaultAsync();
-            if (cat == null) return BadRequest(new { error = "No categories found. Run the app once to seed them." });
+            if (cat == null)
+                return BadRequest(new { error = "No categories found — run the app once to seed them." });
 
             buyerItem = new Item
             {
-                Title    = "Demo Item (Seller)",
-                Description = "Seeded for UI demo.",
-                CategoryId  = cat.Id,
-                ListingType = ListingType.Sell,
-                Price       = 25.00m,
-                UserId      = demoSellerId,
-                IsActive    = true,
+                Title              = "Demo Item (Incoming)",
+                Description        = "Seeded for UI demo.",
+                CategoryId         = cat.Id,
+                ListingType        = ListingType.Sell,
+                Price              = 25.00m,
+                UserId             = demoSellerId,
+                IsActive           = true,
                 AiModerationStatus = AiModerationStatus.AutoApproved,
             };
             _context.Items.Add(buyerItem);
@@ -89,7 +98,7 @@ public class DevController : ControllerBase
         _context.Payments.Add(buyerPayment);
         await _context.SaveChangesAsync();
 
-        var incomingShipment = new Shipment
+        _context.Shipments.Add(new Shipment
         {
             PaymentId       = buyerPayment.Id,
             CourierProvider = CourierProvider.Econt,
@@ -102,21 +111,19 @@ public class DevController : ControllerBase
             OfficeName      = "Еконт — СО, Витоша",
             ShippingPrice   = 5.50m,
             Weight          = 0.5m,
-        };
-        _context.Shipments.Add(incomingShipment);
+        });
 
-        // ── 2. User as SELLER: current user → demo buyer ──────────────────
-        // Create a lightweight demo item owned by the current user
+        // ── 2. Current user as SELLER: current user → demo buyer ────────────
         var sellerCat = await _context.Categories.FirstOrDefaultAsync();
         var sellerItem = new Item
         {
-            Title       = "Лего Duplo 30 части (Demo)",
-            Description = "Seeded for UI demo — seller view.",
-            CategoryId  = sellerCat!.Id,
-            ListingType = ListingType.Sell,
-            Price       = 18.00m,
-            UserId      = userId,
-            IsActive    = true,
+            Title              = "Лего Duplo 30 части (Demo)",
+            Description        = "Seeded for UI demo — seller view.",
+            CategoryId         = sellerCat!.Id,
+            ListingType        = ListingType.Sell,
+            Price              = 18.00m,
+            UserId             = userId,
+            IsActive           = true,
             AiModerationStatus = AiModerationStatus.AutoApproved,
         };
         _context.Items.Add(sellerItem);
@@ -134,7 +141,7 @@ public class DevController : ControllerBase
         _context.Payments.Add(sellerPayment);
         await _context.SaveChangesAsync();
 
-        var outboundShipment = new Shipment
+        _context.Shipments.Add(new Shipment
         {
             PaymentId       = sellerPayment.Id,
             CourierProvider = CourierProvider.Speedy,
@@ -147,16 +154,10 @@ public class DevController : ControllerBase
             OfficeName      = "Спиди — Пловдив, Тракия",
             ShippingPrice   = 4.80m,
             Weight          = 0.8m,
-        };
-        _context.Shipments.Add(outboundShipment);
+        });
 
         await _context.SaveChangesAsync();
 
-        return Ok(new
-        {
-            message        = "Demo orders seeded. Open Dashboard → My Shipments.",
-            incomingShipmentId = incomingShipment.Id,
-            outboundShipmentId = outboundShipment.Id,
-        });
+        return Ok(new { message = "Demo orders seeded. Open Dashboard → My Shipments." });
     }
 }
