@@ -6,7 +6,7 @@ import toast from "@/utils/toast";
 import { itemsApi } from "../api/itemsApi";
 import { photosApi } from "../api/photosApi";
 import { aiApi } from "../api/aiApi";
-import { ListingType, AgeGroup, type PriceSuggestion } from "../types/item";
+import { ListingType, AgeGroup, type PriceSuggestion, type Item } from "../types/item";
 import { useCategories } from "../hooks/useCategories";
 import { useAuthStore } from "../store/authStore";
 import Button from "../components/common/Button";
@@ -15,9 +15,107 @@ import PhotoUploader from "../components/items/PhotoUploader";
 import IbanModal from "../components/common/IbanModal";
 import CategorySpecificSection from "../components/items/CategorySpecificSection";
 
+function SubmissionResultModal({ item, onClose }: { item: Item; onClose: () => void }) {
+  const navigate = useNavigate();
+
+  const isLive = item.isActive;
+  const isFlagged = item.aiModerationStatus === 3;
+
+  const config = isLive
+    ? {
+        icon: "✅",
+        iconBg: "bg-green-100 dark:bg-green-900/30",
+        title: "Your listing is live!",
+        body: "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",
+        note: null,
+        primaryLabel: "View listing",
+        primaryAction: () => navigate(`/items/${item.id}`),
+        secondaryLabel: "Create another",
+        secondaryAction: onClose,
+      }
+    : isFlagged
+    ? {
+        icon: "⚠️",
+        iconBg: "bg-amber-100 dark:bg-amber-900/30",
+        title: "Your listing needs closer review",
+        body: "Our AI flagged this listing for a more detailed check by our moderation team before it can go live. This may take a little longer than usual.",
+        note: item.aiModerationNotes ?? null,
+        primaryLabel: "Go to Dashboard",
+        primaryAction: () => navigate("/dashboard"),
+        secondaryLabel: "Browse items",
+        secondaryAction: () => navigate("/browse"),
+      }
+    : {
+        icon: "🕐",
+        iconBg: "bg-amber-100 dark:bg-amber-900/30",
+        title: "Your listing is under review",
+        body: "Your item has been submitted and is waiting for approval before it appears in the marketplace. This usually takes a short while.",
+        note: null,
+        primaryLabel: "Go to Dashboard",
+        primaryAction: () => navigate("/dashboard"),
+        secondaryLabel: "Browse items",
+        secondaryAction: () => navigate("/browse"),
+      };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white dark:bg-[#2d2a42] rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-5">
+        {/* Icon */}
+        <div className={`w-16 h-16 rounded-full ${config.iconBg} flex items-center justify-center text-3xl mx-auto`}>
+          {config.icon}
+        </div>
+
+        {/* Text */}
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-bold text-[#364153] dark:text-white">{config.title}</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{config.body}</p>
+          {config.note && (
+            <p className="mt-2 text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-lg px-3 py-2 border border-amber-200 dark:border-amber-900/40 text-left">
+              {config.note}
+            </p>
+          )}
+        </div>
+
+        {/* What happens next — only for pending items */}
+        {!isLive && (
+          <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">What happens next</p>
+            <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">1.</span>
+                Our team reviews your listing for quality and safety.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">2.</span>
+                Once approved, it appears in Browse and your Dashboard.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">3.</span>
+                You can track the status anytime from your Dashboard.
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-col gap-2 pt-1">
+          <Button fullWidth onClick={config.primaryAction}>
+            {config.primaryLabel}
+          </Button>
+          <button
+            onClick={config.secondaryAction}
+            className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          >
+            {config.secondaryLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateItemPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   // Noindex: authenticated form page — not a public SEO target.
   usePageSEO({ title: "Create a Listing", description: "List your baby items for sale or donation on MamVibe.", index: false });
@@ -29,6 +127,7 @@ export default function CreateItemPage() {
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceSuggestion, setPriceSuggestion] = useState<PriceSuggestion | null>(null);
   const [showIbanModal, setShowIbanModal] = useState(false);
+  const [createdItem, setCreatedItem] = useState<Item | null>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<{
     title: string;
@@ -136,8 +235,7 @@ export default function CreateItemPage() {
         clothingSize: form.clothingSize,
         photoUrls,
       });
-      toast.success("Listing created!");
-      navigate(`/items/${item.id}`);
+      setCreatedItem(item);
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string; message?: string } } })
@@ -382,6 +480,13 @@ export default function CreateItemPage() {
           doSubmit();
         }}
       />
+
+      {createdItem && (
+        <SubmissionResultModal
+          item={createdItem}
+          onClose={() => setCreatedItem(null)}
+        />
+      )}
     </div>
   );
 }
