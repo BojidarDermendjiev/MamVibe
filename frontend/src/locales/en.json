@@ -105,7 +105,7 @@
     "reset_password_invalid": "Invalid or expired reset link.",
     "send_reset_link": "Send Reset Link",
     "login_required_title": "Sign In Required",
-    "login_required_desc": "Please sign in or create an account to like items."
+    "login_required_desc": "Please sign in or create an account to continue."
   },
   "items": {
     "create_title": "Create Listing",
@@ -195,6 +195,8 @@
     "req_complete_purchase": "Complete Purchase",
     "req_view_waybill": "View Waybill",
     "my_ebills": "E-Bills",
+    "req_pending": "Pending Approval",
+    "not_available": "Not Available",
     "ai_assistant_title": "AI Listing Assistant",
     "ai_assistant_desc": "Upload a photo and Claude AI will suggest the title, description, category, price, and size for you.",
     "ai_fill_btn": "Fill with AI",
@@ -325,7 +327,8 @@
     "cookie_reject": "Reject",
     "male": "Dad",
     "female": "Mom",
-    "family": "Family"
+    "family": "Family",
+    "sending": "Sending…"
   },
   "feedback": {
     "title": "Platform Feedback",

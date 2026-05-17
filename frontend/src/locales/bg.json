@@ -105,7 +105,7 @@
     "reset_password_invalid": "Невалиден или изтекъл линк за възстановяване.",
     "send_reset_link": "Изпрати линк",
     "login_required_title": "Необходим вход",
-    "login_required_desc": "Влезте в профила си или се регистрирайте, за да харесвате обяви."
+    "login_required_desc": "Влезте в профила си или се регистрирайте, за да продължите."
   },
   "items": {
     "create_title": "Нова обява",
@@ -195,6 +195,8 @@
     "req_complete_purchase": "Завърши покупката",
     "req_view_waybill": "Виж товарителница",
     "my_ebills": "Е-Фактури",
+    "req_pending": "Изчаква одобрение",
+    "not_available": "Не е налично",
     "ai_assistant_title": "AI Асистент за обяви",
     "ai_assistant_desc": "Качи снимка и Claude AI ще предложи заглавие, описание, категория, цена и размер.",
     "ai_fill_btn": "Попълни с AI",
@@ -325,7 +327,8 @@
     "cookie_reject": "Отказвам",
     "male": "Татко",
     "female": "Мама",
-    "family": "Семейство"
+    "family": "Семейство",
+    "sending": "Изпраща…"
   },
   "feedback": {
     "title": "Обратна връзка",

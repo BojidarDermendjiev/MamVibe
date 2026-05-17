@@ -18,6 +18,7 @@ import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import StarRating from '../components/common/StarRating';
 import NekorektenWarningModal from '../components/common/NekorektenWarningModal';
+import Modal from '../components/common/Modal';
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +31,7 @@ export default function ItemDetailPage() {
   const [requestPending, setRequestPending] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [showNekorektenWarning, setShowNekorektenWarning] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [isSellerReported, setIsSellerReported] = useState(false);
   const [sellerRating, setSellerRating] = useState<UserRatingSummary | null>(null);
   const nekorektenReportUrl = 'https://nekorekten.com/';
@@ -306,7 +308,8 @@ export default function ItemDetailPage() {
               itemId={item.id}
               likeCount={item.likeCount}
               isLiked={item.isLikedByCurrentUser}
-              onToggle={handleLikeToggle}
+              onToggle={user ? handleLikeToggle : undefined}
+              onRequireAuth={!user ? () => setShowLoginModal(true) : undefined}
             />
           </div>
 
@@ -349,40 +352,44 @@ export default function ItemDetailPage() {
           </div>
 
           {/* Actions */}
-          {!isOwner && user && (
+          {!isOwner && (
             <div className="flex gap-3">
-              <Link
-                to={`/chat/${item.userId}`}
-                state={{ displayName: item.userDisplayName, avatarUrl: item.userAvatarUrl }}
-                className="flex-1"
-              >
-                <Button fullWidth variant="secondary">
+              {user ? (
+                <Link
+                  to={`/chat/${item.userId}`}
+                  state={{ displayName: item.userDisplayName, avatarUrl: item.userAvatarUrl }}
+                  className="flex-1"
+                >
+                  <Button fullWidth variant="secondary">
+                    <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
+                  </Button>
+                </Link>
+              ) : (
+                <Button fullWidth variant="secondary" onClick={() => setShowLoginModal(true)}>
                   <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                 </Button>
-              </Link>
+              )}
 
-              {/* Item is available — show Request Purchase button */}
               {item.isActive && (
                 <Button
                   fullWidth
                   disabled={requestSent || requestPending}
                   className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
-                  onClick={handlePurchaseClick}
+                  onClick={user ? handlePurchaseClick : () => setShowLoginModal(true)}
                 >
                   {requestSent
-                    ? 'Pending Approval'
+                    ? t('items.req_pending')
                     : requestPending
-                    ? 'Sending…'
+                    ? t('common.sending')
                     : item.listingType === ListingType.Donate
-                    ? 'Request Booking'
-                    : 'Request Purchase'}
+                    ? t('items.book_now')
+                    : t('items.buy_now')}
                 </Button>
               )}
 
-              {/* Item is reserved by someone else */}
               {!item.isActive && (
                 <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl px-4 py-2 text-sm font-medium text-gray-500">
-                  Not Available
+                  {t('items.not_available')}
                 </div>
               )}
             </div>
@@ -396,6 +403,33 @@ export default function ItemDetailPage() {
         sellerName={item.userDisplayName}
         reportUrl={nekorektenReportUrl}
       />
+
+      <Modal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title={t('auth.login_required_title')}
+      >
+        <div className="text-center py-2">
+          <div className="text-4xl mb-4">🔒</div>
+          <p className="text-text mb-6">{t('auth.login_required_desc')}</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to="/login"
+              onClick={() => setShowLoginModal(false)}
+              className="flex-1 bg-mauve text-white py-2.5 px-4 rounded-lg font-medium hover:bg-mauve/90 transition-colors text-center"
+            >
+              {t('nav.login')}
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setShowLoginModal(false)}
+              className="flex-1 border border-mauve text-mauve py-2.5 px-4 rounded-lg font-medium hover:bg-mauve/10 transition-colors text-center"
+            >
+              {t('nav.register')}
+            </Link>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
