@@ -329,7 +329,7 @@ export default function HomePage() {
       <section aria-labelledby="brands-heading" className="bg-white dark:bg-[#201d30] py-12 overflow-hidden">
         {/* h2 styled to look like a small label — semantically correct for heading hierarchy */}
         <h2 id="brands-heading" className="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-8">
-          Items from brands you know &amp; love
+          {t("home.brands_title")}
         </h2>
 
         {/* Single row — left → right */}
@@ -442,16 +442,14 @@ export default function HomePage() {
       {doctorReviews.length > 0 && (
         <section className="bg-white dark:bg-[#201d30] py-20 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
-                  {t("home.doctors_title")}
-                </h2>
-                <p className="text-gray-500">{t("home.doctors_subtitle")}</p>
-              </div>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+                {t("home.doctors_title")}
+              </h2>
+              <p className="text-gray-500">{t("home.doctors_subtitle")}</p>
               <Link
                 to="/doctor-reviews"
-                className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
+                className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors mt-3"
               >
                 {t("home.doctors_view_all")}{" "}
                 <ChevronRight className="w-4 h-4" />
@@ -508,16 +506,14 @@ export default function HomePage() {
       {childPlaces.length > 0 && (
         <section className="bg-[#FAF3EE] dark:bg-[#201d30] py-20 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
-                  {t("home.places_title")}
-                </h2>
-                <p className="text-gray-500">{t("home.places_subtitle")}</p>
-              </div>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
+                {t("home.places_title")}
+              </h2>
+              <p className="text-gray-500">{t("home.places_subtitle")}</p>
               <Link
                 to="/child-friendly-places"
-                className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
+                className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors mt-3"
               >
                 {t("home.places_view_all")} <ChevronRight className="w-4 h-4" />
               </Link>

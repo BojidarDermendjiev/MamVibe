@@ -270,11 +270,10 @@ export default function CreateItemPage() {
       {/* AI Listing Assistant */}
       <div className="mb-5 p-4 rounded-xl border border-primary-dark/30 bg-primary-dark/10 dark:bg-primary-dark/40 dark:border-primary-dark/60">
         <p className="text-base font-semibold text-primary-dark dark:text-white mb-1">
-          ✨ AI Listing Assistant
+          ✨ {t("items.ai_assistant_title")}
         </p>
         <p className="text-sm text-primary-dark/70 dark:text-white/70 mb-3">
-          Upload a photo and Claude AI will suggest the title, description,
-          category, price, and size for you.
+          {t("items.ai_assistant_desc")}
         </p>
         <input
           ref={aiInputRef}
@@ -289,7 +288,7 @@ export default function CreateItemPage() {
           onClick={() => aiInputRef.current?.click()}
           className="!bg-primary-dark hover:!bg-[#2d3a6e] focus:ring-primary-dark"
         >
-          {aiLoading ? "Analysing photo…" : "✨ Fill with AI"}
+          {aiLoading ? t("items.ai_analysing") : `✨ ${t("items.ai_fill_btn")}`}
         </Button>
       </div>
 

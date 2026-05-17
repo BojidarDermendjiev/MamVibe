@@ -9,7 +9,7 @@ interface PresetTier {
   value: number;
   emoji: string;
   labelKey: string;
-  subtitle?: string;
+  subtitleKey?: string;
   activeColor: string;
   activeBorder: string;
 }
@@ -40,7 +40,7 @@ const PRESET_AMOUNTS: PresetTier[] = [
     value: 0,
     emoji: "🦄",
     labelKey: "donate.tier_custom",
-    subtitle: "I'm magical ✨",
+    subtitleKey: "donate.tier_custom_subtitle",
     activeColor: "#f0d0c7",
     activeBorder: "#945c67",
   },
@@ -100,12 +100,12 @@ export default function DonationPage() {
             className="mb-5"
           >
             <p className="text-4xl md:text-5xl font-black text-gray-800 dark:text-gray-100 leading-tight">
-              Small vibes,
+              {t("donate.hero_line1")}
             </p>
             <div className="flex items-center justify-center gap-3 mt-1">
               <div className="relative inline-block">
                 <span className="text-4xl md:text-5xl font-black text-primary leading-tight">
-                  big impact!
+                  {t("donate.hero_line2")}
                 </span>
                 <div className="absolute -bottom-1.5 left-0 right-0 h-1.5 bg-yellow-400 rounded-full" />
               </div>
@@ -133,13 +133,13 @@ export default function DonationPage() {
                 className="font-bold text-sm mb-2.5"
                 style={{ color: "#374151" }}
               >
-                MamVibe magic: ✨
+                {t("donate.magic_title")}
               </p>
               <ul className="space-y-1.5">
                 {[
-                  "Babies grow fast 👶",
-                  "Clothes find new adventures",
-                  "Less waste, more smiles 🌱",
+                  t("donate.magic_item1"),
+                  t("donate.magic_item2"),
+                  t("donate.magic_item3"),
                 ].map((item) => (
                   <li
                     key={item}
@@ -161,7 +161,7 @@ export default function DonationPage() {
                 className="font-semibold text-sm italic leading-relaxed"
                 style={{ color: "#374151" }}
               >
-                Your kindness fits perfectly 💛
+                {t("donate.magic_note")}
               </p>
             </div>
 
@@ -202,7 +202,7 @@ export default function DonationPage() {
             >
               <div className="flex justify-center mb-5">
                 <span className="px-5 py-1.5 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-widest shadow-sm">
-                  Choose your superpower
+                  {t("donate.superpower_badge")}
                 </span>
               </div>
 
@@ -212,7 +212,7 @@ export default function DonationPage() {
                     value,
                     emoji,
                     labelKey,
-                    subtitle,
+                    subtitleKey,
                     activeColor,
                     activeBorder,
                   }) => {
@@ -251,14 +251,14 @@ export default function DonationPage() {
                         >
                           {t(labelKey)}
                         </span>
-                        {subtitle && (
+                        {subtitleKey && (
                           <span
                             className="text-xs"
                             style={{
                               color: isActive ? activeBorder : "#9ca3af",
                             }}
                           >
-                            {subtitle}
+                            {t(subtitleKey)}
                           </span>
                         )}
                       </motion.button>
@@ -329,13 +329,13 @@ export default function DonationPage() {
                 className="font-bold text-sm mb-2.5"
                 style={{ color: "#374151" }}
               >
-                Together we can:
+                {t("donate.together_title")}
               </p>
               <ul className="space-y-1.5">
                 {[
-                  "Support families",
-                  "Share baby items",
-                  "Build a kinder community",
+                  t("donate.together_item1"),
+                  t("donate.together_item2"),
+                  t("donate.together_item3"),
                 ].map((item) => (
                   <li
                     key={item}
@@ -357,7 +357,7 @@ export default function DonationPage() {
                 className="font-semibold text-sm italic leading-relaxed"
                 style={{ color: "#374151" }}
               >
-                Every little bit creates a big change! 🤍
+                {t("donate.together_note")}
               </p>
             </div>
 
@@ -404,13 +404,13 @@ export default function DonationPage() {
               className="font-bold text-sm mb-2.5"
               style={{ color: "#374151" }}
             >
-              Together we can:
+              {t("donate.together_title")}
             </p>
             <ul className="space-y-1.5">
               {[
-                "Support families",
-                "Share baby items",
-                "Build a kinder community",
+                t("donate.together_item1"),
+                t("donate.together_item2"),
+                t("donate.together_item3"),
               ].map((item) => (
                 <li
                   key={item}
@@ -430,7 +430,7 @@ export default function DonationPage() {
               className="font-semibold text-sm italic leading-relaxed"
               style={{ color: "#374151" }}
             >
-              Every little bit creates a big change! 🤍
+              {t("donate.together_note")}
             </p>
           </div>
           <div className="flex flex-col items-center mt-4">

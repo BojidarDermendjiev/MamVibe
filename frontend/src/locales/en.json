@@ -67,7 +67,8 @@
     "doctors_view_all": "View All Reviews",
     "places_title": "Child-Friendly Places",
     "places_subtitle": "Discover spots loved by families across Bulgaria",
-    "places_view_all": "Explore All Places"
+    "places_view_all": "Explore All Places",
+    "brands_title": "Items from brands you know & love"
   },
   "auth": {
     "login_title": "Welcome Back",
@@ -193,7 +194,11 @@
     "req_decline": "Decline",
     "req_complete_purchase": "Complete Purchase",
     "req_view_waybill": "View Waybill",
-    "my_ebills": "E-Bills"
+    "my_ebills": "E-Bills",
+    "ai_assistant_title": "AI Listing Assistant",
+    "ai_assistant_desc": "Upload a photo and Claude AI will suggest the title, description, category, price, and size for you.",
+    "ai_fill_btn": "Fill with AI",
+    "ai_analysing": "Analysing photo…"
   },
   "profile": {
     "title": "Profile",
@@ -612,7 +617,21 @@
     "card_amount": "Your donation",
     "card_pay": "Send {amount} лв. with love",
     "thanks_title": "You're a legend!",
-    "thanks_sub": "Seriously. Thank you from the whole MamVibe team."
+    "thanks_sub": "Seriously. Thank you from the whole MamVibe team.",
+    "hero_line1": "Small vibes,",
+    "hero_line2": "big impact!",
+    "superpower_badge": "Choose your superpower",
+    "tier_custom_subtitle": "I'm magical ✨",
+    "magic_title": "MamVibe magic: ✨",
+    "magic_item1": "Babies grow fast 👶",
+    "magic_item2": "Clothes find new adventures",
+    "magic_item3": "Less waste, more smiles 🌱",
+    "magic_note": "Your kindness fits perfectly 💛",
+    "together_title": "Together we can:",
+    "together_item1": "Support families",
+    "together_item2": "Share baby items",
+    "together_item3": "Build a kinder community",
+    "together_note": "Every little bit creates a big change! 🤍"
   },
   "rating": {
     "rate_seller": "Rate Seller",
