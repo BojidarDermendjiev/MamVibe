@@ -20,9 +20,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 RUN adduser --disabled-password --gecos "" appuser
-USER appuser
 
-COPY --from=build /app/publish .
+COPY --from=build --chown=appuser:appuser /app/publish .
+
+# Pre-create runtime directories with appuser ownership so Docker named volumes
+# inherit correct permissions on first mount rather than defaulting to root.
+RUN mkdir -p /app/dataprotection-keys /app/logs \
+    && chown -R appuser:appuser /app/dataprotection-keys /app/logs \
+    && chmod 700 /app/dataprotection-keys
+
+USER appuser
 
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080

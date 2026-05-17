@@ -125,8 +125,8 @@ export default function LoginPage() {
       toast.success('Welcome back!');
       navigate('/');
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const raw = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const msg = typeof raw === 'string' ? raw.slice(0, 200) : undefined;
       toast.error(msg || t('common.error'));
     } finally {
       setLoading(false);

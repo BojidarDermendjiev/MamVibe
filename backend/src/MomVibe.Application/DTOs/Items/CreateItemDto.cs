@@ -37,6 +37,6 @@ public class CreateItemDto
     /// <summary>Gets or sets the EU clothing size, or <c>null</c> when not applicable.</summary>
     public int? ClothingSize { get; set; }
 
-    /// <summary>Gets or sets the list of image URLs for the item; at least one photo is required.</summary>
+    /// <summary>Gets or sets the list of image URLs for the item; optional — the UI falls back to a category image when empty.</summary>
     public List<string> PhotoUrls { get; set; } = [];
 }

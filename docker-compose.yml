@@ -13,6 +13,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
     networks:
       - db-net
 
@@ -28,6 +33,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Docker
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme}"
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
+      AllowedHosts: "${ALLOWED_HOSTS:-localhost}"
 
       # ── Auth ────────────────────────────────────────────────────────────────
       JwtSettings__Secret: "${JWT_SECRET:?JWT_SECRET must be set in .env}"
@@ -87,6 +93,18 @@ services:
     volumes:
       - uploads:/app/wwwroot/uploads
       - logs:/app/logs
+      - dataprotection:/app/dataprotection-keys
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
     networks:
       - mamvibe-net
       - db-net
@@ -185,6 +203,7 @@ volumes:
   n8n_data:
   uploads:
   logs:
+  dataprotection:
   prometheus_data:
   loki_data:
   grafana_data:

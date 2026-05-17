@@ -27,6 +27,5 @@ public class CreateItemValidator : AbstractValidator<CreateItemDto>
         RuleFor(x => x.ListingType).IsInEnum();
         RuleFor(x => x.Price).NotNull().GreaterThan(0).When(x => x.ListingType == ListingType.Sell)
             .WithMessage("Price is required for items listed for sale.");
-        RuleFor(x => x.PhotoUrls).NotEmpty().WithMessage("At least one photo is required.");
     }
 }

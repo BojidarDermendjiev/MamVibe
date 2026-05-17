@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 using MomVibe.WebApi;
@@ -23,6 +24,12 @@ using MomVibe.Infrastructure.Persistence;
 using MomVibe.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Data Protection — persist keys to a Docker volume so they survive container restarts.
+// Without this, every restart invalidates all auth cookies and forces all users to log in again.
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"))
+    .SetApplicationName("MomVibe");
 
 // Serilog
 builder.Host.UseSerilog((context, config) =>
@@ -125,10 +132,15 @@ builder.Services.AddAuthorization(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
+    var frontendUrl = builder.Configuration["FrontendUrl"]
+        ?? throw new InvalidOperationException("FrontendUrl must be configured.");
+
+    if (!builder.Environment.IsDevelopment() && !frontendUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("FrontendUrl must use HTTPS in non-development environments.");
+
     options.AddPolicy(CorsPolicy.MamVibe, policy =>
     {
-        policy.WithOrigins(
-                builder.Configuration["FrontendUrl"] ?? "https://localhost:5173")
+        policy.WithOrigins(frontendUrl)
               .WithHeaders("Content-Type", "Authorization", "X-Language", "Cache-Control")
               .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
               .AllowCredentials()
@@ -382,9 +394,10 @@ app.UseSerilogRequestLogging(options =>
 });
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseMiddleware<MetricsProtectionMiddleware>();
 app.UseHttpMetrics();
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }

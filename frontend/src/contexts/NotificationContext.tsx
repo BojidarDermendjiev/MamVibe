@@ -46,7 +46,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           setUnreadCount(total);
         }
       })
-      .catch((err) => console.warn('[NotificationContext] Failed to load conversations:', err));
+      .catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] Failed to load conversations:', err); });
 
     purchaseRequestsApi
       .getAsSeller()
@@ -56,7 +56,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           setPendingRequestCount(pending);
         }
       })
-      .catch((err) => console.warn('[NotificationContext] Failed to load purchase requests:', err));
+      .catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] Failed to load purchase requests:', err); });
 
     return () => { cancelled = true; };
   }, [isAuthenticated, isLoading]);
@@ -158,7 +158,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markConversationRead = useCallback((userId: string) => {
-    messagesApi.markAsRead(userId).catch((err) => console.warn('[NotificationContext] markAsRead failed:', err));
+    messagesApi.markAsRead(userId).catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] markAsRead failed:', err); });
     // Re-fetch to get accurate count
     if (isAuthenticated) {
       messagesApi
@@ -167,7 +167,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           const total = res.data.reduce((sum, c) => sum + c.unreadCount, 0);
           setUnreadCount(total);
         })
-        .catch((err) => console.warn('[NotificationContext] Failed to refresh unread count:', err));
+        .catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] Failed to refresh unread count:', err); });
     }
   }, [isAuthenticated]);
 
