@@ -24,6 +24,11 @@ public class MetricsProtectionMiddleware(RequestDelegate next)
         if (context.Request.Path.StartsWithSegments("/metrics"))
         {
             var ip = context.Connection.RemoteIpAddress;
+            // Docker dual-stack sockets deliver IPv4 peers as IPv4-mapped IPv6 (::ffff:x.x.x.x).
+            // Unwrap to plain IPv4 so the IPNetwork.Contains() checks work correctly.
+            if (ip != null && ip.IsIPv4MappedToIPv6)
+                ip = ip.MapToIPv4();
+
             var allowed = ip != null && (
                 IPAddress.IsLoopback(ip) ||
                 _internalNetworks.Any(n => n.Contains(ip)));
