@@ -138,12 +138,15 @@ public class ItemService : IItemService
     {
         var item = await this._context.Items
             .AsNoTracking()
-            .Include(i => i.Photos.OrderBy(p => p.DisplayOrder))
+            .Include(i => i.Photos)
             .Include(i => i.User)
             .Include(i => i.Category)
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (item == null) return null;
+
+        if (item.Photos != null)
+            item.Photos = item.Photos.OrderBy(p => p.DisplayOrder).ToList();
 
         var dto = this._mapper.Map<ItemDto>(item);
 

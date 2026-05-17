@@ -23,17 +23,20 @@ public class ItemsController : ControllerBase
 {
     private readonly IItemService _itemService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
     private readonly IAiService _aiService;
 
     public ItemsController(
         IItemService itemService,
         ICurrentUserService currentUserService,
+        IValidator<CreateItemDto> createItemValidator,
         IValidator<UpdateItemDto> updateItemValidator,
         IAiService aiService)
     {
         this._itemService = itemService;
         this._currentUserService = currentUserService;
+        this._createItemValidator = createItemValidator;
         this._updateItemValidator = updateItemValidator;
         this._aiService = aiService;
     }
@@ -195,6 +198,10 @@ public class ItemsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateItemDto dto)
     {
+        var validation = await this._createItemValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         var item = await this._itemService.CreateAsync(dto, userId);

@@ -256,7 +256,8 @@
     "all_shipments": "All Shipments",
     "community": "Community",
     "pending_doctor_reviews": "Pending Doctor Reviews",
-    "pending_places": "Pending Child-Friendly Places"
+    "pending_places": "Pending Child-Friendly Places",
+    "audit_log": "Audit Log"
   },
   "payment": {
     "title": "Payment",

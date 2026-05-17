@@ -256,7 +256,8 @@
     "all_shipments": "Всички пратки",
     "community": "Общност",
     "pending_doctor_reviews": "Чакащи рецензии за лекари",
-    "pending_places": "Чакащи места за деца"
+    "pending_places": "Чакащи места за деца",
+    "audit_log": "Журнал на дейността"
   },
   "payment": {
     "title": "Плащане",

@@ -33,6 +33,17 @@ export interface ModerationLogEntry {
   timestamp: string;
 }
 
+export interface AuditLog {
+  id: string;
+  userId: string;
+  action: string;
+  success: boolean;
+  targetId: string | null;
+  ipAddress: string | null;
+  details: string | null;
+  createdAt: string;
+}
+
 export const adminApi = {
   getDashboard: () =>
     axiosClient.get<DashboardStats>('/admin/dashboard'),
@@ -74,4 +85,7 @@ export const adminApi = {
 
   updateAiSettings: (model: string) =>
     axiosClient.put('/admin/ai-settings', { model }),
+
+  getAuditLogs: (params?: { page?: number; pageSize?: number; action?: string; userId?: string; success?: boolean }) =>
+    axiosClient.get<{ items: AuditLog[]; totalCount: number; page: number; pageSize: number }>('/admin/audit-logs', { params }),
 };

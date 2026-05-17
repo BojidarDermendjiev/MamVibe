@@ -14,16 +14,14 @@ using MomVibe.Infrastructure.Persistence;
 namespace MomVibe.IntegrationTests;
 
 /// <summary>
-/// Factory that replaces JWT authentication with a fixed-identity test scheme.
-/// Any request to a protected endpoint is automatically treated as authenticated
-/// with <see cref="TestUserId"/> — no real user registration or token needed.
-/// This avoids flakiness caused by missing JWT secrets in the CI environment.
+/// Factory that injects a test auth scheme whose principal carries the "Admin" role claim.
+/// Use this for endpoints protected by the AdminOnly policy.
 /// </summary>
-public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
+public class AdminWebApplicationFactory : WebApplicationFactory<StartUp>
 {
-    public const string TestUserId = "test-ebill-user-001";
+    public const string TestAdminId = "test-admin-user-001";
 
-    private readonly string _dbName = $"MomVibeAuthTestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"MomVibeAdminTestDb_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -40,7 +38,6 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
 
         builder.ConfigureServices(services =>
         {
-            // Replace real DB with InMemory
             var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
             if (dbDescriptor != null) services.Remove(dbDescriptor);
 
@@ -51,18 +48,15 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
                 .UseInMemoryDatabase(_dbName)
                 .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
 
-            // Register our test auth scheme (handler must be registered first).
             services.AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+                .AddScheme<AuthenticationSchemeOptions, AdminTestAuthHandler>(AdminTestAuthHandler.SchemeName, _ => { });
 
-            // PostConfigure runs after ALL Configure<AuthenticationOptions> actions,
-            // so it beats the JWT DefaultAuthenticateScheme set in StartUp.cs.
             services.PostConfigure<AuthenticationOptions>(options =>
             {
-                options.DefaultScheme = TestAuthHandler.SchemeName;
-                options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
-                options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
-                options.DefaultForbidScheme = TestAuthHandler.SchemeName;
+                options.DefaultScheme = AdminTestAuthHandler.SchemeName;
+                options.DefaultAuthenticateScheme = AdminTestAuthHandler.SchemeName;
+                options.DefaultChallengeScheme = AdminTestAuthHandler.SchemeName;
+                options.DefaultForbidScheme = AdminTestAuthHandler.SchemeName;
             });
         });
 
@@ -70,16 +64,11 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
     }
 }
 
-/// <summary>
-/// Always authenticates requests as <see cref="AuthenticatedWebApplicationFactory.TestUserId"/>.
-/// Tests that want to test the 401 path should use a plain <see cref="CustomWebApplicationFactory"/>
-/// client without this scheme registered.
-/// </summary>
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class AdminTestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public const string SchemeName = "TestScheme";
+    public const string SchemeName = "AdminTestScheme";
 
-    public TestAuthHandler(
+    public AdminTestAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder)
@@ -89,11 +78,12 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
     {
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, AuthenticatedWebApplicationFactory.TestUserId),
-            new Claim(ClaimTypes.Name, "Test E-Bill User")
+            new Claim(ClaimTypes.NameIdentifier, AdminWebApplicationFactory.TestAdminId),
+            new Claim(ClaimTypes.Name, "Test Admin User"),
+            new Claim(ClaimTypes.Role, "Admin")
         };
         var identity = new ClaimsIdentity(claims, SchemeName);
-        var ticket  = new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName);
+        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName);
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }

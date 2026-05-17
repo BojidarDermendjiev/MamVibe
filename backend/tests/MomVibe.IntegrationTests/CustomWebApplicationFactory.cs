@@ -42,7 +42,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<StartUp>
             // Add InMemory database with a fixed name per factory instance
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseInMemoryDatabase(_dbName);
+                options.UseInMemoryDatabase(_dbName)
+                    .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
             });
         });
 

@@ -1,4 +1,5 @@
 using Serilog;
+using Prometheus;
 using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -253,6 +254,18 @@ builder.Services.AddSignalR(options =>
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 });
 
+// Response Compression (GZip + Brotli) — reduces bandwidth by ~60-80% for JSON/text responses
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.EnableForHttps = true;
+    opts.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    opts.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(opts =>
+    opts.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(opts =>
+    opts.Level = System.IO.Compression.CompressionLevel.Fastest);
+
 // Response Caching
 builder.Services.AddResponseCaching();
 
@@ -294,6 +307,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.AddSupportedCultures(supportedCultures);
     options.AddSupportedUICultures(supportedCultures);
 });
+
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database");
 
 var app = builder.Build();
 
@@ -365,11 +382,13 @@ app.UseSerilogRequestLogging(options =>
 });
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseHttpMetrics();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRequestLocalization();
 app.UseResponseCaching();
@@ -385,7 +404,8 @@ app.UseMiddleware<BlockedUserMiddleware>();
 
 app.UseAuthorization();
 
-app.MapGet("/health", () => Results.Ok("healthy"));
+app.MapHealthChecks("/health");
+app.MapMetrics("/metrics");
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization(AuthorizationPolicies.ActiveUser);
     

@@ -131,7 +131,11 @@ public class AdminService : IAdminService
 
     public async Task<DashboardStatsDto> GetDashboardStatsAsync()
     {
-        return new DashboardStatsDto
+        const string cacheKey = "admin:dashboard:stats";
+        if (this._cache.TryGetValue(cacheKey, out DashboardStatsDto? cached))
+            return cached!;
+
+        var stats = new DashboardStatsDto
         {
             TotalUsers = await this._userManager.Users.CountAsync(),
             TotalItems = await this._context.Items.CountAsync(),
@@ -144,6 +148,9 @@ public class AdminService : IAdminService
             TotalMessages = await this._context.Messages.CountAsync(),
             BlockedUsers = await this._userManager.Users.CountAsync(u => u.IsBlocked)
         };
+
+        this._cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));
+        return stats;
     }
 
     public async Task ApproveItemAsync(Guid itemId, string adminId, string adminDisplayName)
@@ -221,5 +228,49 @@ public class AdminService : IAdminService
                 Timestamp = l.CreatedAt
             })
             .ToListAsync();
+    }
+
+    public async Task<PagedResult<AuditLogDto>> GetAuditLogsAsync(
+        int page = 1, int pageSize = 50,
+        string? action = null, string? userId = null, bool? success = null)
+    {
+        pageSize = Math.Min(pageSize, 100);
+
+        var query = this._context.AuditLogs.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(action))
+            query = query.Where(l => l.Action.StartsWith(action));
+
+        if (!string.IsNullOrWhiteSpace(userId))
+            query = query.Where(l => l.UserId == userId);
+
+        if (success.HasValue)
+            query = query.Where(l => l.Success == success.Value);
+
+        var totalCount = await query.CountAsync();
+        var logs = await query
+            .OrderByDescending(l => l.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(l => new AuditLogDto
+            {
+                Id = l.Id,
+                UserId = l.UserId,
+                Action = l.Action,
+                Success = l.Success,
+                TargetId = l.TargetId,
+                IpAddress = l.IpAddress,
+                Details = l.Details,
+                CreatedAt = l.CreatedAt
+            })
+            .ToListAsync();
+
+        return new PagedResult<AuditLogDto>
+        {
+            Items = logs,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 }

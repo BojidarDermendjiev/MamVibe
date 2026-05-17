@@ -334,6 +334,30 @@ public class AdminController : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
+    // --- Audit Log ---
+
+    /// <summary>
+    /// Returns a paginated view of the security audit log.
+    /// Supports filtering by action prefix (e.g. "Auth", "Admin", "Payment"), user ID, and success flag.
+    /// </summary>
+    /// <param name="page">1-based page number (default 1).</param>
+    /// <param name="pageSize">Results per page, max 100 (default 50).</param>
+    /// <param name="action">Optional action prefix filter (e.g. "Auth.Login", "Admin").</param>
+    /// <param name="userId">Optional filter to a specific user ID.</param>
+    /// <param name="success">Optional filter: true = successes only, false = failures only.</param>
+    /// <returns>200 OK with a paged list of audit log entries.</returns>
+    [HttpGet("audit-logs")]
+    public async Task<IActionResult> GetAuditLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? action = null,
+        [FromQuery] string? userId = null,
+        [FromQuery] bool? success = null)
+    {
+        var result = await this._adminService.GetAuditLogsAsync(page, pageSize, action, userId, success);
+        return Ok(result);
+    }
+
     // --- AI Settings ---
 
     /// <summary>

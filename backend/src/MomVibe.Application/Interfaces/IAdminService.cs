@@ -42,4 +42,14 @@ public interface IAdminService
 
     /// <summary>Returns the full moderation action history for a specific item.</summary>
     Task<List<ModerationLogEntryDto>> GetModerationHistoryAsync(Guid itemId);
+
+    /// <summary>Returns a paginated, filterable view of the security audit log.</summary>
+    /// <param name="page">1-based page number.</param>
+    /// <param name="pageSize">Number of results per page (max 100).</param>
+    /// <param name="action">Optional prefix filter on the Action field (e.g. "Auth", "Admin").</param>
+    /// <param name="userId">Optional filter to a specific user ID.</param>
+    /// <param name="success">Optional filter on the success flag.</param>
+    Task<PagedResult<AuditLogDto>> GetAuditLogsAsync(
+        int page = 1, int pageSize = 50,
+        string? action = null, string? userId = null, bool? success = null);
 }

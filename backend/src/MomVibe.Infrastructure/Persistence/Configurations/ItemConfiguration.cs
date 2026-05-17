@@ -26,6 +26,12 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.HasIndex(i => i.CreatedAt);
         builder.HasIndex(i => new { i.IsActive, i.CreatedAt });
 
+        // Composite indices covering common filter + sort combinations in GetAllAsync
+        builder.HasIndex(i => new { i.IsActive, i.CategoryId, i.CreatedAt });
+        builder.HasIndex(i => new { i.IsActive, i.ListingType, i.CreatedAt });
+        builder.HasIndex(i => new { i.IsActive, i.LikeCount });
+        builder.HasIndex(i => new { i.IsActive, i.ViewCount });
+
         builder.HasOne(i => i.User)
             .WithMany(u => u.Items)
             .HasForeignKey(i => i.UserId)

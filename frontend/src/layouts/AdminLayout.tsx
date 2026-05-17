@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiChartBar, HiUsers, HiCollection, HiArrowLeft, HiTruck, HiHeart } from 'react-icons/hi';
+import { HiChartBar, HiUsers, HiCollection, HiArrowLeft, HiTruck, HiHeart, HiClipboardList } from 'react-icons/hi';
 import { Sun, Moon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,6 +11,7 @@ const navItems = [
   { path: '/admin/items', icon: HiCollection, labelKey: 'admin.items', exact: false },
   { path: '/admin/shipping', icon: HiTruck, labelKey: 'shipping.admin_title', exact: false },
   { path: '/admin/community', icon: HiHeart, labelKey: 'admin.community', exact: false },
+  { path: '/admin/audit-logs', icon: HiClipboardList, labelKey: 'admin.audit_log', exact: false },
 ];
 
 export default function AdminLayout() {
