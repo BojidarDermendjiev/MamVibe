@@ -31,6 +31,7 @@ A full-stack marketplace platform where families can donate or sell baby items �
 - **Containerization:** Docker + Docker Compose
 - **Web Server:** Nginx (frontend reverse proxy)
 - **Database:** PostgreSQL 16
+- **Observability:** Prometheus (metrics) + Loki (logs) + Grafana (dashboards & alerts)
 
 ## Project Structure
 
@@ -116,6 +117,8 @@ Once running:
 - **API:** http://localhost:8080
 - **Health check:** http://localhost:8080/health
 - **Swagger (dev):** http://localhost:8080/swagger
+- **Grafana:** http://localhost:3000 (login with `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` from `.env`)
+- **Prometheus:** http://localhost:9090
 
 ### pgAdmin (optional)
 
@@ -142,27 +145,51 @@ Connect to the database with host `postgres`, port `5432`, and the credentials f
 | `JWT_SECRET` | (dev default) | JWT signing key (min 32 chars) |
 | `FRONTEND_URL` | `http://localhost` | Frontend URL for CORS |
 
-## Local Development (without Docker)
+## Development Workflow
 
-### 1. Backend setup
+The project has two distinct runtime modes:
+
+| Mode | When to use | What runs |
+|------|-------------|-----------|
+| **F5 / `dotnet run`** | Day-to-day coding, debugging, feature work | API only (breakpoints work, fast restart) |
+| **`docker compose up`** | Full-stack testing, production deployment | Everything: API + frontend + DB + monitoring |
+
+**Recommended daily workflow:**
+1. Start just the database: `docker compose up postgres -d`
+2. Press **F5** in Visual Studio (or `dotnet run`) to start the API — uses `appsettings.Development.json` + `dotnet user-secrets`
+3. Run the frontend: `cd frontend && npm run dev`
+4. Work normally — logs in VS console, breakpoints work, fast rebuild
+
+Use `docker compose up --build` only when you need to test the full stack as it runs in production (Grafana metrics, Loki logs, Nginx, etc.).
+
+## Local Development
+
+### 1. Start the database
+
+```bash
+# Only postgres — nothing else needed for development
+docker compose up postgres -d
+```
+
+### 2. Backend setup
 
 ```bash
 cd backend/src/MomVibe.WebApi
 
-# Copy and configure settings
-cp appsettings.json appsettings.Development.json
-# Edit appsettings.Development.json with your PostgreSQL connection string, JWT secret, etc.
+# Configure secrets (first time only)
+dotnet user-secrets set "JwtSettings:Secret" "your_jwt_secret"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;Database=MamVibeDb;Username=mamvibe;Password=your_password"
 
 # Apply EF Core migrations
 dotnet ef database update --project ../MomVibe.Infrastructure --startup-project .
 
-# Run the API
+# Run the API (or press F5 in Visual Studio)
 dotnet run
 ```
 
-The API starts at `https://localhost:5001` by default.
+The API starts at `http://localhost:5038`.
 
-### 2. Frontend setup
+### 3. Frontend setup
 
 ```bash
 cd frontend
@@ -170,15 +197,11 @@ cd frontend
 # Install dependencies
 npm install
 
-# Create environment file
-cp .env.example .env.local
-# Edit .env.local with your API URL
-
-# Start dev server
+# Start dev server (proxies /api to localhost:5038 automatically)
 npm run dev
 ```
 
-The app starts at `http://localhost:5173` by default.
+The app starts at `http://localhost:5173`.
 
 ## Environment Variables
 
