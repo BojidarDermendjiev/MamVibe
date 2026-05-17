@@ -94,3 +94,4 @@ jobs:
           STRIPE_WEBHOOK_SECRET: ci-build-placeholder-not-used-at-runtime
           ANTHROPIC_API_KEY: ci-build-placeholder-not-used-at-runtime
           TURNSTILE_SECRET_KEY: ci-build-placeholder-not-used-at-runtime
+          GRAFANA_ADMIN_PASSWORD: ci-build-placeholder-not-used-at-runtime
