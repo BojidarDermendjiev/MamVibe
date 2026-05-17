@@ -108,7 +108,7 @@ public class ItemsController : ControllerBase
     /// 404 Not Found if the item does not exist.<br/>
     /// 200 OK with the seller reputation check result on success.
     /// </returns>
-    [Authorize]
+    [AllowAnonymous]
     [HttpGet("{id:guid}/seller-check")]
     public async Task<IActionResult> CheckSeller(Guid id)
     {
