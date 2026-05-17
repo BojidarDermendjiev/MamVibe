@@ -109,9 +109,6 @@ public static class DataSeeder
         ApplicationDbContext dbContext,
         IWebHostEnvironment environment)
     {
-        if (!environment.IsDevelopment())
-            return;
-
         if (dbContext.Categories.Any())
             return;
 
@@ -233,9 +230,6 @@ public static class DataSeeder
         ApplicationDbContext dbContext,
         IWebHostEnvironment environment)
     {
-        if (!environment.IsDevelopment())
-            return;
-
         var botId = AiBotConstants.UserId;
 
         if (!dbContext.DoctorReviews.Any())
