@@ -104,6 +104,13 @@ public static class DependencyInjection
         services.AddSingleton<IN8nWebhookService>(sp => sp.GetRequiredService<N8nWebhookService>());
         services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<N8nWebhookService>());
 
+        // Distributed cache — Redis when available, in-memory fallback for local dev
+        var redisUrl = configuration["Redis:Url"];
+        if (!string.IsNullOrWhiteSpace(redisUrl))
+            services.AddStackExchangeRedisCache(o => o.Configuration = redisUrl);
+        else
+            services.AddDistributedMemoryCache();
+
         // User presence tracking (singleton shared between ChatHub and MessageService)
         services.AddSingleton<UserPresenceTracker>();
 

@@ -21,6 +21,7 @@ public class DoctorReviewConfiguration : IEntityTypeConfiguration<DoctorReview>
         builder.Property(x => x.SuperdocUrl).HasMaxLength(2048);
         builder.HasIndex(x => x.City);
         builder.HasIndex(x => x.Specialization);
+        builder.HasIndex(x => new { x.IsApproved, x.CreatedAt });
         builder.HasOne(x => x.User)
             .WithMany(u => u.DoctorReviews)
             .HasForeignKey(x => x.UserId)

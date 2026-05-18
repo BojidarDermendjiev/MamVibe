@@ -4,6 +4,7 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 
 using Domain.Enums;
@@ -28,6 +29,7 @@ public class AdminService : IAdminService
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
     private readonly IMemoryCache _cache;
+    private readonly IDistributedCache _distributedCache;
     private readonly IAuditLogService _audit;
 
     public AdminService(
@@ -38,6 +40,7 @@ public class AdminService : IAdminService
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
         IMemoryCache cache,
+        IDistributedCache distributedCache,
         IAuditLogService audit)
     {
         this._userManager = userManager;
@@ -47,6 +50,7 @@ public class AdminService : IAdminService
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
         this._cache = cache;
+        this._distributedCache = distributedCache;
         this._audit = audit;
     }
 
@@ -102,7 +106,7 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = true;
         await this._userManager.UpdateAsync(user);
-        this._cache.Remove($"blocked:{userId}");
+        await this._distributedCache.RemoveAsync($"blocked:{userId}");
         await this._audit.LogAsync("admin", "Admin.BlockUser", success: true, targetId: userId);
 
         try
@@ -125,7 +129,7 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = false;
         await this._userManager.UpdateAsync(user);
-        this._cache.Remove($"blocked:{userId}");
+        await this._distributedCache.RemoveAsync($"blocked:{userId}");
         await this._audit.LogAsync("admin", "Admin.UnblockUser", success: true, targetId: userId);
     }
 

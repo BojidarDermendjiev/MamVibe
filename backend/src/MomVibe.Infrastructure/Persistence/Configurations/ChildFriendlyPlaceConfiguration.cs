@@ -22,6 +22,8 @@ public class ChildFriendlyPlaceConfiguration : IEntityTypeConfiguration<ChildFri
         builder.HasIndex(x => x.City);
         builder.HasIndex(x => x.PlaceType);
         builder.HasIndex(x => x.IsApproved);
+        builder.HasIndex(x => x.AgeToMonths);
+        builder.HasIndex(x => new { x.IsApproved, x.CreatedAt });
         builder.HasOne(x => x.User)
             .WithMany(u => u.ChildFriendlyPlaces)
             .HasForeignKey(x => x.UserId)

@@ -254,17 +254,27 @@ builder.WebHost.ConfigureKestrel(options =>
 // Memory cache (used by BlockedUserMiddleware for per-user block-status caching)
 builder.Services.AddMemoryCache();
 
+// Output cache — used for public, non-user-specific endpoints (categories, etc.)
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(policy => policy.Expire(TimeSpan.FromSeconds(30)));
+    options.AddPolicy("Categories", policy => policy.Expire(TimeSpan.FromHours(1)).Tag("categories"));
+});
+
 // Controllers
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
-// SignalR
-builder.Services.AddSignalR(options =>
+// SignalR — Redis backplane when available for multi-instance support
+var redisUrl = builder.Configuration["Redis:Url"];
+var signalR = builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = builder.Environment.IsDevelopment();
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 });
+if (!string.IsNullOrWhiteSpace(redisUrl))
+    signalR.AddStackExchangeRedis(redisUrl);
 
 // Response Compression (GZip + Brotli) — reduces bandwidth by ~60-80% for JSON/text responses
 builder.Services.AddResponseCompression(opts =>
@@ -405,6 +415,7 @@ app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRequestLocalization();
 app.UseResponseCaching();
+app.UseOutputCache();
 app.UseRateLimiter();
 app.UseCors(CorsPolicy.MamVibe);
 

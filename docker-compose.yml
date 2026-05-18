@@ -29,9 +29,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme}"
+      ConnectionStrings__DefaultConnection: "Host=pgbouncer;Port=6432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme};No Reset On Close=true"
+      Redis__Url: "redis:6379"
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
       AllowedHosts: "${ALLOWED_HOSTS:-localhost;api;api:8080}"
 
@@ -121,6 +126,39 @@ services:
     networks:
       - mamvibe-net
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1
+    volumes:
+      - redis_data:/data
+    networks:
+      - mamvibe-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 300M
+
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_DATABASE: ${POSTGRES_DB:-MamVibeDb}
+      POSTGRESQL_USERNAME: ${POSTGRES_USER:-mamvibe}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGBOUNCER_PORT: 6432
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 500
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - db-net
+
   n8n:
     image: n8nio/n8n:latest
     restart: unless-stopped
@@ -200,6 +238,7 @@ services:
 
 volumes:
   pgdata:
+  redis_data:
   n8n_data:
   uploads:
   logs:

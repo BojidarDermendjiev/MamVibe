@@ -1,6 +1,7 @@
 namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 using Application.Interfaces;
@@ -34,6 +35,7 @@ public class CategoriesController : ControllerBase
     /// 200 OK with a list of category projections (Id, Name, Description, Slug).
     /// </returns>
     [HttpGet]
+    [OutputCache(PolicyName = "Categories")]
     public async Task<IActionResult> GetAll()
     {
         var categories = await this._context.Categories
