@@ -459,7 +459,10 @@
     "app_coming_soon": "Mobile app is in development — stay tuned!",
     "social_instagram": "Follow us on Instagram",
     "social_tiktok": "Follow us on TikTok",
-    "social_linkedin": "Follow us on LinkedIn"
+    "social_linkedin": "Follow us on LinkedIn",
+    "legal_privacy": "Privacy Policy",
+    "legal_terms": "Terms & Conditions",
+    "legal_cookies": "Cookie Policy"
   },
   "wallet": {
     "title": "My Wallet",

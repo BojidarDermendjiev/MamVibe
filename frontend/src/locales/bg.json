@@ -459,7 +459,10 @@
     "app_coming_soon": "Мобилното приложение е в разработка — очаквайте!",
     "social_instagram": "Последвайте ни в Instagram",
     "social_tiktok": "Последвайте ни в TikTok",
-    "social_linkedin": "Последвайте ни в LinkedIn"
+    "social_linkedin": "Последвайте ни в LinkedIn",
+    "legal_privacy": "Политика за поверителност",
+    "legal_terms": "Общи условия",
+    "legal_cookies": "Политика за бисквитки"
   },
   "wallet": {
     "title": "Моят портфейл",

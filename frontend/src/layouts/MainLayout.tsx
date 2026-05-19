@@ -510,8 +510,15 @@ export default function MainLayout() {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700/60 mt-8 pt-6 text-center text-sm text-gray-400 dark:text-gray-500">
-            &copy; {new Date().getFullYear()} MamVibe. {t("footer.rights")}
+          <div className="border-t border-gray-200 dark:border-gray-700/60 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400 dark:text-gray-500">
+            <span>&copy; {new Date().getFullYear()} MamVibe. {t("footer.rights")}</span>
+            <nav aria-label="Legal" className="flex items-center gap-4">
+              <Link to="/privacy" className="hover:text-primary transition-colors">{t("footer.legal_privacy")}</Link>
+              <span aria-hidden="true">·</span>
+              <Link to="/terms" className="hover:text-primary transition-colors">{t("footer.legal_terms")}</Link>
+              <span aria-hidden="true">·</span>
+              <Link to="/cookies" className="hover:text-primary transition-colors">{t("footer.legal_cookies")}</Link>
+            </nav>
           </div>
         </div>
       </footer>

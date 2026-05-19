@@ -60,7 +60,13 @@ public class AuthController : ControllerBase
     }
 
     private void ClearRefreshTokenCookie() =>
-        this.Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/api/auth" });
+        this.Response.Cookies.Delete("refreshToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure   = !this._env.IsDevelopment(),
+            SameSite = SameSiteMode.Strict,
+            Path     = "/api/auth"
+        });
 
     /// <summary>
     /// Registers a new user account.
