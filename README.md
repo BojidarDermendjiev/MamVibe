@@ -30,7 +30,7 @@ A full-stack marketplace platform where families can donate or sell baby items â
 ### Infrastructure
 - **Containerization:** Docker + Docker Compose
 - **Web Server:** Nginx (frontend reverse proxy)
-- **Database:** PostgreSQL 16 + PgBouncer (transaction-mode connection pooler, 500 max clients / 20 pool size)
+- **Database:** PostgreSQL 18 + PgBouncer (transaction-mode connection pooler, 500 max clients / 20 pool size)
 - **Cache:** Redis (distributed cache + SignalR backplane, 256 MB LRU with persistence)
 - **Secrets:** Doppler (optional; replace local `.env` with `doppler run -- docker compose up`)
 - **Observability:** Prometheus (metrics) + Loki (logs, 31-day retention) + Grafana (dashboards & alerts)
@@ -97,7 +97,7 @@ MamVibe/
 For local development without Docker:
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Node.js 20+](https://nodejs.org/) and npm
-- [PostgreSQL 16+](https://www.postgresql.org/download/)
+- [PostgreSQL 18+](https://www.postgresql.org/download/)
 
 ## Quick Start (Docker)
 
