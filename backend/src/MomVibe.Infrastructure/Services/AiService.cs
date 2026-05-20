@@ -6,6 +6,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Application.DTOs.Items;
@@ -19,23 +21,32 @@ using Domain.Enums;
 public class AiService : IAiService
 {
     private readonly AnthropicSettings _settings;
+    private readonly GroqSettings _groqSettings;
     private readonly IApplicationDbContext _context;
     private readonly HttpClient _httpClient;
     private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _configuration;
+    private readonly IServiceProvider _serviceProvider;
 
     private static readonly string[] AllowedContentTypes =
         ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
     public AiService(
         IOptions<AnthropicSettings> settings,
+        IOptions<GroqSettings> groqSettings,
         IApplicationDbContext context,
         IHttpClientFactory httpClientFactory,
-        IWebHostEnvironment env)
+        IWebHostEnvironment env,
+        IConfiguration configuration,
+        IServiceProvider serviceProvider)
     {
         _settings = settings.Value;
+        _groqSettings = groqSettings.Value;
         _context = context;
         _httpClient = httpClientFactory.CreateClient("Anthropic");
         _env = env;
+        _configuration = configuration;
+        _serviceProvider = serviceProvider;
     }
 
     private async Task<string> GetModelAsync()
@@ -447,30 +458,18 @@ public class AiService : IAiService
         string systemPrompt,
         IReadOnlyList<(string role, string content)> history)
     {
-        var messages = history.Select(h => new { role = h.role, content = h.content }).ToArray();
+        var providerKey = await GetSettingAsync("AI:ChatProvider")
+            ?? _configuration["AI:ChatProvider"]
+            ?? "anthropic";
 
-        var requestBody = new
-        {
-            model = await GetModelAsync(),
-            max_tokens = 500,
-            system = systemPrompt,
-            messages
-        };
+        var model = providerKey == "groq"
+            ? (await GetSettingAsync("AI:GroqModel") ?? _groqSettings.Model)
+            : await GetModelAsync();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
-        request.Headers.Add("x-api-key", _settings.ApiKey);
-        request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Content = new StringContent(
-            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
-        using var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        return doc.RootElement
-            .GetProperty("content")[0]
-            .GetProperty("text")
-            .GetString() ?? "I'm sorry, I couldn't generate a response right now.";
+        var provider = _serviceProvider.GetRequiredKeyedService<ILlmChatProvider>(providerKey);
+        return await provider.ChatAsync(systemPrompt, history, model);
     }
+
+    private async Task<string?> GetSettingAsync(string key) =>
+        (await _context.AppSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Key == key))?.Value;
 }

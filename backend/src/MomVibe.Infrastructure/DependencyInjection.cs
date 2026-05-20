@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 using Application.Interfaces;
 using Infrastructure.Services;
+using Infrastructure.Services.Chat;
 using Infrastructure.Persistence;
 using Infrastructure.Configuration;
 using Infrastructure.Services.Shipping;
@@ -117,9 +118,17 @@ public static class DependencyInjection
         // n8n scheduled daily checks
         services.AddHostedService<N8nScheduledService>();
 
-        // Anthropic Claude AI — listing assistant
+        // AI — listing assistant, moderation, price suggestion, chat widget
         services.Configure<AnthropicSettings>(configuration.GetSection("Anthropic"));
+        services.Configure<GroqSettings>(configuration.GetSection("Groq"));
+
         services.AddHttpClient("Anthropic");
+        services.AddHttpClient("Groq");
+
+        // Keyed chat providers — select active one via AI:ChatProvider config key (default: "anthropic")
+        services.AddKeyedScoped<ILlmChatProvider, AnthropicChatProvider>("anthropic");
+        services.AddKeyedScoped<ILlmChatProvider, GroqChatProvider>("groq");
+
         services.AddScoped<IAiService, AiService>();
 
         return services;

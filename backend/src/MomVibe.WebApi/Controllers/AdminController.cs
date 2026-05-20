@@ -40,6 +40,15 @@ public class AdminController : ControllerBase
         "claude-opus-4-5"
     ];
 
+    private static readonly string[] AllowedChatProviders = ["groq", "anthropic"];
+
+    private static readonly string[] AllowedGroqModels =
+    [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
+    ];
+
     public AdminController(
         IAdminService adminService,
         IItemService itemService,
@@ -369,53 +378,56 @@ public class AdminController : ControllerBase
     [HttpGet("ai-settings")]
     public async Task<IActionResult> GetAiSettings()
     {
-        var setting = await this._context.AppSettings
+        var dbSettings = await this._context.AppSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Key == "AI:Model");
+            .Where(s => s.Key == "AI:Model" || s.Key == "AI:ChatProvider" || s.Key == "AI:GroqModel")
+            .ToListAsync();
 
         return Ok(new
         {
-            model = setting?.Value ?? "claude-haiku-4-5-20251001",
-            availableModels = AllowedModels
+            model         = dbSettings.FirstOrDefault(s => s.Key == "AI:Model")?.Value         ?? "claude-haiku-4-5-20251001",
+            chatProvider  = dbSettings.FirstOrDefault(s => s.Key == "AI:ChatProvider")?.Value  ?? "groq",
+            groqModel     = dbSettings.FirstOrDefault(s => s.Key == "AI:GroqModel")?.Value     ?? "llama-3.3-70b-versatile",
+            availableModels      = AllowedModels,
+            availableProviders   = AllowedChatProviders,
+            availableGroqModels  = AllowedGroqModels,
         });
     }
 
     /// <summary>
-    /// Updates the AI model used by the platform's listing assistant and price suggester.
-    /// Only models from the approved allowlist are accepted.
+    /// Updates AI settings: Anthropic model (vision tasks), chat provider, and Groq model.
     /// </summary>
-    /// <param name="dto">Payload containing the model identifier to activate.</param>
-    /// <returns>
-    /// 400 Bad Request if the requested model is not in the allowed list.<br/>
-    /// 204 No Content on successful update.
-    /// </returns>
     [HttpPut("ai-settings")]
     public async Task<IActionResult> UpdateAiSettings([FromBody] AiSettingsUpdateDto dto)
     {
         if (!AllowedModels.Contains(dto.Model))
             return BadRequest("Unknown model. Allowed: " + string.Join(", ", AllowedModels));
 
-        var setting = await this._context.AppSettings
-            .FirstOrDefaultAsync(s => s.Key == "AI:Model");
+        if (!AllowedChatProviders.Contains(dto.ChatProvider))
+            return BadRequest("Unknown provider. Allowed: " + string.Join(", ", AllowedChatProviders));
 
-        if (setting is null)
-        {
-            this._context.AppSettings.Add(new AppSetting
-            {
-                Key = "AI:Model",
-                Value = dto.Model,
-                UpdatedAt = DateTime.UtcNow
-            });
-        }
-        else
-        {
-            setting.Value = dto.Model;
-            setting.UpdatedAt = DateTime.UtcNow;
-        }
+        if (!AllowedGroqModels.Contains(dto.GroqModel))
+            return BadRequest("Unknown Groq model. Allowed: " + string.Join(", ", AllowedGroqModels));
+
+        await UpsertSettingAsync("AI:Model",        dto.Model);
+        await UpsertSettingAsync("AI:ChatProvider",  dto.ChatProvider);
+        await UpsertSettingAsync("AI:GroqModel",     dto.GroqModel);
 
         await this._context.SaveChangesAsync(CancellationToken.None);
         return NoContent();
     }
+
+    private async Task UpsertSettingAsync(string key, string value)
+    {
+        var existing = await this._context.AppSettings.FirstOrDefaultAsync(s => s.Key == key);
+        if (existing is null)
+            this._context.AppSettings.Add(new AppSetting { Key = key, Value = value, UpdatedAt = DateTime.UtcNow });
+        else
+        {
+            existing.Value = value;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+    }
 }
 
-public record AiSettingsUpdateDto(string Model);
+public record AiSettingsUpdateDto(string Model, string ChatProvider, string GroqModel);

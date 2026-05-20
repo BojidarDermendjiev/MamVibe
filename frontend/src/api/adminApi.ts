@@ -81,10 +81,17 @@ export const adminApi = {
     axiosClient.get<ModerationLogEntry[]>(`/admin/items/${itemId}/moderation-history`),
 
   getAiSettings: () =>
-    axiosClient.get<{ model: string; availableModels: string[] }>('/admin/ai-settings'),
+    axiosClient.get<{
+      model: string;
+      chatProvider: string;
+      groqModel: string;
+      availableModels: string[];
+      availableProviders: string[];
+      availableGroqModels: string[];
+    }>('/admin/ai-settings'),
 
-  updateAiSettings: (model: string) =>
-    axiosClient.put('/admin/ai-settings', { model }),
+  updateAiSettings: (model: string, chatProvider: string, groqModel: string) =>
+    axiosClient.put('/admin/ai-settings', { model, chatProvider, groqModel }),
 
   getAuditLogs: (params?: { page?: number; pageSize?: number; action?: string; userId?: string; success?: boolean }) =>
     axiosClient.get<{ items: AuditLog[]; totalCount: number; page: number; pageSize: number }>('/admin/audit-logs', { params }),

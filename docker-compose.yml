@@ -51,8 +51,12 @@ services:
       Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET must be set in .env}"
       Stripe__WalletWebhookSecret: "${STRIPE_WALLET_WEBHOOK_SECRET}"
 
-      # ── Anthropic AI ────────────────────────────────────────────────────────
-      Anthropic__ApiKey: "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY must be set in .env}"
+      # ── AI providers ────────────────────────────────────────────────────────
+      # Anthropic is used for vision tasks (listing suggest, moderation, price suggestion)
+      Anthropic__ApiKey: "${ANTHROPIC_API_KEY}"
+      # Groq is used for the chat widget (free tier, fast) — set AI_CHAT_PROVIDER=anthropic to switch
+      Groq__ApiKey: "${GROQ_API_KEY}"
+      AI__ChatProvider: "${AI_CHAT_PROVIDER:-groq}"
 
       # ── Cloudflare Turnstile ────────────────────────────────────────────────
       Cloudflare__TurnstileSiteKey: "${TURNSTILE_SITE_KEY}"
