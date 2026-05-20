@@ -49,8 +49,23 @@ services:
       - uploads:/app/wwwroot/uploads
 
   frontend:
+    ports: []  # Not exposed directly — Caddy handles all public traffic
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
     ports:
-      - "80:80"  # Cloudflare → port 80 → nginx → api:8080
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 QUIC
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    networks:
+      - mamvibe-net
 
   prometheus:
     ports: []
@@ -75,3 +90,5 @@ services:
 volumes:
   uploads:
   n8n_data:
+  caddy_data:
+  caddy_config:
