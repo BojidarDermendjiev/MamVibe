@@ -156,7 +156,11 @@
       "create_another": "Create another",
       "go_dashboard": "Go to Dashboard",
       "browse_items": "Browse items"
-    }
+    },
+    "ai_assistant_title": "AI Listing Assistant",
+    "ai_assistant_desc": "Upload a photo and Claude AI will suggest the title, description, category, price, and size for you.",
+    "ai_fill_btn": "Fill with AI",
+    "ai_analysing": "Analysing photo…"
   },
   "chat": {
     "title": "Messages",
@@ -196,11 +200,7 @@
     "req_view_waybill": "View Waybill",
     "my_ebills": "E-Bills",
     "req_pending": "Pending Approval",
-    "not_available": "Not Available",
-    "ai_assistant_title": "AI Listing Assistant",
-    "ai_assistant_desc": "Upload a photo and Claude AI will suggest the title, description, category, price, and size for you.",
-    "ai_fill_btn": "Fill with AI",
-    "ai_analysing": "Analysing photo…"
+    "not_available": "Not Available"
   },
   "profile": {
     "title": "Profile",

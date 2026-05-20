@@ -156,7 +156,11 @@
       "create_another": "Нова обява",
       "go_dashboard": "Към таблото",
       "browse_items": "Разгледай обяви"
-    }
+    },
+    "ai_assistant_title": "AI Асистент за обяви",
+    "ai_assistant_desc": "Качи снимка и Claude AI ще предложи заглавие, описание, категория, цена и размер.",
+    "ai_fill_btn": "Попълни с AI",
+    "ai_analysing": "Анализира снимката…"
   },
   "chat": {
     "title": "Съобщения",
@@ -196,11 +200,7 @@
     "req_view_waybill": "Виж товарителница",
     "my_ebills": "Е-Фактури",
     "req_pending": "Изчаква одобрение",
-    "not_available": "Не е налично",
-    "ai_assistant_title": "AI Асистент за обяви",
-    "ai_assistant_desc": "Качи снимка и Claude AI ще предложи заглавие, описание, категория, цена и размер.",
-    "ai_fill_btn": "Попълни с AI",
-    "ai_analysing": "Анализира снимката…"
+    "not_available": "Не е налично"
   },
   "profile": {
     "title": "Профил",
