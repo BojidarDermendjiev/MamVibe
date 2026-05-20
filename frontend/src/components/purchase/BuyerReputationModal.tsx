@@ -1,4 +1,4 @@
-import { AlertTriangle, ShieldAlert, ThumbsUp, X } from 'lucide-react';
+import { TriangleAlert, ShieldAlert, ThumbsUp, X } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import type { BuyerCheckResult } from '../../api/purchaseRequestsApi';
 
@@ -59,7 +59,7 @@ export default function BuyerReputationModal({
             <div className="min-w-0">
               <p className="font-medium text-primary dark:text-gray-100 truncate">{buyerName ?? 'Unknown Buyer'}</p>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full mt-0.5">
-                <AlertTriangle size={10} />
+                <TriangleAlert size={10} />
                 {result.reportCount} report{result.reportCount !== 1 ? 's' : ''} found
               </span>
             </div>

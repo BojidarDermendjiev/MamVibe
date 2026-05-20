@@ -22,9 +22,7 @@ if (sentryDsn) {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
+    <BrowserRouter>
       <CloudflareGate>
         <App />
         <Toaster
