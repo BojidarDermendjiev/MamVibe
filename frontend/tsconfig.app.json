@@ -20,6 +20,9 @@
       "@/*": ["./src/*"]
     },
 
+    /* Vitest globals (vi, describe, it, expect, etc.) */
+    "types": ["vitest/globals"],
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
