@@ -136,7 +136,7 @@ describe('OfficePicker', () => {
 
   it('does not update state after component unmounts (cancelled guard in then)', async () => {
     let resolveOffices!: (val: unknown) => void
-    mockGetOffices.mockReturnValue(new Promise((res) => { resolveOffices = res }))
+    mockGetOffices.mockReturnValue(new Promise((res) => { resolveOffices = res }) as never)
     const { unmount } = render(<OfficePicker {...baseProps} />)
     unmount()
     await act(async () => { resolveOffices({ data: offices }) })
