@@ -73,4 +73,11 @@ describe('useItems', () => {
     expect(result.current.filter.pageSize).toBe(12)
     expect(result.current.filter.sortBy).toBe('newest')
   })
+
+  it('uses fallback message when thrown value is not an Error instance', async () => {
+    mockGetAll.mockRejectedValue('plain string error')
+    const { result } = renderHook(() => useItems())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.error).toBe('Failed to load items')
+  })
 })

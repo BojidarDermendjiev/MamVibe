@@ -54,13 +54,13 @@ describe('BuyerReputationModal', () => {
   })
 
   it('shows fallback text when report has no text', () => {
-    const noText = { ...result, reports: [{ text: '', createdAt: null, likes: 0 }] }
+    const noText = { ...result, reports: [{ text: '', createdAt: undefined, likes: 0 }] }
     render(<BuyerReputationModal buyerName="John" buyerAvatarUrl={null} result={noText} onAccept={vi.fn()} onCancel={vi.fn()} />)
     expect(screen.getByText('No description provided.')).toBeInTheDocument()
   })
 
   it('does not render date when createdAt is null', () => {
-    const noDate = { ...result, reports: [{ text: 'Some report', createdAt: null, likes: 0 }] }
+    const noDate = { ...result, reports: [{ text: 'Some report', createdAt: undefined, likes: 0 }] }
     render(<BuyerReputationModal buyerName="John" buyerAvatarUrl={null} result={noDate} onAccept={vi.fn()} onCancel={vi.fn()} />)
     expect(screen.queryByText(/\d{1,2}\/\d{1,2}\/\d{4}/)).toBeNull()
   })

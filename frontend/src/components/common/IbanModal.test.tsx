@@ -78,4 +78,12 @@ describe('IbanModal', () => {
     await userEvent.click(screen.getByText('payment.iban_save'))
     await waitFor(() => expect(vi.mocked(toast.default.error)).toHaveBeenCalledWith('common.error'))
   })
+
+  it('shows validation error when IBAN is longer than 34 characters', async () => {
+    render(<IbanModal {...baseProps} />)
+    await userEvent.type(screen.getByPlaceholderText('BG80BNBG96611020345678'), 'BG' + '0'.repeat(33))
+    await userEvent.click(screen.getByText('payment.iban_save'))
+    expect(screen.getByText('payment.iban_invalid')).toBeInTheDocument()
+    expect(mockPut).not.toHaveBeenCalled()
+  })
 })

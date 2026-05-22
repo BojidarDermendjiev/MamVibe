@@ -97,4 +97,18 @@ describe('usePageSEO', () => {
     expect(scripts).toHaveLength(1)
     expect(JSON.parse(scripts[0].textContent!)).toMatchObject({ name: 'Second' })
   })
+
+  it('removes pre-existing JSON-LD script before injecting new one', () => {
+    const preexisting = document.createElement('script')
+    preexisting.setAttribute('data-seo-ld', 'true')
+    preexisting.type = 'application/ld+json'
+    preexisting.textContent = JSON.stringify({ '@type': 'OldType' })
+    document.head.appendChild(preexisting)
+
+    renderHook(() => usePageSEO({ title: 'Test', description: 'Desc', structuredData: { '@type': 'Product' } }))
+
+    const scripts = document.querySelectorAll('script[data-seo-ld]')
+    expect(scripts).toHaveLength(1)
+    expect(JSON.parse(scripts[0].textContent!)).toMatchObject({ '@type': 'Product' })
+  })
 })

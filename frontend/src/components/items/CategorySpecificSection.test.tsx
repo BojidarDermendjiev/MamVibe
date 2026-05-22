@@ -157,6 +157,34 @@ describe('CategorySpecificSection', () => {
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
+  it('deselects age group when already-selected item clicked (AgeCardGrid)', async () => {
+    const onChange = vi.fn()
+    render(
+      <CategorySpecificSection
+        {...defaultProps}
+        categorySlug="toys"
+        ageGroup={AgeGroup.Toddler}
+        onAgeGroupChange={onChange}
+      />
+    )
+    await userEvent.click(screen.getByText('Toddler'))
+    expect(onChange).toHaveBeenCalledWith(null)
+  })
+
+  it('deselects shoe size when already-selected size clicked', async () => {
+    const onChange = vi.fn()
+    render(
+      <CategorySpecificSection
+        {...defaultProps}
+        categorySlug="shoes"
+        shoeSize={16}
+        onShoeSizeChange={onChange}
+      />
+    )
+    await userEvent.click(screen.getByText('16'))
+    expect(onChange).toHaveBeenCalledWith(null)
+  })
+
   it('calls onShoeSizeChange with null when shoe Clear size button is clicked', async () => {
     const onChange = vi.fn()
     render(

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RateSellerModal from './RateSellerModal'
 import { userRatingsApi } from '../../api/userRatingsApi'
@@ -95,5 +95,12 @@ describe('RateSellerModal', () => {
     render(<RateSellerModal {...baseProps} />)
     await userEvent.click(screen.getAllByRole('button')[3])
     expect(screen.getByText('rating.star_3')).toBeInTheDocument()
+  })
+
+  it('shows rating.select_stars toast when submit fired with no rating', async () => {
+    const toast = await import('@/utils/toast')
+    render(<RateSellerModal {...baseProps} />)
+    fireEvent.click(screen.getByText('rating.submit'))
+    await waitFor(() => expect(vi.mocked(toast.default.error)).toHaveBeenCalledWith('rating.select_stars'))
   })
 })

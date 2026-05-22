@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ItemFilters from './ItemFilters'
 import type { ItemFilter, Category } from '../../types/item'
-import { ListingType } from '../../types/item'
+import { AgeGroup, ListingType } from '../../types/item'
 
 const defaultFilter: ItemFilter = {
   page: 1,
@@ -95,7 +95,7 @@ describe('ItemFilters', () => {
 
   it('deselects age group when same clicked again', async () => {
     const onChange = vi.fn()
-    const filter = { ...defaultFilter, ageGroup: 2 }
+    const filter = { ...defaultFilter, ageGroup: AgeGroup.Toddler }
     render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
     await userEvent.click(screen.getByText('Toddler'))
     expect(onChange).toHaveBeenCalledWith({ ageGroup: undefined, page: 1 })
@@ -173,5 +173,13 @@ describe('ItemFilters', () => {
     render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
     await userEvent.click(screen.getByText('All brands'))
     expect(onChange).toHaveBeenCalledWith({ brand: undefined, page: 1 })
+  })
+
+  it('clears listingType when Donate clicked while already selected', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, listingType: ListingType.Donate }
+    render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('items.donate'))
+    expect(onChange).toHaveBeenCalledWith({ listingType: undefined, page: 1 })
   })
 })

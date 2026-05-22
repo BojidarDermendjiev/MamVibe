@@ -41,14 +41,14 @@ describe('Avatar', () => {
 
   it('falls back to profile-type avatar on image load error', () => {
     render(<Avatar src="https://bad.example.com/photo.jpg" profileType={ProfileType.Female} />)
-    const img = screen.getByRole('img')
+    const img = screen.getByRole('img') as HTMLImageElement
     fireEvent.error(img)
     expect(img.src).toContain('/avatars/mom.svg')
   })
 
   it('falls back to family avatar on error when no profileType provided', () => {
     render(<Avatar src="https://bad.example.com/photo.jpg" />)
-    const img = screen.getByRole('img')
+    const img = screen.getByRole('img') as HTMLImageElement
     fireEvent.error(img)
     expect(img.src).toContain('/avatars/family.svg')
   })

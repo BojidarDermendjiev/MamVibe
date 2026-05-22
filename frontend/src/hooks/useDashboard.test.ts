@@ -118,4 +118,13 @@ describe('useDashboard', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.myItems).toEqual([])
   })
+
+  it('handles unknown tab value without calling any API', async () => {
+    const { result } = renderHook(() => useDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    const callsBefore = vi.mocked(itemsApi.getMyItems).mock.calls.length
+    act(() => (result.current.setTab as unknown as (t: string) => void)('unknown-tab'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(vi.mocked(itemsApi.getMyItems).mock.calls.length).toBe(callsBefore)
+  })
 })
