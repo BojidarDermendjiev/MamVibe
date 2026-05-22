@@ -35,7 +35,7 @@ function mountTurnstile() {
 }
 
 function removeTurnstile() {
-  try { delete (window as Record<string, unknown>).turnstile } catch { /* noop */ }
+  try { delete (window as unknown as Record<string, unknown>).turnstile } catch { /* noop */ }
 }
 
 function cleanupScripts() {
