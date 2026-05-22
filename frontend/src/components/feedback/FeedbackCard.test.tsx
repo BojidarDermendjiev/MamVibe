@@ -60,4 +60,45 @@ describe('FeedbackCard', () => {
     render(<FeedbackCard feedback={baseFeedback} />)
     expect(screen.getByText('T')).toBeInTheDocument()
   })
+
+  it('shows ? when displayName is null', () => {
+    const feedback = { ...baseFeedback, userDisplayName: null }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('?')).toBeInTheDocument()
+  })
+
+  it('shows feedback.anonymous when displayName is null', () => {
+    const feedback = { ...baseFeedback, userDisplayName: null }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('feedback.anonymous')).toBeInTheDocument()
+  })
+
+  it('falls back to Praise config for unknown category', () => {
+    const feedback = { ...baseFeedback, category: 999 as FeedbackCategory }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('feedback.cat_praise')).toBeInTheDocument()
+  })
+
+  it('does not show delete button when canDelete is true but onDelete is not provided', () => {
+    render(<FeedbackCard feedback={baseFeedback} canDelete />)
+    expect(screen.queryByText('feedback.delete')).toBeNull()
+  })
+
+  it('renders Improvement category badge', () => {
+    const feedback = { ...baseFeedback, category: FeedbackCategory.Improvement }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('feedback.cat_improvement')).toBeInTheDocument()
+  })
+
+  it('renders BugReport category badge', () => {
+    const feedback = { ...baseFeedback, category: FeedbackCategory.BugReport }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('feedback.cat_bug')).toBeInTheDocument()
+  })
+
+  it('renders FeatureRequest category badge', () => {
+    const feedback = { ...baseFeedback, category: FeedbackCategory.FeatureRequest }
+    render(<FeedbackCard feedback={feedback} />)
+    expect(screen.getByText('feedback.cat_feature')).toBeInTheDocument()
+  })
 })

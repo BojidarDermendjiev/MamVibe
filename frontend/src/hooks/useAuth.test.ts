@@ -78,4 +78,16 @@ describe('useAuth', () => {
     const { result } = renderHook(() => useAuth())
     expect(result.current.isLoading).toBe(true)
   })
+
+  it('does not call logout after unmount when refresh rejects', async () => {
+    let rejectRefresh!: (e: unknown) => void
+    vi.mocked(authApi.refresh).mockReturnValue(
+      new Promise<never>((_, rej) => { rejectRefresh = rej }) as ReturnType<typeof authApi.refresh>
+    )
+    const { unmount } = renderHook(() => useAuth())
+    unmount()
+    rejectRefresh(new Error('Unauthorized'))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(mockLogout).not.toHaveBeenCalled()
+  })
 })

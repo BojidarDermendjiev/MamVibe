@@ -70,4 +70,86 @@ describe('ItemFilters', () => {
     await userEvent.click(screen.getByText('items.sell'))
     expect(onChange).toHaveBeenCalledWith({ listingType: ListingType.Sell, page: 1 })
   })
+
+  it('clears listingType when same type clicked again', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, listingType: ListingType.Sell }
+    render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('items.sell'))
+    expect(onChange).toHaveBeenCalledWith({ listingType: undefined, page: 1 })
+  })
+
+  it('calls onChange with Donate listing type when Donate clicked', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('items.donate'))
+    expect(onChange).toHaveBeenCalledWith({ listingType: ListingType.Donate, page: 1 })
+  })
+
+  it('selects age group', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('Toddler'))
+    expect(onChange).toHaveBeenCalledWith({ ageGroup: expect.any(Number), page: 1 })
+  })
+
+  it('deselects age group when same clicked again', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, ageGroup: 2 }
+    render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('Toddler'))
+    expect(onChange).toHaveBeenCalledWith({ ageGroup: undefined, page: 1 })
+  })
+
+  it('selects brand', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('Bugaboo'))
+    expect(onChange).toHaveBeenCalledWith({ brand: 'Bugaboo', page: 1 })
+  })
+
+  it('deselects brand when same clicked again', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, brand: 'Bugaboo' }
+    render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('Bugaboo'))
+    expect(onChange).toHaveBeenCalledWith({ brand: undefined, page: 1 })
+  })
+
+  it('changes sort order', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('Price: low to high'))
+    expect(onChange).toHaveBeenCalledWith({ sortBy: 'price_asc', page: 1 })
+  })
+
+  it('shows Clear all when listingType is active', () => {
+    render(<ItemFilters filter={{ ...defaultFilter, listingType: ListingType.Sell }} categories={[]} onChange={vi.fn()} />)
+    expect(screen.getByText('Clear all')).toBeInTheDocument()
+  })
+
+  it('shows Clear all when brand is active', () => {
+    render(<ItemFilters filter={{ ...defaultFilter, brand: 'Nuna' }} categories={[]} onChange={vi.fn()} />)
+    expect(screen.getByText('Clear all')).toBeInTheDocument()
+  })
+
+  it('shows Clear all when ageGroup is active', () => {
+    render(<ItemFilters filter={{ ...defaultFilter, ageGroup: 1 }} categories={[]} onChange={vi.fn()} />)
+    expect(screen.getByText('Clear all')).toBeInTheDocument()
+  })
+
+  it('shows Clear all when sortBy is not newest', () => {
+    render(<ItemFilters filter={{ ...defaultFilter, sortBy: 'oldest' }} categories={[]} onChange={vi.fn()} />)
+    expect(screen.getByText('Clear all')).toBeInTheDocument()
+  })
+
+  it('clears listingType to undefined when All clicked', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, listingType: ListingType.Sell }
+    render(<ItemFilters filter={filter} categories={[]} onChange={onChange} />)
+    // "All" is the first option under Listing Type
+    const allButtons = screen.getAllByText('All')
+    await userEvent.click(allButtons[0])
+    expect(onChange).toHaveBeenCalledWith({ listingType: undefined, page: 1 })
+  })
 })

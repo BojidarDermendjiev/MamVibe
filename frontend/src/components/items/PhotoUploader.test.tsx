@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PhotoUploader from './PhotoUploader'
 
@@ -105,5 +105,25 @@ describe('PhotoUploader', () => {
       <PhotoUploader {...baseProps} existingPhotos={[{ id: 'e1', url: '/e1.jpg' }]} />
     )
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('calls onChange with dropped image files', () => {
+    const onChange = vi.fn()
+    const { container } = render(<PhotoUploader photos={[]} onChange={onChange} />)
+    const dropZone = container.querySelector('[class*="border-dashed"]')!
+    const file = makeFile('dropped.jpg')
+    fireEvent.drop(dropZone, {
+      dataTransfer: { files: [file] },
+    })
+    expect(onChange).toHaveBeenCalledWith([file])
+  })
+
+  it('applies drag-over style on dragOver and removes on dragLeave', () => {
+    const { container } = render(<PhotoUploader {...baseProps} />)
+    const dropZone = container.querySelector('[class*="border-dashed"]')!
+    fireEvent.dragOver(dropZone)
+    expect(dropZone.className).toContain('bg-lavender/10')
+    fireEvent.dragLeave(dropZone)
+    expect(dropZone.className).not.toContain('bg-lavender/10')
   })
 })

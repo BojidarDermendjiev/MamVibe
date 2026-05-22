@@ -37,4 +37,16 @@ describe('LikeButton', () => {
     expect(onToggle).not.toHaveBeenCalled()
     expect(screen.getByText('0')).toBeInTheDocument()
   })
+
+  it('renders with size sm (small icon classes)', () => {
+    const { container } = render(<LikeButton itemId="1" likeCount={3} isLiked={false} size="sm" />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('class')).toContain('h-4')
+  })
+
+  it('renders liked state with size sm', () => {
+    const { container } = render(<LikeButton itemId="1" likeCount={3} isLiked size="sm" />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('class')).toContain('h-4')
+  })
 })
