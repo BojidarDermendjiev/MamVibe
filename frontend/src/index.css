@@ -337,6 +337,29 @@ a:hover {
   animation-delay: 0.35s;
 }
 
+/* ─── Shimmer Text ─── */
+@keyframes shine {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #e5e7eb, #945c67, #6366f1, #945c67, #e5e7eb);
+  background-size: 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine 2s infinite linear;
+}
+
+:where(.dark, .dark *) .shimmer-text {
+  background: linear-gradient(90deg, #4b5563, #c1c4e3, #a5b4fc, #c1c4e3, #4b5563);
+  background-size: 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* ─── Hover Effects ─── */
 .hover-lift {
   transition:
