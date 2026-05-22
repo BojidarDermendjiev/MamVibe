@@ -40,6 +40,8 @@ vi.mock('lucide-react', () => {
     'AlertTriangle', 'Info', 'Settings', 'Home', 'Menu', 'Bell',
     'Download', 'Upload', 'Edit', 'Trash', 'Package', 'Truck',
     'ArrowLeft', 'ArrowRight', 'ExternalLink', 'Send', 'MessageCircle',
+    'Bot', 'MessageCircleQuestion', 'Loader2', 'Stethoscope',
+    'PlusCircle', 'LayoutDashboard', 'MessageSquare', 'LogIn',
   ]
   const result: Record<string, unknown> = {}
   for (const name of icons) result[name] = stub(name)
