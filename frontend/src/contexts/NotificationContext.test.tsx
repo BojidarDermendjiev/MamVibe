@@ -316,4 +316,31 @@ describe('NotificationContext', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(screen.getByTestId('unread').textContent).toBe('1')
   })
+
+  it('skips setState when component unmounts before API calls resolve (cancelled guard)', async () => {
+    let resolveConv!: (v: unknown) => void
+    let resolveSeller!: (v: unknown) => void
+    mockGetConversations.mockReturnValue(new Promise((r) => { resolveConv = r }) as never)
+    mockGetAsSeller.mockReturnValue(new Promise((r) => { resolveSeller = r }) as never)
+    const { unmount } = setup()
+    // Unmount while both fetches are in flight — cleanup sets cancelled = true
+    unmount()
+    // Resolve after unmount — if (!cancelled) evaluates to false for both
+    await act(async () => {
+      resolveConv({ data: [{ unreadCount: 5 }] })
+      resolveSeller({ data: [{ status: PurchaseRequestStatus.Pending }] })
+    })
+    expect(mockGetConversations).toHaveBeenCalled()
+    expect(mockGetAsSeller).toHaveBeenCalled()
+  })
+
+  it('markConversationRead skips re-fetch when not authenticated', async () => {
+    mockAuthState = { isAuthenticated: false, isLoading: false, user: { id: '' } }
+    mockMarkAsRead.mockResolvedValue({} as never)
+    setup()
+    await userEvent.click(screen.getByText('mark read'))
+    expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
+    // isAuthenticated is false → getConversations re-fetch should NOT be called
+    expect(mockGetConversations).not.toHaveBeenCalled()
+  })
 })
