@@ -127,6 +127,21 @@ describe('ItemCard', () => {
     expect(screen.getByText('items.sell')).toBeInTheDocument()
   })
 
+  it('applies opacity-60 to photo img when item is pending', () => {
+    const item = {
+      ...baseItem,
+      isActive: false,
+      photos: [{ id: 'p1', url: '/photo.jpg', displayOrder: 0 }],
+    }
+    const { container } = render(
+      <MemoryRouter>
+        <ItemCard item={item} showStatus />
+      </MemoryRouter>
+    )
+    const img = container.querySelector('img[src="/photo.jpg"]')!
+    expect(img.className).toContain('opacity-60')
+  })
+
   it('passes onLikeToggle and onRequireAuth to LikeButton', () => {
     const onLikeToggle = vi.fn()
     const onRequireAuth = vi.fn()

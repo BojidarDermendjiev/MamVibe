@@ -105,4 +105,10 @@ describe('EBillCard', () => {
     render(<EBillCard bill={{ ...bill, paymentMethod: 99 as never }} />)
     expect(screen.getByText('99')).toBeInTheDocument()
   })
+
+  it('shows dash when sellerDisplayName is null', () => {
+    render(<EBillCard bill={{ ...bill, sellerDisplayName: null }} />)
+    const sellerLine = screen.getByText(/ebill\.seller/)
+    expect(sellerLine.textContent).toContain('—')
+  })
 })

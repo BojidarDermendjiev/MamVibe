@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import OfficePicker from './OfficePicker'
 import { shippingApi } from '../../api/shippingApi'
@@ -98,5 +98,55 @@ describe('OfficePicker', () => {
     const input = await waitFor(() => screen.getByPlaceholderText('shipping.filter_offices'))
     await userEvent.click(input)
     expect(screen.getByText('shipping.choose_office')).toBeInTheDocument()
+  })
+
+  it('shows APT label for locker office in selected display', async () => {
+    const lockerOnly = [{ id: '9', name: 'City Locker', city: 'Sofia', address: 'Main St', isLocker: true }]
+    mockGetOffices.mockResolvedValue({ data: lockerOnly } as never)
+    render(<OfficePicker {...baseProps} value="9" />)
+    await waitFor(() => expect(screen.getByText(/City Locker/)).toBeInTheDocument())
+    expect(screen.getByText(/APT/)).toBeInTheDocument()
+  })
+
+  it('shows no_offices_found message when filter text yields no results', async () => {
+    mockGetOffices.mockResolvedValue({ data: offices } as never)
+    render(<OfficePicker {...baseProps} />)
+    const input = await waitFor(() => screen.getByPlaceholderText('shipping.filter_offices'))
+    await userEvent.type(input, 'zzznomatch')
+    expect(screen.getByText('shipping.no_offices_found')).toBeInTheDocument()
+  })
+
+  it('highlights selected office row in open dropdown', async () => {
+    mockGetOffices.mockResolvedValue({ data: offices } as never)
+    render(<OfficePicker {...baseProps} value="1" />)
+    const input = await waitFor(() => screen.getByPlaceholderText('shipping.filter_offices'))
+    await userEvent.click(input)
+    const btn = screen.getByText('Sofia Centre').closest('button')!
+    expect(btn.className).toContain('bg-lavender/10')
+  })
+
+  it('lockersOnly=false hides locker offices from dropdown', async () => {
+    mockGetOffices.mockResolvedValue({ data: offices } as never)
+    render(<OfficePicker {...baseProps} lockersOnly={false} />)
+    const input = await waitFor(() => screen.getByPlaceholderText('shipping.filter_offices'))
+    await userEvent.click(input)
+    expect(screen.getByText('Sofia Centre')).toBeInTheDocument()
+    expect(screen.queryByText('Sofia Locker')).toBeNull()
+  })
+
+  it('does not update state after component unmounts (cancelled guard in then)', async () => {
+    let resolveOffices!: (val: unknown) => void
+    mockGetOffices.mockReturnValue(new Promise((res) => { resolveOffices = res }))
+    const { unmount } = render(<OfficePicker {...baseProps} />)
+    unmount()
+    await act(async () => { resolveOffices({ data: offices }) })
+  })
+
+  it('does not update state after component unmounts (cancelled guard in catch)', async () => {
+    let rejectOffices!: (err: Error) => void
+    mockGetOffices.mockReturnValue(new Promise<never>((_, rej) => { rejectOffices = rej }))
+    const { unmount } = render(<OfficePicker {...baseProps} />)
+    unmount()
+    await act(async () => { rejectOffices(new Error('Network error')) })
   })
 })

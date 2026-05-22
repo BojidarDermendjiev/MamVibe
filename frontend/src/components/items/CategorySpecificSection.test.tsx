@@ -142,4 +142,33 @@ describe('CategorySpecificSection', () => {
     await userEvent.click(screen.getByText(/Clear selection/))
     expect(onChange).toHaveBeenCalledWith(null)
   })
+
+  it('calls onClothingSizeChange with null when clothing Clear size button is clicked', async () => {
+    const onChange = vi.fn()
+    render(
+      <CategorySpecificSection
+        {...defaultProps}
+        categorySlug="clothing"
+        clothingSize={62}
+        onClothingSizeChange={onChange}
+      />
+    )
+    await userEvent.click(screen.getByText(/Clear size/))
+    expect(onChange).toHaveBeenCalledWith(null)
+  })
+
+  it('calls onShoeSizeChange with null when shoe Clear size button is clicked', async () => {
+    const onChange = vi.fn()
+    render(
+      <CategorySpecificSection
+        {...defaultProps}
+        categorySlug="shoes"
+        shoeSize={20}
+        onShoeSizeChange={onChange}
+      />
+    )
+    expect(screen.getByText(/Clear size/)).toBeInTheDocument()
+    await userEvent.click(screen.getByText(/Clear size/))
+    expect(onChange).toHaveBeenCalledWith(null)
+  })
 })

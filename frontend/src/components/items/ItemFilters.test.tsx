@@ -152,4 +152,26 @@ describe('ItemFilters', () => {
     await userEvent.click(allButtons[0])
     expect(onChange).toHaveBeenCalledWith({ listingType: undefined, page: 1 })
   })
+
+  it('calls onChange with categoryId undefined when All categories clicked', async () => {
+    const onChange = vi.fn()
+    const filter = { ...defaultFilter, categoryId: 'cat-1' }
+    render(<ItemFilters filter={filter} categories={categories} onChange={onChange} />)
+    await userEvent.click(screen.getByText('items.all_categories'))
+    expect(onChange).toHaveBeenCalledWith({ categoryId: undefined, page: 1 })
+  })
+
+  it('calls onChange with ageGroup undefined when All ages clicked', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('All ages'))
+    expect(onChange).toHaveBeenCalledWith({ ageGroup: undefined, page: 1 })
+  })
+
+  it('calls onChange with brand undefined when All brands clicked', async () => {
+    const onChange = vi.fn()
+    render(<ItemFilters filter={defaultFilter} categories={[]} onChange={onChange} />)
+    await userEvent.click(screen.getByText('All brands'))
+    expect(onChange).toHaveBeenCalledWith({ brand: undefined, page: 1 })
+  })
 })

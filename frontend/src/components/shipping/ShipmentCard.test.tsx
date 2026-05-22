@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import ShipmentCard from './ShipmentCard'
 import type { Shipment } from '../../types/shipping'
 import { CourierProvider, DeliveryType, ShipmentStatus } from '../../types/shipping'
 import { shippingApi } from '../../api/shippingApi'
+
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return { ...actual, useNavigate: () => mockNavigate }
+})
 
 vi.mock('../../api/shippingApi', () => ({
   shippingApi: { getLabel: vi.fn() },
@@ -19,6 +25,7 @@ const mockGetLabel = vi.mocked(shippingApi.getLabel)
 
 beforeEach(() => {
   mockGetLabel.mockClear()
+  mockNavigate.mockClear()
   window.URL.createObjectURL = vi.fn(() => 'blob:mock')
   window.URL.revokeObjectURL = vi.fn()
 })
@@ -173,5 +180,31 @@ describe('ShipmentCard', () => {
     await userEvent.click(btn)
     expect(btn).toBeDisabled()
     resolveDownload()
+  })
+
+  it('navigates to shipment detail when card is clicked', async () => {
+    const { container } = setup()
+    await userEvent.click(container.firstChild as Element)
+    expect(mockNavigate).toHaveBeenCalledWith('/shipments/ship-1')
+  })
+
+  it('does not navigate when label wrapper div is clicked (stopPropagation)', () => {
+    const { container } = setup({ ...baseShipment, status: ShipmentStatus.Created }, 'seller-1')
+    const wrapper = container.querySelector('.mt-3')!
+    fireEvent.click(wrapper)
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('uses shipment id in label filename when trackingNumber is null', async () => {
+    const shipment = { ...baseShipment, status: ShipmentStatus.Created, trackingNumber: null }
+    mockGetLabel.mockResolvedValue({ data: new Blob(['pdf']) } as never)
+    setup(shipment, 'seller-1')
+    await userEvent.click(screen.getByText(/shipping\.download_label/))
+    await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled())
+  })
+
+  it('uses fallback status styles and key for unknown status value', () => {
+    setup({ ...baseShipment, status: 99 as ShipmentStatus })
+    expect(screen.getByText('shipping.status_pending')).toBeInTheDocument()
   })
 })

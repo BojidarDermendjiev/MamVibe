@@ -1,3 +1,4 @@
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -250,5 +251,69 @@ describe('NotificationContext', () => {
       trackingNumber: null,
     }))
     expect(mockToast).toHaveBeenCalled()
+  })
+
+  it('renders seller shipment ready toast content and calls dismiss on link click', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onSellerShipmentReady).not.toBeNull())
+    act(() => captured.onSellerShipmentReady!({
+      id: 'sh-10',
+      courierProvider: CourierProvider.Econt,
+      itemTitle: 'Baby shoes',
+      trackingNumber: 'ABC123',
+    }))
+    const renderFn = mockToast.mock.calls[0][0] as (t: { id: string }) => React.ReactElement
+    const { getByText } = render(renderFn({ id: 'seller-toast-id' }))
+    await userEvent.click(getByText('View waybill & download label →'))
+    expect(vi.mocked(toast.dismiss)).toHaveBeenCalledWith('seller-toast-id')
+  })
+
+  it('renders buyer shipment status changed toast content and calls dismiss on link click', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onShipmentStatusChanged).not.toBeNull())
+    act(() => captured.onShipmentStatusChanged!({
+      id: 'sh-11',
+      courierProvider: CourierProvider.BoxNow,
+      itemTitle: 'Stroller',
+      trackingNumber: 'TRACK-99',
+    }))
+    const renderFn = mockToast.mock.calls[0][0] as (t: { id: string }) => React.ReactElement
+    const { getByText } = render(renderFn({ id: 'buyer-toast-id' }))
+    await userEvent.click(getByText('Track your package →'))
+    expect(vi.mocked(toast.dismiss)).toHaveBeenCalledWith('buyer-toast-id')
+  })
+
+  it('handles getConversations failure on mount gracefully', async () => {
+    mockGetConversations.mockRejectedValue(new Error('Network error'))
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.getByTestId('unread').textContent).toBe('0')
+  })
+
+  it('handles getAsSeller failure on mount gracefully', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockRejectedValue(new Error('Network error'))
+    setup()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.getByTestId('pending').textContent).toBe('0')
+  })
+
+  it('handles markConversationRead when getConversations re-fetch fails', async () => {
+    mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 1 }] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    mockMarkAsRead.mockResolvedValue({} as never)
+    setup()
+    await waitFor(() => expect(screen.getByTestId('unread').textContent).toBe('1'))
+    mockGetConversations.mockRejectedValue(new Error('Network error'))
+    await userEvent.click(screen.getByText('mark read'))
+    expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
+    // catch handler runs without throwing; count stays at 1
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.getByTestId('unread').textContent).toBe('1')
   })
 })
