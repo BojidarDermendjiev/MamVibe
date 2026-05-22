@@ -82,4 +82,10 @@ describe('TubelightNavBar', () => {
     const browseLink = screen.getByText('Browse').closest('a')!
     expect(browseLink.classList.contains('text-primary')).toBe(true)
   })
+
+  it('falls back to first item when no URL matches current path', () => {
+    setup('/unknown-path')
+    const homeLink = screen.getByText('Home').closest('a')!
+    expect(homeLink.classList.contains('text-primary')).toBe(true)
+  })
 })

@@ -48,4 +48,15 @@ describe('authApi', () => {
     authApi.changePassword({ currentPassword: 'old', newPassword: 'new', confirmNewPassword: 'new' })
     expect(client.post).toHaveBeenCalledWith('/auth/change-password', expect.any(Object))
   })
+
+  it('googleLogin posts to /auth/google', () => {
+    authApi.googleLogin({ idToken: 'google-id-token' })
+    expect(client.post).toHaveBeenCalledWith('/auth/google', { idToken: 'google-id-token' })
+  })
+
+  it('resetPassword posts to /auth/reset-password', () => {
+    const data = { email: 'a@b.com', token: 'tok', newPassword: 'new', confirmNewPassword: 'new' }
+    authApi.resetPassword(data)
+    expect(client.post).toHaveBeenCalledWith('/auth/reset-password', data)
+  })
 })

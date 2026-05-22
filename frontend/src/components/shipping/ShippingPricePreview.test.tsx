@@ -63,4 +63,17 @@ describe('ShippingPricePreview', () => {
     vi.useRealTimers()
     await waitFor(() => expect(screen.getByText(/2024-01-15/)).toBeInTheDocument())
   })
+
+  it('renders nothing when API call fails', async () => {
+    vi.useFakeTimers()
+    mockCalculatePrice.mockRejectedValue(new Error('Network error'))
+    const { container } = render(<ShippingPricePreview request={request} />)
+    await act(async () => {
+      vi.advanceTimersByTime(600)
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    vi.useRealTimers()
+    await waitFor(() => expect(container.firstChild).toBeNull())
+  })
 })

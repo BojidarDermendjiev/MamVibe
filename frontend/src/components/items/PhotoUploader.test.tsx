@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PhotoUploader from './PhotoUploader'
 
@@ -125,5 +125,21 @@ describe('PhotoUploader', () => {
     expect(dropZone.className).toContain('bg-lavender/10')
     fireEvent.dragLeave(dropZone)
     expect(dropZone.className).not.toContain('bg-lavender/10')
+  })
+
+  it('does not call onChange when dropped files is null', () => {
+    const onChange = vi.fn()
+    const { container } = render(<PhotoUploader photos={[]} onChange={onChange} />)
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement
+    act(() => { fireEvent.change(input, { target: { files: null } }) })
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('does not call onChange when all dropped files are filtered out', () => {
+    const onChange = vi.fn()
+    render(<PhotoUploader photos={[]} onChange={onChange} />)
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [makeFile('doc.pdf', 'application/pdf')] } })
+    expect(onChange).not.toHaveBeenCalled()
   })
 })

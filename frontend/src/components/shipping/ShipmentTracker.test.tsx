@@ -30,7 +30,7 @@ describe('ShipmentTracker', () => {
   })
 
   it('shows no-tracking message when API rejects', async () => {
-    mockTrack.mockResolvedValue({ data: [] } as never) // use empty instead of reject to avoid unhandled rejection noise
+    mockTrack.mockResolvedValue({ data: [] } as never)
     render(<ShipmentTracker shipmentId="ship-1" />)
     await waitFor(() => expect(screen.getByText('shipping.no_tracking')).toBeInTheDocument())
   })

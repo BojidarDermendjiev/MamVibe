@@ -160,7 +160,9 @@
     "ai_assistant_title": "AI Асистент за обяви",
     "ai_assistant_desc": "Качи снимка и Claude AI ще предложи заглавие, описание, категория, цена и размер.",
     "ai_fill_btn": "Попълни с AI",
-    "ai_analysing": "Анализира снимката…"
+    "ai_analysing": "Анализира снимката…",
+    "not_available": "Не е налично",
+    "req_pending": "Изчаква одобрение"
   },
   "chat": {
     "title": "Съобщения",

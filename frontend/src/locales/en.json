@@ -160,7 +160,9 @@
     "ai_assistant_title": "AI Listing Assistant",
     "ai_assistant_desc": "Upload a photo and Claude AI will suggest the title, description, category, price, and size for you.",
     "ai_fill_btn": "Fill with AI",
-    "ai_analysing": "Analysing photo…"
+    "ai_analysing": "Analysing photo…",
+    "not_available": "Not Available",
+    "req_pending": "Pending Approval"
   },
   "chat": {
     "title": "Messages",

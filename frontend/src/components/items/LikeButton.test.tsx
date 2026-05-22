@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LikeButton from './LikeButton'
 
@@ -48,5 +48,19 @@ describe('LikeButton', () => {
     const { container } = render(<LikeButton itemId="1" likeCount={3} isLiked size="sm" />)
     const svg = container.querySelector('svg')
     expect(svg?.getAttribute('class')).toContain('h-4')
+  })
+
+  it('removes animate-like-bounce class after 400ms', () => {
+    vi.useFakeTimers()
+    try {
+      const { container } = render(<LikeButton itemId="1" likeCount={0} isLiked={false} />)
+      fireEvent.click(screen.getByRole('button'))
+      const svg = container.querySelector('svg')
+      expect(svg?.getAttribute('class')).toContain('animate-like-bounce')
+      act(() => { vi.advanceTimersByTime(400) })
+      expect(svg?.getAttribute('class')).not.toContain('animate-like-bounce')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

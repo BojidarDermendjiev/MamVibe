@@ -96,6 +96,7 @@ describe('axiosClient interceptors', () => {
   })
 
   it('sanitizes 5xx response body to generic message', async () => {
+    expect.assertions(1)
     const { client } = await loadClient()
     const mock = new MockAdapter(client)
     mock.onGet('/boom').reply(500, { detail: 'Internal details' })
@@ -109,9 +110,11 @@ describe('axiosClient interceptors', () => {
   })
 
   it('calls logout when refresh endpoint returns 401', async () => {
-    const { client, logout } = await loadClient('expired')
+    const { client, logout, axios: ax } = await loadClient('expired')
     const mock = new MockAdapter(client)
-    mock.onPost('/api/auth/refresh').reply(401)
+    // Production code calls bare axios.post for the refresh — mock that instance
+    const refreshErr = Object.assign(new Error('401'), { response: { status: 401 } })
+    const refreshSpy = vi.spyOn(ax, 'post').mockRejectedValueOnce(refreshErr)
     mock.onGet('/protected').reply(401)
     try {
       await client.get('/protected')
@@ -119,6 +122,7 @@ describe('axiosClient interceptors', () => {
       // expected
     }
     expect(logout).toHaveBeenCalled()
+    refreshSpy.mockRestore()
     mock.restore()
   })
 

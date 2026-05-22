@@ -50,4 +50,10 @@ describe('shippingApi', () => {
     shippingApi.getShipmentByPayment('pay-1')
     expect(client.get).toHaveBeenCalledWith('/shipping/payment/pay-1')
   })
+
+  it('createShipment posts to /shipping/create', () => {
+    const req = { courierProvider: CourierProvider.Econt, deliveryType: DeliveryType.Office, weight: 1, isCod: false, codAmount: 0, isInsured: false, insuredAmount: 0, recipientName: 'Ivan', recipientPhone: '0888', toOfficeId: '1', toCity: 'Sofia', toAddress: '', packageCount: 1, purchaseRequestId: 'pr-1' }
+    shippingApi.createShipment(req as never)
+    expect(client.post).toHaveBeenCalledWith('/shipping/create', req)
+  })
 })

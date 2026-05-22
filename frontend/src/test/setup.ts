@@ -15,8 +15,8 @@ vi.mock('framer-motion', () => ({
     button: ({ children, onClick, 'aria-label': ariaLabel }: React.ButtonHTMLAttributes<HTMLButtonElement> & { 'aria-label'?: string }) => (
       React.createElement('button', { onClick, 'aria-label': ariaLabel }, children)
     ),
-    div: ({ children, className }: React.HTMLAttributes<HTMLDivElement>) => (
-      React.createElement('div', { className }, children)
+    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+      React.createElement('div', props, children)
     ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,

@@ -66,4 +66,14 @@ describe('itemsApi', () => {
     itemsApi.getLikedItems()
     expect(client.get).toHaveBeenCalledWith('/users/dashboard/liked')
   })
+
+  it('incrementView posts to /items/:id/view', () => {
+    itemsApi.incrementView('abc')
+    expect(client.post).toHaveBeenCalledWith('/items/abc/view')
+  })
+
+  it('checkSeller gets /items/:id/seller-check', () => {
+    itemsApi.checkSeller('abc')
+    expect(client.get).toHaveBeenCalledWith('/items/abc/seller-check')
+  })
 })
