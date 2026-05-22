@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { Shipment } from '../types/shipping'
 
-// Capture SignalR handler callbacks so tests can trigger them
+type ShipmentPayload = Pick<Shipment, 'id' | 'courierProvider' | 'itemTitle' | 'trackingNumber'>
+
 const captured = vi.hoisted(() => ({
   onMessage: null as ((msg: { senderId: string }) => void) | null,
   onPurchaseRequest: null as (() => void) | null,
+  onSellerShipmentReady: null as ((s: ShipmentPayload) => void) | null,
+  onShipmentStatusChanged: null as ((s: ShipmentPayload) => void) | null,
 }))
 
 vi.mock('./SignalRContext', () => ({
@@ -18,13 +22,21 @@ vi.mock('./SignalRContext', () => ({
       captured.onPurchaseRequest = cb
       return () => { captured.onPurchaseRequest = null }
     },
-    onSellerShipmentReady: () => () => {},
-    onShipmentStatusChanged: () => () => {},
+    onSellerShipmentReady: (cb: (s: ShipmentPayload) => void) => {
+      captured.onSellerShipmentReady = cb
+      return () => { captured.onSellerShipmentReady = null }
+    },
+    onShipmentStatusChanged: (cb: (s: ShipmentPayload) => void) => {
+      captured.onShipmentStatusChanged = cb
+      return () => { captured.onShipmentStatusChanged = null }
+    },
   }),
 }))
 
+let mockAuthState = { isAuthenticated: true, isLoading: false, user: { id: 'u-1' } }
+
 vi.mock('../store/authStore', () => ({
-  useAuthStore: () => ({ isAuthenticated: true, isLoading: false, user: { id: 'u-1' } }),
+  useAuthStore: () => mockAuthState,
 }))
 
 vi.mock('../api/messagesApi', () => ({
@@ -43,19 +55,23 @@ import { NotificationProvider, useNotification } from './NotificationContext'
 import { messagesApi } from '../api/messagesApi'
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi'
 import { PurchaseRequestStatus } from '../types/purchaseRequest'
+import { CourierProvider } from '../types/shipping'
+import toast from '@/utils/toast'
 
 const mockGetConversations = vi.mocked(messagesApi.getConversations)
 const mockGetAsSeller = vi.mocked(purchaseRequestsApi.getAsSeller)
 const mockMarkAsRead = vi.mocked(messagesApi.markAsRead)
+const mockToast = vi.mocked(toast)
 
-function TestConsumer({ onDecrement: _onDecrement }: { onDecrement?: () => void }) {
-  const { unreadCount, pendingRequestCount, markConversationRead, decrementPendingRequestCount } = useNotification()
+function TestConsumer() {
+  const { unreadCount, pendingRequestCount, markConversationRead, decrementPendingRequestCount, setActiveChatUserId } = useNotification()
   return (
     <div>
       <span data-testid="unread">{unreadCount}</span>
       <span data-testid="pending">{pendingRequestCount}</span>
       <button onClick={() => markConversationRead('u-2')}>mark read</button>
       <button onClick={decrementPendingRequestCount}>decrement</button>
+      <button onClick={() => setActiveChatUserId('u-2')}>set active chat</button>
     </div>
   )
 }
@@ -71,9 +87,13 @@ function setup() {
 beforeEach(() => {
   captured.onMessage = null
   captured.onPurchaseRequest = null
+  captured.onSellerShipmentReady = null
+  captured.onShipmentStatusChanged = null
   mockGetConversations.mockClear()
   mockGetAsSeller.mockClear()
   mockMarkAsRead.mockClear()
+  mockToast.mockClear()
+  mockAuthState = { isAuthenticated: true, isLoading: false, user: { id: 'u-1' } }
 })
 
 describe('NotificationContext', () => {
@@ -115,6 +135,16 @@ describe('NotificationContext', () => {
     expect(screen.getByTestId('unread').textContent).toBe('0')
   })
 
+  it('does not increment unreadCount for messages from the active chat user', async () => {
+    mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 0 }] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onMessage).not.toBeNull())
+    await userEvent.click(screen.getByText('set active chat'))
+    act(() => captured.onMessage!({ senderId: 'u-2' }))
+    expect(screen.getByTestId('unread').textContent).toBe('0')
+  })
+
   it('increments pendingRequestCount when a new purchase request arrives', async () => {
     mockGetConversations.mockResolvedValue({ data: [] } as never)
     mockGetAsSeller.mockResolvedValue({ data: [] } as never)
@@ -152,5 +182,73 @@ describe('NotificationContext', () => {
     await userEvent.click(screen.getByText('mark read'))
     expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
     await waitFor(() => expect(screen.getByTestId('unread').textContent).toBe('0'))
+  })
+
+  it('shows 0 counts when user is not authenticated', async () => {
+    mockAuthState = { isAuthenticated: false, isLoading: false, user: { id: '' } }
+    mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 5 }] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [{ status: PurchaseRequestStatus.Pending }] } as never)
+    setup()
+    // APIs should not be called when not authenticated
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.getByTestId('unread').textContent).toBe('0')
+    expect(screen.getByTestId('pending').textContent).toBe('0')
+    expect(mockGetConversations).not.toHaveBeenCalled()
+  })
+
+  it('fires toast when seller shipment is ready (known courier)', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onSellerShipmentReady).not.toBeNull())
+    act(() => captured.onSellerShipmentReady!({
+      id: 'sh-1',
+      courierProvider: CourierProvider.Econt,
+      itemTitle: 'Baby shoes',
+      trackingNumber: 'ABC123',
+    }))
+    expect(mockToast).toHaveBeenCalled()
+  })
+
+  it('fires toast when seller shipment is ready (unknown courier uses empty string)', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onSellerShipmentReady).not.toBeNull())
+    act(() => captured.onSellerShipmentReady!({
+      id: 'sh-2',
+      courierProvider: 99 as CourierProvider,
+      itemTitle: null,
+      trackingNumber: null,
+    }))
+    expect(mockToast).toHaveBeenCalled()
+  })
+
+  it('fires toast when shipment status changes (Speedy)', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onShipmentStatusChanged).not.toBeNull())
+    act(() => captured.onShipmentStatusChanged!({
+      id: 'sh-3',
+      courierProvider: CourierProvider.Speedy,
+      itemTitle: 'Stroller',
+      trackingNumber: 'XYZ789',
+    }))
+    expect(mockToast).toHaveBeenCalled()
+  })
+
+  it('fires toast when shipment status changes (unknown courier)', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onShipmentStatusChanged).not.toBeNull())
+    act(() => captured.onShipmentStatusChanged!({
+      id: 'sh-4',
+      courierProvider: 99 as CourierProvider,
+      itemTitle: null,
+      trackingNumber: null,
+    }))
+    expect(mockToast).toHaveBeenCalled()
   })
 })

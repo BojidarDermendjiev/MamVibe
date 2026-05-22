@@ -150,4 +150,44 @@ describe('axiosClient interceptors', () => {
     refreshSpy.mockRestore()
     mock.restore()
   })
+
+  it('redirects to /login when refresh fails and current path is not public', async () => {
+    delete (window as unknown as { location: unknown }).location
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/dashboard', href: '' },
+      writable: true,
+      configurable: true,
+    })
+    const { client, axios: ax } = await loadClient('old-token')
+    const mock = new MockAdapter(client)
+    vi.spyOn(ax, 'post').mockRejectedValueOnce(new Error('cookie expired'))
+    mock.onGet('/protected').reply(401)
+    try {
+      await client.get('/protected')
+    } catch {
+      // expected
+    }
+    expect(window.location.href).toBe('/login')
+    mock.restore()
+  })
+
+  it('does not redirect when refresh fails and already on a public page', async () => {
+    delete (window as unknown as { location: unknown }).location
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/login', href: '' },
+      writable: true,
+      configurable: true,
+    })
+    const { client, axios: ax } = await loadClient('old-token')
+    const mock = new MockAdapter(client)
+    vi.spyOn(ax, 'post').mockRejectedValueOnce(new Error('cookie expired'))
+    mock.onGet('/protected').reply(401)
+    try {
+      await client.get('/protected')
+    } catch {
+      // expected
+    }
+    expect(window.location.href).toBe('')
+    mock.restore()
+  })
 })
