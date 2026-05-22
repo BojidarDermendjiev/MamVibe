@@ -91,4 +91,12 @@ describe('OfficePicker', () => {
     fireEvent.mouseDown(document.body)
     expect(screen.queryByText('Sofia Centre')).toBeNull()
   })
+
+  it('shows empty list when API call fails', async () => {
+    mockGetOffices.mockRejectedValue(new Error('Network error'))
+    render(<OfficePicker {...baseProps} />)
+    const input = await waitFor(() => screen.getByPlaceholderText('shipping.filter_offices'))
+    await userEvent.click(input)
+    expect(screen.getByText('shipping.choose_office')).toBeInTheDocument()
+  })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import Avatar from './Avatar'
 import { ProfileType } from '../../types/auth'
 
@@ -37,5 +37,19 @@ describe('Avatar', () => {
   it('applies lg size class', () => {
     render(<Avatar src="/photo.jpg" size="lg" />)
     expect(screen.getByRole('img')).toHaveClass('h-16', 'w-16')
+  })
+
+  it('falls back to profile-type avatar on image load error', () => {
+    render(<Avatar src="https://bad.example.com/photo.jpg" profileType={ProfileType.Female} />)
+    const img = screen.getByRole('img')
+    fireEvent.error(img)
+    expect(img.src).toContain('/avatars/mom.svg')
+  })
+
+  it('falls back to family avatar on error when no profileType provided', () => {
+    render(<Avatar src="https://bad.example.com/photo.jpg" />)
+    const img = screen.getByRole('img')
+    fireEvent.error(img)
+    expect(img.src).toContain('/avatars/family.svg')
   })
 })

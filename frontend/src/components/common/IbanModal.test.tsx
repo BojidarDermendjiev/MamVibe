@@ -69,4 +69,13 @@ describe('IbanModal', () => {
     await userEvent.type(input, 'bg80bnbg96611020345678')
     expect((input as HTMLInputElement).value).toBe('BG80BNBG96611020345678')
   })
+
+  it('shows error toast when API call fails', async () => {
+    const toast = await import('@/utils/toast')
+    mockPut.mockRejectedValue(new Error('Network error'))
+    render(<IbanModal {...baseProps} />)
+    await userEvent.type(screen.getByPlaceholderText('BG80BNBG96611020345678'), 'BG80BNBG96611020345678')
+    await userEvent.click(screen.getByText('payment.iban_save'))
+    await waitFor(() => expect(vi.mocked(toast.default.error)).toHaveBeenCalledWith('common.error'))
+  })
 })

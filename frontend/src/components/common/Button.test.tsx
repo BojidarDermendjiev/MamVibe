@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Button from './Button'
 
@@ -43,5 +43,36 @@ describe('Button', () => {
   it('forwards extra HTML attributes', () => {
     render(<Button data-testid="my-btn" type="submit">Submit</Button>)
     expect(screen.getByTestId('my-btn')).toHaveAttribute('type', 'submit')
+  })
+
+  it('adds ripple span on click', () => {
+    render(<Button>Go</Button>)
+    fireEvent.click(screen.getByRole('button'))
+    expect(document.querySelector('.animate-rippling')).toBeInTheDocument()
+  })
+
+  it('removes ripple span after 600ms', () => {
+    vi.useFakeTimers()
+    try {
+      render(<Button>Go</Button>)
+      fireEvent.click(screen.getByRole('button'))
+      expect(document.querySelector('.animate-rippling')).toBeInTheDocument()
+      act(() => { vi.advanceTimersByTime(600) })
+      expect(document.querySelector('.animate-rippling')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('cancels ripple timeout on unmount', () => {
+    vi.useFakeTimers()
+    try {
+      const { unmount } = render(<Button>Go</Button>)
+      fireEvent.click(screen.getByRole('button'))
+      unmount()
+      act(() => { vi.advanceTimersByTime(600) })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

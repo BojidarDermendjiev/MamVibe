@@ -85,4 +85,10 @@ describe('useAuthStore', () => {
     useAuthStore.getState().setAuth(adminUser, 'admin-tok')
     expect(useAuthStore.getState().user?.roles).toContain('Admin')
   })
+
+  it('sets isAuthenticated to true on rehydration when user is present in storage', async () => {
+    localStorage.setItem('mamvibe-auth', JSON.stringify({ state: { user: mockUser }, version: 0 }))
+    await useAuthStore.persist.rehydrate()
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
+  })
 })

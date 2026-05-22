@@ -59,4 +59,42 @@ describe('usePageSEO', () => {
     unmount()
     expect(document.querySelector('script[data-seo-ld]')).toBeNull()
   })
+
+  it('uses provided canonical prop instead of window.location.href', () => {
+    renderHook(() => usePageSEO({ title: 'Test', description: 'Desc', canonical: 'https://mamvibe.com/test-page' }))
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://mamvibe.com/test-page')
+  })
+
+  it('updates existing meta tag content on rerender without duplicating', () => {
+    const { rerender } = renderHook(
+      ({ desc }: { desc: string }) => usePageSEO({ title: 'Test', description: desc }),
+      { initialProps: { desc: 'First description' } }
+    )
+    rerender({ desc: 'Updated description' })
+    const metas = document.querySelectorAll('meta[name="description"]')
+    expect(metas).toHaveLength(1)
+    expect(metas[0].getAttribute('content')).toBe('Updated description')
+  })
+
+  it('updates existing canonical link on rerender without duplicating', () => {
+    const { rerender } = renderHook(
+      ({ canonical }: { canonical: string }) => usePageSEO({ title: 'Test', description: 'Desc', canonical }),
+      { initialProps: { canonical: 'https://mamvibe.com/v1' } }
+    )
+    rerender({ canonical: 'https://mamvibe.com/v2' })
+    const links = document.querySelectorAll('link[rel="canonical"]')
+    expect(links).toHaveLength(1)
+    expect(links[0].getAttribute('href')).toBe('https://mamvibe.com/v2')
+  })
+
+  it('replaces existing structured data script on rerender', () => {
+    const { rerender } = renderHook(
+      ({ sd }: { sd: Record<string, unknown> }) => usePageSEO({ title: 'Test', description: 'Desc', structuredData: sd }),
+      { initialProps: { sd: { '@type': 'Product', name: 'First' } } }
+    )
+    rerender({ sd: { '@type': 'Product', name: 'Second' } })
+    const scripts = document.querySelectorAll('script[data-seo-ld]')
+    expect(scripts).toHaveLength(1)
+    expect(JSON.parse(scripts[0].textContent!)).toMatchObject({ name: 'Second' })
+  })
 })
