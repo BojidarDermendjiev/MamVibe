@@ -194,4 +194,31 @@ describe('axiosClient interceptors', () => {
     expect(window.location.href).toBe('')
     mock.restore()
   })
+
+  it('calls logout immediately when /auth/refresh itself returns 401 (no retry)', async () => {
+    const { client, logout } = await loadClient('expired')
+    const mock = new MockAdapter(client)
+    mock.onPost('/auth/refresh').reply(401)
+    await expect(client.post('/auth/refresh')).rejects.toBeDefined()
+    expect(logout).toHaveBeenCalled()
+    mock.restore()
+  })
+
+  it('rejects queued concurrent requests when token refresh fails (processQueue error path)', async () => {
+    delete (window as unknown as { location: unknown }).location
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/dashboard', href: '' },
+      writable: true,
+      configurable: true,
+    })
+    const { client, axios: ax } = await loadClient('old-token')
+    const mock = new MockAdapter(client)
+    vi.spyOn(ax, 'post').mockRejectedValueOnce(new Error('refresh failed'))
+    mock.onGet('/a').replyOnce(401)
+    mock.onGet('/b').replyOnce(401)
+    const [resultA, resultB] = await Promise.allSettled([client.get('/a'), client.get('/b')])
+    expect(resultA.status).toBe('rejected')
+    expect(resultB.status).toBe('rejected')
+    mock.restore()
+  })
 })
