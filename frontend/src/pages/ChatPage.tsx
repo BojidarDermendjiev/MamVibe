@@ -45,7 +45,7 @@ export default function ChatPage() {
   const { user } = useAuthStore();
 
   usePageSEO({ title: "Messages", description: "Your MamVibe messages.", index: false });
-  const { sendMessage, sendTyping, onMessage, onTyping } = useSignalR();
+  const { sendMessage, sendTyping, markAsRead, onMessage, onTyping, onRead, isUserOnline } = useSignalR();
   const { markConversationRead, setActiveChatUserId } = useNotification();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -88,9 +88,9 @@ export default function ChatPage() {
       }
 
       // If the message is from the user we're currently chatting with,
-      // mark it as read immediately — no unread increment
+      // mark it as read immediately via hub so sender sees the receipt
       if (isFromActiveChat) {
-        messagesApi.markAsRead(activeChat).catch(() => {});
+        markAsRead(activeChat).catch(() => {});
       }
 
       setConversations((prev) => {
@@ -120,8 +120,16 @@ export default function ChatPage() {
       }
     });
 
-    return () => { unsub1(); unsub2(); };
-  }, [onMessage, onTyping, activeChat, user?.id, scrollToBottom]);
+    const unsub3 = onRead((readerId) => {
+      if (readerId === activeChat) {
+        setMessages((prev) =>
+          prev.map((m) => m.senderId === user?.id ? { ...m, isRead: true } : m)
+        );
+      }
+    });
+
+    return () => { unsub1(); unsub2(); unsub3(); };
+  }, [onMessage, onTyping, onRead, activeChat, user?.id, scrollToBottom]);
 
   useEffect(() => {
     if (!activeChat) return;
@@ -132,7 +140,7 @@ export default function ChatPage() {
         if (!isMounted) return;
         setMessages(data);
         setTimeout(scrollToBottom, 100);
-        await messagesApi.markAsRead(activeChat);
+        await markAsRead(activeChat).catch(() => {});
         if (!isMounted) return;
         markConversationRead(activeChat);
         setConversations((prev) =>
@@ -142,7 +150,7 @@ export default function ChatPage() {
     };
     loadMessages();
     return () => { isMounted = false; };
-  }, [activeChat, markConversationRead, scrollToBottom]);
+  }, [activeChat, markAsRead, markConversationRead, scrollToBottom]);
 
   const activeConversation = conversations.find((c) => c.userId === activeChat);
   // Fallback chain for new chats not yet in the conversations list
@@ -262,6 +270,9 @@ export default function ChatPage() {
     >
       <div className="relative flex-shrink-0">
         <Avatar src={conv.avatarUrl} size="md" />
+        {isUserOnline(conv.userId) && (
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-[#1e1b2e]" />
+        )}
         {conv.unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
             {conv.unreadCount}
@@ -346,6 +357,11 @@ export default function ChatPage() {
               >
                 {msg.content}
               </div>
+              {isMine && (
+                <span className={`text-[10px] mt-0.5 self-end ${msg.isRead ? 'text-blue-400' : 'text-gray-400'}`}>
+                  {msg.isRead ? '✓✓' : '✓'}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -409,8 +425,13 @@ export default function ChatPage() {
                     <p className="font-semibold text-gray-900 dark:text-white">{activePeerName}</p>
                     {typingUser && typingUser === activeChat ? (
                       <p className="text-xs text-primary animate-pulse">{t('chat.typing')}</p>
+                    ) : isUserOnline(activeChat) ? (
+                      <p className="text-xs text-green-500 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                        {t('chat.online')}
+                      </p>
                     ) : (
-                      <p className="text-xs text-gray-400">{t('chat.online')}</p>
+                      <p className="text-xs text-gray-400">{t('chat.offline')}</p>
                     )}
                   </div>
                 </div>

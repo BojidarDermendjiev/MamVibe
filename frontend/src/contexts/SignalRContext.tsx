@@ -7,7 +7,7 @@ import type { Shipment } from '../types/shipping';
 
 type MessageHandler = (message: Message) => void;
 type TypingHandler = (userId: string) => void;
-type ReadHandler = (senderId: string) => void;
+type ReadHandler = (userId: string) => void;
 type OnlineHandler = (userId: string) => void;
 type PurchaseRequestHandler = (request: PurchaseRequest) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,6 +16,7 @@ type ShipmentHandler = (shipment: Shipment) => void;
 
 interface SignalRContextValue {
   isConnected: boolean;
+  isUserOnline: (userId: string) => boolean;
   sendMessage: (receiverId: string, content: string) => Promise<Message | null>;
   sendTyping: (receiverId: string) => Promise<void>;
   markAsRead: (senderId: string) => Promise<void>;
@@ -33,6 +34,7 @@ interface SignalRContextValue {
 
 const SignalRContext = createContext<SignalRContextValue>({
   isConnected: false,
+  isUserOnline: () => false,
   sendMessage: async () => null,
   sendTyping: async () => {},
   markAsRead: async () => {},
@@ -51,6 +53,7 @@ const SignalRContext = createContext<SignalRContextValue>({
 export function SignalRProvider({ children }: { children: ReactNode }) {
   const { accessToken, isAuthenticated } = useAuthStore();
   const [isConnected, setIsConnected] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const connectingRef = useRef(false);
 
   useEffect(() => {
@@ -64,9 +67,36 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     }
 
     if (!isAuthenticated) {
-      signalRService.disconnect().then(() => setIsConnected(false)).catch(() => {});
+      signalRService.disconnect().then(() => {
+        setIsConnected(false);
+        setOnlineUsers(new Set());
+      }).catch(() => {});
     }
   }, [isAuthenticated, accessToken]);
+
+  // Track online/offline globally so any component can query presence
+  useEffect(() => {
+    const unsubOnline = signalRService.onOnline((userId) => {
+      setOnlineUsers((prev) => {
+        const next = new Set(prev);
+        next.add(userId);
+        return next;
+      });
+    });
+    const unsubOffline = signalRService.onOffline((userId) => {
+      setOnlineUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    });
+    return () => { unsubOnline(); unsubOffline(); };
+  }, []);
+
+  const isUserOnline = useCallback(
+    (userId: string) => onlineUsers.has(userId),
+    [onlineUsers]
+  );
 
   const sendMessage = useCallback(
     (receiverId: string, content: string) => signalRService.sendMessage(receiverId, content),
@@ -137,6 +167,7 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     <SignalRContext.Provider
       value={{
         isConnected,
+        isUserOnline,
         sendMessage,
         sendTyping,
         markAsRead,
