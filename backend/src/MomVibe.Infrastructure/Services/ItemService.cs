@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 using Domain.Enums;
@@ -25,10 +26,13 @@ public class ItemService : IItemService
     private readonly N8nSettings _n8nSettings;
     private readonly IAiService _aiService;
     private readonly INekorektenService _nekorekten;
+    private readonly IMemoryCache _cache;
 
     private const double AutoApproveThreshold = 0.85;
     private const double NewSellerAutoApproveThreshold = 0.95;
     private const int TrustedSellerMinSales = 3;
+    private const string CacheKeyPrefix = "items_browse:";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(30);
 
     public ItemService(
         IApplicationDbContext context,
@@ -36,7 +40,8 @@ public class ItemService : IItemService
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
         IAiService aiService,
-        INekorektenService nekorekten)
+        INekorektenService nekorekten,
+        IMemoryCache cache)
     {
         this._context = context;
         this._mapper = mapper;
@@ -44,7 +49,11 @@ public class ItemService : IItemService
         this._n8nSettings = n8nSettings.Value;
         this._aiService = aiService;
         this._nekorekten = nekorekten;
+        this._cache = cache;
     }
+
+    private static string BuildCacheKey(ItemFilterDto filter) =>
+        $"{CacheKeyPrefix}{filter.CategoryId}|{filter.ListingType}|{filter.SearchTerm}|{filter.Brand}|{filter.AgeGroup}|{filter.ShoeSize}|{filter.ClothingSize}|{filter.SortBy}|{filter.Page}|{filter.PageSize}";
 
     private static string MaskEmail(string? email)
     {
@@ -58,6 +67,14 @@ public class ItemService : IItemService
 
     public async Task<PagedResult<ItemDto>> GetAllAsync(ItemFilterDto filter, string? currentUserId = null)
     {
+        // Serve anonymous browse requests from cache — avoids DB hit on every page load
+        if (currentUserId == null)
+        {
+            var key = BuildCacheKey(filter);
+            if (this._cache.TryGetValue(key, out PagedResult<ItemDto>? cached))
+                return cached!;
+        }
+
         var query = this._context.Items
             .AsNoTracking()
             .Include(i => i.Photos)
@@ -125,13 +142,18 @@ public class ItemService : IItemService
             }
         }
 
-        return new PagedResult<ItemDto>
+        var result = new PagedResult<ItemDto>
         {
             Items = dtos,
             TotalCount = totalCount,
             Page = filter.Page,
             PageSize = filter.PageSize
         };
+
+        if (currentUserId == null)
+            this._cache.Set(BuildCacheKey(filter), result, CacheTtl);
+
+        return result;
     }
 
     public async Task<ItemDto?> GetByIdAsync(Guid id, string? currentUserId = null)
