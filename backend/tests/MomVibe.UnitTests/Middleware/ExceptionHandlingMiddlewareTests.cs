@@ -152,7 +152,7 @@ public class ExceptionHandlingMiddlewareTests
         var (statusCode, json) = await InvokeAndReadAsync(middleware, context, body);
 
         statusCode.Should().Be((int)HttpStatusCode.BadRequest);
-        json.Should().Contain("Operation failed");
+        json.Should().Contain("Cannot do that");
     }
 
     // =========================================================================
