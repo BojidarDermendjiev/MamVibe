@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag, PackageOpen } from 'lucide-react';
+import { ShoppingBag, PackageOpen, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePageSEO } from '@/hooks/useSEO';
 import { itemsApi } from '../api/itemsApi';
@@ -11,7 +11,6 @@ import { useAuthStore } from '../store/authStore';
 import ItemCard from '../components/items/ItemCard';
 import ItemFilters from '../components/items/ItemFilters';
 import Pagination from '../components/common/Pagination';
-import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { AgeGroup } from '../types/item';
 
@@ -126,12 +125,23 @@ export default function BrowseItemsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
-        <form onSubmit={handleSearch} className="mb-6">
-          <Input
-            placeholder={t('common.search')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <form onSubmit={handleSearch} className="mb-6 flex gap-3">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t('common.search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/8 bg-[#ffffff] dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm transition"
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            {t('common.search')}
+          </button>
         </form>
 
         <div className="flex flex-col lg:flex-row gap-6">

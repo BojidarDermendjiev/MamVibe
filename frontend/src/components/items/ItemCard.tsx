@@ -21,17 +21,17 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
   const isFlagged = isPending && item.aiModerationStatus === 3;
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border hover-lift group animate-fade-in transition-shadow duration-300 ${
+    <div className={`bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl shadow-sm border hover-lift group animate-fade-in transition-all duration-300 ${
       isPending && !isFlagged
         ? 'border-purple-400 dark:border-purple-500 shadow-purple-200 dark:shadow-purple-900/40 shadow-md'
         : isPending && isFlagged
         ? 'border-red-400 dark:border-red-600 shadow-red-200 dark:shadow-red-900/40 shadow-md'
-        : 'border-lavender/30 hover-glow'
+        : 'border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-0.5'
     }`}>
       <Link to={`/items/${item.id}`} className="block">
         {/* aspect-[4/3] container prevents CLS: the browser reserves space
             before the image loads, eliminating layout shift (Core Web Vitals). */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-cream-dark">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-cream-dark">
           {photo ? (
             <img
               src={photo.url}

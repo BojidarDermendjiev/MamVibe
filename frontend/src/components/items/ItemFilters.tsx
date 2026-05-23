@@ -42,7 +42,7 @@ function CheckRow({ label, selected, onToggle }: CheckRowProps) {
         className={`w-[18px] h-[18px] rounded-[4px] border flex-shrink-0 flex items-center justify-center transition-colors ${
           selected
             ? 'bg-primary border-primary'
-            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-transparent'
+            : 'border-gray-300 dark:border-white/20 bg-white dark:bg-white/5'
         }`}
       >
         {selected && <Check className="w-3 h-3 text-white stroke-[3]" />}
@@ -53,7 +53,7 @@ function CheckRow({ label, selected, onToggle }: CheckRowProps) {
 }
 
 function Divider() {
-  return <hr className="border-gray-200 dark:border-gray-700 my-4" />;
+  return <hr className="border-gray-100 dark:border-white/5 my-4" />;
 }
 
 interface ItemFiltersProps {
@@ -76,10 +76,10 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
     onChange({ categoryId: undefined, listingType: undefined, brand: undefined, ageGroup: undefined, sortBy: 'newest', page: 1 });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/5">
         <span className="font-bold text-[15px] text-gray-800 dark:text-gray-100">Filters</span>
         {hasActiveFilters && (
           <button

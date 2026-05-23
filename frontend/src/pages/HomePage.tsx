@@ -415,7 +415,7 @@ export default function HomePage() {
               <Link
                 key={group.labelKey}
                 to={`/browse?age=${group.query}`}
-                className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                className="bg-[#ffffff] dark:bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center"
