@@ -286,55 +286,6 @@ public class MessageServiceTests
     }
 
     // =========================================================================
-    // MarkAsReadAsync
-    // =========================================================================
-
-    [Fact(Skip = "ExecuteUpdate not supported by InMemory — see MessageServiceSqliteTests")]
-    public async Task MarkAsReadAsync_Marks_Only_Unread_Messages_From_Specified_Sender()
-    {
-        await using var db = CreateDb();
-        SeedUser(db, "alice");
-        SeedUser(db, "bob");
-        SeedUser(db, "charlie");
-        await db.SaveChangesAsync();
-
-        // Bob sends two unread messages to Alice
-        await SeedMessageAsync(db, "bob", "alice", "Message 1", isRead: false);
-        await SeedMessageAsync(db, "bob", "alice", "Message 2", isRead: false);
-        // Charlie sends an unread message to Alice — should NOT be marked
-        await SeedMessageAsync(db, "charlie", "alice", "Charlie message", isRead: false);
-
-        var svc = CreateService(db);
-        await svc.MarkAsReadAsync("alice", "bob");
-
-        var bobMessages = await db.Messages
-            .Where(m => m.SenderId == "bob" && m.ReceiverId == "alice")
-            .ToListAsync();
-        bobMessages.Should().AllSatisfy(m => m.IsRead.Should().BeTrue());
-
-        var charlieMessage = await db.Messages
-            .FirstAsync(m => m.SenderId == "charlie" && m.ReceiverId == "alice");
-        charlieMessage.IsRead.Should().BeFalse("Charlie's message should not be affected");
-    }
-
-    [Fact(Skip = "ExecuteUpdate not supported by InMemory — see MessageServiceSqliteTests")]
-    public async Task MarkAsReadAsync_Does_Not_Mark_Already_Read_Messages_As_Unread()
-    {
-        await using var db = CreateDb();
-        SeedUser(db, "alice");
-        SeedUser(db, "bob");
-        await db.SaveChangesAsync();
-
-        var msg = await SeedMessageAsync(db, "bob", "alice", "Already read", isRead: true);
-
-        var svc = CreateService(db);
-        await svc.MarkAsReadAsync("alice", "bob");
-
-        var fetched = await db.Messages.FindAsync(msg.Id);
-        fetched!.IsRead.Should().BeTrue();
-    }
-
-    // =========================================================================
     // GetConversationsAsync
     // NOTE: GetConversationsAsync uses AsNoTracking() + Include(m => m.Sender/Receiver)
     // which has a known InMemory limitation when navigations point to IdentityUser.

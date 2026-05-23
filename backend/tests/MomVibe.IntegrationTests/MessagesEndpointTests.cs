@@ -66,12 +66,8 @@ public class MessagesAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    [Fact(Skip = "ExecuteUpdate not supported by InMemory factory — covered by MessageServiceSqliteTests")]
-    public async Task MarkAsRead_Returns204()
-    {
-        var response = await _client.PutAsJsonAsync("/api/messages/some-sender-id/read", new { });
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
+    // MarkAsRead_Returns204 lives in MessagesMarkAsReadSqliteTests
+    // because the endpoint uses ExecuteUpdate which InMemory does not support.
 
     [Fact]
     public async Task SendMessage_ToSelf_Returns200()
