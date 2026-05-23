@@ -289,7 +289,7 @@ public class MessageServiceTests
     // MarkAsReadAsync
     // =========================================================================
 
-    [Fact(Skip = "EF InMemory does not support ExecuteUpdate — covered by integration tests")]
+    [Fact(Skip = "ExecuteUpdate not supported by InMemory — see MessageServiceSqliteTests")]
     public async Task MarkAsReadAsync_Marks_Only_Unread_Messages_From_Specified_Sender()
     {
         await using var db = CreateDb();
@@ -317,7 +317,7 @@ public class MessageServiceTests
         charlieMessage.IsRead.Should().BeFalse("Charlie's message should not be affected");
     }
 
-    [Fact(Skip = "EF InMemory does not support ExecuteUpdate — covered by integration tests")]
+    [Fact(Skip = "ExecuteUpdate not supported by InMemory — see MessageServiceSqliteTests")]
     public async Task MarkAsReadAsync_Does_Not_Mark_Already_Read_Messages_As_Unread()
     {
         await using var db = CreateDb();
