@@ -357,19 +357,21 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all payments made by the currently authenticated user.
+    /// Retrieves a paginated list of payments made by the currently authenticated user.
     /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of payments per page, max 100 (default: 20).</param>
     /// <returns>
     /// 401 Unauthorized if the current user context is missing.<br/>
-    /// 200 OK with the user's payment history on success.
+    /// 200 OK with a paged result of the user's payment history on success.
     /// </returns>
     [Authorize]
     [HttpGet("my-payments")]
-    public async Task<IActionResult> MyPayments()
+    public async Task<IActionResult> MyPayments([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        var payments = await this._paymentService.GetPaymentsByUserAsync(userId);
+        var payments = await this._paymentService.GetPaymentsByUserAsync(userId, page, pageSize);
         return Ok(payments);
     }
 }

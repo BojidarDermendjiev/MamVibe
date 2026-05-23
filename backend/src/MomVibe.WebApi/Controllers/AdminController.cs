@@ -236,15 +236,17 @@ public class AdminController : ControllerBase
     // --- Community moderation: Doctor Reviews ---
 
     /// <summary>
-    /// Retrieves all doctor reviews that are pending admin approval.
+    /// Retrieves a paginated list of doctor reviews pending admin approval.
     /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of reviews per page, max 100 (default: 50).</param>
     /// <returns>
     /// 200 OK with the list of pending doctor reviews.
     /// </returns>
     [HttpGet("doctor-reviews/pending")]
-    public async Task<IActionResult> GetPendingDoctorReviews()
+    public async Task<IActionResult> GetPendingDoctorReviews([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var reviews = await this._doctorReviewService.GetPendingAsync();
+        var reviews = await this._doctorReviewService.GetPendingAsync(page, pageSize);
         return Ok(reviews);
     }
 
@@ -284,15 +286,17 @@ public class AdminController : ControllerBase
     // --- Community moderation: Child-Friendly Places ---
 
     /// <summary>
-    /// Retrieves all child-friendly places that are pending admin approval.
+    /// Retrieves a paginated list of child-friendly places pending admin approval.
     /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of places per page, max 100 (default: 50).</param>
     /// <returns>
     /// 200 OK with the list of pending child-friendly places.
     /// </returns>
     [HttpGet("child-friendly-places/pending")]
-    public async Task<IActionResult> GetPendingChildFriendlyPlaces()
+    public async Task<IActionResult> GetPendingChildFriendlyPlaces([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var places = await this._childFriendlyPlaceService.GetPendingAsync();
+        var places = await this._childFriendlyPlaceService.GetPendingAsync(page, pageSize);
         return Ok(places);
     }
 

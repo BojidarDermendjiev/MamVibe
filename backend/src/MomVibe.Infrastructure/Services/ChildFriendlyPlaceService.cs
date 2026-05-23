@@ -49,12 +49,17 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync()
+    public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync(int page = 1, int pageSize = 50)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var places = await _db.ChildFriendlyPlaces
             .Include(p => p.User)
             .Where(p => !p.IsApproved)
             .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
         return places.Select(MapToDto);
     }

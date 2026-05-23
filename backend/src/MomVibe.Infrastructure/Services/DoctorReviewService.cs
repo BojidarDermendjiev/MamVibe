@@ -67,12 +67,17 @@ public class DoctorReviewService : IDoctorReviewService
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<DoctorReviewDto>> GetPendingAsync()
+    public async Task<IEnumerable<DoctorReviewDto>> GetPendingAsync(int page = 1, int pageSize = 50)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var reviews = await _db.DoctorReviews
             .Include(r => r.User)
             .Where(r => !r.IsApproved)
             .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
         return reviews.Select(r => MapToDto(r));
     }

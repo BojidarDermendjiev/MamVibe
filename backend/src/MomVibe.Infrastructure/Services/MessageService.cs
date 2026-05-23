@@ -186,16 +186,9 @@ public class MessageService : IMessageService
 
     public async Task MarkAsReadAsync(string userId, string senderId)
     {
-        var unreadMessages = await this._context.Messages
+        await this._context.Messages
             .Where(m => m.SenderId == senderId && m.ReceiverId == userId && !m.IsRead)
-            .ToListAsync();
-
-        foreach (var message in unreadMessages)
-        {
-            message.IsRead = true;
-        }
-
-        await this._context.SaveChangesAsync();
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true));
     }
 
     public async Task<MessageDto?> SendAiResponseAsync(string userId, string userMessage)

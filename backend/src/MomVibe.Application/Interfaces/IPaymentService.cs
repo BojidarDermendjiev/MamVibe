@@ -24,8 +24,8 @@ public interface IPaymentService
     /// <summary>Creates a booking (free reservation) payment record for a donated item.</summary>
     Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null);
 
-    /// <summary>Returns all payment records in which the specified user is either the buyer or the seller.</summary>
-    Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId);
+    /// <summary>Returns a paginated page of payment records in which the specified user is either the buyer or the seller.</summary>
+    Task<PagedResult<PaymentDto>> GetPaymentsByUserAsync(string userId, int page = 1, int pageSize = 20);
 
     /// <summary>Returns a paginated page of payment records for admin oversight.</summary>
     Task<PagedResult<PaymentDto>> GetAllPaymentsAsync(int page = 1, int pageSize = 50);

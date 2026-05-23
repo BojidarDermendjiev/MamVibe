@@ -33,10 +33,12 @@ public interface IDoctorReviewService
     Task<IEnumerable<DoctorReviewDto>> GetByUserAsync(string userId);
 
     /// <summary>
-    /// Retrieves all doctor reviews that are awaiting administrator approval.
+    /// Retrieves a paginated list of doctor reviews awaiting administrator approval.
     /// </summary>
+    /// <param name="page">1-based page number.</param>
+    /// <param name="pageSize">Number of results per page.</param>
     /// <returns>A collection of pending <see cref="DoctorReviewDto"/> instances.</returns>
-    Task<IEnumerable<DoctorReviewDto>> GetPendingAsync();
+    Task<IEnumerable<DoctorReviewDto>> GetPendingAsync(int page = 1, int pageSize = 50);
 
     /// <summary>
     /// Creates a new doctor review on behalf of the specified user.

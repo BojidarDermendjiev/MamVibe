@@ -28,10 +28,12 @@ public interface IChildFriendlyPlaceService
     Task<ChildFriendlyPlaceDto?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Retrieves all child-friendly places that are awaiting administrator approval.
+    /// Retrieves a paginated list of child-friendly places awaiting administrator approval.
     /// </summary>
+    /// <param name="page">1-based page number.</param>
+    /// <param name="pageSize">Number of results per page.</param>
     /// <returns>A collection of pending <see cref="ChildFriendlyPlaceDto"/> instances.</returns>
-    Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync();
+    Task<IEnumerable<ChildFriendlyPlaceDto>> GetPendingAsync(int page = 1, int pageSize = 50);
 
     /// <summary>
     /// Creates a new child-friendly place submission on behalf of the specified user.

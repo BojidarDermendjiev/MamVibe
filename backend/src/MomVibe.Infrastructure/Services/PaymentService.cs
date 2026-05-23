@@ -497,15 +497,30 @@ public class PaymentService : IPaymentService
         }
     }
 
-    public async Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId)
+    public async Task<PagedResult<PaymentDto>> GetPaymentsByUserAsync(string userId, int page = 1, int pageSize = 20)
     {
-        var payments = await this._context.Payments
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = this._context.Payments
+            .AsNoTracking()
             .Include(p => p.Item)
             .Where(p => p.BuyerId == userId || p.SellerId == userId)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var payments = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return this._mapper.Map<List<PaymentDto>>(payments);
+        return new PagedResult<PaymentDto>
+        {
+            Items = this._mapper.Map<List<PaymentDto>>(payments),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        };
     }
 
     public async Task<PagedResult<PaymentDto>> GetAllPaymentsAsync(int page = 1, int pageSize = 50)
