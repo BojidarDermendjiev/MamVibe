@@ -107,6 +107,10 @@
     "login_required_title": "Sign In Required",
     "login_required_desc": "Please sign in or create an account to continue."
   },
+  "browse": {
+    "subtitle": "Second-hand baby items — browse, filter, and find exactly what you need.",
+    "noItemsHint": "Try adjusting your filters or search term."
+  },
   "items": {
     "create_title": "Create Listing",
     "edit_title": "Edit Listing",
