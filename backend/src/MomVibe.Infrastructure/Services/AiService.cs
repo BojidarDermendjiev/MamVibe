@@ -298,25 +298,45 @@ public class AiService : IAiService
     {
         try
         {
-            // Only allow photos stored in our own uploads directory.
-            // Reject absolute URLs and anything outside /uploads/items/ to prevent SSRF.
-            if (!url.StartsWith("/uploads/items/", StringComparison.OrdinalIgnoreCase))
-                return null;
+            // Local disk path — dev / no-R2 fallback
+            if (url.StartsWith("/uploads/items/", StringComparison.OrdinalIgnoreCase))
+            {
+                var fileName = Path.GetFileName(url);
+                var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "items");
+                var filePath   = Path.GetFullPath(Path.Combine(uploadsDir, fileName));
 
-            var fileName = Path.GetFileName(url);
-            var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "items");
-            var filePath   = Path.GetFullPath(Path.Combine(uploadsDir, fileName));
+                if (!filePath.StartsWith(Path.GetFullPath(uploadsDir), StringComparison.OrdinalIgnoreCase))
+                    return null;
 
-            // Path traversal guard: resolved path must stay inside uploads dir.
-            if (!filePath.StartsWith(Path.GetFullPath(uploadsDir), StringComparison.OrdinalIgnoreCase))
-                return null;
+                if (!File.Exists(filePath)) return null;
 
-            if (!File.Exists(filePath)) return null;
+                var bytes = await File.ReadAllBytesAsync(filePath);
+                if (bytes.Length > 5 * 1024 * 1024) return null;
 
-            var bytes = await File.ReadAllBytesAsync(filePath);
-            if (bytes.Length > 5 * 1024 * 1024) return null;
+                return Convert.ToBase64String(bytes);
+            }
 
-            return Convert.ToBase64String(bytes);
+            // R2 (or any future cloud) HTTPS URL — only allow our own configured bucket
+            if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                var r2PublicUrl = _configuration["R2:PublicUrl"];
+                if (string.IsNullOrWhiteSpace(r2PublicUrl)) return null;
+
+                // SSRF guard: only allow URLs from our own R2 bucket
+                if (!url.StartsWith(r2PublicUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                    return null;
+
+                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var response = await httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                if (bytes.Length > 5 * 1024 * 1024) return null;
+
+                return Convert.ToBase64String(bytes);
+            }
+
+            return null;
         }
         catch
         {

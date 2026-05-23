@@ -46,7 +46,13 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IItemService, ItemService>();
         services.AddScoped<IMessageService, MessageService>();
-        services.AddScoped<IPhotoService, PhotoService>();
+        // Photo storage — Cloudflare R2 when configured, local disk otherwise
+        services.Configure<R2Settings>(configuration.GetSection("R2"));
+        var r2 = configuration.GetSection("R2").Get<R2Settings>();
+        if (r2 is { IsConfigured: true })
+            services.AddScoped<IPhotoService, R2PhotoService>();
+        else
+            services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IEBillService, EBillService>();
         services.AddScoped<IAdminService, AdminService>();
