@@ -89,7 +89,7 @@ public class AuthController : ControllerBase
                 : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
             return Ok(body);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -116,7 +116,7 @@ public class AuthController : ControllerBase
                 : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
             return Ok(body);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -149,7 +149,7 @@ public class AuthController : ControllerBase
                 : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
             return Ok(responseBody);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             this.ClearRefreshTokenCookie();
             return Unauthorized(new { message = ex.Message });
@@ -177,7 +177,7 @@ public class AuthController : ControllerBase
                 : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
             return Ok(body);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -221,7 +221,7 @@ public class AuthController : ControllerBase
             await this._authService.ChangePasswordAsync(userId, dto);
             return Ok(new { message = "Password changed successfully." });
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -265,7 +265,7 @@ public class AuthController : ControllerBase
             await this._authService.ResetPasswordAsync(dto);
             return Ok(new { message = "Password reset successfully." });
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }

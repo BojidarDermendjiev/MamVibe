@@ -60,11 +60,11 @@ public class ExceptionHandlingMiddleware
         {
             ValidationException ve => (HttpStatusCode.BadRequest,
                 string.Join(" ", ve.Errors.Select(e => e.ErrorMessage))),
-            DomainException de => (HttpStatusCode.BadRequest, de.Message),      // Safe user-facing message
+            DomainException de => (HttpStatusCode.BadRequest, de.Message),
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Access denied."),
-            KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
-            InvalidOperationException => (HttpStatusCode.BadRequest, "Operation failed. Please try again."),
-            ArgumentException => (HttpStatusCode.BadRequest, "Invalid request."),
+            KeyNotFoundException knf => (HttpStatusCode.NotFound, knf.Message),
+            InvalidOperationException ioe => (HttpStatusCode.BadRequest, ioe.Message),
+            ArgumentException ae => (HttpStatusCode.BadRequest, ae.Message),
             _ => (HttpStatusCode.InternalServerError, "An internal server error occurred.")
         };
 

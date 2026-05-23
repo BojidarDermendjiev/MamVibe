@@ -112,15 +112,8 @@ public class ItemsController : ControllerBase
     [HttpGet("{id:guid}/seller-check")]
     public async Task<IActionResult> CheckSeller(Guid id)
     {
-        try
-        {
-            var result = await this._itemService.CheckSellerAsync(id);
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
+        var result = await this._itemService.CheckSellerAsync(id);
+        return Ok(result);
     }
 
     /// <summary>
@@ -239,14 +232,6 @@ public class ItemsController : ControllerBase
         {
             return Forbid();
         }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { error = "An unexpected error occurred." });
-        }
     }
 
     /// <summary>
@@ -273,10 +258,6 @@ public class ItemsController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
         }
     }
 

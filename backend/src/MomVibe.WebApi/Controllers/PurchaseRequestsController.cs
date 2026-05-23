@@ -78,17 +78,9 @@ public class PurchaseRequestsController : ControllerBase
             var dto = await this._service.AcceptAsync(id, userId);
             return Ok(dto);
         }
-        catch (KeyNotFoundException ex)
+        catch (UnauthorizedAccessException)
         {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { error = ex.Message });
+            return Forbid();
         }
     }
 
@@ -114,17 +106,9 @@ public class PurchaseRequestsController : ControllerBase
             var dto = await this._service.DeclineAsync(id, userId);
             return Ok(dto);
         }
-        catch (KeyNotFoundException ex)
+        catch (UnauthorizedAccessException)
         {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { error = ex.Message });
+            return Forbid();
         }
     }
 
@@ -152,17 +136,9 @@ public class PurchaseRequestsController : ControllerBase
             var dto = await this._service.NotifyPaymentChosenAsync(id, userId, body.PaymentMethod);
             return Ok(dto);
         }
-        catch (KeyNotFoundException ex)
+        catch (UnauthorizedAccessException)
         {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { error = ex.Message });
+            return Forbid();
         }
     }
 
@@ -221,10 +197,6 @@ public class PurchaseRequestsController : ControllerBase
         {
             var result = await this._service.CheckBuyerAsync(id, userId);
             return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
         }
         catch (UnauthorizedAccessException)
         {

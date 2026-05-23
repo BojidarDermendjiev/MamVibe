@@ -257,12 +257,8 @@ public class AdminController : ControllerBase
     [HttpPost("doctor-reviews/{id:guid}/approve")]
     public async Task<IActionResult> ApproveDoctorReview(Guid id)
     {
-        try
-        {
-            await this._doctorReviewService.ApproveAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await this._doctorReviewService.ApproveAsync(id);
+        return NoContent();
     }
 
     /// <summary>
@@ -279,12 +275,8 @@ public class AdminController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        try
-        {
-            await this._doctorReviewService.DeleteAsync(id, userId, isAdmin: true);
-            return NoContent();
-        }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await this._doctorReviewService.DeleteAsync(id, userId, isAdmin: true);
+        return NoContent();
     }
 
     // --- Community moderation: Child-Friendly Places ---
@@ -313,12 +305,8 @@ public class AdminController : ControllerBase
     [HttpPost("child-friendly-places/{id:guid}/approve")]
     public async Task<IActionResult> ApproveChildFriendlyPlace(Guid id)
     {
-        try
-        {
-            await this._childFriendlyPlaceService.ApproveAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await this._childFriendlyPlaceService.ApproveAsync(id);
+        return NoContent();
     }
 
     /// <summary>
@@ -335,12 +323,8 @@ public class AdminController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        try
-        {
-            await this._childFriendlyPlaceService.DeleteAsync(id, userId, isAdmin: true);
-            return NoContent();
-        }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await this._childFriendlyPlaceService.DeleteAsync(id, userId, isAdmin: true);
+        return NoContent();
     }
 
     // --- Audit Log ---

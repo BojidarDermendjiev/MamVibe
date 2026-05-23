@@ -101,9 +101,5 @@ public class FeedbackController : ControllerBase
         {
             return Forbid();
         }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
     }
 }

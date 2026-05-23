@@ -100,7 +100,6 @@ public class ChildFriendlyPlacesController : ControllerBase
             await _service.DeleteAsync(id, userId, isAdmin: _currentUser.IsAdmin);
             return NoContent();
         }
-        catch (KeyNotFoundException) { return NotFound(); }
         catch (UnauthorizedAccessException) { return Forbid(); }
     }
 }

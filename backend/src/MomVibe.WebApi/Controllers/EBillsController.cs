@@ -70,10 +70,6 @@ public class EBillsController : ControllerBase
         {
             return Forbid();
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -102,10 +98,6 @@ public class EBillsController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
         }
     }
 }
