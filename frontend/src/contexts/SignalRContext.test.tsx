@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SignalRProvider, useSignalR } from './SignalRContext'
 import { signalRService } from '../services/signalRService'
@@ -63,6 +63,10 @@ beforeEach(() => {
   mockDisconnect.mockClear()
   mockConnect.mockResolvedValue(undefined as never)
   mockDisconnect.mockResolvedValue(undefined as never)
+  // The provider cleanup calls unsubOnline() and unsubOffline() on unmount.
+  // Without a real return value the cleanup throws "is not a function".
+  vi.mocked(signalRService.onOnline).mockReturnValue(() => {})
+  vi.mocked(signalRService.onOffline).mockReturnValue(() => {})
 })
 
 describe('SignalRProvider', () => {
@@ -152,5 +156,75 @@ describe('useSignalR default context', () => {
     }
     render(<Bare />)
     expect(screen.getByTestId('bare')).toHaveTextContent('false')
+  })
+})
+
+describe('isUserOnline', () => {
+  let onlineHandler: ((userId: string) => void) | null = null
+  let offlineHandler: ((userId: string) => void) | null = null
+
+  beforeEach(() => {
+    onlineHandler = null
+    offlineHandler = null
+    vi.mocked(signalRService.onOnline).mockImplementation((h) => {
+      onlineHandler = h
+      return () => {}
+    })
+    vi.mocked(signalRService.onOffline).mockImplementation((h) => {
+      offlineHandler = h
+      return () => {}
+    })
+  })
+
+  function OnlineProbe({ userId }: { userId: string }) {
+    const { isUserOnline } = useSignalR()
+    return <span data-testid={`probe-${userId}`}>{String(isUserOnline(userId))}</span>
+  }
+
+  it('returns false for any user before any presence event', () => {
+    unauthed()
+    render(<SignalRProvider><OnlineProbe userId="u1" /></SignalRProvider>)
+    expect(screen.getByTestId('probe-u1')).toHaveTextContent('false')
+  })
+
+  it('returns true after UserOnline fires for that user', async () => {
+    unauthed()
+    render(<SignalRProvider><OnlineProbe userId="u1" /></SignalRProvider>)
+    await waitFor(() => expect(onlineHandler).not.toBeNull())
+    act(() => onlineHandler!('u1'))
+    expect(screen.getByTestId('probe-u1')).toHaveTextContent('true')
+  })
+
+  it('returns false for a different user than the one that came online', async () => {
+    unauthed()
+    render(<SignalRProvider><OnlineProbe userId="u2" /></SignalRProvider>)
+    await waitFor(() => expect(onlineHandler).not.toBeNull())
+    act(() => onlineHandler!('u1'))
+    expect(screen.getByTestId('probe-u2')).toHaveTextContent('false')
+  })
+
+  it('returns false again after UserOffline fires for that user', async () => {
+    unauthed()
+    render(<SignalRProvider><OnlineProbe userId="u1" /></SignalRProvider>)
+    await waitFor(() => expect(onlineHandler).not.toBeNull())
+    act(() => onlineHandler!('u1'))
+    expect(screen.getByTestId('probe-u1')).toHaveTextContent('true')
+    act(() => offlineHandler!('u1'))
+    expect(screen.getByTestId('probe-u1')).toHaveTextContent('false')
+  })
+
+  it('clears all online users when the user disconnects', async () => {
+    authed('token')
+    const { rerender } = render(<SignalRProvider><OnlineProbe userId="u1" /></SignalRProvider>)
+    await waitFor(() => expect(onlineHandler).not.toBeNull())
+    act(() => onlineHandler!('u1'))
+    expect(screen.getByTestId('probe-u1')).toHaveTextContent('true')
+
+    unauthed()
+    rerender(<SignalRProvider><OnlineProbe userId="u1" /></SignalRProvider>)
+
+    await waitFor(() =>
+      expect(screen.getByTestId('probe-u1')).toHaveTextContent('false')
+    )
   })
 })
