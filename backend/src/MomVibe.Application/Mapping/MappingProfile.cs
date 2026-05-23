@@ -32,16 +32,21 @@ public class MappingProfile : Profile
     /// </summary>
     public MappingProfile()
     {
-        CreateMap<ApplicationUser, UserDto>();
+        CreateMap<ApplicationUser, UserDto>()
+            .ForMember(d => d.Roles, opt => opt.Ignore())
+            .ForMember(d => d.AverageRating, opt => opt.Ignore())
+            .ForMember(d => d.RatingCount, opt => opt.Ignore());
 
         CreateMap<ApplicationUser, AdminUserDto>()
-            .ForMember(d => d.ItemCount, opt => opt.MapFrom(s => s.Items.Count));
+            .ForMember(d => d.ItemCount, opt => opt.MapFrom(s => s.Items.Count))
+            .ForMember(d => d.Roles, opt => opt.Ignore());
 
         CreateMap<Item, ItemDto>()
             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null))
             .ForMember(d => d.UserDisplayName, opt => opt.MapFrom(s => s.User != null ? s.User.DisplayName : null))
             .ForMember(d => d.UserAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null))
-            .ForMember(d => d.User, opt => opt.MapFrom(s => s.User));
+            .ForMember(d => d.User, opt => opt.MapFrom(s => s.User))
+            .ForMember(d => d.IsLikedByCurrentUser, opt => opt.Ignore());
 
 
         CreateMap<ItemPhoto, ItemPhotoDto>();
@@ -79,10 +84,15 @@ public class MappingProfile : Profile
             .ForMember(d => d.ListingType, opt => opt.MapFrom(s => s.Item != null ? s.Item.ListingType : default))
             .ForMember(d => d.Price, opt => opt.MapFrom(s => s.Item != null ? s.Item.Price : null))
             .ForMember(d => d.BuyerDisplayName, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.DisplayName : null))
-            .ForMember(d => d.BuyerAvatarUrl, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.AvatarUrl : null));
+            .ForMember(d => d.BuyerAvatarUrl, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.AvatarUrl : null))
+            .ForMember(d => d.ShipmentId, opt => opt.Ignore());
 
-        CreateMap<DoctorReview, DoctorReviewDto>();
-        CreateMap<ChildFriendlyPlace, ChildFriendlyPlaceDto>();
+        CreateMap<DoctorReview, DoctorReviewDto>()
+            .ForMember(d => d.AuthorDisplayName, opt => opt.MapFrom(s => s.User != null ? s.User.DisplayName : null))
+            .ForMember(d => d.AuthorAvatarUrl, opt => opt.MapFrom(s => s.User != null ? s.User.AvatarUrl : null));
+
+        CreateMap<ChildFriendlyPlace, ChildFriendlyPlaceDto>()
+            .ForMember(d => d.AuthorDisplayName, opt => opt.MapFrom(s => s.User != null ? s.User.DisplayName : null));
 
         CreateMap<UserRating, UserRatingDto>()
             .ForMember(d => d.RaterDisplayName, opt => opt.MapFrom(s => s.Rater != null ? s.Rater.DisplayName : null))
