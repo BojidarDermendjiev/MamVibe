@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { MapPin, ExternalLink, Plus, X, Clock } from "lucide-react";
+import { MapPin, ExternalLink, Plus, X, Clock, TreePine, Search } from "lucide-react";
+import { motion } from "framer-motion";
 import { usePageSEO } from "@/hooks/useSEO";
 import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
 import { PlaceType } from "../types/childFriendlyPlace";
@@ -165,177 +166,232 @@ export default function ChildFriendlyPlacesPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t("childFriendlyPlaces.title")}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t("childFriendlyPlaces.subtitle")}
-          </p>
-        </div>
-        {isAuthenticated && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+    <div>
+      {/* Hero */}
+      <div className="bg-[#FAF3EE] dark:bg-[#2d2a42] py-12 px-4 mb-8">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
           >
-            <Plus size={16} />
-            {t("childFriendlyPlaces.addPlace")}
-          </button>
-        )}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(148,92,103,0.12)" }}>
+                <TreePine className="w-5 h-5 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold text-primary-dark">
+                {t("childFriendlyPlaces.title")}
+              </h1>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md">
+              {t("childFriendlyPlaces.subtitle")}
+            </p>
+          </motion.div>
+
+          {isAuthenticated && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-md flex-shrink-0"
+            >
+              <Plus size={16} />
+              {t("childFriendlyPlaces.addPlace")}
+            </motion.button>
+          )}
+        </div>
       </div>
 
-      {/* Filters */}
-      <form onSubmit={handleFilterSubmit} className="flex flex-wrap gap-3 mb-6">
-        <input
-          type="text"
-          placeholder={t("childFriendlyPlaces.cityPlaceholder")}
-          value={cityFilter}
-          onChange={(e) => setCityFilter(e.target.value)}
-          className="flex-1 min-w-[140px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
-        <select
-          value={placeTypeFilter}
-          onChange={(e) => setPlaceTypeFilter(e.target.value === "" ? "" : Number(e.target.value) as PlaceType)}
-          className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-        >
-          <option value="">{t("childFriendlyPlaces.allTypes")}</option>
-          {Object.entries(placeTypeLabels).map(([val, label]) => (
-            <option key={val} value={val}>{label}</option>
-          ))}
-        </select>
-        <input
-          type="number"
-          min={0}
-          max={216}
-          placeholder={t("childFriendlyPlaces.agePlaceholder")}
-          value={ageMonthsFilter}
-          onChange={(e) => setAgeMonthsFilter(e.target.value)}
-          className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
-        >
-          {t("childFriendlyPlaces.searchBtn")}
-        </button>
-      </form>
-
-      {/* Content */}
-      {loading && <div className="text-center py-12 text-gray-400">{t("common.loading")}</div>}
-      {error && <div className="text-center py-8 text-red-500">{error}</div>}
-      {!loading && !error && places.length === 0 && (
-        <div className="text-center py-12 text-gray-400 dark:text-gray-500">
-          {t("childFriendlyPlaces.noPlaces")}
-        </div>
-      )}
-
-      <h2 className="sr-only">{t("childFriendlyPlaces.title")}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {places.map((place) => (
-          <div
-            key={place.id}
-            className="bg-white dark:bg-[#2d2a42] rounded-xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden"
+      <div className="max-w-5xl mx-auto px-4 pb-12">
+        {/* Filters */}
+        <form onSubmit={handleFilterSubmit} className="bg-white dark:bg-[#2d2a42] rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm p-4 flex flex-wrap gap-3 mb-8">
+          <div className="relative flex-1 min-w-[140px]">
+            <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t("childFriendlyPlaces.cityPlaceholder")}
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+          <select
+            value={placeTypeFilter}
+            onChange={(e) => setPlaceTypeFilter(e.target.value === "" ? "" : Number(e.target.value) as PlaceType)}
+            className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            {place.photoUrl && (
-              <img
-                src={place.photoUrl}
-                alt={place.name}
-                className="w-full h-40 object-cover"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-              />
+            <option value="">{t("childFriendlyPlaces.allTypes")}</option>
+            {Object.entries(placeTypeLabels).map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min={0}
+            max={216}
+            placeholder={t("childFriendlyPlaces.agePlaceholder")}
+            value={ageMonthsFilter}
+            onChange={(e) => setAgeMonthsFilter(e.target.value)}
+            className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <button
+            type="submit"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Search size={14} />
+            {t("childFriendlyPlaces.searchBtn")}
+          </button>
+        </form>
+
+        {/* Content */}
+        {loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-[#2d2a42] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden animate-pulse">
+                <div className="h-44 bg-gray-100 dark:bg-white/5" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-100 dark:bg-white/5 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-1/3" />
+                  <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {error && <div className="text-center py-8 text-red-500">{error}</div>}
+        {!loading && !error && places.length === 0 && (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <TreePine className="w-8 h-8 text-primary/60" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium mb-1">{t("childFriendlyPlaces.noPlaces")}</p>
+            {isAuthenticated && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-4 text-sm text-primary hover:underline"
+              >
+                {t("childFriendlyPlaces.addPlace")} →
+              </button>
             )}
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-gray-900 dark:text-white leading-tight">{place.name}</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${PLACE_TYPE_COLORS[place.placeType]}`}>
-                  {placeTypeLabels[place.placeType]}
-                </span>
-              </div>
+          </div>
+        )}
 
-              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
-                <MapPin size={11} />
-                <span>{place.city}</span>
-                {place.address && <span>· {place.address}</span>}
-              </div>
-
-              {(place.ageFromMonths || place.ageToMonths) && (
-                <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
-                  <Clock size={11} />
-                  <span>{t("childFriendlyPlaces.ageLabel")} {formatAge(place.ageFromMonths, place.ageToMonths)}</span>
+        <h2 className="sr-only">{t("childFriendlyPlaces.title")}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {places.map((place, i) => (
+            <motion.div
+              key={place.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.05 }}
+              className="bg-white dark:bg-[#2d2a42] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            >
+              {place.photoUrl ? (
+                <img
+                  src={place.photoUrl}
+                  alt={place.name}
+                  className="w-full h-44 object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <div className="w-full h-44 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                  <TreePine className="w-10 h-10 text-primary/30" />
                 </div>
               )}
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-white leading-tight">{place.name}</h3>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 ${PLACE_TYPE_COLORS[place.placeType]}`}>
+                    {placeTypeLabels[place.placeType]}
+                  </span>
+                </div>
 
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                {place.description}
-              </p>
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <MapPin size={11} className="flex-shrink-0" />
+                  <span>{place.city}</span>
+                  {place.address && <span className="truncate">· {place.address}</span>}
+                </div>
 
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <a
-                    href={buildMapsUrl(place)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-navigate"
-                    aria-label={`${t("childFriendlyPlaces.navigate")} ${place.name}`}
-                  >
-                    <span>{t("childFriendlyPlaces.navigate")}</span>
-                    <svg width="13px" height="10px" viewBox="0 0 13 10">
-                      <path d="M1,5 L11,5" />
-                      <polyline points="8 1 12 5 8 9" />
-                    </svg>
-                  </a>
-                  {place.website && (
+                {(place.ageFromMonths || place.ageToMonths) && (
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-400">
+                    <Clock size={11} />
+                    <span>{t("childFriendlyPlaces.ageLabel")} {formatAge(place.ageFromMonths, place.ageToMonths)}</span>
+                  </div>
+                )}
+
+                <p className="mt-2.5 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                  {place.description}
+                </p>
+
+                <div className="mt-4 pt-3 border-t border-gray-50 dark:border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
                     <a
-                      href={place.website}
+                      href={buildMapsUrl(place)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
+                      className="btn-navigate"
+                      aria-label={`${t("childFriendlyPlaces.navigate")} ${place.name}`}
                     >
-                      {t("childFriendlyPlaces.website")} <ExternalLink size={10} />
+                      <span>{t("childFriendlyPlaces.navigate")}</span>
+                      <svg width="13px" height="10px" viewBox="0 0 13 10">
+                        <path d="M1,5 L11,5" />
+                        <polyline points="8 1 12 5 8 9" />
+                      </svg>
                     </a>
-                  )}
-                  {(isAdmin || (isAuthenticated && place.userId === user?.id)) && (
-                    <button
-                      onClick={() => handleDelete(place.id)}
-                      className="text-xs text-red-400 hover:text-red-500 transition-colors"
-                    >
-                      {t("childFriendlyPlaces.delete")}
-                    </button>
-                  )}
+                    {place.website && (
+                      <a
+                        href={place.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary/80 hover:text-primary transition-colors"
+                      >
+                        {t("childFriendlyPlaces.website")} <ExternalLink size={10} />
+                      </a>
+                    )}
+                    {(isAdmin || (isAuthenticated && place.userId === user?.id)) && (
+                      <button
+                        onClick={() => handleDelete(place.id)}
+                        className="text-xs text-red-400 hover:text-red-500 transition-colors"
+                      >
+                        {t("childFriendlyPlaces.delete")}
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-300 dark:text-gray-600">
+                    {new Date(place.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-400">
-                  {new Date(place.createdAt).toLocaleDateString()}
-                </span>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {(page > 1 || places.length === 20) && (
-        <div className="flex items-center justify-center gap-3 mt-8">
-          <button
-            onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            disabled={page === 1}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-          >
-            {t("childFriendlyPlaces.prevPage")}
-          </button>
-          <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
-            {t("childFriendlyPlaces.page", { n: page })}
-          </span>
-          <button
-            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            disabled={places.length < 20}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-          >
-            {t("childFriendlyPlaces.nextPage")}
-          </button>
+            </motion.div>
+          ))}
         </div>
-      )}
+
+        {/* Pagination */}
+        {(page > 1 || places.length === 20) && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={page === 1}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
+            >
+              {t("childFriendlyPlaces.prevPage")}
+            </button>
+            <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
+              {t("childFriendlyPlaces.page", { n: page })}
+            </span>
+            <button
+              onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={places.length < 20}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
+            >
+              {t("childFriendlyPlaces.nextPage")}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Add Place Modal */}
       {showModal && (
@@ -523,3 +579,4 @@ export default function ChildFriendlyPlacesPage() {
     </div>
   );
 }
+

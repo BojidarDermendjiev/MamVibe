@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Star, ExternalLink, User, Plus, X, Clock } from "lucide-react";
+import { Star, ExternalLink, User, Plus, X, Stethoscope, MapPin, Search, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
 import { usePageSEO } from "@/hooks/useSEO";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import type { DoctorReviewDto, CreateDoctorReviewDto } from "../types/doctorReview";
@@ -51,13 +52,43 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
+function DoctorAvatar({ name }: { name: string }) {
+  const initials = name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+  return (
+    <div className="w-11 h-11 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
+      <span className="text-primary font-bold text-sm">{initials || "Dr"}</span>
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl p-5 border border-gray-100 dark:border-white/5 shadow-sm animate-pulse">
+      <div className="flex items-start gap-4">
+        <div className="w-11 h-11 rounded-full bg-gray-200 dark:bg-white/10 flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-2/5" />
+          <div className="h-3 bg-gray-200 dark:bg-white/10 rounded w-1/4" />
+        </div>
+        <div className="h-5 bg-gray-200 dark:bg-white/10 rounded w-16" />
+      </div>
+      <div className="mt-4 space-y-2">
+        <div className="h-3 bg-gray-200 dark:bg-white/10 rounded w-full" />
+        <div className="h-3 bg-gray-200 dark:bg-white/10 rounded w-5/6" />
+        <div className="h-3 bg-gray-200 dark:bg-white/10 rounded w-4/6" />
+      </div>
+    </div>
+  );
+}
+
 export default function DoctorReviewsPage() {
   const { t } = useTranslation();
   const { isAuthenticated, user } = useAuthStore();
 
-  // SEO: Community health content — E-E-A-T signals via schema markup.
-  // LocalBusiness/Physician schema helps Google surface these reviews
-  // for queries like "pediatrician reviews Sofia Bulgaria".
   usePageSEO({
     title: "Doctor Reviews for Parents in Bulgaria",
     description:
@@ -72,6 +103,7 @@ export default function DoctorReviewsPage() {
       url: "https://mamvibe.com/doctor-reviews",
     },
   });
+
   const isAdmin = user?.roles?.includes("Admin") ?? false;
 
   const [reviews, setReviews] = useState<DoctorReviewDto[]>([]);
@@ -148,158 +180,220 @@ export default function DoctorReviewsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t("doctorReviews.title") || "Doctor Reviews"}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t("doctorReviews.subtitle") || "Community reviews in collaboration with superdoc.bg"}
-          </p>
-        </div>
-        {isAuthenticated && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+    <div>
+      {/* Hero */}
+      <div className="bg-[#FAF3EE] dark:bg-[#2d2a42] py-12 px-4 mb-8">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
           >
-            <Plus size={16} />
-            {t("doctorReviews.writeReview") || "Write a Review"}
-          </button>
-        )}
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: "rgba(148,92,103,0.12)" }}>
+                <Stethoscope className="w-5 h-5 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold text-primary-dark">
+                {t("doctorReviews.title") || "Doctor Reviews"}
+              </h1>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md">
+              {t("doctorReviews.subtitle") || "Community reviews in collaboration with superdoc.bg"}
+            </p>
+          </motion.div>
+          {isAuthenticated && (
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowModal(true)}
+              className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold shadow-md hover:bg-primary/90 transition-colors"
+            >
+              <Plus size={15} />
+              {t("doctorReviews.writeReview") || "Write a Review"}
+            </motion.button>
+          )}
+        </div>
       </div>
-
-      {/* Filters */}
-      <form onSubmit={handleFilterSubmit} className="flex flex-wrap gap-3 mb-6">
-        <input
-          type="text"
-          placeholder={t("doctorReviews.filterCity") || "City"}
-          value={cityFilter}
-          onChange={(e) => setCityFilter(e.target.value)}
-          className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
-        <input
-          type="text"
-          placeholder={t("doctorReviews.filterSpecialization") || "Specialization"}
-          value={specializationFilter}
-          onChange={(e) => setSpecializationFilter(e.target.value)}
-          className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#2d2a42] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
-        >
-          {t("common.search") || "Search"}
-        </button>
-      </form>
 
       {/* Content */}
-      {loading && (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
-      )}
-      {error && (
-        <div className="text-center py-8 text-red-500">{error}</div>
-      )}
-      {!loading && !error && reviews.length === 0 && (
-        <div className="text-center py-12 text-gray-400 dark:text-gray-500">
-          {t("doctorReviews.noReviews") || "No reviews found. Be the first to share your experience!"}
-        </div>
-      )}
-
-      {/* Visually hidden h2 preserves heading hierarchy for crawlers. */}
-      <h2 className="sr-only">Reviews list</h2>
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <div
-            key={review.id}
-            className="bg-white dark:bg-[#2d2a42] rounded-xl p-5 border border-gray-100 dark:border-white/5 shadow-sm"
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        {/* Filter bar */}
+        <form
+          onSubmit={handleFilterSubmit}
+          className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl p-4 border border-gray-100 dark:border-white/5 shadow-sm mb-8 flex flex-wrap gap-3 items-center"
+        >
+          <div className="relative flex-1 min-w-[150px]">
+            <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t("doctorReviews.filterCity") || "City"}
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+          <div className="relative flex-1 min-w-[150px]">
+            <Stethoscope size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t("doctorReviews.filterSpecialization") || "Specialization"}
+              value={specializationFilter}
+              onChange={(e) => setSpecializationFilter(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+          <button
+            type="submit"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    Dr. {review.doctorName}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                    {review.specialization}
-                  </span>
-                  {review.clinicName && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {review.clinicName}
-                    </span>
+            <Search size={14} />
+            {t("common.search") || "Search"}
+          </button>
+        </form>
+
+        {/* Skeleton */}
+        {loading && (
+          <div className="space-y-4">
+            {[0, 1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="text-center py-10 text-red-500 text-sm">{error}</div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && reviews.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Stethoscope size={28} className="text-primary/60" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              {t("doctorReviews.noReviews") || "No reviews found yet."}
+            </p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1 mb-5">
+              Be the first to share your experience!
+            </p>
+            {isAuthenticated && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                <Plus size={14} />
+                Write a Review
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Reviews list */}
+        <h2 className="sr-only">Reviews list</h2>
+        {!loading && !error && reviews.length > 0 && (
+          <div className="space-y-4">
+            {reviews.map((review, i) => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+                className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl p-5 border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                {/* Top row: avatar + doctor info */}
+                <div className="flex items-start gap-4">
+                  <DoctorAvatar name={review.doctorName} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        Dr. {review.doctorName}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                        {review.specialization}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <StarRating rating={review.rating} />
+                      {review.city && (
+                        <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                          <MapPin size={11} />
+                          {review.city}
+                        </span>
+                      )}
+                      {review.clinicName && (
+                        <span className="text-xs text-gray-400">· {review.clinicName}</span>
+                      )}
+                    </div>
+                  </div>
+                  {review.superdocUrl && (
+                    <a
+                      href={review.superdocUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 hover:underline transition-colors"
+                    >
+                      superdoc.bg
+                      <ExternalLink size={10} />
+                    </a>
                   )}
                 </div>
-                <div className="flex items-center gap-3 mt-1.5">
-                  <StarRating rating={review.rating} />
-                  <span className="text-xs text-gray-400">{review.city}</span>
+
+                {/* Review text */}
+                <p className="mt-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {review.content}
+                </p>
+
+                {/* Footer */}
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <User size={11} />
+                    <span>{review.authorDisplayName || "User"}</span>
+                    <span>·</span>
+                    <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {(isAdmin || (isAuthenticated && review.userId === user?.id)) && (
+                    <button
+                      onClick={() => handleDelete(review.id)}
+                      className="text-xs text-red-400 hover:text-red-500 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {review.superdocUrl && (
-                  <a
-                    href={review.superdocUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs flex items-center gap-1 text-blue-500 hover:underline"
-                  >
-                    superdoc.bg
-                    <ExternalLink size={10} />
-                  </a>
-                )}
-              </div>
-            </div>
-
-            <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-              {review.content}
-            </p>
-
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                <User size={12} />
-                <span>{review.authorDisplayName || "User"}</span>
-                <span>·</span>
-                <span>{new Date(review.createdAt).toLocaleDateString()}</span>
-              </div>
-              {(isAdmin || (isAuthenticated && review.userId === user?.id)) && (
-                <button
-                  onClick={() => handleDelete(review.id)}
-                  className="text-xs text-red-400 hover:text-red-500 transition-colors"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
+              </motion.div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
 
-      {/* Pagination */}
-      {(page > 1 || reviews.length === 20) && (
-        <div className="flex items-center justify-center gap-3 mt-8">
-          <button
-            onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            disabled={page === 1}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-          >
-            ← Previous
-          </button>
-          <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
-            Page {page}
-          </span>
-          <button
-            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            disabled={reviews.length < 20}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
-          >
-            Next →
-          </button>
-        </div>
-      )}
+        {/* Pagination */}
+        {!loading && (page > 1 || reviews.length === 20) && (
+          <div className="flex items-center justify-center gap-3 mt-10">
+            <button
+              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={page === 1}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
+            >
+              ← Previous
+            </button>
+            <span className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-primary/10 rounded-lg">
+              Page {page}
+            </span>
+            <button
+              onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              disabled={reviews.length < 20}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/10 text-sm font-medium disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-white/15 transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Write Review Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#2d2a42] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
               <h2 className="font-bold text-gray-900 dark:text-white">
                 {t("doctorReviews.writeReview") || "Write a Review"}
@@ -313,129 +407,131 @@ export default function DoctorReviewsPage() {
             </div>
 
             {submitSuccess ? (
-              <div className="p-8 text-center">
-                <div className="flex justify-center mb-3">
-                  <Clock size={40} className="text-amber-500" />
+              <div className="p-10 text-center">
+                <div className="flex justify-center mb-4">
+                  <CheckCircle size={44} className="text-green-500" />
                 </div>
-                <p className="font-semibold text-gray-900 dark:text-white">Review submitted!</p>
-                <p className="text-sm text-gray-500 mt-1">Your review will appear after admin approval.</p>
+                <p className="font-semibold text-gray-900 dark:text-white text-lg">Review submitted!</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Your review will appear after admin approval.
+                </p>
               </div>
             ) : (
-            <form onSubmit={handleSubmitReview} className="p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleSubmitReview} className="p-5 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                      Doctor Name *
+                    </label>
+                    <input
+                      required
+                      maxLength={100}
+                      value={form.doctorName}
+                      onChange={(e) => setForm((f) => ({ ...f, doctorName: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      placeholder="e.g. Ivan Petrov"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                      Specialization *
+                    </label>
+                    <input
+                      required
+                      maxLength={100}
+                      value={form.specialization}
+                      onChange={(e) => setForm((f) => ({ ...f, specialization: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      placeholder="e.g. Pediatrician"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                      Clinic (optional)
+                    </label>
+                    <input
+                      maxLength={150}
+                      value={form.clinicName}
+                      onChange={(e) => setForm((f) => ({ ...f, clinicName: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      placeholder="Clinic name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                      City *
+                    </label>
+                    <input
+                      required
+                      maxLength={100}
+                      value={form.city}
+                      onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      placeholder="e.g. Sofia"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Doctor Name *
+                    Rating *
                   </label>
-                  <input
+                  <StarPicker value={form.rating} onChange={(v) => setForm((f) => ({ ...f, rating: v }))} />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                    Your Experience *
+                  </label>
+                  <textarea
                     required
-                    maxLength={100}
-                    value={form.doctorName}
-                    onChange={(e) => setForm((f) => ({ ...f, doctorName: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="e.g. Ivan Petrov"
+                    maxLength={2000}
+                    rows={4}
+                    value={form.content}
+                    onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                    placeholder="Share your experience with this doctor..."
                   />
+                  <div className="text-right text-xs text-gray-400 mt-0.5">{form.content.length}/2000</div>
                 </div>
+
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Specialization *
+                    Superdoc.bg link (optional)
                   </label>
                   <input
-                    required
-                    maxLength={100}
-                    value={form.specialization}
-                    onChange={(e) => setForm((f) => ({ ...f, specialization: e.target.value }))}
+                    maxLength={2048}
+                    value={form.superdocUrl}
+                    onChange={(e) => setForm((f) => ({ ...f, superdocUrl: e.target.value }))}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="e.g. Pediatrician"
+                    placeholder="https://superdoc.bg/..."
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    Clinic (optional)
-                  </label>
-                  <input
-                    maxLength={150}
-                    value={form.clinicName}
-                    onChange={(e) => setForm((f) => ({ ...f, clinicName: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="Clinic name"
-                  />
+                {submitError && (
+                  <p className="text-sm text-red-500">{submitError}</p>
+                )}
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); }}
+                    className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60"
+                  >
+                    {submitting ? "Submitting..." : "Submit Review"}
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    City *
-                  </label>
-                  <input
-                    required
-                    maxLength={100}
-                    value={form.city}
-                    onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    placeholder="e.g. Sofia"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                  Rating *
-                </label>
-                <StarPicker value={form.rating} onChange={(v) => setForm((f) => ({ ...f, rating: v }))} />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                  Your Experience *
-                </label>
-                <textarea
-                  required
-                  maxLength={2000}
-                  rows={4}
-                  value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
-                  placeholder="Share your experience with this doctor..."
-                />
-                <div className="text-right text-xs text-gray-400 mt-0.5">{form.content.length}/2000</div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                  Superdoc.bg link (optional)
-                </label>
-                <input
-                  maxLength={2048}
-                  value={form.superdocUrl}
-                  onChange={(e) => setForm((f) => ({ ...f, superdocUrl: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  placeholder="https://superdoc.bg/..."
-                />
-              </div>
-
-              {submitError && (
-                <p className="text-sm text-red-500">{submitError}</p>
-              )}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setForm(EMPTY_FORM); setSubmitError(null); }}
-                  className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60"
-                >
-                  {submitting ? "Submitting..." : "Submit Review"}
-                </button>
-              </div>
-            </form>
+              </form>
             )}
           </div>
         </div>
