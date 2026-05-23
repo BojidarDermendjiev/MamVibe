@@ -156,9 +156,9 @@ public class PaymentServiceTests
         var svc = CreateService(db);
         var result = await svc.GetPaymentsByUserAsync("buyer-1");
 
-        result.Should().HaveCount(1);
-        result[0].BuyerId.Should().Be("buyer-1");
-        result[0].Amount.Should().Be(30m);
+        result.Items.Should().HaveCount(1);
+        result.Items[0].BuyerId.Should().Be("buyer-1");
+        result.Items[0].Amount.Should().Be(30m);
     }
 
     [Fact]
@@ -181,8 +181,8 @@ public class PaymentServiceTests
         var svc = CreateService(db);
         var result = await svc.GetPaymentsByUserAsync("seller-1");
 
-        result.Should().HaveCount(1);
-        result[0].SellerId.Should().Be("seller-1");
+        result.Items.Should().HaveCount(1);
+        result.Items[0].SellerId.Should().Be("seller-1");
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class PaymentServiceTests
         var svc = CreateService(db);
         var result = await svc.GetPaymentsByUserAsync("unrelated-user");
 
-        result.Should().BeEmpty();
+        result.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -222,8 +222,8 @@ public class PaymentServiceTests
         var svc = CreateService(db);
         var result = await svc.GetPaymentsByUserAsync("buyer-1");
 
-        result.Should().HaveCount(2);
-        result[0].CreatedAt.Should().BeOnOrAfter(result[1].CreatedAt);
+        result.Items.Should().HaveCount(2);
+        result.Items[0].CreatedAt.Should().BeOnOrAfter(result.Items[1].CreatedAt);
     }
 
     // =========================================================================
@@ -403,7 +403,7 @@ public class PaymentServiceTests
         var svc = CreateService(db);
         var result = await svc.GetAllPaymentsAsync();
 
-        result.Should().HaveCount(2);
-        result[0].CreatedAt.Should().BeOnOrAfter(result[1].CreatedAt);
+        result.Items.Should().HaveCount(2);
+        result.Items[0].CreatedAt.Should().BeOnOrAfter(result.Items[1].CreatedAt);
     }
 }
