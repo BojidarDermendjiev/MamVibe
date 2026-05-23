@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\MomVibe.Application\MomVibe.Application.csproj" />
     <ProjectReference Include="..\..\src\MomVibe.Infrastructure\MomVibe.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\MomVibe.Domain\MomVibe.Domain.csproj" />
+    <ProjectReference Include="..\..\src\MomVibe.WebApi\MomVibe.WebApi.csproj" />
   </ItemGroup>
 
 </Project>
