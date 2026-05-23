@@ -25,6 +25,9 @@ public class FeedbackService : IFeedbackService
 
     public async Task<PagedResult<FeedbackDto>> GetAllAsync(int page = 1, int pageSize = 10)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = _context.Feedbacks
             .Include(f => f.User)
             .OrderByDescending(f => f.CreatedAt);

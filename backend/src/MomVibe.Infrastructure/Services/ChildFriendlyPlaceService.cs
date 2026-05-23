@@ -26,6 +26,9 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
     /// <inheritdoc/>
     public async Task<IEnumerable<ChildFriendlyPlaceDto>> GetAllAsync(string? city = null, PlaceType? placeType = null, int? maxAgeMonths = null, int page = 1, int pageSize = 20)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
         var query = _db.ChildFriendlyPlaces.Include(p => p.User)
             .Where(p => p.IsApproved)
             .AsQueryable();

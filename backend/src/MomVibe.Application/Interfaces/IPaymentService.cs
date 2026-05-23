@@ -1,5 +1,6 @@
 ﻿namespace MomVibe.Application.Interfaces;
 
+using DTOs.Common;
 using DTOs.Payments;
 
 /// <summary>
@@ -26,8 +27,8 @@ public interface IPaymentService
     /// <summary>Returns all payment records in which the specified user is either the buyer or the seller.</summary>
     Task<List<PaymentDto>> GetPaymentsByUserAsync(string userId);
 
-    /// <summary>Returns all payment records on the platform (admin use).</summary>
-    Task<List<PaymentDto>> GetAllPaymentsAsync();
+    /// <summary>Returns a paginated page of payment records for admin oversight.</summary>
+    Task<PagedResult<PaymentDto>> GetAllPaymentsAsync(int page = 1, int pageSize = 50);
 
     /// <summary>Creates a Stripe PaymentIntent for the specified item and returns the client secret.</summary>
     Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId);

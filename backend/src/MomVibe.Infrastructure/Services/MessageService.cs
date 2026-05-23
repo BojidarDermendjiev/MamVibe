@@ -118,6 +118,9 @@ public class MessageService : IMessageService
 
     public async Task<List<MessageDto>> GetMessagesAsync(string userId, string otherUserId, int page = 1, int pageSize = 50)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var messages = await this._context.Messages
             .AsNoTracking()
             .Include(m => m.Sender)

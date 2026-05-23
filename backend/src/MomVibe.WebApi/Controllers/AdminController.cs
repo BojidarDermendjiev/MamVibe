@@ -219,15 +219,17 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all payment records across all users for admin oversight.
+    /// Retrieves a paginated list of payment records across all users for admin oversight.
     /// </summary>
+    /// <param name="page">1-based page number (default: 1).</param>
+    /// <param name="pageSize">Number of payments per page, max 100 (default: 50).</param>
     /// <returns>
-    /// 200 OK with the complete list of payments.
+    /// 200 OK with a paged result of payments.
     /// </returns>
     [HttpGet("payments")]
-    public async Task<IActionResult> GetAllPayments()
+    public async Task<IActionResult> GetAllPayments([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var payments = await this._paymentService.GetAllPaymentsAsync();
+        var payments = await this._paymentService.GetAllPaymentsAsync(page, pageSize);
         return Ok(payments);
     }
 

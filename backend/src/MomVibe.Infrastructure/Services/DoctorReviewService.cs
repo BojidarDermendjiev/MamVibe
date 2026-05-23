@@ -30,6 +30,9 @@ public class DoctorReviewService : IDoctorReviewService
     /// <inheritdoc/>
     public async Task<IEnumerable<DoctorReviewDto>> GetAllAsync(string? city = null, string? specialization = null, int page = 1, int pageSize = 20)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
         var query = _db.DoctorReviews.Include(r => r.User).Where(r => r.IsApproved).AsQueryable();
         if (!string.IsNullOrWhiteSpace(city))
             query = query.Where(r => r.City.ToLower().Contains(city.ToLower()));
