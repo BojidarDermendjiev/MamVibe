@@ -401,8 +401,7 @@ export default function HomePage() {
 
       {/* ── Shop by Age ── */}
       <section
-        className="dark-section pt-[6.5rem] pb-40 px-4"
-        style={{ backgroundColor: "#FAF3EE" }}
+        className="bg-[#FAF3EE] dark:bg-[#2d2a42] pt-[6.5rem] pb-40 px-4"
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
@@ -440,7 +439,7 @@ export default function HomePage() {
 
       {/* ── Doctor Reviews ── */}
       {doctorReviews.length > 0 && (
-        <section className="bg-white dark:bg-[#201d30] py-20 px-4">
+        <section className="bg-[#ffffff] dark:bg-[#201d30] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
@@ -504,7 +503,7 @@ export default function HomePage() {
 
       {/* ── Child-Friendly Places ── */}
       {childPlaces.length > 0 && (
-        <section className="bg-[#FAF3EE] dark:bg-[#201d30] py-20 px-4">
+        <section className="bg-[#FAF3EE] dark:bg-[#2d2a42] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
@@ -571,7 +570,7 @@ export default function HomePage() {
       )}
 
       {/* ── Support section ── */}
-      <section className="bg-white dark:bg-[#201d30] py-24 px-4">
+      <section className="bg-[#ffffff] dark:bg-[#201d30] py-24 px-4">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
