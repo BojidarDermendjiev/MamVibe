@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -54,13 +55,19 @@ public class ItemServiceTests
         var webhookMock = new Mock<IN8nWebhookService>();
         var n8nOptions = Options.Create(new N8nSettings());
 
+        var cacheMock = new Mock<IMemoryCache>();
+        var cacheEntry = new Mock<ICacheEntry>();
+        cacheMock.Setup(c => c.TryGetValue(It.IsAny<object>(), out It.Ref<object?>.IsAny)).Returns(false);
+        cacheMock.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(cacheEntry.Object);
+
         return new ItemService(
             db,
             CreateMapper(),
             webhookMock.Object,
             n8nOptions,
             aiMock.Object,
-            nekorektenMock.Object);
+            nekorektenMock.Object,
+            cacheMock.Object);
     }
 
     /// <summary>
