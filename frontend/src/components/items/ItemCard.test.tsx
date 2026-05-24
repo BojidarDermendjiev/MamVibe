@@ -154,4 +154,14 @@ describe('ItemCard', () => {
     // LikeButton is mocked — just confirm the card renders without error
     expect(screen.getByText('42')).toBeInTheDocument()
   })
+
+  it('shows reserved banner when isReserved is true', () => {
+    setup({ ...baseItem, isReserved: true })
+    expect(screen.getByText('items.status_reserved')).toBeInTheDocument()
+  })
+
+  it('does not show reserved banner when isReserved is false', () => {
+    setup({ ...baseItem, isReserved: false })
+    expect(screen.queryByText('items.status_reserved')).toBeNull()
+  })
 })

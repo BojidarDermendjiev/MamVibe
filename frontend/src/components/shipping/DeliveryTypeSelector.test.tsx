@@ -30,4 +30,18 @@ describe('DeliveryTypeSelector', () => {
     await userEvent.click(screen.getAllByRole('button')[0])
     expect(onChange).toHaveBeenCalledWith(DeliveryType.Office)
   })
+
+  it('excludes address type when Address is in exclude prop', () => {
+    render(<DeliveryTypeSelector value={DeliveryType.Office} onChange={vi.fn()} exclude={[DeliveryType.Address]} />)
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(2)
+    buttons.forEach((btn) => {
+      expect(btn).not.toHaveTextContent('shipping.to_address')
+    })
+  })
+
+  it('renders all 3 types when exclude is empty', () => {
+    render(<DeliveryTypeSelector value={DeliveryType.Office} onChange={vi.fn()} exclude={[]} />)
+    expect(screen.getAllByRole('button')).toHaveLength(3)
+  })
 })

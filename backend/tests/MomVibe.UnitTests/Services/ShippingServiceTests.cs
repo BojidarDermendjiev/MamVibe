@@ -1,15 +1,22 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using AutoMapper;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 
 using MomVibe.Application.DTOs.Shipping;
 using MomVibe.Application.Interfaces;
+using MomVibe.Application.Mapping;
+using MomVibe.Domain.Entities;
 using MomVibe.Domain.Enums;
 using MomVibe.Infrastructure.Configuration;
+using MomVibe.Infrastructure.Persistence;
 using MomVibe.Infrastructure.Services.Shipping;
 
 namespace MomVibe.UnitTests.Services;
@@ -430,6 +437,173 @@ public class ShippingServiceTests
         });
 
         await act.Should().ThrowAsync<Exception>();
+    }
+
+    // =========================================================================
+    // ShippingService — MockMode tests
+    // =========================================================================
+
+    /// <summary>Creates an InMemory EF Core DB for ShippingService tests.</summary>
+    private static ApplicationDbContext CreateShippingDb() =>
+        new ApplicationDbContext(
+            new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase($"ShippingTest_{Guid.NewGuid()}")
+                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .Options);
+
+    /// <summary>Creates a <see cref="ShippingService"/> in MockMode with all external dependencies mocked.</summary>
+    private static ShippingService CreateMockModeShippingService(ApplicationDbContext db)
+    {
+        var mapper = new MapperConfiguration(c => c.AddProfile<MappingProfile>()).CreateMapper();
+
+        // A real CourierProviderFactory with an empty provider list — never called in MockMode.
+        var factory = new CourierProviderFactory(Array.Empty<ICourierProvider>());
+
+        var webhook = new Mock<IN8nWebhookService>();
+        webhook.Setup(w => w.Send(It.IsAny<string>(), It.IsAny<object>()));
+
+        var notifier = new Mock<IShipmentNotifier>();
+        notifier.Setup(n => n.NotifySellerShipmentReadyAsync(It.IsAny<string>(), It.IsAny<ShipmentDto>()))
+                .Returns(Task.CompletedTask);
+        notifier.Setup(n => n.NotifyShipmentStatusChangedAsync(It.IsAny<string>(), It.IsAny<ShipmentDto>()))
+                .Returns(Task.CompletedTask);
+
+        var n8nOptions = Options.Create(new N8nSettings());
+        var shippingOptions = Options.Create(new ShippingSettings { MockMode = true });
+
+        return new ShippingService(
+            db,
+            mapper,
+            factory,
+            webhook.Object,
+            n8nOptions,
+            shippingOptions,
+            notifier.Object,
+            NullLogger<ShippingService>.Instance);
+    }
+
+    [Fact]
+    public async Task CalculatePriceAsync_MockMode_Returns_Fixed_Price()
+    {
+        await using var db = CreateShippingDb();
+        var svc = CreateMockModeShippingService(db);
+
+        var result = await svc.CalculatePriceAsync(new CalculateShippingDto
+        {
+            CourierProvider = CourierProvider.Econt,
+            DeliveryType = DeliveryType.Office,
+            Weight = 1m
+        });
+
+        result.Price.Should().Be(4.99m);
+        result.Currency.Should().Be("BGN");
+    }
+
+    [Fact]
+    public async Task CreateShipmentAsync_MockMode_Saves_Shipment_With_Mock_TrackingNumber()
+    {
+        await using var db = CreateShippingDb();
+
+        // Seed seller, buyer, item, and payment
+        db.Users.Add(new ApplicationUser { Id = "seller-s1", DisplayName = "Seller", Email = "seller@test.com", UserName = "seller-s1" });
+        db.Users.Add(new ApplicationUser { Id = "buyer-s1",  DisplayName = "Buyer",  Email = "buyer@test.com",  UserName = "buyer-s1" });
+        var item = new Item
+        {
+            Title = "Baby Toy",
+            Description = "Soft toy",
+            UserId = "seller-s1",
+            ListingType = ListingType.Sell,
+            Price = 15m,
+            IsActive = true
+        };
+        db.Items.Add(item);
+        await db.SaveChangesAsync();
+
+        var payment = new Payment
+        {
+            ItemId = item.Id,
+            BuyerId = "buyer-s1",
+            SellerId = "seller-s1",
+            Amount = 15m,
+            PaymentMethod = PaymentMethod.Card,
+            Status = PaymentStatus.Completed
+        };
+        db.Payments.Add(payment);
+        await db.SaveChangesAsync();
+
+        var svc = CreateMockModeShippingService(db);
+        var result = await svc.CreateShipmentAsync(new CreateShipmentDto
+        {
+            PaymentId = payment.Id,
+            CourierProvider = CourierProvider.Econt,
+            DeliveryType = DeliveryType.Office,
+            RecipientName = "Test Buyer",
+            RecipientPhone = "0888123456",
+            Weight = 0.5m
+        });
+
+        result.Should().NotBeNull();
+        result.TrackingNumber.Should().StartWith("MOCK-");
+
+        var saved = await db.Shipments.FirstOrDefaultAsync(s => s.PaymentId == payment.Id);
+        saved.Should().NotBeNull();
+        saved!.TrackingNumber.Should().StartWith("MOCK-");
+        saved.WaybillId.Should().StartWith("MOCK-");
+    }
+
+    [Fact]
+    public async Task GetLabelAsync_MockShipment_Returns_NonEmpty_Pdf()
+    {
+        await using var db = CreateShippingDb();
+
+        // Seed seller, buyer, item, payment, and a mock shipment
+        db.Users.Add(new ApplicationUser { Id = "seller-l1", DisplayName = "Seller", Email = "seller-l@test.com", UserName = "seller-l1" });
+        db.Users.Add(new ApplicationUser { Id = "buyer-l1",  DisplayName = "Buyer",  Email = "buyer-l@test.com",  UserName = "buyer-l1" });
+        var item = new Item
+        {
+            Title = "Donated Book",
+            Description = "Good condition",
+            UserId = "seller-l1",
+            ListingType = ListingType.Donate,
+            Price = null,
+            IsActive = true
+        };
+        db.Items.Add(item);
+        await db.SaveChangesAsync();
+
+        var payment = new Payment
+        {
+            ItemId = item.Id,
+            BuyerId = "buyer-l1",
+            SellerId = "seller-l1",
+            Amount = 0m,
+            PaymentMethod = PaymentMethod.Booking,
+            Status = PaymentStatus.Completed
+        };
+        db.Payments.Add(payment);
+        await db.SaveChangesAsync();
+
+        var shipment = new Shipment
+        {
+            PaymentId = payment.Id,
+            CourierProvider = CourierProvider.Econt,
+            DeliveryType = DeliveryType.Office,
+            Status = ShipmentStatus.Created,
+            TrackingNumber = "MOCK-ABC12345",
+            WaybillId = "MOCK-ABC12345",
+            RecipientName = "Test Buyer",
+            RecipientPhone = "0888000000"
+        };
+        db.Shipments.Add(shipment);
+        await db.SaveChangesAsync();
+
+        var svc = CreateMockModeShippingService(db);
+        var pdf = await svc.GetLabelAsync(shipment.Id, "buyer-l1");
+
+        pdf.Should().NotBeEmpty();
+        // All mock PDFs start with the PDF magic bytes %PDF
+        var header = System.Text.Encoding.Latin1.GetString(pdf, 0, 4);
+        header.Should().Be("%PDF");
     }
 
     // =========================================================================

@@ -150,15 +150,18 @@ public class PurchaseRequestServiceSqliteTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CreateAsync_ActiveItem_SetsItemInactiveInDatabase()
+    public async Task CreateAsync_ActiveItem_SetsItemReservedInDatabase()
     {
+        // New behavior: CreateAsync sets item.IsReserved = true while leaving IsActive = true,
+        // so the item remains visible in browse with a "Reserved" badge.
         var item = await SeedActiveItemAsync();
         var svc = BuildService();
 
         await svc.CreateAsync(item.Id, BuyerId);
 
         var reloaded = await _db.Items.AsNoTracking().FirstAsync(i => i.Id == item.Id);
-        reloaded.IsActive.Should().BeFalse();
+        reloaded.IsReserved.Should().BeTrue();
+        reloaded.IsActive.Should().BeTrue();
     }
 
     [Fact]

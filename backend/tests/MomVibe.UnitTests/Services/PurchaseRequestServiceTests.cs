@@ -103,7 +103,11 @@ public class PurchaseRequestServiceTests
         PurchaseRequestStatus status = PurchaseRequestStatus.Pending,
         ListingType listingType = ListingType.Sell)
     {
-        var item = await SeedItemAsync(db, sellerId, buyerId, listingType, isActive: false);
+        // Seed with isActive: true, isReserved: true to represent an item that has a pending request.
+        // The new reservation model keeps IsActive = true so the item stays visible with a "Reserved" badge.
+        var item = await SeedItemAsync(db, sellerId, buyerId, listingType, isActive: true);
+        item.IsReserved = true;
+        await db.SaveChangesAsync();
 
         var request = new PurchaseRequest
         {
@@ -199,21 +203,27 @@ public class PurchaseRequestServiceTests
     }
 
     [Fact]
-    public async Task AcceptAsync_Creates_Booking_Payment_For_Donate_Item()
+    public async Task AcceptAsync_Sets_Status_To_Accepted_For_Donate_Item_Without_Creating_Payment()
     {
+        // New behavior: AcceptAsync only sets Status = Accepted for ALL item types.
+        // The buyer fills in shipping details on the PaymentPage afterwards;
+        // CreateBookingAsync (donate) or CreateCheckoutSessionAsync (sell) create the payment there.
         await using var db = CreateDb();
         var (_, request) = await SeedRequestAsync(db, sellerId: "seller-1", buyerId: "buyer-1",
             status: PurchaseRequestStatus.Pending, listingType: ListingType.Donate);
 
         var svc = CreateService(db);
-        await svc.AcceptAsync(request.Id, "seller-1");
+        var result = await svc.AcceptAsync(request.Id, "seller-1");
 
+        result.Status.Should().Be(PurchaseRequestStatus.Accepted);
+
+        var updated = await db.PurchaseRequests.FindAsync(request.Id);
+        updated!.Status.Should().Be(PurchaseRequestStatus.Accepted);
+
+        // No payment record should have been created by AcceptAsync
         var payment = await db.Payments.FirstOrDefaultAsync(p =>
             p.BuyerId == "buyer-1" && p.SellerId == "seller-1");
-        payment.Should().NotBeNull();
-        payment!.Amount.Should().Be(0);
-        payment.PaymentMethod.Should().Be(PaymentMethod.Booking);
-        payment.Status.Should().Be(PaymentStatus.Completed);
+        payment.Should().BeNull();
     }
 
     [Fact]
@@ -248,6 +258,8 @@ public class PurchaseRequestServiceTests
     [Fact]
     public async Task DeclineAsync_Updates_Status_To_Declined_And_Restores_Item()
     {
+        // New behavior: decline sets item.IsReserved = false (IsActive is not touched).
+        // The item was seeded with IsActive = true, IsReserved = true (pending request state).
         await using var db = CreateDb();
         var (item, request) = await SeedRequestAsync(db, sellerId: "seller-1", buyerId: "buyer-1",
             status: PurchaseRequestStatus.Pending);
@@ -257,9 +269,10 @@ public class PurchaseRequestServiceTests
 
         result.Status.Should().Be(PurchaseRequestStatus.Declined);
 
-        // Item should be restored (IsActive = true)
+        // IsReserved should be cleared; IsActive remains true (item stays visible)
         var restored = await db.Items.FindAsync(item.Id);
-        restored!.IsActive.Should().BeTrue();
+        restored!.IsReserved.Should().BeFalse();
+        restored.IsActive.Should().BeTrue();
     }
 
     [Fact]

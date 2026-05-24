@@ -127,4 +127,16 @@ describe('useDashboard', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(vi.mocked(itemsApi.getMyItems).mock.calls.length).toBe(callsBefore)
   })
+
+  it('extracts items array from paged payments result', async () => {
+    vi.mocked(paymentsApi.getMyPayments).mockResolvedValue({
+      data: { items: [{ id: 'p1', itemTitle: 'Toy' }], totalCount: 1, page: 1, pageSize: 20 },
+    } as never)
+    const { result } = renderHook(() => useDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    act(() => result.current.setTab('purchases'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.payments).toHaveLength(1)
+    expect(result.current.payments[0].id).toBe('p1')
+  })
 })
