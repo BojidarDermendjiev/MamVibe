@@ -13,8 +13,8 @@ const captured = vi.hoisted(() => ({
   onMessage: null as null | ((m: Message) => void),
   onTyping: null as null | ((uid: string) => void),
   onRead: null as null | ((uid: string) => void),
-  markAsRead: vi.fn<[string], Promise<void>>().mockResolvedValue(undefined),
-  sendMessage: vi.fn<[string, string], Promise<Message | null>>().mockResolvedValue(null),
+  markAsRead: vi.fn().mockResolvedValue(undefined),
+  sendMessage: vi.fn().mockResolvedValue(null),
 }))
 
 // ---------------------------------------------------------------------------
