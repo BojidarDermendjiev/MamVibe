@@ -1,5 +1,6 @@
 import axiosClient from './axiosClient';
 import type { Payment } from '../types/payment';
+import type { PagedResult } from '../types/item';
 import type { PaymentDeliveryRequest } from '../types/shipping';
 
 export const paymentsApi = {
@@ -13,7 +14,7 @@ export const paymentsApi = {
     axiosClient.post<Payment>(`/payments/booking/${itemId}`, delivery),
 
   getMyPayments: () =>
-    axiosClient.get<Payment[]>('/payments/my-payments'),
+    axiosClient.get<PagedResult<Payment>>('/payments/my-payments'),
 
   createPaymentIntent: (itemId: string) =>
     axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`),

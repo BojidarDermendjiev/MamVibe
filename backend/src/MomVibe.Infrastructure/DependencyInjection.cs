@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<ITakeANapService, TakeANapService>();
 
         // Shipping: Econt + Speedy + BoxNow + PigeonExpress courier integrations
+        services.Configure<ShippingSettings>(configuration.GetSection("Shipping"));
         services.Configure<EcontSettings>(configuration.GetSection("Econt"));
         services.Configure<SpeedySettings>(configuration.GetSection("Speedy"));
         services.Configure<BoxNowSettings>(configuration.GetSection("BoxNow"));

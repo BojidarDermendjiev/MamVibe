@@ -20,6 +20,7 @@ using Constants;
 [Index(nameof(CategoryId))]
 [Index(nameof(UserId))]
 [Index(nameof(IsActive))]
+[Index(nameof(IsReserved))]
 [Index(nameof(ListingType))]
 [Index(nameof(CreatedAt))]
 public class Item : BaseEntity
@@ -88,6 +89,12 @@ public class Item : BaseEntity
     /// </summary>
     [Comment(ItemConstants.Comments.IsActive)]
     public bool IsActive { get; set; } = ItemConstants.Defaults.IsActive;
+
+    /// <summary>
+    /// True while a purchase request is pending or accepted; the item remains visible but cannot be requested by another buyer.
+    /// Cleared when the request is declined or the payment completes.
+    /// </summary>
+    public bool IsReserved { get; set; }
 
     /// <summary>
     /// Total number of views for this item.

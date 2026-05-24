@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiCreditCard, HiLocationMarker } from 'react-icons/hi';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
@@ -34,10 +33,14 @@ export default function PaymentPage() {
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
 
-  // Payment method (sell items only)
-  const [method, setMethod] = useState<'card' | 'onspot'>('card');
-
   const isDonate = item?.listingType === ListingType.Donate;
+
+  // Reset delivery type to Office if donate item had Address selected (donate = pickup only)
+  useEffect(() => {
+    if (isDonate && deliveryType === DeliveryType.Address) {
+      setDeliveryType(DeliveryType.Office);
+    }
+  }, [isDonate, deliveryType]);
 
   useEffect(() => {
     if (!itemId) return;
@@ -94,30 +97,24 @@ export default function PaymentPage() {
       weight: 1,
     };
 
-    // Card payment → go to dedicated card page, passing delivery in state
-    if (!isDonate && method === 'card') {
-      navigate(`/payment/${itemId}/card`, { state: { delivery } });
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      if (isDonate) {
+    if (isDonate) {
+      // Free item: create booking + shipment directly
+      setProcessing(true);
+      try {
         await paymentsApi.createBooking(itemId, delivery);
         toast.success(t('payment.booking_success'));
-        navigate('/payment/success');
-      } else {
-        await paymentsApi.createOnSpot(itemId, delivery);
-        toast.success('On-spot payment registered!');
-        navigate('/payment/success');
+        navigate('/payment/success', { state: { itemId } });
+      } catch (err: unknown) {
+        const message = (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
+          || (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.details
+          || t('common.error');
+        toast.error(message);
+      } finally {
+        setProcessing(false);
       }
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
-        || (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.details
-        || t('common.error');
-      toast.error(message);
-    } finally {
-      setProcessing(false);
+    } else {
+      // Paid item: go to card page (delivery details passed in router state)
+      navigate(`/payment/${itemId}/card`, { state: { delivery } });
     }
   };
 
@@ -141,7 +138,11 @@ export default function PaymentPage() {
         <h3 className="text-lg font-semibold text-primary">{t('payment.delivery')}</h3>
 
         <CourierSelector value={courier} onChange={setCourier} />
-        <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+        <DeliveryTypeSelector
+          value={deliveryType}
+          onChange={setDeliveryType}
+          exclude={isDonate ? [DeliveryType.Address] : []}
+        />
 
         {deliveryType !== DeliveryType.Address ? (
           <OfficePicker
@@ -197,49 +198,8 @@ export default function PaymentPage() {
         <ShippingPricePreview request={shippingRequest} />
       </div>
 
-      {/* Step 2: Payment method (sell items only) */}
-      {!isDonate && (
-        <div className="space-y-3 mb-6">
-          <h3 className="font-medium text-primary">{t('payment.method')}</h3>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setMethod('card')}
-              className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                method === 'card' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-lavender'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-lg bg-lavender/20 flex items-center justify-center">
-                <HiCreditCard className="h-5 w-5 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-primary">{t('payment.card')}</p>
-                <p className="text-sm text-gray-500">{t('payment.card_desc')}</p>
-              </div>
-            </button>
-            <button
-              onClick={() => setMethod('onspot')}
-              className={`flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                method === 'onspot' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-lavender'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-lg bg-peach/30 flex items-center justify-center">
-                <HiLocationMarker className="h-5 w-5 text-mauve" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-primary">{t('payment.on_spot')}</p>
-                <p className="text-sm text-gray-500">{t('payment.on_spot_desc')}</p>
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
-
       <Button fullWidth size="lg" isLoading={processing} onClick={handleSubmit}>
-        {isDonate
-          ? t('payment.confirm_booking')
-          : method === 'card'
-          ? t('payment.continue_to_card')
-          : t('payment.proceed')}
+        {isDonate ? t('payment.confirm_booking') : t('payment.continue_to_card')}
       </Button>
     </div>
   );

@@ -15,7 +15,7 @@ const mockItem: Item = {
   id: 'i1', title: 'Test', description: '', categoryId: 'c1', categoryName: 'Toys',
   listingType: ListingType.Sell, ageGroup: null, shoeSize: null, clothingSize: null,
   price: 10, userId: 'u1', userDisplayName: 'User', userAvatarUrl: null,
-  isActive: true, viewCount: 0, likeCount: 0, isLikedByCurrentUser: false,
+  isActive: true, isReserved: false, viewCount: 0, likeCount: 0, isLikedByCurrentUser: false,
   photos: [], createdAt: '2024-01-01T00:00:00Z', aiModerationStatus: 1,
   aiModerationNotes: null, aiModerationScore: null,
 }

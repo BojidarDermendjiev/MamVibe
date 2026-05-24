@@ -37,15 +37,13 @@ public class PurchaseRequestService : IPurchaseRequestService
     {
         await using var tx = await this._context.Database.BeginTransactionAsync();
 
-        // Atomic check-and-lock: update IsActive → false only when the item is still active
-        // AND has no existing Pending request. Executes as a single SQL UPDATE … WHERE …
-        // so concurrent requests race at the database level; the second one updates 0 rows.
+        // Atomic check-and-reserve: set IsReserved = true only when the item is active and not already reserved.
+        // Executes as a single SQL UPDATE … WHERE … so concurrent requests race at the database level;
+        // the second one updates 0 rows and is rejected. IsActive stays true so the item remains visible
+        // in the browse listing with a "Reserved" badge until the payment completes or the request is declined.
         var rowsAffected = await this._context.Items
-            .Where(i => i.Id == itemId
-                     && i.IsActive
-                     && !this._context.PurchaseRequests
-                            .Any(r => r.ItemId == itemId && r.Status == PurchaseRequestStatus.Pending))
-            .ExecuteUpdateAsync(s => s.SetProperty(i => i.IsActive, false));
+            .Where(i => i.Id == itemId && i.IsActive && !i.IsReserved)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.IsReserved, true));
 
         if (rowsAffected == 0)
         {
@@ -64,10 +62,10 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         if (lockedItem.UserId == buyerId)
         {
-            // Revert the lock — owner cannot request their own item
+            // Revert the reservation — owner cannot request their own item
             await this._context.Items
                 .Where(i => i.Id == itemId)
-                .ExecuteUpdateAsync(s => s.SetProperty(i => i.IsActive, true));
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.IsReserved, false));
             await tx.RollbackAsync();
             throw new InvalidOperationException("You cannot request your own item.");
         }
@@ -112,23 +110,11 @@ public class PurchaseRequestService : IPurchaseRequestService
         if (request.Status != PurchaseRequestStatus.Pending)
             throw new InvalidOperationException("Only pending requests can be accepted.");
 
+        // Move to Accepted for both donate and sell items.
+        // The buyer still needs to supply shipping details via the payment page,
+        // which calls CreateBookingAsync (donate) or CreateCheckoutSessionAsync/CreateOnSpotAsync (sell).
+        // Those methods create the payment record, create the shipment, and complete the request.
         request.Status = PurchaseRequestStatus.Accepted;
-
-        // For donated items: create a free Booking payment immediately
-        if (request.Item.ListingType == ListingType.Donate)
-        {
-            var payment = new Payment
-            {
-                ItemId = request.ItemId,
-                BuyerId = request.BuyerId,
-                SellerId = request.SellerId,
-                Amount = 0,
-                PaymentMethod = PaymentMethod.Booking,
-                Status = PaymentStatus.Completed
-            };
-            this._context.Payments.Add(payment);
-        }
-        // For Sell items: item stays reserved (IsActive = false); buyer will choose payment method
 
         await this._context.SaveChangesAsync();
 
@@ -154,7 +140,7 @@ public class PurchaseRequestService : IPurchaseRequestService
             throw new InvalidOperationException("Only pending requests can be declined.");
 
         request.Status = PurchaseRequestStatus.Declined;
-        request.Item.IsActive = true; // Return item to the shop
+        request.Item.IsReserved = false; // Clear reservation so item is available again
 
         await this._context.SaveChangesAsync();
 

@@ -8,8 +8,9 @@ using DTOs.PurchaseRequests;
 public interface IPurchaseRequestService
 {
     /// <summary>
-    /// Creates a new request for the given item, atomically locking it
-    /// (setting IsActive = false) so no other buyer can claim it simultaneously.
+    /// Creates a new request for the given item, atomically marking it as reserved
+    /// (setting IsReserved = true) so no other buyer can claim it simultaneously.
+    /// The item remains visible in the browse listing with a "Reserved" badge.
     /// Throws <see cref="KeyNotFoundException"/> if the item does not exist and
     /// <see cref="InvalidOperationException"/> if it is already reserved.
     /// </summary>
@@ -23,7 +24,7 @@ public interface IPurchaseRequestService
     Task<PurchaseRequestDto> AcceptAsync(Guid requestId, string sellerId);
 
     /// <summary>
-    /// Seller declines the pending request. The item is returned to the shop (IsActive = true).
+    /// Seller declines the pending request. The reservation is cleared (IsReserved = false) and the item is available again.
     /// </summary>
     Task<PurchaseRequestDto> DeclineAsync(Guid requestId, string sellerId);
 

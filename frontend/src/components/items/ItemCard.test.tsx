@@ -24,6 +24,7 @@ const baseItem: Item = {
   userDisplayName: 'Seller',
   userAvatarUrl: null,
   isActive: true,
+  isReserved: false,
   viewCount: 42,
   likeCount: 7,
   isLikedByCurrentUser: false,

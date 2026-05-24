@@ -57,7 +57,7 @@ public class PaymentsController : ControllerBase
             var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
             var sessionUrl = await this._paymentService.CreateCheckoutSessionAsync(
                 itemId, userId,
-                $"{frontendUrl}/payment/success",
+                $"{frontendUrl}/payment/success?itemId={itemId}",
                 $"{frontendUrl}/payment/cancel",
                 delivery);
             return Ok(new { sessionUrl });

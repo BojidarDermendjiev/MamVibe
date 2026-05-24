@@ -19,6 +19,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
 
   const isPending = showStatus && !item.isActive;
   const isFlagged = isPending && item.aiModerationStatus === 3;
+  const isReserved = item.isReserved;
 
   return (
     <div className={`bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl shadow-sm border hover-lift group animate-fade-in transition-all duration-300 ${
@@ -26,6 +27,8 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
         ? 'border-purple-400 dark:border-purple-500 shadow-purple-200 dark:shadow-purple-900/40 shadow-md'
         : isPending && isFlagged
         ? 'border-red-400 dark:border-red-600 shadow-red-200 dark:shadow-red-900/40 shadow-md'
+        : isReserved
+        ? 'border-amber-400 dark:border-amber-500 shadow-amber-100 dark:shadow-amber-900/30 shadow-md'
         : 'border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-0.5'
     }`}>
       <Link to={`/items/${item.id}`} className="block">
@@ -71,6 +74,16 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
               </span>
               <span className="text-white text-xs font-semibold tracking-wide">
                 {isFlagged ? t('items.status_flagged') : t('items.status_pending')}
+              </span>
+            </div>
+          )}
+
+          {/* Reserved overlay banner */}
+          {!isPending && isReserved && (
+            <div className="absolute bottom-0 left-0 right-0 py-2 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/90 to-orange-500/90">
+              <span className="text-white text-xs">🔒</span>
+              <span className="text-white text-xs font-semibold tracking-wide">
+                {t('items.status_reserved')}
               </span>
             </div>
           )}

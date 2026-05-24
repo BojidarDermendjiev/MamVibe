@@ -145,6 +145,8 @@
     "status_pending": "Pending approval",
     "status_flagged": "Flagged for review",
     "status_pending_hint": "Visible only to you until approved",
+    "status_reserved": "Reserved",
+    "status_reserved_hint": "Someone has already reserved this item",
     "submission_modal": {
       "live_title": "Your listing is live!",
       "live_body": "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",
@@ -203,6 +205,7 @@
     "req_accept": "Accept",
     "req_decline": "Decline",
     "req_complete_purchase": "Complete Purchase",
+    "req_complete_booking": "Enter Shipping Details",
     "req_view_waybill": "View Waybill",
     "my_ebills": "E-Bills",
     "req_pending": "Pending Approval",

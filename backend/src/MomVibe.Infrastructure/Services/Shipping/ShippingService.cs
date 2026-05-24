@@ -24,6 +24,7 @@ public class ShippingService : IShippingService
     private readonly CourierProviderFactory _factory;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly ShippingSettings _shippingSettings;
     private readonly IShipmentNotifier _notifier;
     private readonly ILogger<ShippingService> _logger;
 
@@ -33,6 +34,7 @@ public class ShippingService : IShippingService
         CourierProviderFactory factory,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
+        IOptions<ShippingSettings> shippingSettings,
         IShipmentNotifier notifier,
         ILogger<ShippingService> logger)
     {
@@ -41,12 +43,16 @@ public class ShippingService : IShippingService
         this._factory = factory;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._shippingSettings = shippingSettings.Value;
         this._notifier = notifier;
         this._logger = logger;
     }
 
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
     {
+        if (this._shippingSettings.MockMode)
+            return await Task.FromResult(new ShippingPriceResultDto { Price = 4.99m, Currency = "BGN" });
+
         var provider = this._factory.GetProvider(request.CourierProvider);
         return await provider.CalculatePriceAsync(request);
     }
@@ -60,8 +66,23 @@ public class ShippingService : IShippingService
         if (payment == null)
             throw new KeyNotFoundException("Payment not found.");
 
-        var provider = _factory.GetProvider(request.CourierProvider);
-        var (trackingNumber, waybillId, labelUrl) = await provider.CreateShipmentAsync(request);
+        string trackingNumber;
+        string waybillId;
+        string? labelUrl;
+
+        if (this._shippingSettings.MockMode)
+        {
+            var mockId = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            trackingNumber = $"MOCK-{mockId}";
+            waybillId = $"MOCK-{mockId}";
+            labelUrl = null;
+            this._logger.LogInformation("MockMode: generated fake waybill {WaybillId} for payment {PaymentId}", waybillId, request.PaymentId);
+        }
+        else
+        {
+            var provider = _factory.GetProvider(request.CourierProvider);
+            (trackingNumber, waybillId, labelUrl) = await provider.CreateShipmentAsync(request);
+        }
 
         // Price was already calculated and shown to the buyer before checkout.
         // Re-fetching it here is informational only — never let a price-calc failure
@@ -69,7 +90,7 @@ public class ShippingService : IShippingService
         decimal shippingPrice = 0m;
         try
         {
-            var priceResult = await provider.CalculatePriceAsync(new CalculateShippingDto
+            var priceResult = await CalculatePriceAsync(new CalculateShippingDto
             {
                 CourierProvider = request.CourierProvider,
                 DeliveryType = request.DeliveryType,
@@ -154,6 +175,9 @@ public class ShippingService : IShippingService
             throw new UnauthorizedAccessException("You do not have access to this shipment.");
         if (string.IsNullOrEmpty(shipment.WaybillId)) throw new InvalidOperationException("No waybill ID for this shipment.");
 
+        if (shipment.WaybillId.StartsWith("MOCK-", StringComparison.Ordinal))
+            return BuildMockLabelPdf(shipment.WaybillId, shipment.TrackingNumber ?? shipment.WaybillId, shipment.RecipientName);
+
         var provider = this._factory.GetProvider(shipment.CourierProvider);
         return await provider.GetLabelAsync(shipment.WaybillId);
     }
@@ -167,6 +191,12 @@ public class ShippingService : IShippingService
         if (!isAdmin && shipment.Payment.BuyerId != userId && shipment.Payment.SellerId != userId)
             throw new UnauthorizedAccessException("You do not have access to this shipment.");
         if (string.IsNullOrEmpty(shipment.TrackingNumber)) throw new InvalidOperationException("No tracking number for this shipment.");
+
+        if (shipment.TrackingNumber.StartsWith("MOCK-", StringComparison.Ordinal))
+            return await Task.FromResult(new List<TrackingEventDto>
+            {
+                new() { Timestamp = DateTime.UtcNow, Description = "Mock shipment created — test mode active." }
+            });
 
         var provider = this._factory.GetProvider(shipment.CourierProvider);
         return await provider.TrackAsync(shipment.TrackingNumber);
@@ -182,8 +212,11 @@ public class ShippingService : IShippingService
             throw new UnauthorizedAccessException("Only the seller can cancel a shipment.");
         if (string.IsNullOrEmpty(shipment.WaybillId)) throw new InvalidOperationException("No waybill ID for this shipment.");
 
-        var provider = this._factory.GetProvider(shipment.CourierProvider);
-        await provider.CancelShipmentAsync(shipment.WaybillId);
+        if (!shipment.WaybillId.StartsWith("MOCK-", StringComparison.Ordinal))
+        {
+            var provider = this._factory.GetProvider(shipment.CourierProvider);
+            await provider.CancelShipmentAsync(shipment.WaybillId);
+        }
 
         shipment.Status = ShipmentStatus.Cancelled;
         await this._context.SaveChangesAsync();
@@ -239,6 +272,66 @@ public class ShippingService : IShippingService
         return _mapper.Map<List<ShipmentDto>>(shipments);
     }
 
+    private static byte[] BuildMockLabelPdf(string waybillId, string trackingNumber, string? recipientName)
+    {
+        // Builds a minimal but spec-compliant PDF using a MemoryStream so xref byte offsets are exact.
+        static byte[] Line(string s) => System.Text.Encoding.Latin1.GetBytes(s + "\n");
+
+        var lines = new[]
+        {
+            $"(MOCK WAYBILL) Tj",
+            $"0 -18 Td (Waybill ID   : {EscapePdf(waybillId)}) Tj",
+            $"0 -18 Td (Tracking No  : {EscapePdf(trackingNumber)}) Tj",
+            $"0 -18 Td (Recipient    : {EscapePdf(recipientName ?? "N/A")}) Tj",
+            $"0 -36 Td (*** TEST MODE - NOT A REAL SHIPMENT ***) Tj",
+        };
+        var streamContent = "BT\n/F1 11 Tf\n50 700 Td\n" + string.Join("\n", lines) + "\nET";
+        var streamBytes = System.Text.Encoding.Latin1.GetBytes(streamContent);
+
+        using var ms = new System.IO.MemoryStream();
+
+        void W(string s) { var b = Line(s); ms.Write(b); }
+
+        W("%PDF-1.4");
+        var off1 = ms.Position; W("1 0 obj"); W("<< /Type /Catalog /Pages 2 0 R >>"); W("endobj");
+        var off2 = ms.Position; W("2 0 obj"); W("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"); W("endobj");
+        var off3 = ms.Position; W("3 0 obj");
+        W("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 420 595]");
+        W("   /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>");
+        W("endobj");
+        var off4 = ms.Position; W("4 0 obj");
+        W($"<< /Length {streamBytes.Length} >>");
+        W("stream");
+        ms.Write(streamBytes);
+        W("");
+        W("endstream");
+        W("endobj");
+        var off5 = ms.Position; W("5 0 obj");
+        W("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+        W("endobj");
+
+        var xrefPos = ms.Position;
+        W("xref");
+        W("0 6");
+        // Each xref entry is exactly 20 bytes: "nnnnnnnnnn ggggg f \n" (note the trailing space before LF)
+        W("0000000000 65535 f ");
+        W($"{off1:D10} 00000 n ");
+        W($"{off2:D10} 00000 n ");
+        W($"{off3:D10} 00000 n ");
+        W($"{off4:D10} 00000 n ");
+        W($"{off5:D10} 00000 n ");
+        W("trailer");
+        W("<< /Size 6 /Root 1 0 R >>");
+        W("startxref");
+        W(xrefPos.ToString());
+        ms.Write(System.Text.Encoding.Latin1.GetBytes("%%EOF"));
+
+        return ms.ToArray();
+    }
+
+    private static string EscapePdf(string s) =>
+        s.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
+
     public async Task SyncShipmentStatusesAsync()
     {
         var activeShipments = await this._context.Shipments
@@ -257,6 +350,9 @@ public class ShippingService : IShippingService
 
         foreach (var shipment in activeShipments)
         {
+            if (shipment.TrackingNumber!.StartsWith("MOCK-", StringComparison.Ordinal))
+                continue;
+
             var previousStatus = shipment.Status;
             var provider = this._factory.GetProvider(shipment.CourierProvider);
             var events = await provider.TrackAsync(shipment.TrackingNumber!);

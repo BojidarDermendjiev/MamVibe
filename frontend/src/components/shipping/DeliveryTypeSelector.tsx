@@ -5,16 +5,17 @@ import { DeliveryType } from '../../types/shipping';
 interface DeliveryTypeSelectorProps {
   value: DeliveryType;
   onChange: (type: DeliveryType) => void;
+  exclude?: DeliveryType[];
 }
 
-export default function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorProps) {
+export default function DeliveryTypeSelector({ value, onChange, exclude = [] }: DeliveryTypeSelectorProps) {
   const { t } = useTranslation();
 
   const types = [
     { id: DeliveryType.Office, label: t('shipping.to_office'), icon: HiOfficeBuilding },
     { id: DeliveryType.Address, label: t('shipping.to_address'), icon: HiHome },
     { id: DeliveryType.Locker, label: t('shipping.to_locker'), icon: HiCube },
-  ];
+  ].filter((type) => !exclude.includes(type.id));
 
   return (
     <div className="space-y-3">

@@ -55,7 +55,7 @@ export function useDashboard(): UseDashboardReturn {
           setLikedItems(data);
         } else if (tab === 'purchases') {
           const { data } = await paymentsApi.getMyPayments();
-          setPayments(data);
+          setPayments(data.items ?? []);
         } else if (tab === 'incoming-requests') {
           const { data } = await purchaseRequestsApi.getAsSeller();
           setIncomingRequests(data);

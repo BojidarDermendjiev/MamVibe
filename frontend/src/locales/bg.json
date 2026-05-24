@@ -145,6 +145,8 @@
     "status_pending": "Очаква одобрение",
     "status_flagged": "Маркирана за преглед",
     "status_pending_hint": "Видима само за вас до одобрение",
+    "status_reserved": "Резервирано",
+    "status_reserved_hint": "Някой вече е резервирал тази стока",
     "submission_modal": {
       "live_title": "Обявата ви е публикувана!",
       "live_body": "Страхотно — вашата обява премина проверката и вече е видима в платформата за всички.",
@@ -203,6 +205,7 @@
     "req_accept": "Приеми",
     "req_decline": "Откажи",
     "req_complete_purchase": "Завърши покупката",
+    "req_complete_booking": "Въведи данни за доставка",
     "req_view_waybill": "Виж товарителница",
     "my_ebills": "Е-Фактури",
     "req_pending": "Изчаква одобрение",

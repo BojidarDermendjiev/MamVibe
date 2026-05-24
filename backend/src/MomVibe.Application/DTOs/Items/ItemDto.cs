@@ -60,6 +60,9 @@ public class ItemDto
     /// <summary>Gets or sets a value indicating whether the listing is currently active and publicly visible.</summary>
     public bool IsActive { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether the item is currently reserved by a pending or accepted purchase request.</summary>
+    public bool IsReserved { get; set; }
+
     /// <summary>Gets or sets the total number of times this item has been viewed.</summary>
     public int ViewCount { get; set; }
 

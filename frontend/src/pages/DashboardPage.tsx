@@ -326,18 +326,15 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{text}</span>
-                        {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Sell && (
+                        {r.status === PurchaseRequestStatus.Accepted && (
                           <Link
                             to={`/payment/${r.itemId}`}
                             className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
                           >
-                            {t('dashboard.req_complete_purchase')}
+                            {r.listingType === ListingType.Donate
+                              ? t('dashboard.req_complete_booking')
+                              : t('dashboard.req_complete_purchase')}
                           </Link>
-                        )}
-                        {r.status === PurchaseRequestStatus.Accepted && r.listingType === ListingType.Donate && (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg">
-                            {t('dashboard.req_booking_confirmed')}
-                          </span>
                         )}
                         {r.status === PurchaseRequestStatus.Completed && (
                           ratedRequestIds.has(r.id) ? (

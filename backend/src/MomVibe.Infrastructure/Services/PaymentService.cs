@@ -420,7 +420,7 @@ public class PaymentService : IPaymentService
                     InsuredAmount = 0
                 });
             }
-            catch { /* Shipment creation failure must not break payment flow */ }
+            catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for on-spot payment {PaymentId}.", payment.Id); }
         }
 
         try { await CompletePurchaseRequestAsync(itemId, buyerId); }
@@ -471,7 +471,7 @@ public class PaymentService : IPaymentService
                     InsuredAmount = 0
                 });
             }
-            catch { /* Shipment creation failure must not break payment flow */ }
+            catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for booking payment {PaymentId}. Delivery details were recorded but no waybill was generated.", payment.Id); }
         }
 
         try { await CompletePurchaseRequestAsync(itemId, buyerId); }
@@ -487,12 +487,16 @@ public class PaymentService : IPaymentService
     private async Task CompletePurchaseRequestAsync(Guid itemId, string buyerId)
     {
         var request = await this._context.PurchaseRequests
+            .Include(r => r.Item)
             .FirstOrDefaultAsync(r => r.ItemId == itemId
                                    && r.BuyerId == buyerId
                                    && r.Status == PurchaseRequestStatus.Accepted);
         if (request != null)
         {
             request.Status = PurchaseRequestStatus.Completed;
+            // Item is now sold — remove it from the browse listing and clear the reservation badge
+            request.Item.IsActive = false;
+            request.Item.IsReserved = false;
             await this._context.SaveChangesAsync();
         }
     }

@@ -35,6 +35,7 @@ export interface Item {
   userDisplayName: string;
   userAvatarUrl: string | null;
   isActive: boolean;
+  isReserved: boolean;
   viewCount: number;
   likeCount: number;
   isLikedByCurrentUser: boolean;
