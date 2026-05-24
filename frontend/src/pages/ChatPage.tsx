@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageSEO } from '@/hooks/useSEO';
-import { HiPaperAirplane, HiSearch } from 'react-icons/hi';
+import { HiPaperAirplane, HiSearch, HiEye } from 'react-icons/hi';
 import { format, isToday, isYesterday } from 'date-fns';
 import { messagesApi } from '../api/messagesApi';
 import { useSignalR } from '../hooks/useSignalR';
@@ -357,9 +357,9 @@ export default function ChatPage() {
               >
                 {msg.content}
               </div>
-              {isMine && (
-                <span className={`text-[10px] mt-0.5 self-end ${msg.isRead ? 'text-blue-400' : 'text-gray-400'}`}>
-                  {msg.isRead ? '✓✓' : '✓'}
+              {isMine && msg.isRead && (
+                <span data-testid="msg-seen" className="mt-0.5 self-end flex items-center gap-0.5 text-primary/70">
+                  <HiEye className="h-3 w-3" />
                 </span>
               )}
             </div>

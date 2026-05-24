@@ -167,19 +167,20 @@ describe('ChatPage — green dot in sidebar', () => {
 // Read receipt checkmarks
 // ---------------------------------------------------------------------------
 describe('ChatPage — read receipts', () => {
-  it('renders ✓ for an outgoing unread message', async () => {
+  it('does not render seen indicator for an outgoing unread message', async () => {
     mockGetMessages.mockResolvedValue({ data: [makeMsg({ isRead: false })] } as never)
     setup(`/chat/${PEER_ID}`)
-    await waitFor(() => expect(screen.getByText('✓')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Hello')).toBeInTheDocument())
+    expect(screen.queryByTestId('msg-seen')).not.toBeInTheDocument()
   })
 
-  it('renders ✓✓ for an outgoing read message', async () => {
+  it('renders the eye seen indicator for an outgoing read message', async () => {
     mockGetMessages.mockResolvedValue({ data: [makeMsg({ isRead: true })] } as never)
     setup(`/chat/${PEER_ID}`)
-    await waitFor(() => expect(screen.getByText('✓✓')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByTestId('msg-seen')).toBeInTheDocument())
   })
 
-  it('does not render checkmarks for received messages', async () => {
+  it('does not render seen indicator for received messages', async () => {
     const received = makeMsg({
       id: 'm2',
       senderId: PEER_ID,
@@ -191,8 +192,7 @@ describe('ChatPage — read receipts', () => {
     mockGetMessages.mockResolvedValue({ data: [received] } as never)
     setup(`/chat/${PEER_ID}`)
     await waitFor(() => expect(screen.getByText('Hey from peer')).toBeInTheDocument())
-    expect(screen.queryByText('✓')).not.toBeInTheDocument()
-    expect(screen.queryByText('✓✓')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('msg-seen')).not.toBeInTheDocument()
   })
 })
 
@@ -200,29 +200,28 @@ describe('ChatPage — read receipts', () => {
 // onRead subscription
 // ---------------------------------------------------------------------------
 describe('ChatPage — onRead subscription', () => {
-  it('flips unread sent messages to ✓✓ when the peer reads them', async () => {
+  it('shows the eye indicator when the peer reads a sent message', async () => {
     mockGetMessages.mockResolvedValue({ data: [makeMsg({ isRead: false })] } as never)
     setup(`/chat/${PEER_ID}`)
-    await waitFor(() => expect(screen.getByText('✓')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Hello')).toBeInTheDocument())
+    expect(screen.queryByTestId('msg-seen')).not.toBeInTheDocument()
 
     act(() => captured.onRead!(PEER_ID))
 
-    expect(screen.getByText('✓✓')).toBeInTheDocument()
-    expect(screen.queryByText('✓')).not.toBeInTheDocument()
+    expect(screen.getByTestId('msg-seen')).toBeInTheDocument()
   })
 
-  it('does not flip messages when a different user triggers onRead', async () => {
+  it('does not show the eye indicator when a different user triggers onRead', async () => {
     mockGetMessages.mockResolvedValue({ data: [makeMsg({ isRead: false })] } as never)
     setup(`/chat/${PEER_ID}`)
-    await waitFor(() => expect(screen.getByText('✓')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Hello')).toBeInTheDocument())
 
     act(() => captured.onRead!('unrelated-user'))
 
-    expect(screen.getByText('✓')).toBeInTheDocument()
-    expect(screen.queryByText('✓✓')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('msg-seen')).not.toBeInTheDocument()
   })
 
-  it('leaves received messages unchanged when onRead fires', async () => {
+  it('leaves received messages without a seen indicator when onRead fires', async () => {
     const received = makeMsg({
       id: 'm2',
       senderId: PEER_ID,
@@ -234,13 +233,12 @@ describe('ChatPage — onRead subscription', () => {
     const sent = makeMsg({ id: 'm1', isRead: false })
     mockGetMessages.mockResolvedValue({ data: [received, sent] } as never)
     setup(`/chat/${PEER_ID}`)
-    await waitFor(() => expect(screen.getByText('✓')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Incoming')).toBeInTheDocument())
 
     act(() => captured.onRead!(PEER_ID))
 
-    // Sent message becomes read; received message had no checkmark and still has none
-    expect(screen.getByText('✓✓')).toBeInTheDocument()
-    expect(screen.queryByText('✓')).not.toBeInTheDocument()
+    // Eye appears only for the sent message
+    expect(screen.getAllByTestId('msg-seen')).toHaveLength(1)
   })
 })
 
