@@ -17,13 +17,16 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
   const { t } = useTranslation();
   const photo = item.photos[0];
 
-  const isPending = showStatus && !item.isActive;
+  const isSold = showStatus && item.isSold;
+  const isPending = showStatus && !item.isActive && !item.isSold;
   const isFlagged = isPending && item.aiModerationStatus === 3;
   const isReserved = item.isReserved;
 
   return (
     <div className={`bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl shadow-sm border hover-lift group animate-fade-in transition-all duration-300 ${
-      isPending && !isFlagged
+      isSold
+        ? 'border-gray-300 dark:border-gray-600 opacity-75'
+        : isPending && !isFlagged
         ? 'border-purple-400 dark:border-purple-500 shadow-purple-200 dark:shadow-purple-900/40 shadow-md'
         : isPending && isFlagged
         ? 'border-red-400 dark:border-red-600 shadow-red-200 dark:shadow-red-900/40 shadow-md'
@@ -43,7 +46,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
               decoding="async"
               width={400}
               height={300}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isPending ? 'opacity-60' : ''}`}
+              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isPending || isSold ? 'opacity-60' : ''}`}
             />
           ) : (
             <img
@@ -53,7 +56,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
               decoding="async"
               width={400}
               height={300}
-              className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ${isPending ? 'opacity-60' : ''}`}
+              className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ${isPending || isSold ? 'opacity-60' : ''}`}
             />
           )}
           <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${
@@ -61,6 +64,16 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
           }`}>
             {item.listingType === ListingType.Donate ? t('items.donate') : t('items.sell')}
           </span>
+
+          {/* Sold overlay banner */}
+          {isSold && (
+            <div className="absolute bottom-0 left-0 right-0 py-2 flex items-center justify-center gap-2 bg-gradient-to-r from-gray-600/90 to-gray-700/90">
+              <span className="text-white text-xs">✓</span>
+              <span className="text-white text-xs font-semibold tracking-wide">
+                {t('items.status_sold')}
+              </span>
+            </div>
+          )}
 
           {/* Pending / flagged overlay banner */}
           {isPending && (
@@ -89,6 +102,11 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
           )}
         </div>
       </Link>
+      {isSold && (
+        <p className="text-xs text-center py-1.5 font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20">
+          {t('items.status_sold_hint')}
+        </p>
+      )}
       {isPending && (
         <p className={`text-xs text-center py-1.5 font-medium ${
           isFlagged

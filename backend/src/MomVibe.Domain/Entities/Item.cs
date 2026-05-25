@@ -130,6 +130,9 @@ public class Item : BaseEntity
 
     // ── AI Moderation ──────────────────────────────────────────────────────────
 
+    /// <summary>Set to true once a completed payment/purchase-request marks this item as sold.</summary>
+    public bool IsSold { get; set; }
+
     /// <summary>Outcome of the AI content moderation run at creation time.</summary>
     public AiModerationStatus AiModerationStatus { get; set; } = AiModerationStatus.NotScreened;
 

@@ -663,6 +663,9 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<bool>("IsReserved")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsSold")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("LikeCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")

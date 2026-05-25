@@ -147,6 +147,8 @@
     "status_pending_hint": "Visible only to you until approved",
     "status_reserved": "Reserved",
     "status_reserved_hint": "Someone has already reserved this item",
+    "status_sold": "Sold",
+    "status_sold_hint": "This item has been sold",
     "submission_modal": {
       "live_title": "Your listing is live!",
       "live_body": "Great news — your item passed our review and is now visible in the marketplace for everyone to see.",

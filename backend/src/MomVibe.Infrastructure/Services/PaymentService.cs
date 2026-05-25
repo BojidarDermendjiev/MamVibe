@@ -542,9 +542,9 @@ public class PaymentService : IPaymentService
         if (request != null)
         {
             request.Status = PurchaseRequestStatus.Completed;
-            // Item is now sold — remove it from the browse listing and clear the reservation badge
             request.Item.IsActive = false;
             request.Item.IsReserved = false;
+            request.Item.IsSold = true;
             await this._context.SaveChangesAsync();
         }
     }

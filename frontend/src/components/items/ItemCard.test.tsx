@@ -25,6 +25,7 @@ const baseItem: Item = {
   userAvatarUrl: null,
   isActive: true,
   isReserved: false,
+  isSold: false,
   viewCount: 42,
   likeCount: 7,
   isLikedByCurrentUser: false,

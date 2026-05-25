@@ -36,6 +36,7 @@ export interface Item {
   userAvatarUrl: string | null;
   isActive: boolean;
   isReserved: boolean;
+  isSold: boolean;
   viewCount: number;
   likeCount: number;
   isLikedByCurrentUser: boolean;
