@@ -393,7 +393,8 @@ export default function CreateItemPage() {
                   type="button"
                   onClick={handlePriceSuggest}
                   disabled={priceLoading}
-                  className="mb-0.5 flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-lavender/60 bg-gradient-to-r from-purple-50 to-pink-50 text-sm font-medium text-gray-700 hover:border-primary/50 hover:bg-purple-50 transition-all disabled:opacity-60 whitespace-nowrap"
+                  className="mb-0.5 flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-transparent text-sm font-medium text-white hover:opacity-90 transition-all disabled:opacity-60 whitespace-nowrap"
+                  style={{ backgroundColor: '#945c67' }}
                 >
                   {priceLoading ? (
                     <svg className="h-4 w-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none">

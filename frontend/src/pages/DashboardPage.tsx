@@ -344,7 +344,10 @@ export default function DashboardPage() {
                           ) : (
                             <button
                               onClick={() => setRateModal({ requestId: r.id, sellerName: null })}
-                              className="px-3 py-1.5 text-sm font-medium bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors whitespace-nowrap"
+                              className="px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors whitespace-nowrap"
+                              style={{ backgroundColor: '#945c67' }}
+                              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#7d4e58')}
+                              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#945c67')}
                             >
                               ⭐ {t('rating.rate_seller')}
                             </button>
