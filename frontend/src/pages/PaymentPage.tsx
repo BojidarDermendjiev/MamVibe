@@ -23,6 +23,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
+  const [shippingPrice, setShippingPrice] = useState(0);
 
   // Delivery state
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
@@ -146,9 +147,26 @@ export default function PaymentPage() {
       {/* Item summary */}
       <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-6">
         <h2 className="font-semibold text-primary mb-1">{item.title}</h2>
-        <p className="text-2xl font-bold text-mauve">
-          {isDonate ? t('items.free') : formatPrice(item.price)}
-        </p>
+        {isDonate ? (
+          <p className="text-2xl font-bold text-mauve">{t('items.free')}</p>
+        ) : (
+          <div className="space-y-1 mt-1">
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>{t('items.price')}</span>
+              <span>{formatPrice(item.price)}</span>
+            </div>
+            {shippingPrice > 0 && (
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>{t('payment.shipping_fee')}</span>
+                <span>{formatPrice(shippingPrice)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-lg font-bold text-mauve border-t border-lavender/30 pt-1 mt-1">
+              <span>{t('payment.order_total')}</span>
+              <span>{formatPrice((item.price ?? 0) + shippingPrice)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Step 1: Delivery Options */}
@@ -213,7 +231,7 @@ export default function PaymentPage() {
           </div>
         </div>
 
-        <ShippingPricePreview request={shippingRequest} />
+        <ShippingPricePreview request={shippingRequest} onPriceChange={setShippingPrice} />
       </div>
 
       {/* Step 2: Payment Method (sell items only) */}

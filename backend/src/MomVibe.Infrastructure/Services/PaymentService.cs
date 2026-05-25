@@ -166,26 +166,69 @@ public class PaymentService : IPaymentService
             metadata["delivery_weight"] = delivery.Weight.ToString();
         }
 
+        // Calculate shipping fee and add as a separate line item so Stripe charges the correct total
+        decimal shippingFee = 0;
+        if (delivery != null)
+        {
+            try
+            {
+                var shippingCalc = await this._shippingService.CalculatePriceAsync(new CalculateShippingDto
+                {
+                    CourierProvider = delivery.CourierProvider,
+                    DeliveryType = delivery.DeliveryType,
+                    ToCity = delivery.City,
+                    OfficeId = delivery.OfficeId,
+                    Weight = delivery.Weight,
+                    IsCod = false,
+                    CodAmount = 0,
+                    IsInsured = false,
+                    InsuredAmount = 0
+                });
+                shippingFee = shippingCalc.Price;
+            }
+            catch (Exception ex) { this._logger.LogError(ex, "Shipping price calculation failed for card checkout on item {ItemId}.", itemId); }
+        }
+
+        var lineItems = new List<SessionLineItemOptions>
+        {
+            new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Price!.Value * 100),
+                    Currency = "bgn",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Title,
+                        Description = item.Description.Length > 500 ? item.Description[..500] : item.Description
+                    }
+                },
+                Quantity = 1
+            }
+        };
+
+        if (shippingFee > 0)
+        {
+            lineItems.Add(new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(shippingFee * 100),
+                    Currency = "bgn",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = "Доставка / Shipping"
+                    }
+                },
+                Quantity = 1
+            });
+            metadata["delivery_shipping_fee"] = shippingFee.ToString("F2");
+        }
+
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = ["card"],
-            LineItems =
-            [
-                new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(item.Price!.Value * 100),
-                        Currency = "bgn",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Title,
-                            Description = item.Description.Length > 500 ? item.Description[..500] : item.Description
-                        }
-                    },
-                    Quantity = 1
-                }
-            ],
+            LineItems = lineItems,
             Mode = "payment",
             SuccessUrl = successUrl + "?session_id={CHECKOUT_SESSION_ID}",
             CancelUrl = cancelUrl,
@@ -487,12 +530,34 @@ public class PaymentService : IPaymentService
         if (item.ListingType != ListingType.Sell)
             throw new InvalidOperationException("Cash on delivery is only available for items listed for sale.");
 
+        // Calculate shipping so the courier collects item price + shipping from the buyer
+        decimal shippingFee = 0;
+        try
+        {
+            var shippingCalc = await this._shippingService.CalculatePriceAsync(new CalculateShippingDto
+            {
+                CourierProvider = delivery.CourierProvider,
+                DeliveryType = delivery.DeliveryType,
+                ToCity = delivery.City,
+                OfficeId = delivery.OfficeId,
+                Weight = delivery.Weight,
+                IsCod = true,
+                CodAmount = item.Price ?? 0,
+                IsInsured = false,
+                InsuredAmount = 0
+            });
+            shippingFee = shippingCalc.Price;
+        }
+        catch (Exception ex) { this._logger.LogError(ex, "Shipping price calculation failed for COD payment on item {ItemId}. Shipping fee defaulted to 0.", itemId); }
+
+        var totalAmount = (item.Price ?? 0) + shippingFee;
+
         var payment = new PaymentEntity
         {
             ItemId = itemId,
             BuyerId = buyerId,
             SellerId = item.UserId,
-            Amount = item.Price ?? 0,
+            Amount = totalAmount,
             PaymentMethod = Domain.Enums.PaymentMethod.CashOnDelivery,
             Status = PaymentStatus.Pending
         };
@@ -515,7 +580,7 @@ public class PaymentService : IPaymentService
                 OfficeName = delivery.OfficeName,
                 Weight = delivery.Weight,
                 IsCod = true,
-                CodAmount = item.Price ?? 0,
+                CodAmount = totalAmount,
                 IsInsured = false,
                 InsuredAmount = 0
             });

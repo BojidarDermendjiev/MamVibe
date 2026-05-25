@@ -6,9 +6,10 @@ import LoadingSpinner from '../common/LoadingSpinner';
 
 interface ShippingPricePreviewProps {
   request: CalculateShippingRequest | null;
+  onPriceChange?: (price: number) => void;
 }
 
-export default function ShippingPricePreview({ request }: ShippingPricePreviewProps) {
+export default function ShippingPricePreview({ request, onPriceChange }: ShippingPricePreviewProps) {
   const { t } = useTranslation();
   const [result, setResult] = useState<ShippingPriceResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +27,18 @@ export default function ShippingPricePreview({ request }: ShippingPricePreviewPr
     const timer = setTimeout(() => {
       shippingApi
         .calculatePrice(request)
-        .then((res) => { if (!cancelled) setResult(res.data); })
-        .catch(() => { if (!cancelled) setResult(null); })
+        .then((res) => {
+          if (!cancelled) {
+            setResult(res.data);
+            onPriceChange?.(res.data.price);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setResult(null);
+            onPriceChange?.(0);
+          }
+        })
         .finally(() => { if (!cancelled) setLoading(false); });
     }, 500);
 

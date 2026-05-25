@@ -312,7 +312,9 @@
     "cod": "Cash on Delivery",
     "cod_desc": "Pay the courier upon delivery",
     "cod_confirm": "Confirm Cash on Delivery Order",
-    "cod_success": "Order confirmed! Pay the courier upon delivery."
+    "cod_success": "Order confirmed! Pay the courier upon delivery.",
+    "shipping_fee": "Shipping",
+    "order_total": "Total"
   },
   "card": {
     "cardholder_name": "cardholder name",
