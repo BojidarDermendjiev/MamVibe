@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shippingApi } from '../../api/shippingApi';
 import type { CalculateShippingRequest, ShippingPriceResult } from '../../types/shipping';
+import { formatPrice } from '../../utils/currency';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 interface ShippingPricePreviewProps {
@@ -63,7 +64,7 @@ export default function ShippingPricePreview({ request, onPriceChange }: Shippin
       <div className="flex justify-between items-center">
         <span className="text-sm font-medium text-primary">{t('shipping.shipping_price')}</span>
         <span className="text-lg font-bold text-mauve">
-          {result.price.toFixed(2)} {result.currency}
+          {formatPrice(result.price)}
         </span>
       </div>
       {result.estimatedDelivery && (

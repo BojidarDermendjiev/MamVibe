@@ -7,6 +7,7 @@ import { itemsApi } from '../api/itemsApi';
 import { paymentsApi } from '../api/paymentsApi';
 import { type Item, ListingType } from '../types/item';
 import type { PaymentDeliveryRequest } from '../types/shipping';
+import { formatPrice } from '../utils/currency';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PaymentCardForm from '../components/payment/PaymentCardForm';
 
@@ -16,6 +17,7 @@ export default function PaymentItemCardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const delivery = location.state?.delivery as PaymentDeliveryRequest | undefined;
+  const shippingPrice: number = location.state?.shippingPrice ?? 0;
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -73,9 +75,26 @@ export default function PaymentItemCardPage() {
       {/* Item summary */}
       <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-6">
         <h2 className="font-semibold text-primary mb-1">{item.title}</h2>
-        <p className="text-2xl font-bold text-mauve">
-          {item.listingType === ListingType.Donate ? t('items.free') : `$${item.price?.toFixed(2)}`}
-        </p>
+        {item.listingType === ListingType.Donate ? (
+          <p className="text-2xl font-bold text-mauve">{t('items.free')}</p>
+        ) : (
+          <div className="space-y-1 mt-1">
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>{t('items.price')}</span>
+              <span>{formatPrice(item.price)}</span>
+            </div>
+            {shippingPrice > 0 && (
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>{t('payment.shipping_fee')}</span>
+                <span>{formatPrice(shippingPrice)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-lg font-bold text-mauve border-t border-lavender/30 pt-1 mt-1">
+              <span>{t('payment.order_total')}</span>
+              <span>{formatPrice((item.price ?? 0) + shippingPrice)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Card form */}

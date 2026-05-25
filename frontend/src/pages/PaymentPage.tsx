@@ -133,7 +133,7 @@ export default function PaymentPage() {
       }
     } else {
       // Paid item: go to card page (delivery details passed in router state)
-      navigate(`/payment/${itemId}/card`, { state: { delivery } });
+      navigate(`/payment/${itemId}/card`, { state: { delivery, shippingPrice } });
     }
   };
 
