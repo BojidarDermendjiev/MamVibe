@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
+using MomVibe.Application.DTOs.Payments;
+using MomVibe.Application.DTOs.Shipping;
 using MomVibe.Application.Interfaces;
 using MomVibe.Application.Mapping;
 using MomVibe.Domain.Entities;
@@ -384,6 +386,116 @@ public class PaymentServiceTests
 
         var updated = await db.PurchaseRequests.FindAsync(pr.Id);
         updated!.Status.Should().Be(PurchaseRequestStatus.Completed);
+    }
+
+    // =========================================================================
+    // CreateCashOnDeliveryAsync
+    // =========================================================================
+
+    private static PaymentDeliveryRequest CreateDelivery() => new()
+    {
+        RecipientName = "Test User",
+        RecipientPhone = "+359888000000",
+        CourierProvider = CourierProvider.Econt,
+        DeliveryType = DeliveryType.Office,
+        OfficeId = "OFF-1",
+        Weight = 1m
+    };
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_Throws_KeyNotFound_For_Missing_Item()
+    {
+        await using var db = CreateDb();
+        var svc = CreateService(db);
+
+        var act = async () => await svc.CreateCashOnDeliveryAsync(Guid.NewGuid(), "buyer-1", CreateDelivery());
+
+        await act.Should().ThrowAsync<KeyNotFoundException>()
+            .WithMessage("Item not found.");
+    }
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_Throws_InvalidOperation_For_Donate_Item()
+    {
+        await using var db = CreateDb();
+        var item = await SeedDonateItemAsync(db);
+        var svc = CreateService(db);
+
+        var act = async () => await svc.CreateCashOnDeliveryAsync(item.Id, "buyer-1", CreateDelivery());
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_Saves_Payment_With_CashOnDelivery_Method_And_Pending_Status()
+    {
+        await using var db = CreateDb();
+        var item = await SeedSellItemAsync(db, price: 30m);
+        var svc = CreateService(db);
+
+        var result = await svc.CreateCashOnDeliveryAsync(item.Id, "buyer-1", CreateDelivery());
+
+        result.PaymentMethod.Should().Be(PaymentMethod.CashOnDelivery);
+        result.Status.Should().Be(PaymentStatus.Pending);
+
+        var persisted = await db.Payments.FirstOrDefaultAsync(p => p.ItemId == item.Id && p.BuyerId == "buyer-1");
+        persisted.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_Amount_Includes_Shipping_Fee()
+    {
+        await using var db = CreateDb();
+        var item = await SeedSellItemAsync(db, price: 30m);
+
+        var shippingMock = new Mock<IShippingService>();
+        shippingMock.Setup(s => s.CalculatePriceAsync(It.IsAny<CalculateShippingDto>()))
+            .ReturnsAsync(new ShippingPriceResultDto { Price = 8m, Currency = "BGN" });
+
+        var svc = CreateService(db, shippingMock: shippingMock);
+
+        var result = await svc.CreateCashOnDeliveryAsync(item.Id, "buyer-1", CreateDelivery());
+
+        result.Amount.Should().Be(38m); // 30 item + 8 shipping
+    }
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_CodAmount_Equals_Item_Price_Plus_Shipping()
+    {
+        await using var db = CreateDb();
+        var item = await SeedSellItemAsync(db, price: 30m);
+
+        var shippingMock = new Mock<IShippingService>();
+        shippingMock.Setup(s => s.CalculatePriceAsync(It.IsAny<CalculateShippingDto>()))
+            .ReturnsAsync(new ShippingPriceResultDto { Price = 8m, Currency = "BGN" });
+
+        CreateShipmentDto? captured = null;
+        shippingMock.Setup(s => s.CreateShipmentAsync(It.IsAny<CreateShipmentDto>()))
+            .Callback<CreateShipmentDto>(dto => captured = dto)
+            .ReturnsAsync(new ShipmentDto { RecipientName = "Test User", RecipientPhone = "+359888000000" });
+
+        var svc = CreateService(db, shippingMock: shippingMock);
+        await svc.CreateCashOnDeliveryAsync(item.Id, "buyer-1", CreateDelivery());
+
+        captured.Should().NotBeNull();
+        captured!.IsCod.Should().BeTrue();
+        captured.CodAmount.Should().Be(38m); // courier collects item + shipping
+    }
+
+    [Fact]
+    public async Task CreateCashOnDeliveryAsync_Shipping_Failure_Falls_Back_To_Item_Price_Only()
+    {
+        await using var db = CreateDb();
+        var item = await SeedSellItemAsync(db, price: 30m);
+
+        var shippingMock = new Mock<IShippingService>();
+        shippingMock.Setup(s => s.CalculatePriceAsync(It.IsAny<CalculateShippingDto>()))
+            .ThrowsAsync(new Exception("Courier unavailable"));
+
+        var svc = CreateService(db, shippingMock: shippingMock);
+        var result = await svc.CreateCashOnDeliveryAsync(item.Id, "buyer-1", CreateDelivery());
+
+        result.Amount.Should().Be(30m); // graceful fallback: item price only
     }
 
     // =========================================================================

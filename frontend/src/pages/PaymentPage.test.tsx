@@ -8,7 +8,7 @@ import { paymentsApi } from '../api/paymentsApi'
 import { ListingType } from '../types/item'
 
 vi.mock('../api/itemsApi', () => ({ itemsApi: { getById: vi.fn() } }))
-vi.mock('../api/paymentsApi', () => ({ paymentsApi: { createBooking: vi.fn(), createCheckout: vi.fn() } }))
+vi.mock('../api/paymentsApi', () => ({ paymentsApi: { createBooking: vi.fn(), createCheckout: vi.fn(), createCod: vi.fn() } }))
 vi.mock('../utils/toast', () => ({ default: { error: vi.fn(), success: vi.fn() } }))
 
 // Avoid real HTTP calls from sub-components
@@ -29,6 +29,7 @@ const sellItem = {
   listingType: ListingType.Sell,
   isActive: true,
   isReserved: false,
+  isSold: false,
   photos: [],
   userId: 'seller-1',
   userDisplayName: 'Seller',
@@ -75,7 +76,8 @@ describe('PaymentPage', () => {
     setup('item-sell')
     await waitFor(() => {
       expect(screen.getByText('Baby Stroller')).toBeInTheDocument()
-      expect(screen.getByText(/80/)).toBeInTheDocument()
+      // Price appears in both the item row and the total row — use getAllByText
+      expect(screen.getAllByText(/80/).length).toBeGreaterThan(0)
     })
   })
 
@@ -141,5 +143,47 @@ describe('PaymentPage', () => {
     await userEvent.click(screen.getByText('payment.continue_to_card'))
 
     await waitFor(() => expect(screen.getByText('CardPage')).toBeInTheDocument())
+  })
+
+  it('shows payment method selector for sell items', async () => {
+    setup('item-sell')
+    await waitFor(() => {
+      expect(screen.getByText('payment.method')).toBeInTheDocument()
+      expect(screen.getByText('payment.cod')).toBeInTheDocument()
+    })
+  })
+
+  it('does not show payment method selector for donate items', async () => {
+    vi.mocked(itemsApi.getById).mockResolvedValue({ data: donateItem } as never)
+    setup('item-donate')
+    await waitFor(() => screen.getByText('payment.confirm_booking'))
+    expect(screen.queryByText('payment.cod')).toBeNull()
+  })
+
+  it('shows cod_confirm button when COD method selected', async () => {
+    setup('item-sell')
+    await waitFor(() => screen.getByText('payment.cod'))
+    await userEvent.click(screen.getByText('payment.cod'))
+    expect(screen.getByText('payment.cod_confirm')).toBeInTheDocument()
+  })
+
+  it('calls createCod when COD submitted with valid details', async () => {
+    vi.mocked(paymentsApi.createCod).mockResolvedValue({ data: {} } as never)
+    setup('item-sell')
+
+    await waitFor(() => screen.getByText('payment.cod'))
+    await userEvent.click(screen.getByText('payment.cod'))
+
+    await userEvent.click(screen.getByText('Select Office'))
+    const inputs = screen.getAllByRole('textbox')
+    await userEvent.type(inputs[inputs.length - 2], 'John Doe')
+    await userEvent.type(inputs[inputs.length - 1], '+359888999000')
+
+    await userEvent.click(screen.getByText('payment.cod_confirm'))
+
+    await waitFor(() => expect(paymentsApi.createCod).toHaveBeenCalledWith(
+      'item-sell',
+      expect.objectContaining({ recipientName: 'John Doe', recipientPhone: '+359888999000' })
+    ))
   })
 })
