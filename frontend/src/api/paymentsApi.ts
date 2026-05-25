@@ -13,6 +13,9 @@ export const paymentsApi = {
   createBooking: (itemId: string, delivery: PaymentDeliveryRequest) =>
     axiosClient.post<Payment>(`/payments/booking/${itemId}`, delivery),
 
+  createCod: (itemId: string, delivery: PaymentDeliveryRequest) =>
+    axiosClient.post<Payment>(`/payments/cod/${itemId}`, delivery),
+
   getMyPayments: () =>
     axiosClient.get<PagedResult<Payment>>('/payments/my-payments'),
 

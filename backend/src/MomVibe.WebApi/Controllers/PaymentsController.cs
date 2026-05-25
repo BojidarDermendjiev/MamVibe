@@ -128,6 +128,38 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
+    /// Creates a cash-on-delivery payment record. The courier collects the amount at delivery.
+    /// </summary>
+    /// <param name="itemId">The GUID of the item to purchase.</param>
+    /// <param name="delivery">Required delivery details (courier, address, recipient).</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the item does not exist.<br/>
+    /// 400 Bad Request if COD is not applicable (e.g., donate item).<br/>
+    /// 200 OK with the created payment details on success.
+    /// </returns>
+    [Authorize]
+    [HttpPost("cod/{itemId:guid}")]
+    public async Task<IActionResult> CreateCashOnDelivery(Guid itemId, [FromBody] PaymentDeliveryRequest delivery)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            var payment = await this._paymentService.CreateCashOnDeliveryAsync(itemId, userId, delivery);
+            return Ok(payment);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Creates a Stripe PaymentIntent for inline card payment.
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>

@@ -480,6 +480,54 @@ public class PaymentService : IPaymentService
         return this._mapper.Map<PaymentDto>(payment);
     }
 
+    public async Task<PaymentDto> CreateCashOnDeliveryAsync(Guid itemId, string buyerId, PaymentDeliveryRequest delivery)
+    {
+        var item = await this._context.Items.FindAsync(itemId);
+        if (item == null) throw new KeyNotFoundException("Item not found.");
+        if (item.ListingType != ListingType.Sell)
+            throw new InvalidOperationException("Cash on delivery is only available for items listed for sale.");
+
+        var payment = new PaymentEntity
+        {
+            ItemId = itemId,
+            BuyerId = buyerId,
+            SellerId = item.UserId,
+            Amount = item.Price ?? 0,
+            PaymentMethod = Domain.Enums.PaymentMethod.CashOnDelivery,
+            Status = PaymentStatus.Pending
+        };
+
+        this._context.Payments.Add(payment);
+        await this._context.SaveChangesAsync();
+
+        try
+        {
+            await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+            {
+                PaymentId = payment.Id,
+                CourierProvider = delivery.CourierProvider,
+                DeliveryType = delivery.DeliveryType,
+                RecipientName = delivery.RecipientName,
+                RecipientPhone = delivery.RecipientPhone,
+                City = delivery.City,
+                DeliveryAddress = delivery.Address,
+                OfficeId = delivery.OfficeId,
+                OfficeName = delivery.OfficeName,
+                Weight = delivery.Weight,
+                IsCod = true,
+                CodAmount = item.Price ?? 0,
+                IsInsured = false,
+                InsuredAmount = 0
+            });
+        }
+        catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for COD payment {PaymentId}.", payment.Id); }
+
+        try { await CompletePurchaseRequestAsync(itemId, buyerId); }
+        catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
+
+        return this._mapper.Map<PaymentDto>(payment);
+    }
+
     /// <summary>
     /// Finds the accepted PurchaseRequest for this item+buyer and marks it Completed.
     /// Called after any successful payment so the buyer's "My Requests" tab reflects the true state.

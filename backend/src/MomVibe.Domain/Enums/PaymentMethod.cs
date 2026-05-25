@@ -23,5 +23,10 @@ public enum PaymentMethod
     /// <summary>
     /// Payment deducted directly from the buyer's platform wallet balance.
     /// </summary>
-    Wallet = 3
+    Wallet = 3,
+
+    /// <summary>
+    /// Payment collected by the courier at the time of delivery (cash on delivery).
+    /// </summary>
+    CashOnDelivery = 4
 }

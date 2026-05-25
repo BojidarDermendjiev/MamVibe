@@ -306,7 +306,11 @@
     "wallet_success": "Payment successful! Funds held until you confirm delivery.",
     "confirm_delivery": "Confirm Delivery",
     "confirm_delivery_msg": "Confirm you received the item — this releases funds to the seller.",
-    "delivery_confirmed": "Delivery confirmed! Funds released to seller."
+    "delivery_confirmed": "Delivery confirmed! Funds released to seller.",
+    "cod": "Cash on Delivery",
+    "cod_desc": "Pay the courier upon delivery",
+    "cod_confirm": "Confirm Cash on Delivery Order",
+    "cod_success": "Order confirmed! Pay the courier upon delivery."
   },
   "card": {
     "cardholder_name": "cardholder name",

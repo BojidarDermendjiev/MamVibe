@@ -22,6 +22,7 @@ export default function PaymentPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
 
   // Delivery state
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
@@ -53,6 +54,8 @@ export default function PaymentPage() {
     });
   }, [itemId, navigate]);
 
+  const isCod = !isDonate && paymentMethod === 'cod';
+
   const shippingRequest: CalculateShippingRequest | null =
     recipientName && recipientPhone
       ? {
@@ -61,8 +64,8 @@ export default function PaymentPage() {
           toCity: deliveryType === DeliveryType.Address ? city : undefined,
           officeId: deliveryType !== DeliveryType.Address ? officeId : undefined,
           weight: 1,
-          isCod: false,
-          codAmount: 0,
+          isCod,
+          codAmount: isCod ? (item?.price ?? 0) : 0,
           isInsured: false,
           insuredAmount: 0,
         }
@@ -103,6 +106,21 @@ export default function PaymentPage() {
       try {
         await paymentsApi.createBooking(itemId, delivery);
         toast.success(t('payment.booking_success'));
+        navigate('/payment/success', { state: { itemId } });
+      } catch (err: unknown) {
+        const message = (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
+          || (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.details
+          || t('common.error');
+        toast.error(message);
+      } finally {
+        setProcessing(false);
+      }
+    } else if (paymentMethod === 'cod') {
+      // Cash on delivery: create payment + shipment, courier collects at delivery
+      setProcessing(true);
+      try {
+        await paymentsApi.createCod(itemId, delivery);
+        toast.success(t('payment.cod_success'));
         navigate('/payment/success', { state: { itemId } });
       } catch (err: unknown) {
         const message = (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
@@ -198,8 +216,47 @@ export default function PaymentPage() {
         <ShippingPricePreview request={shippingRequest} />
       </div>
 
+      {/* Step 2: Payment Method (sell items only) */}
+      {!isDonate && (
+        <div className="bg-white rounded-xl p-6 border border-lavender/30 mb-6 space-y-3">
+          <h3 className="text-lg font-semibold text-primary">{t('payment.method')}</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('card')}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                paymentMethod === 'card'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-lavender/40 hover:border-primary/40'
+              }`}
+            >
+              <span className="text-2xl">💳</span>
+              <span className="text-sm font-semibold text-primary">{t('payment.card')}</span>
+              <span className="text-xs text-gray-500 text-center">{t('payment.card_desc')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('cod')}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                paymentMethod === 'cod'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-lavender/40 hover:border-primary/40'
+              }`}
+            >
+              <span className="text-2xl">💵</span>
+              <span className="text-sm font-semibold text-primary">{t('payment.cod')}</span>
+              <span className="text-xs text-gray-500 text-center">{t('payment.cod_desc')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <Button fullWidth size="lg" isLoading={processing} onClick={handleSubmit}>
-        {isDonate ? t('payment.confirm_booking') : t('payment.continue_to_card')}
+        {isDonate
+          ? t('payment.confirm_booking')
+          : paymentMethod === 'cod'
+          ? t('payment.cod_confirm')
+          : t('payment.continue_to_card')}
       </Button>
     </div>
   );
