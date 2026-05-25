@@ -52,7 +52,10 @@ export default function PaymentSuccessPage() {
               if (match) setRateModal({ requestId: match.id, sellerName: null });
             }).catch(() => {});
           }}
-          className="mb-6 px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-white font-semibold text-sm transition-colors"
+          className="mb-6 px-4 py-2 rounded-xl text-white font-semibold text-sm transition-colors"
+          style={{ backgroundColor: '#945c67' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#7d4e58')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#945c67')}
         >
           ⭐ {t('rating.rate_seller')}
         </button>
