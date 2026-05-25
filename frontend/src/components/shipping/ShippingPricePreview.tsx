@@ -20,6 +20,7 @@ export default function ShippingPricePreview({ request, onPriceChange }: Shippin
 
   useEffect(() => {
     if (!request || !request.weight) {
+      onPriceChange?.(0);
       return;
     }
 
