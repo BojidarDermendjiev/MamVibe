@@ -41,4 +41,6 @@ public class UserDto
     public double? AverageRating { get; set; }
     /// <summary>Gets or sets the total number of ratings the user has received.</summary>
     public int RatingCount { get; set; }
+    /// <summary>Gets or sets a value indicating whether the user has enabled holiday mode (all listings hidden).</summary>
+    public bool IsOnHoliday { get; set; }
 }

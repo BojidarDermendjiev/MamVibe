@@ -353,6 +353,17 @@ export default function ItemDetailPage() {
             </div>
           </div>
 
+          {/* Holiday banner */}
+          {item.userIsOnHoliday && !isOwner && (
+            <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 mb-4">
+              <span className="text-xl leading-none mt-0.5">🌴</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('items.seller_on_holiday')}</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">{t('items.seller_on_holiday_desc')}</p>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           {!isOwner && (
             <div className="flex gap-3">
@@ -375,7 +386,7 @@ export default function ItemDetailPage() {
               {item.isActive && !item.isReserved && (
                 <Button
                   fullWidth
-                  disabled={requestSent || requestPending}
+                  disabled={requestSent || requestPending || item.userIsOnHoliday}
                   className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
                   onClick={user ? handlePurchaseClick : () => setShowLoginModal(true)}
                 >

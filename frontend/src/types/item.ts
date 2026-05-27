@@ -34,6 +34,7 @@ export interface Item {
   userId: string;
   userDisplayName: string;
   userAvatarUrl: string | null;
+  userIsOnHoliday: boolean;
   isActive: boolean;
   isReserved: boolean;
   isSold: boolean;

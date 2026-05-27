@@ -222,6 +222,11 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasComment("Indicates whether the account is blocked from interacting.");
 
+                    b.Property<bool>("IsOnHoliday")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("LanguagePreference")
                         .IsRequired()
                         .ValueGeneratedOnAdd()

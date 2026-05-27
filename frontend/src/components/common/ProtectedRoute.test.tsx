@@ -21,6 +21,7 @@ const mockUser: User = {
   roles: ['User'],
   isBlocked: false,
   iban: null,
+  isOnHoliday: false,
 }
 
 function setup(authState: { isAuthenticated: boolean; isLoading: boolean; user: User | null }, requiredRole?: string) {

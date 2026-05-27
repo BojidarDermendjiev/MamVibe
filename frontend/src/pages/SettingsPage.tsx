@@ -8,6 +8,7 @@ import {
   HiLockClosed,
   HiGlobeAlt,
   HiCreditCard,
+  HiSun,
 } from "react-icons/hi2";
 import axiosClient from "../api/axiosClient";
 import { authApi } from "../api/authApi";
@@ -16,7 +17,7 @@ import Avatar from "../components/common/Avatar";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 
-type Section = "profile" | "security" | "language" | "payment";
+type Section = "profile" | "security" | "language" | "payment" | "seller";
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   });
   const [loading, setLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [holidayLoading, setHolidayLoading] = useState(false);
 
   const [pwForm, setPwForm] = useState({
     currentPassword: "",
@@ -118,6 +120,21 @@ export default function SettingsPage() {
     }
   };
 
+  const handleHolidayToggle = async () => {
+    if (!user) return;
+    setHolidayLoading(true);
+    try {
+      const { data } = await axiosClient.put("/users/holiday-mode", {
+        isOnHoliday: !user.isOnHoliday,
+      });
+      setUser(data);
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setHolidayLoading(false);
+    }
+  };
+
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
     localStorage.setItem("language", lang);
@@ -143,6 +160,11 @@ export default function SettingsPage() {
       id: "payment",
       icon: <HiCreditCard className="h-4 w-4" />,
       label: t("settings.payment"),
+    },
+    {
+      id: "seller",
+      icon: <HiSun className="h-4 w-4" />,
+      label: t("settings.seller"),
     },
   ];
 
@@ -387,6 +409,45 @@ export default function SettingsPage() {
                     )}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ════ SELLER ════ */}
+          {active === "seller" && (
+            <div className={cardBase}>
+              <div className={sectionHeader}>
+                <p className={sectionLabel}>{t("settings.holiday_mode")}</p>
+              </div>
+              <div className="px-6 py-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                      {t("settings.holiday_mode")}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {t("settings.holiday_mode_desc")}
+                    </p>
+                    <p className={`text-xs font-medium mt-3 ${user?.isOnHoliday ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}>
+                      {user?.isOnHoliday ? t("settings.holiday_mode_on") : t("settings.holiday_mode_off")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={holidayLoading}
+                    onClick={handleHolidayToggle}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#945c67]/50 disabled:opacity-50 ${
+                      user?.isOnHoliday ? "bg-amber-500" : "bg-gray-200 dark:bg-gray-600"
+                    }`}
+                    aria-label={t("settings.holiday_mode")}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        user?.isOnHoliday ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           )}

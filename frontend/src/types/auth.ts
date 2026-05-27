@@ -17,6 +17,7 @@ export interface User {
   roles: string[];
   isBlocked: boolean;
   iban: string | null;
+  isOnHoliday: boolean;
 }
 
 export interface LoginRequest {

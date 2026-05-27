@@ -80,7 +80,7 @@ public class ItemService : IItemService
             .Include(i => i.Photos)
             .Include(i => i.User)
             .Include(i => i.Category)
-            .Where(i => i.IsActive)
+            .Where(i => i.IsActive && !i.User.IsOnHoliday)
             .AsQueryable();
 
         if (filter.CategoryId.HasValue)

@@ -34,6 +34,7 @@ const baseItem: Item = {
   aiModerationStatus: 1,
   aiModerationNotes: null,
   aiModerationScore: null,
+  userIsOnHoliday: false,
 }
 
 function setup(item = baseItem) {

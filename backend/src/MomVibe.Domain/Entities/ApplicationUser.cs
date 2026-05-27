@@ -58,6 +58,9 @@ public class ApplicationUser : IdentityUser
     [MaxLength(200)]
     public string? ExpoPushToken { get; set; }
 
+    /// <summary>When true, all listings by this user are hidden from browse and search results.</summary>
+    public bool IsOnHoliday { get; set; }
+
     /// <summary>Gets the collection of marketplace items listed by the user.</summary>
     public ICollection<Item> Items { get; set; } = [];
 

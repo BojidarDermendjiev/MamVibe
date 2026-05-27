@@ -54,6 +54,9 @@ public class ItemDto
     /// <summary>Gets or sets the avatar URL of the owning user, or <c>null</c> if not set.</summary>
     public string? UserAvatarUrl { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether the owning user has holiday mode enabled.</summary>
+    public bool UserIsOnHoliday { get; set; }
+
     /// <summary>Gets or sets the full user profile of the owner, or <c>null</c> if not loaded.</summary>
     public UserDto? User { get; set; }
 

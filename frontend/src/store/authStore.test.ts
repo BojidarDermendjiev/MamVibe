@@ -14,6 +14,7 @@ const mockUser: User = {
   roles: ['User'],
   isBlocked: false,
   iban: null,
+  isOnHoliday: false,
 }
 
 const resetState = {

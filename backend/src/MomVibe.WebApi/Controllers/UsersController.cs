@@ -147,6 +147,42 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Enables or disables holiday mode for the authenticated user.
+    /// When enabled, all of the user's listings are hidden from browse and search.
+    /// </summary>
+    /// <param name="dto">Payload containing the desired holiday mode state.</param>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the user cannot be located.<br/>
+    /// 200 OK with updated <see cref="UserDto"/> on success.
+    /// </returns>
+    [Authorize]
+    [HttpPut("holiday-mode")]
+    public async Task<IActionResult> SetHolidayMode([FromBody] SetHolidayModeDto dto)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        var user = await this._userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        user.IsOnHoliday = dto.IsOnHoliday;
+        await this._userManager.UpdateAsync(user);
+
+        return Ok(new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            DisplayName = user.DisplayName,
+            ProfileType = user.ProfileType,
+            AvatarUrl = user.AvatarUrl,
+            Bio = user.Bio,
+            CreatedAt = user.CreatedAt,
+            RevolutTag = user.RevolutTag,
+            IsOnHoliday = user.IsOnHoliday,
+        });
+    }
+
+    /// <summary>
     /// Registers or updates the Expo push notification token for the authenticated user's mobile device.
     /// Called once after login whenever the mobile app obtains a fresh Expo push token.
     /// </summary>

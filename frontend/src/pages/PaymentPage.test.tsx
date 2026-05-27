@@ -34,6 +34,7 @@ const sellItem = {
   userId: 'seller-1',
   userDisplayName: 'Seller',
   userAvatarUrl: null,
+  userIsOnHoliday: false,
   categoryId: 'c1',
   categoryName: 'strollers',
   ageGroup: null,
