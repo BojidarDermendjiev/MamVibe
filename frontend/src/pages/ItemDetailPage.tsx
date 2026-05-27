@@ -7,7 +7,8 @@ import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { userRatingsApi } from '../api/userRatingsApi';
-import { type Item, ListingType } from '../types/item';
+import { type Item, ListingType, ItemCondition } from '../types/item';
+import ConditionBadge from '../components/items/ConditionBadge';
 import type { UserRatingSummary } from '../types/userRating';
 import { useAuthStore } from '../store/authStore';
 import { getCategoryImage } from '../utils/categoryImages';
@@ -304,8 +305,11 @@ export default function ItemDetailPage() {
             {item.listingType === ListingType.Donate ? t('items.free') : formatPrice(item.price)}
           </div>
 
-          <div className="flex items-center gap-4 mb-6 text-sm text-gray-500">
+          <div className="flex items-center gap-4 mb-6 text-sm text-gray-500 flex-wrap">
             <span className="flex items-center gap-1"><HiEye className="h-4 w-4" /> {item.viewCount} {t('items.views')}</span>
+            {item.condition !== ItemCondition.Unspecified && (
+              <ConditionBadge condition={item.condition} />
+            )}
             <LikeButton
               itemId={item.id}
               likeCount={item.likeCount}

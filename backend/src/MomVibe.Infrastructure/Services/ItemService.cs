@@ -53,7 +53,7 @@ public class ItemService : IItemService
     }
 
     private static string BuildCacheKey(ItemFilterDto filter) =>
-        $"{CacheKeyPrefix}{filter.CategoryId}|{filter.ListingType}|{filter.SearchTerm}|{filter.Brand}|{filter.AgeGroup}|{filter.ShoeSize}|{filter.ClothingSize}|{filter.SortBy}|{filter.Page}|{filter.PageSize}";
+        $"{CacheKeyPrefix}{filter.CategoryId}|{filter.ListingType}|{filter.SearchTerm}|{filter.Brand}|{filter.AgeGroup}|{filter.ShoeSize}|{filter.ClothingSize}|{filter.Condition}|{filter.SortBy}|{filter.Page}|{filter.PageSize}";
 
     private static string MaskEmail(string? email)
     {
@@ -109,6 +109,9 @@ public class ItemService : IItemService
 
         if (filter.ClothingSize.HasValue)
             query = query.Where(i => i.ClothingSize == filter.ClothingSize.Value);
+
+        if (filter.Condition.HasValue)
+            query = query.Where(i => i.Condition == filter.Condition.Value);
 
         query = filter.SortBy switch
         {
@@ -193,6 +196,7 @@ public class ItemService : IItemService
             ShoeSize = dto.ShoeSize,
             ClothingSize = dto.ClothingSize,
             Price = dto.Price,
+            Condition = dto.Condition,
             UserId = userId,
             Photos = dto.PhotoUrls.Select((url, index) => new ItemPhoto
             {
@@ -294,6 +298,7 @@ public class ItemService : IItemService
         item.AgeGroup = dto.AgeGroup;
         item.ShoeSize = dto.ShoeSize;
         item.ClothingSize = dto.ClothingSize;
+        if (dto.Condition.HasValue) item.Condition = dto.Condition.Value;
         if (dto.Price.HasValue) item.Price = dto.Price;
         if (dto.IsActive.HasValue) item.IsActive = dto.IsActive.Value;
 

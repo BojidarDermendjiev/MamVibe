@@ -6,7 +6,7 @@ import toast from "@/utils/toast";
 import { itemsApi } from "../api/itemsApi";
 import { photosApi } from "../api/photosApi";
 import { aiApi } from "../api/aiApi";
-import { ListingType, AgeGroup, type PriceSuggestion, type Item } from "../types/item";
+import { ListingType, AgeGroup, ItemCondition, type PriceSuggestion, type Item } from "../types/item";
 import { useCategories } from "../hooks/useCategories";
 import { useAuthStore } from "../store/authStore";
 import Button from "../components/common/Button";
@@ -14,6 +14,7 @@ import Input from "../components/common/Input";
 import PhotoUploader from "../components/items/PhotoUploader";
 import IbanModal from "../components/common/IbanModal";
 import CategorySpecificSection from "../components/items/CategorySpecificSection";
+import ConditionPicker from "../components/items/ConditionPicker";
 
 function SubmissionResultModal({ item, onClose }: { item: Item; onClose: () => void }) {
   const navigate = useNavigate();
@@ -141,6 +142,7 @@ export default function CreateItemPage() {
     shoeSize: number | null;
     clothingSize: number | null;
     price: string;
+    condition: ItemCondition;
   }>({
     title: "",
     description: "",
@@ -150,6 +152,7 @@ export default function CreateItemPage() {
     shoeSize: null,
     clothingSize: null,
     price: "",
+    condition: ItemCondition.Good,
   });
 
   const selectedSlug = useMemo(
@@ -236,6 +239,7 @@ export default function CreateItemPage() {
         ageGroup: form.ageGroup,
         shoeSize: form.shoeSize,
         clothingSize: form.clothingSize,
+        condition: form.condition,
         photoUrls,
       });
       setCreatedItem(item);
@@ -373,6 +377,11 @@ export default function CreateItemPage() {
             </button>
           </div>
         </div>
+
+        <ConditionPicker
+          value={form.condition}
+          onChange={(v) => setForm({ ...form, condition: v })}
+        />
 
         {form.listingType === ListingType.Sell && (
           <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Check, X } from 'lucide-react';
-import { ListingType, AgeGroup, type Category, type ItemFilter } from '../../types/item';
+import { ListingType, AgeGroup, ItemCondition, type Category, type ItemFilter } from '../../types/item';
 
 const BRANDS = [
   'Cybex', 'Little Dutch', 'Nuna', 'Bugaboo', 'Ergobaby',
@@ -70,10 +70,11 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
     filter.listingType !== undefined ||
     !!filter.brand ||
     filter.ageGroup !== undefined ||
+    filter.condition !== undefined ||
     filter.sortBy !== 'newest';
 
   const clearAll = () =>
-    onChange({ categoryId: undefined, listingType: undefined, brand: undefined, ageGroup: undefined, sortBy: 'newest', page: 1 });
+    onChange({ categoryId: undefined, listingType: undefined, brand: undefined, ageGroup: undefined, condition: undefined, sortBy: 'newest', page: 1 });
 
   return (
     <div className="bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
@@ -167,6 +168,29 @@ export default function ItemFilters({ filter, categories, onChange }: ItemFilter
             />
           ))}
         </div>
+
+        <Divider />
+
+        {/* ── Condition ── */}
+        <p className="font-bold text-[15px] text-gray-800 dark:text-gray-100 mb-1">{t('items.condition_label')}</p>
+        <CheckRow
+          label={t('items.condition_filter_all')}
+          selected={filter.condition === undefined}
+          onToggle={() => onChange({ condition: undefined, page: 1 })}
+        />
+        {([
+          { value: ItemCondition.NewWithTags, key: 'items.condition_new_with_tags' },
+          { value: ItemCondition.LikeNew,     key: 'items.condition_like_new' },
+          { value: ItemCondition.Good,        key: 'items.condition_good' },
+          { value: ItemCondition.Fair,        key: 'items.condition_fair' },
+        ] as const).map(({ value, key }) => (
+          <CheckRow
+            key={value}
+            label={t(key)}
+            selected={filter.condition === value}
+            onToggle={() => onChange({ condition: filter.condition === value ? undefined : value, page: 1 })}
+          />
+        ))}
 
         <Divider />
 

@@ -40,6 +40,9 @@ public class ItemFilterDto
     [Range(1, 50)]
     public int PageSize { get; set; } = 12;
 
+    /// <summary>Gets or sets an optional condition filter; null means all conditions.</summary>
+    public ItemCondition? Condition { get; set; }
+
     /// <summary>Gets or sets the sort order for the results. Accepted values include "newest" and "price_asc". Defaults to "newest".</summary>
     public string SortBy { get; set; } = "newest";
 }

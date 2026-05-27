@@ -37,6 +37,9 @@ public class CreateItemDto
     /// <summary>Gets or sets the EU clothing size, or <c>null</c> when not applicable.</summary>
     public int? ClothingSize { get; set; }
 
+    /// <summary>Gets or sets the standardized condition tier of the item.</summary>
+    public ItemCondition Condition { get; set; } = ItemCondition.Unspecified;
+
     /// <summary>Gets or sets the list of image URLs for the item; optional — the UI falls back to a category image when empty.</summary>
     public List<string> PhotoUrls { get; set; } = [];
 }

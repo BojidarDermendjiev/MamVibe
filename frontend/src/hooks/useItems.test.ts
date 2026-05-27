@@ -14,7 +14,7 @@ const mockGetAll = vi.mocked(itemsApi.getAll)
 const mockItem: Item = {
   id: 'i1', title: 'Test', description: '', categoryId: 'c1', categoryName: 'Toys',
   listingType: ListingType.Sell, ageGroup: null, shoeSize: null, clothingSize: null,
-  price: 10, userId: 'u1', userDisplayName: 'User', userAvatarUrl: null, userIsOnHoliday: false,
+  price: 10, userId: 'u1', userDisplayName: 'User', userAvatarUrl: null, userIsOnHoliday: false, condition: 0,
   isActive: true, isReserved: false, isSold: false, viewCount: 0, likeCount: 0, isLikedByCurrentUser: false,
   photos: [], createdAt: '2024-01-01T00:00:00Z', aiModerationStatus: 1,
   aiModerationNotes: null, aiModerationScore: null,

@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { photosApi } from '../api/photosApi';
-import { ListingType, AgeGroup } from '../types/item';
+import { ListingType, AgeGroup, ItemCondition } from '../types/item';
 import { useCategories } from '../hooks/useCategories';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import PhotoUploader from '../components/items/PhotoUploader';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import CategorySpecificSection from '../components/items/CategorySpecificSection';
+import ConditionPicker from '../components/items/ConditionPicker';
 
 export default function EditItemPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ export default function EditItemPage() {
     shoeSize: number | null;
     clothingSize: number | null;
     price: string;
+    condition: ItemCondition;
   }>({
     title: '',
     description: '',
@@ -40,6 +42,7 @@ export default function EditItemPage() {
     shoeSize: null,
     clothingSize: null,
     price: '',
+    condition: ItemCondition.Good,
   });
 
   const selectedSlug = useMemo(
@@ -60,6 +63,7 @@ export default function EditItemPage() {
           shoeSize: item.shoeSize,
           clothingSize: item.clothingSize,
           price: item.price?.toString() || '',
+          condition: item.condition ?? ItemCondition.Good,
         });
         setExistingPhotos(item.photos.map((p) => ({ id: p.id, url: p.url })));
       } catch {
@@ -104,6 +108,7 @@ export default function EditItemPage() {
         ageGroup: form.ageGroup,
         shoeSize: form.shoeSize,
         clothingSize: form.clothingSize,
+        condition: form.condition,
         photoUrls,
       });
       toast.success('Item updated!');
@@ -186,6 +191,11 @@ export default function EditItemPage() {
             </button>
           </div>
         </div>
+
+        <ConditionPicker
+          value={form.condition}
+          onChange={(v) => setForm({ ...form, condition: v })}
+        />
 
         {form.listingType === ListingType.Sell && (
           <Input

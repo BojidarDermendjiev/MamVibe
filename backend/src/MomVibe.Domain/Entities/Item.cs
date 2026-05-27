@@ -133,6 +133,9 @@ public class Item : BaseEntity
     /// <summary>Set to true once a completed payment/purchase-request marks this item as sold.</summary>
     public bool IsSold { get; set; }
 
+    /// <summary>Standardized condition tier selected by the seller at listing time.</summary>
+    public ItemCondition Condition { get; set; } = ItemCondition.Unspecified;
+
     /// <summary>Outcome of the AI content moderation run at creation time.</summary>
     public AiModerationStatus AiModerationStatus { get; set; } = AiModerationStatus.NotScreened;
 

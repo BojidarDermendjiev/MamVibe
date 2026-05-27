@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { HiEye } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
-import { type Item, ListingType } from '../../types/item';
+import { type Item, ListingType, ItemCondition } from '../../types/item';
+import ConditionBadge from './ConditionBadge';
 import { getCategoryImage } from '../../utils/categoryImages';
 import { formatPrice } from '../../utils/currency';
 import LikeButton from './LikeButton';
@@ -122,7 +123,12 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
             {item.title}
           </h3>
         </Link>
-        <p className="text-sm text-text mt-0.5">{item.categoryName}</p>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <p className="text-sm text-text">{item.categoryName}</p>
+          {item.condition !== ItemCondition.Unspecified && (
+            <ConditionBadge condition={item.condition} size="sm" />
+          )}
+        </div>
         <div className="flex items-center justify-between mt-2">
           <span className="font-bold text-lg text-mauve">
             {item.listingType === ListingType.Donate

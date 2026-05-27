@@ -4,6 +4,15 @@ export const ListingType = {
 } as const;
 export type ListingType = (typeof ListingType)[keyof typeof ListingType];
 
+export const ItemCondition = {
+  Unspecified: 0,
+  NewWithTags: 1,
+  LikeNew: 2,
+  Good: 3,
+  Fair: 4,
+} as const;
+export type ItemCondition = (typeof ItemCondition)[keyof typeof ItemCondition];
+
 export const AgeGroup = {
   Newborn: 0,
   Infant: 1,
@@ -35,6 +44,7 @@ export interface Item {
   userDisplayName: string;
   userAvatarUrl: string | null;
   userIsOnHoliday: boolean;
+  condition: ItemCondition;
   isActive: boolean;
   isReserved: boolean;
   isSold: boolean;
@@ -57,6 +67,7 @@ export interface CreateItemRequest {
   shoeSize?: number | null;
   clothingSize?: number | null;
   price: number | null;
+  condition?: ItemCondition;
   photoUrls?: string[];
 }
 
@@ -69,6 +80,7 @@ export interface UpdateItemRequest {
   shoeSize?: number | null;
   clothingSize?: number | null;
   price: number | null;
+  condition?: ItemCondition;
   photoUrls?: string[];
 }
 
@@ -80,6 +92,7 @@ export interface ItemFilter {
   ageGroup?: AgeGroup;
   shoeSize?: number;
   clothingSize?: number;
+  condition?: ItemCondition;
   page: number;
   pageSize: number;
   sortBy: string;

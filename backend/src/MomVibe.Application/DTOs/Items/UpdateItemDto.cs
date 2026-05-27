@@ -40,6 +40,9 @@ public class UpdateItemDto
     /// <summary>Gets or sets the updated EU clothing size, or <c>null</c> to leave unchanged.</summary>
     public int? ClothingSize { get; set; }
 
+    /// <summary>Gets or sets the updated condition tier, or <c>null</c> to leave unchanged.</summary>
+    public ItemCondition? Condition { get; set; }
+
     /// <summary>Gets or sets a replacement set of photo URLs, or <c>null</c> to leave the photos unchanged.</summary>
     public List<string>? PhotoUrls { get; set; }
 }

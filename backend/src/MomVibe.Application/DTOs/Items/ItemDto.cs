@@ -57,6 +57,9 @@ public class ItemDto
     /// <summary>Gets or sets a value indicating whether the owning user has holiday mode enabled.</summary>
     public bool UserIsOnHoliday { get; set; }
 
+    /// <summary>Gets or sets the standardized condition tier of the item.</summary>
+    public Domain.Enums.ItemCondition Condition { get; set; }
+
     /// <summary>Gets or sets the full user profile of the owner, or <c>null</c> if not loaded.</summary>
     public UserDto? User { get; set; }
 
