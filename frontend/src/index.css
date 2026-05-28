@@ -692,16 +692,16 @@ a:hover {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #e3b7ac 0%, #d8daf0 100%);
+  background: linear-gradient(135deg, #1a1525 0%, #0f0e1a 100%);
   position: relative;
 }
 
 /* Main card */
 .auth-card {
   position: relative;
-  background: #fff;
+  background: #1e1c2e;
   border-radius: 30px;
-  box-shadow: 0 5px 45px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 5px 45px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   width: 860px;
   max-width: 100%;
@@ -742,7 +742,7 @@ a:hover {
 .auth-title {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #333;
+  color: #f0ece8;
   margin-bottom: 0.5rem;
   letter-spacing: -0.01em;
 }
@@ -758,7 +758,7 @@ a:hover {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(193, 196, 227, 0.25);
   background: transparent;
   display: flex;
   align-items: center;
@@ -776,7 +776,7 @@ a:hover {
 /* "or use your email" */
 .auth-or {
   font-size: 0.75rem;
-  color: #888;
+  color: #6b6888;
   margin-bottom: 0.75rem;
 }
 
@@ -805,20 +805,20 @@ a:hover {
 .auth-field-input {
   width: 100%;
   padding: 0.7rem 1rem 0.7rem 2.6rem;
-  background-color: #eee;
+  background-color: #2a2740;
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
-  color: #333;
+  color: #f0ece8;
   outline: none;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.auth-field-input::placeholder { color: #aaa; }
+.auth-field-input::placeholder { color: #6b6888; }
 
 .auth-field-input:focus {
-  background-color: #e4e3f8;
-  box-shadow: 0 0 0 2px rgba(63, 75, 127, 0.2);
+  background-color: #322f50;
+  box-shadow: 0 0 0 2px rgba(193, 196, 227, 0.25);
 }
 
 .auth-error {
@@ -832,7 +832,7 @@ a:hover {
 /* Forgot password */
 .auth-forgot {
   font-size: 0.78rem;
-  color: #888;
+  color: #6b6888;
   margin: 0.4rem 0 1rem;
   display: block;
   transition: color 0.2s ease;
@@ -894,14 +894,14 @@ a:hover {
 .auth-mobile-link {
   display: none;
   font-size: 0.82rem;
-  color: #888;
+  color: #6b6888;
   margin-top: 1.25rem;
 }
 
 .auth-mobile-link-btn {
   background: none;
   border: none;
-  color: #3f4b7f;
+  color: #c1c4e3;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
