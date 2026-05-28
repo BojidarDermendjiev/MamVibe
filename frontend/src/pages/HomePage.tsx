@@ -547,24 +547,24 @@ export default function HomePage() {
               {doctorReviews.map((review) => (
                 <div
                   key={review.id}
-                  className="bg-[#FAF3EE] dark:bg-[#2d2a3e] rounded-2xl p-5 flex flex-col gap-3 border border-gray-100 dark:border-white/10 hover:shadow-md transition-shadow duration-300"
+                  className="bg-[#2d2a3e] rounded-2xl p-5 flex flex-col gap-3 border border-white/10 hover:shadow-md transition-shadow duration-300"
                 >
                   <StarRating value={review.rating} readonly size="sm" />
                   <div>
-                    <p className="font-bold text-gray-800 dark:text-gray-100 text-base">
+                    <p className="font-bold text-gray-100 text-base">
                       {review.doctorName}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-400">
                       {review.specialization}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
                     <MapPin className="w-3 h-3" /> {review.city}
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 flex-1">
+                  <p className="text-sm text-gray-300 line-clamp-3 flex-1">
                     {review.content}
                   </p>
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-white/10 text-xs text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-xs text-gray-500">
                     <div className="w-6 h-6 rounded-full bg-peach-light flex items-center justify-center font-bold text-primary text-xs">
                       {review.isAnonymous
                         ? "?"
@@ -610,7 +610,7 @@ export default function HomePage() {
               {childPlaces.map((place) => (
                 <div
                   key={place.id}
-                  className="bg-white dark:bg-[#2d2a3e] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 hover:shadow-md transition-shadow duration-300 flex flex-col"
+                  className="bg-[#2d2a3e] rounded-2xl overflow-hidden border border-white/10 hover:shadow-md transition-shadow duration-300 flex flex-col"
                 >
                   {place.photoUrl ? (
                     <img
@@ -623,23 +623,23 @@ export default function HomePage() {
                       className="w-full h-40 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-40 bg-cream-dark dark:bg-[#3a3650] flex items-center justify-center text-4xl">
+                    <div className="w-full h-40 bg-[#3a3650] flex items-center justify-center text-4xl">
                       🏡
                     </div>
                   )}
                   <div className="p-5 flex flex-col gap-2 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-bold text-gray-800 dark:text-gray-100 text-base leading-tight">
+                      <p className="font-bold text-gray-100 text-base leading-tight">
                         {place.name}
                       </p>
                       <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-peach-light text-primary">
                         {PLACE_TYPE_LABELS[place.placeType] ?? "Place"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
                       <MapPin className="w-3 h-3" /> {place.city}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 flex-1">
+                    <p className="text-sm text-gray-300 line-clamp-2 flex-1">
                       {place.description}
                     </p>
                   </div>
