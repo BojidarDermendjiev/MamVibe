@@ -86,6 +86,12 @@ public class MappingProfile : Profile
             .ForMember(d => d.Price, opt => opt.MapFrom(s => s.Item != null ? s.Item.Price : null))
             .ForMember(d => d.BuyerDisplayName, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.DisplayName : null))
             .ForMember(d => d.BuyerAvatarUrl, opt => opt.MapFrom(s => s.Buyer != null ? s.Buyer.AvatarUrl : null))
+            .ForMember(d => d.BundleId, opt => opt.MapFrom(s => s.BundleId))
+            .ForMember(d => d.BundleTitle, opt => opt.MapFrom(s => s.Bundle != null ? s.Bundle.Title : null))
+            .ForMember(d => d.BundlePhotoUrl, opt => opt.MapFrom(s =>
+                s.Bundle != null && s.Bundle.BundleItems.Any()
+                    ? s.Bundle.BundleItems.First().Item.Photos.OrderBy(p => p.DisplayOrder).Select(p => p.Url).FirstOrDefault()
+                    : null))
             .ForMember(d => d.ShipmentId, opt => opt.Ignore());
 
         CreateMap<DoctorReview, DoctorReviewDto>()

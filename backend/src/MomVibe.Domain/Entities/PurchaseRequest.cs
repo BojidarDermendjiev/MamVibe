@@ -13,8 +13,11 @@ using Enums;
 /// </summary>
 public class PurchaseRequest : BaseEntity
 {
-    /// <summary>Foreign key to the requested item.</summary>
-    public Guid ItemId { get; set; }
+    /// <summary>Foreign key to the requested item. Null when the request is for a bundle.</summary>
+    public Guid? ItemId { get; set; }
+
+    /// <summary>Foreign key to the requested bundle. Null when the request is for a single item.</summary>
+    public Guid? BundleId { get; set; }
 
     /// <summary>Identity of the buyer who sent the request.</summary>
     [Required]
@@ -27,8 +30,11 @@ public class PurchaseRequest : BaseEntity
     /// <summary>Current lifecycle status of the request.</summary>
     public PurchaseRequestStatus Status { get; set; } = PurchaseRequestStatus.Pending;
 
-    /// <summary>Navigation to the requested item.</summary>
-    public Item Item { get; set; } = null!;
+    /// <summary>Navigation to the requested item. Null for bundle requests.</summary>
+    public Item? Item { get; set; }
+
+    /// <summary>Navigation to the requested bundle. Null for single-item requests.</summary>
+    public Bundle? Bundle { get; set; }
 
     /// <summary>Navigation to the buying user.</summary>
     public ApplicationUser Buyer { get; set; } = null!;

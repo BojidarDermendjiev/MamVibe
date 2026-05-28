@@ -2,6 +2,9 @@ import * as signalR from '@microsoft/signalr';
 import type { Message } from '../types/message';
 import type { PurchaseRequest } from '../types/purchaseRequest';
 import type { Shipment } from '../types/shipping';
+import type { NewFollowerNotification } from '../types/follow';
+import type { Item } from '../types/item';
+import type { SavedSearchMatchNotification } from '../types/savedSearch';
 
 type MessageHandler = (message: Message) => void;
 type ReadHandler = (senderId: string) => void;
@@ -11,6 +14,9 @@ type PurchaseRequestHandler = (request: PurchaseRequest) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaymentChosenHandler = (notification: any) => void;
 type ShipmentHandler = (shipment: Shipment) => void;
+type NewFollowerHandler = (notification: NewFollowerNotification) => void;
+type NewItemFromFollowedSellerHandler = (item: Item) => void;
+type SavedSearchMatchHandler = (notification: SavedSearchMatchNotification) => void;
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -24,6 +30,9 @@ class SignalRService {
   private paymentChosenHandlers: PaymentChosenHandler[] = [];
   private sellerShipmentReadyHandlers: ShipmentHandler[] = [];
   private shipmentStatusChangedHandlers: ShipmentHandler[] = [];
+  private newFollowerHandlers: NewFollowerHandler[] = [];
+  private newItemFromFollowedSellerHandlers: NewItemFromFollowedSellerHandler[] = [];
+  private savedSearchMatchHandlers: SavedSearchMatchHandler[] = [];
 
   async connect(accessToken: string): Promise<void> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -77,6 +86,18 @@ class SignalRService {
 
     this.connection.on('ShipmentStatusChanged', (shipment: Shipment) => {
       this.shipmentStatusChangedHandlers.forEach((h) => h(shipment));
+    });
+
+    this.connection.on('NewFollower', (notification: NewFollowerNotification) => {
+      this.newFollowerHandlers.forEach((h) => h(notification));
+    });
+
+    this.connection.on('NewItemFromFollowedSeller', (item: Item) => {
+      this.newItemFromFollowedSellerHandlers.forEach((h) => h(item));
+    });
+
+    this.connection.on('SavedSearchMatch', (notification: SavedSearchMatchNotification) => {
+      this.savedSearchMatchHandlers.forEach((h) => h(notification));
     });
 
     await this.connection.start();
@@ -169,6 +190,27 @@ class SignalRService {
     this.shipmentStatusChangedHandlers.push(handler);
     return () => {
       this.shipmentStatusChangedHandlers = this.shipmentStatusChangedHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onNewFollower(handler: NewFollowerHandler): () => void {
+    this.newFollowerHandlers.push(handler);
+    return () => {
+      this.newFollowerHandlers = this.newFollowerHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onNewItemFromFollowedSeller(handler: NewItemFromFollowedSellerHandler): () => void {
+    this.newItemFromFollowedSellerHandlers.push(handler);
+    return () => {
+      this.newItemFromFollowedSellerHandlers = this.newItemFromFollowedSellerHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onSavedSearchMatch(handler: SavedSearchMatchHandler): () => void {
+    this.savedSearchMatchHandlers.push(handler);
+    return () => {
+      this.savedSearchMatchHandlers = this.savedSearchMatchHandlers.filter((h) => h !== handler);
     };
   }
 }

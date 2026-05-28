@@ -84,6 +84,9 @@ public class ItemDto
     /// <summary>Gets or sets the list of photos associated with this item.</summary>
     public List<ItemPhotoDto> Photos { get; set; } = [];
 
+    /// <summary>Gets or sets the UTC timestamp of the most recent bump, or <c>null</c> if never bumped.</summary>
+    public DateTime? BumpedAt { get; set; }
+
     /// <summary>Gets or sets the UTC date and time when this item was created.</summary>
     public DateTime CreatedAt { get; set; }
 

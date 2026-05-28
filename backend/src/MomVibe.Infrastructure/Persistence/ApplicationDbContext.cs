@@ -25,6 +25,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Item> Items => Set<Item>();
 
     /// <inheritdoc/>
+    public DbSet<Bundle> Bundles => Set<Bundle>();
+
+    /// <inheritdoc/>
+    public DbSet<BundleItem> BundleItems => Set<BundleItem>();
+
+    /// <inheritdoc/>
     public DbSet<ItemPhoto> ItemPhotos => Set<ItemPhoto>();
 
     /// <inheritdoc/>
@@ -68,6 +74,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     /// <inheritdoc/>
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    /// <inheritdoc/>
+    public DbSet<Offer> Offers => Set<Offer>();
+
+    /// <inheritdoc/>
+    public DbSet<Follow> Follows => Set<Follow>();
+
+    /// <inheritdoc/>
+    public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder builder)

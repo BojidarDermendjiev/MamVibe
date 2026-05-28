@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 
 using Application.Interfaces;
 using Application.DTOs.Messages;
+using Application.DTOs.Follows;
+using Application.DTOs.Items;
+using Application.DTOs.Offers;
+using Application.DTOs.SavedSearches;
 using Application.DTOs.PurchaseRequests;
 using Application.DTOs.Shipping;
 using Infrastructure.Services;
@@ -147,4 +151,20 @@ public interface IChatClient
     Task ShipmentCreated(ShipmentDto shipment);
     /// <summary>Invoked when the status of an existing shipment has changed.</summary>
     Task ShipmentStatusChanged(ShipmentDto shipment);
+
+    // Offer events
+    /// <summary>Invoked when a buyer submits a new price offer to the seller.</summary>
+    Task ReceiveOffer(OfferDto offer);
+    /// <summary>Invoked when an offer's status has changed (accepted, declined, countered).</summary>
+    Task OfferUpdated(OfferDto offer);
+
+    // Follow events
+    /// <summary>Invoked when a new user starts following the current user.</summary>
+    Task NewFollower(NewFollowerNotification notification);
+    /// <summary>Invoked when a followed seller posts a new active listing.</summary>
+    Task NewItemFromFollowedSeller(ItemDto item);
+
+    // Saved search events
+    /// <summary>Invoked when a new item matches one of the current user's saved searches.</summary>
+    Task SavedSearchMatch(SavedSearchMatchNotification notification);
 }

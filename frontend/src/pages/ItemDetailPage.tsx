@@ -20,6 +20,8 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import StarRating from '../components/common/StarRating';
 import NekorektenWarningModal from '../components/common/NekorektenWarningModal';
 import Modal from '../components/common/Modal';
+import MakeOfferModal from '../components/items/MakeOfferModal';
+import FollowButton from '../components/users/FollowButton';
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +35,7 @@ export default function ItemDetailPage() {
   const [requestSent, setRequestSent] = useState(false);
   const [showNekorektenWarning, setShowNekorektenWarning] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
   const [isSellerReported, setIsSellerReported] = useState(false);
   const [sellerRating, setSellerRating] = useState<UserRatingSummary | null>(null);
   const nekorektenReportUrl = 'https://nekorekten.com/';
@@ -344,16 +347,24 @@ export default function ItemDetailPage() {
                   </span>
                 </div>
               </div>
-              {isSellerReported && (
-                <a
-                  href={nekorektenReportUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-600 text-xs font-semibold border border-red-300 hover:bg-red-200 transition-colors flex-shrink-0"
-                >
-                  ⚠️ {t('nekorekten.badge')}
-                </a>
-              )}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!isOwner && (
+                  <FollowButton
+                    userId={item.userId}
+                    onRequireAuth={() => setShowLoginModal(true)}
+                  />
+                )}
+                {isSellerReported && (
+                  <a
+                    href={nekorektenReportUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-600 text-xs font-semibold border border-red-300 hover:bg-red-200 transition-colors"
+                  >
+                    ⚠️ {t('nekorekten.badge')}
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -388,20 +399,32 @@ export default function ItemDetailPage() {
               )}
 
               {item.isActive && !item.isReserved && (
-                <Button
-                  fullWidth
-                  disabled={requestSent || requestPending || item.userIsOnHoliday}
-                  className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
-                  onClick={user ? handlePurchaseClick : () => setShowLoginModal(true)}
-                >
-                  {requestSent
-                    ? t('items.req_pending')
-                    : requestPending
-                    ? t('common.sending')
-                    : item.listingType === ListingType.Donate
-                    ? t('items.book_now')
-                    : t('items.buy_now')}
-                </Button>
+                <>
+                  <Button
+                    fullWidth
+                    disabled={requestSent || requestPending || item.userIsOnHoliday}
+                    className={item.listingType === ListingType.Donate ? 'bg-green-500 hover:bg-green-600' : undefined}
+                    onClick={user ? handlePurchaseClick : () => setShowLoginModal(true)}
+                  >
+                    {requestSent
+                      ? t('items.req_pending')
+                      : requestPending
+                      ? t('common.sending')
+                      : item.listingType === ListingType.Donate
+                      ? t('items.book_now')
+                      : t('items.buy_now')}
+                  </Button>
+
+                  {item.listingType === ListingType.Sell && item.price != null && !item.userIsOnHoliday && (
+                    <Button
+                      fullWidth
+                      variant="secondary"
+                      onClick={user ? () => setShowOfferModal(true) : () => setShowLoginModal(true)}
+                    >
+                      {t('offer.make_offer')}
+                    </Button>
+                  )}
+                </>
               )}
 
               {item.isActive && item.isReserved && (
@@ -419,6 +442,16 @@ export default function ItemDetailPage() {
           )}
         </div>
       </div>
+      {showOfferModal && item.price != null && (
+        <MakeOfferModal
+          itemId={item.id}
+          itemTitle={item.title}
+          listingPrice={item.price}
+          onClose={() => setShowOfferModal(false)}
+          onSuccess={() => setShowOfferModal(false)}
+        />
+      )}
+
       <NekorektenWarningModal
         isOpen={showNekorektenWarning}
         onClose={() => setShowNekorektenWarning(false)}

@@ -17,6 +17,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.StripeSessionId).HasMaxLength(500);
 
         builder.HasIndex(p => p.ItemId);
+        builder.HasIndex(p => p.BundleId);
         builder.HasIndex(p => p.BuyerId);
         builder.HasIndex(p => p.SellerId);
         builder.HasIndex(p => p.Status);
@@ -27,7 +28,14 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasOne(p => p.Item)
             .WithMany()
             .HasForeignKey(p => p.ItemId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
+
+        builder.HasOne(p => p.Bundle)
+            .WithMany()
+            .HasForeignKey(p => p.BundleId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         builder.HasOne(p => p.Buyer)
             .WithMany()

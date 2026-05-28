@@ -49,6 +49,9 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 // SignalR-backed notifiers (registered here because they depend on IHubContext from WebApi)
 builder.Services.AddScoped<IPurchaseRequestNotifier, SignalRPurchaseRequestNotifier>();
 builder.Services.AddScoped<IShipmentNotifier, SignalRShipmentNotifier>();
+builder.Services.AddScoped<IOfferNotifier, SignalROfferNotifier>();
+builder.Services.AddScoped<IFollowNotifier, SignalRFollowNotifier>();
+builder.Services.AddScoped<ISavedSearchNotifier, SignalRSavedSearchNotifier>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();

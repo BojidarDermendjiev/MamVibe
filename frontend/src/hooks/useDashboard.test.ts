@@ -6,6 +6,7 @@ import { paymentsApi } from '../api/paymentsApi'
 import { shippingApi } from '../api/shippingApi'
 import { ebillsApi } from '../api/ebillsApi'
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi'
+import { bundlesApi } from '../api/bundlesApi'
 
 vi.mock('../api/itemsApi', () => ({
   itemsApi: { getMyItems: vi.fn(), getLikedItems: vi.fn() },
@@ -22,6 +23,9 @@ vi.mock('../api/ebillsApi', () => ({
 vi.mock('../api/purchaseRequestsApi', () => ({
   purchaseRequestsApi: { getAsSeller: vi.fn(), getAsBuyer: vi.fn() },
 }))
+vi.mock('../api/bundlesApi', () => ({
+  bundlesApi: { getMy: vi.fn() },
+}))
 
 beforeEach(() => {
   vi.mocked(itemsApi.getMyItems).mockResolvedValue({ data: [] } as never)
@@ -31,6 +35,7 @@ beforeEach(() => {
   vi.mocked(ebillsApi.getMyEBills).mockResolvedValue({ data: [] } as never)
   vi.mocked(purchaseRequestsApi.getAsSeller).mockResolvedValue({ data: [] } as never)
   vi.mocked(purchaseRequestsApi.getAsBuyer).mockResolvedValue({ data: [] } as never)
+  vi.mocked(bundlesApi.getMy).mockResolvedValue({ data: [] } as never)
 })
 
 describe('useDashboard', () => {
@@ -110,6 +115,27 @@ describe('useDashboard', () => {
     act(() => result.current.refreshTab())
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(vi.mocked(itemsApi.getMyItems).mock.calls.length).toBeGreaterThan(callsBefore)
+  })
+
+  it('calls bundlesApi.getMy and getMyItems when tab set to bundles', async () => {
+    const { result } = renderHook(() => useDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    act(() => result.current.setTab('bundles'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(bundlesApi.getMy).toHaveBeenCalled()
+    expect(itemsApi.getMyItems).toHaveBeenCalled()
+  })
+
+  it('populates bundles state from API response', async () => {
+    vi.mocked(bundlesApi.getMy).mockResolvedValue({
+      data: [{ id: 'b1', title: 'My Bundle', price: 30, items: [] }],
+    } as never)
+    const { result } = renderHook(() => useDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    act(() => result.current.setTab('bundles'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.bundles).toHaveLength(1)
+    expect(result.current.bundles[0].id).toBe('b1')
   })
 
   it('sets loading false even when API throws', async () => {

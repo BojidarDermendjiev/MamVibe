@@ -298,4 +298,160 @@ public class PurchaseRequestServiceTests
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
+
+    [Fact]
+    public async Task DeclineAsync_Bundle_Request_Unreserves_All_Bundle_Items()
+    {
+        await using var db = CreateDb();
+        var bundle = await SeedBundleAsync(db, sellerId: "seller-1", buyerId: "buyer-1");
+
+        // Reserve all bundle items (mirrors what CreateForBundleAsync does)
+        var bundleItems = db.BundleItems.Include(bi => bi.Item).Where(bi => bi.BundleId == bundle.Id).ToList();
+        foreach (var bi in bundleItems) bi.Item.IsReserved = true;
+
+        var request = new PurchaseRequest
+        {
+            BundleId = bundle.Id,
+            ItemId = null,
+            BuyerId = "buyer-1",
+            SellerId = "seller-1",
+            Status = PurchaseRequestStatus.Pending
+        };
+        db.PurchaseRequests.Add(request);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        var result = await svc.DeclineAsync(request.Id, "seller-1");
+
+        result.Status.Should().Be(PurchaseRequestStatus.Declined);
+
+        var items = await db.BundleItems.Include(bi => bi.Item)
+            .Where(bi => bi.BundleId == bundle.Id).ToListAsync();
+        items.Should().AllSatisfy(bi => bi.Item.IsReserved.Should().BeFalse());
+    }
+
+    // =========================================================================
+    // CreateForBundleAsync
+    // =========================================================================
+
+    [Fact]
+    public async Task CreateForBundleAsync_Creates_Request_And_Reserves_All_Items()
+    {
+        await using var db = CreateDb();
+        var bundle = await SeedBundleAsync(db, sellerId: "seller-1", buyerId: "buyer-1");
+
+        var svc = CreateService(db);
+        var result = await svc.CreateForBundleAsync(bundle.Id, "buyer-1");
+
+        result.BundleId.Should().Be(bundle.Id);
+        result.Status.Should().Be(PurchaseRequestStatus.Pending);
+
+        var items = await db.BundleItems.Include(bi => bi.Item)
+            .Where(bi => bi.BundleId == bundle.Id).ToListAsync();
+        items.Should().AllSatisfy(bi => bi.Item.IsReserved.Should().BeTrue());
+    }
+
+    [Fact]
+    public async Task CreateForBundleAsync_Throws_KeyNotFound_When_Bundle_Missing()
+    {
+        await using var db = CreateDb();
+        var svc = CreateService(db);
+
+        var act = () => svc.CreateForBundleAsync(Guid.NewGuid(), "buyer-1");
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task CreateForBundleAsync_Throws_InvalidOperation_When_Buyer_Is_Seller()
+    {
+        await using var db = CreateDb();
+        var bundle = await SeedBundleAsync(db, sellerId: "seller-1", buyerId: "buyer-1");
+
+        var svc = CreateService(db);
+        var act = () => svc.CreateForBundleAsync(bundle.Id, "seller-1");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*own bundle*");
+    }
+
+    [Fact]
+    public async Task CreateForBundleAsync_Throws_InvalidOperation_When_Bundle_Is_Sold()
+    {
+        await using var db = CreateDb();
+        var bundle = await SeedBundleAsync(db, sellerId: "seller-1", buyerId: "buyer-1", isSold: true);
+
+        var svc = CreateService(db);
+        var act = () => svc.CreateForBundleAsync(bundle.Id, "buyer-1");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*not available*");
+    }
+
+    [Fact]
+    public async Task CreateForBundleAsync_Throws_InvalidOperation_When_Active_Request_Exists()
+    {
+        await using var db = CreateDb();
+        var bundle = await SeedBundleAsync(db, sellerId: "seller-1", buyerId: "buyer-1");
+
+        // Seed an existing pending request for the same bundle+buyer
+        db.PurchaseRequests.Add(new PurchaseRequest
+        {
+            BundleId = bundle.Id,
+            ItemId = null,
+            BuyerId = "buyer-1",
+            SellerId = "seller-1",
+            Status = PurchaseRequestStatus.Pending
+        });
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        var act = () => svc.CreateForBundleAsync(bundle.Id, "buyer-1");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*already have an active request*");
+    }
+
+    // =========================================================================
+    // Bundle seed helper
+    // =========================================================================
+
+    private static async Task<Bundle> SeedBundleAsync(
+        ApplicationDbContext db,
+        string sellerId = "seller-1",
+        string buyerId = "buyer-1",
+        int itemCount = 2,
+        bool isActive = true,
+        bool isSold = false)
+    {
+        if (!db.Users.Any(u => u.Id == sellerId))
+            db.Users.Add(new ApplicationUser { Id = sellerId, DisplayName = "Seller", Email = $"{sellerId}@test.com", UserName = sellerId });
+        if (!db.Users.Any(u => u.Id == buyerId))
+            db.Users.Add(new ApplicationUser { Id = buyerId, DisplayName = "Buyer", Email = $"{buyerId}@test.com", UserName = buyerId });
+
+        var items = Enumerable.Range(1, itemCount).Select(i => new Item
+        {
+            Title = $"Bundle Item {i}",
+            Description = "Test item",
+            UserId = sellerId,
+            IsActive = true,
+            ListingType = ListingType.Sell,
+            Price = 20m
+        }).ToList();
+        db.Items.AddRange(items);
+        await db.SaveChangesAsync();
+
+        var bundle = new Bundle
+        {
+            Title = "Test Bundle",
+            Price = 30m,
+            SellerId = sellerId,
+            IsActive = isActive,
+            IsSold = isSold,
+            BundleItems = items.Select(i => new BundleItem { ItemId = i.Id }).ToList()
+        };
+        db.Bundles.Add(bundle);
+        await db.SaveChangesAsync();
+        return bundle;
+    }
 }

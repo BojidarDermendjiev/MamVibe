@@ -417,8 +417,11 @@ public class PaymentService : IPaymentService
                     this._logger.LogError(ex, "E-bill issuance failed for payment {PaymentId}.", payment.Id);
                 }
 
-                try { await CompletePurchaseRequestAsync(payment.ItemId, payment.BuyerId); }
-                catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", payment.ItemId, payment.BuyerId); }
+                if (payment.ItemId.HasValue)
+                {
+                    try { await CompletePurchaseRequestAsync(payment.ItemId.Value, payment.BuyerId); }
+                    catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", payment.ItemId, payment.BuyerId); }
+                }
             }
         }
     }

@@ -52,6 +52,7 @@ export interface Item {
   likeCount: number;
   isLikedByCurrentUser: boolean;
   photos: ItemPhoto[];
+  bumpedAt: string | null;
   createdAt: string;
   aiModerationStatus: number;
   aiModerationNotes: string | null;

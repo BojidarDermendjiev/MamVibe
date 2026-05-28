@@ -4,6 +4,9 @@ import { useAuthStore } from '../store/authStore';
 import type { Message } from '../types/message';
 import type { PurchaseRequest } from '../types/purchaseRequest';
 import type { Shipment } from '../types/shipping';
+import type { NewFollowerNotification } from '../types/follow';
+import type { Item } from '../types/item';
+import type { SavedSearchMatchNotification } from '../types/savedSearch';
 
 type MessageHandler = (message: Message) => void;
 type TypingHandler = (userId: string) => void;
@@ -13,6 +16,9 @@ type PurchaseRequestHandler = (request: PurchaseRequest) => void;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PaymentChosenHandler = (notification: any) => void;
 type ShipmentHandler = (shipment: Shipment) => void;
+type NewFollowerHandler = (notification: NewFollowerNotification) => void;
+type NewItemFromFollowedSellerHandler = (item: Item) => void;
+type SavedSearchMatchHandler = (notification: SavedSearchMatchNotification) => void;
 
 interface SignalRContextValue {
   isConnected: boolean;
@@ -30,6 +36,9 @@ interface SignalRContextValue {
   onPaymentChosen: (handler: PaymentChosenHandler) => () => void;
   onSellerShipmentReady: (handler: ShipmentHandler) => () => void;
   onShipmentStatusChanged: (handler: ShipmentHandler) => () => void;
+  onNewFollower: (handler: NewFollowerHandler) => () => void;
+  onNewItemFromFollowedSeller: (handler: NewItemFromFollowedSellerHandler) => () => void;
+  onSavedSearchMatch: (handler: SavedSearchMatchHandler) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue>({
@@ -48,6 +57,9 @@ const SignalRContext = createContext<SignalRContextValue>({
   onPaymentChosen: () => () => {},
   onSellerShipmentReady: () => () => {},
   onShipmentStatusChanged: () => () => {},
+  onNewFollower: () => () => {},
+  onNewItemFromFollowedSeller: () => () => {},
+  onSavedSearchMatch: () => () => {},
 });
 
 export function SignalRProvider({ children }: { children: ReactNode }) {
@@ -163,6 +175,21 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const onNewFollower = useCallback(
+    (handler: NewFollowerHandler) => signalRService.onNewFollower(handler),
+    []
+  );
+
+  const onNewItemFromFollowedSeller = useCallback(
+    (handler: NewItemFromFollowedSellerHandler) => signalRService.onNewItemFromFollowedSeller(handler),
+    []
+  );
+
+  const onSavedSearchMatch = useCallback(
+    (handler: SavedSearchMatchHandler) => signalRService.onSavedSearchMatch(handler),
+    []
+  );
+
   return (
     <SignalRContext.Provider
       value={{
@@ -181,6 +208,9 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
         onPaymentChosen,
         onSellerShipmentReady,
         onShipmentStatusChanged,
+        onNewFollower,
+        onNewItemFromFollowedSeller,
+        onSavedSearchMatch,
       }}
     >
       {children}

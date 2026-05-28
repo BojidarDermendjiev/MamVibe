@@ -17,6 +17,13 @@ public interface IPurchaseRequestService
     Task<PurchaseRequestDto> CreateAsync(Guid itemId, string buyerId);
 
     /// <summary>
+    /// Creates a new purchase request for an entire bundle, reserving all member items atomically.
+    /// Throws <see cref="KeyNotFoundException"/> if the bundle does not exist and
+    /// <see cref="InvalidOperationException"/> if the bundle is unavailable or the buyer is the seller.
+    /// </summary>
+    Task<PurchaseRequestDto> CreateForBundleAsync(Guid bundleId, string buyerId);
+
+    /// <summary>
     /// Seller accepts the pending request.
     /// For Donate items a Booking payment is created immediately.
     /// For Sell items the request moves to Accepted, awaiting buyer payment choice.

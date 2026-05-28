@@ -9,8 +9,17 @@ public class PurchaseRequestDto
 {
     /// <summary>Gets or sets the unique identifier of this purchase request.</summary>
     public Guid Id { get; set; }
-    /// <summary>Gets or sets the identifier of the item being requested.</summary>
-    public Guid ItemId { get; set; }
+    /// <summary>Gets or sets the identifier of the item being requested. Null for bundle requests.</summary>
+    public Guid? ItemId { get; set; }
+
+    /// <summary>Gets or sets the identifier of the bundle being requested. Null for single-item requests.</summary>
+    public Guid? BundleId { get; set; }
+
+    /// <summary>Gets or sets the title of the requested bundle, for display purposes. Null for item requests.</summary>
+    public string? BundleTitle { get; set; }
+
+    /// <summary>Gets or sets the URL of the bundle's primary photo. Null for item requests.</summary>
+    public string? BundlePhotoUrl { get; set; }
     /// <summary>Gets or sets the title of the requested item, for display purposes.</summary>
     public string? ItemTitle { get; set; }
     /// <summary>Gets or sets the URL of the item's primary photo, for display purposes.</summary>

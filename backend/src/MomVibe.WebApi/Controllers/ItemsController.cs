@@ -262,6 +262,26 @@ public class ItemsController : ControllerBase
     }
 
     /// <summary>
+    /// Bumps the item to the top of browse results for 24 hours.
+    /// Limited to once every 7 days per item.
+    /// </summary>
+    [Authorize]
+    [HttpPost("{id:guid}/bump")]
+    public async Task<IActionResult> Bump(Guid id)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+        try
+        {
+            var item = await this._itemService.BumpAsync(id, userId);
+            return Ok(item);
+        }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
+    }
+
+    /// <summary>
     /// Toggles the like status of an item for the authenticated user.
     /// </summary>
     /// <param name="id">The GUID of the item to like or unlike.</param>

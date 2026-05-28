@@ -610,4 +610,77 @@ public class ItemServiceTests
         result[0].IsLikedByCurrentUser.Should().BeTrue();
         _ = item2; // not liked
     }
+
+    // =========================================================================
+    // BumpAsync
+    // =========================================================================
+
+    [Fact]
+    public async Task BumpAsync_Sets_BumpedAt_And_Returns_Dto()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1");
+
+        var svc = CreateService(db);
+        var before = DateTime.UtcNow;
+        var result = await svc.BumpAsync(item.Id, "seller-1");
+        var after = DateTime.UtcNow;
+
+        result.Should().NotBeNull();
+        result.BumpedAt.Should().NotBeNull();
+        result.BumpedAt!.Value.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
+    }
+
+    [Fact]
+    public async Task BumpAsync_Throws_KeyNotFoundException_When_Item_Not_Found()
+    {
+        await using var db = CreateDb();
+        var svc = CreateService(db);
+
+        var act = () => svc.BumpAsync(Guid.NewGuid(), "seller-1");
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task BumpAsync_Throws_UnauthorizedAccessException_When_Not_Owner()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1");
+
+        var svc = CreateService(db);
+        var act = () => svc.BumpAsync(item.Id, "other-user");
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task BumpAsync_Throws_InvalidOperationException_When_On_Cooldown()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1");
+        item.BumpedAt = DateTime.UtcNow.AddDays(-1); // bumped 1 day ago — cooldown is 7 days
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        var act = () => svc.BumpAsync(item.Id, "seller-1");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*bump*");
+    }
+
+    [Fact]
+    public async Task BumpAsync_Allows_Bump_After_Cooldown_Expires()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1");
+        item.BumpedAt = DateTime.UtcNow.AddDays(-8); // bumped 8 days ago — past the 7-day cooldown
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        var result = await svc.BumpAsync(item.Id, "seller-1");
+
+        result.BumpedAt.Should().NotBeNull();
+        result.BumpedAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
 }

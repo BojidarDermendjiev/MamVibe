@@ -671,6 +671,9 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<bool>("IsSold")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("BumpedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Condition")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -983,6 +986,137 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("SellerId", "Status");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.Offer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BuyerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("CounterPrice")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("OfferedPrice")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("SellerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("SellerId");
+
+                    b.ToTable("Offers");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.SavedSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("AgeGroup")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("ClothingSize")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Condition")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ListingType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("MaxPrice")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SearchTerm")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("ShoeSize")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SavedSearches");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.Follow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FolloweeId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FollowerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FolloweeId");
+
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("FollowerId", "FolloweeId")
+                        .IsUnique();
+
+                    b.ToTable("Follows");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.PurchaseRequest", b =>
@@ -1442,6 +1576,70 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Navigation("Seller");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.Offer", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "Buyer")
+                        .WithMany()
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Buyer");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.SavedSearch", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("SavedSearches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.Follow", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "Followee")
+                        .WithMany("Followers")
+                        .HasForeignKey("FolloweeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Followee");
+
+                    b.Navigation("Follower");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
@@ -1497,9 +1695,15 @@ namespace MomVibe.Infrastructure.Migrations
 
                     b.Navigation("DoctorReviews");
 
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
+
                     b.Navigation("Items");
 
                     b.Navigation("Likes");
+
+                    b.Navigation("SavedSearches");
 
                     b.Navigation("RatingsGiven");
 

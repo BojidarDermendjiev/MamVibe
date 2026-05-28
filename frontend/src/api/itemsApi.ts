@@ -35,4 +35,7 @@ export const itemsApi = {
 
   checkSeller: (id: string) =>
     axiosClient.get<SellerCheckResult>(`/items/${id}/seller-check`),
+
+  bump: (id: string) =>
+    axiosClient.post<Item>(`/items/${id}/bump`),
 };

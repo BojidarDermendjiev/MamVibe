@@ -62,6 +62,10 @@ public static class DependencyInjection
         services.AddScoped<IUserRatingService, UserRatingService>();
         services.AddScoped<ITurnstileService, TurnstileService>();
         services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
+        services.AddScoped<IOfferService, OfferService>();
+        services.AddScoped<IFollowService, FollowService>();
+        services.AddScoped<ISavedSearchService, SavedSearchService>();
+        services.AddScoped<IBundleService, BundleService>();
 
         // Email
         services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));

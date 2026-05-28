@@ -184,7 +184,7 @@ public class DevController : ControllerBase
             .Where(i => i.Description != null && i.Description.Contains("Seeded for UI demo"))
             .Select(i => i.Id);
 
-        var demoPayments = _context.Payments.Where(p => demoItemIds.Contains(p.ItemId));
+        var demoPayments = _context.Payments.Where(p => p.ItemId.HasValue && demoItemIds.Contains(p.ItemId.Value));
         _context.Payments.RemoveRange(demoPayments);
 
         var demoItems = _context.Items

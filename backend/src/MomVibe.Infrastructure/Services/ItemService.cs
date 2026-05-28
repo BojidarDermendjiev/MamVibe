@@ -27,6 +27,8 @@ public class ItemService : IItemService
     private readonly IAiService _aiService;
     private readonly INekorektenService _nekorekten;
     private readonly IMemoryCache _cache;
+    private readonly IFollowNotifier? _followNotifier;
+    private readonly ISavedSearchService? _savedSearchService;
 
     private const double AutoApproveThreshold = 0.85;
     private const double NewSellerAutoApproveThreshold = 0.95;
@@ -41,7 +43,9 @@ public class ItemService : IItemService
         IOptions<N8nSettings> n8nSettings,
         IAiService aiService,
         INekorektenService nekorekten,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IFollowNotifier? followNotifier = null,
+        ISavedSearchService? savedSearchService = null)
     {
         this._context = context;
         this._mapper = mapper;
@@ -50,6 +54,8 @@ public class ItemService : IItemService
         this._aiService = aiService;
         this._nekorekten = nekorekten;
         this._cache = cache;
+        this._followNotifier = followNotifier;
+        this._savedSearchService = savedSearchService;
     }
 
     private static string BuildCacheKey(ItemFilterDto filter) =>
@@ -113,14 +119,16 @@ public class ItemService : IItemService
         if (filter.Condition.HasValue)
             query = query.Where(i => i.Condition == filter.Condition.Value);
 
+        // Bumped items (within the last 24 h) float to the top of any sort order
+        var bumpCutoff = DateTime.UtcNow.AddHours(-24);
         query = filter.SortBy switch
         {
-            "price_asc"   => query.OrderBy(i => i.Price),
-            "price_desc"  => query.OrderByDescending(i => i.Price),
-            "most_liked"  => query.OrderByDescending(i => i.LikeCount),
-            "most_viewed" => query.OrderByDescending(i => i.ViewCount),
-            "oldest"      => query.OrderBy(i => i.CreatedAt),
-            _             => query.OrderByDescending(i => i.CreatedAt)
+            "price_asc"   => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenBy(i => i.Price),
+            "price_desc"  => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenByDescending(i => i.Price),
+            "most_liked"  => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenByDescending(i => i.LikeCount),
+            "most_viewed" => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenByDescending(i => i.ViewCount),
+            "oldest"      => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenBy(i => i.CreatedAt),
+            _             => query.OrderByDescending(i => i.BumpedAt != null && i.BumpedAt > bumpCutoff).ThenByDescending(i => i.CreatedAt)
         };
 
         var totalCount = await query.CountAsync();
@@ -276,7 +284,31 @@ public class ItemService : IItemService
             catch { /* Webhook failure must not break item creation */ }
         }
 
-        return (await GetByIdAsync(item.Id))!;
+        var result = (await GetByIdAsync(item.Id))!;
+
+        // Notify saved-search subscribers and followers if item went live immediately
+        if (item.IsActive && this._savedSearchService != null)
+        {
+            try { await this._savedSearchService.NotifyMatchingSearchesAsync(result); }
+            catch { /* never block item creation */ }
+        }
+
+        if (item.IsActive && this._followNotifier != null)
+        {
+            try
+            {
+                var followerIds = await this._context.Follows
+                    .AsNoTracking()
+                    .Where(f => f.FolloweeId == userId)
+                    .Select(f => f.FollowerId)
+                    .ToListAsync();
+                if (followerIds.Count > 0)
+                    await this._followNotifier.NotifyFollowersOfNewItemAsync(followerIds, result);
+            }
+            catch { /* never block item creation */ }
+        }
+
+        return result;
     }
 
     public async Task<ItemDto> UpdateAsync(Guid id, UpdateItemDto dto, string userId)
@@ -498,5 +530,34 @@ public class ItemService : IItemService
                 })
                 .ToList(),
         };
+    }
+
+    private static readonly TimeSpan BumpDuration = TimeSpan.FromHours(24);
+    private static readonly TimeSpan BumpCooldown = TimeSpan.FromDays(7);
+
+    public async Task<ItemDto> BumpAsync(Guid itemId, string userId)
+    {
+        var item = await this._context.Items
+            .Include(i => i.Photos)
+            .Include(i => i.User)
+            .Include(i => i.Category)
+            .FirstOrDefaultAsync(i => i.Id == itemId);
+
+        if (item == null)
+            throw new KeyNotFoundException("Item not found.");
+        if (item.UserId != userId)
+            throw new UnauthorizedAccessException("You can only bump your own items.");
+
+        var now = DateTime.UtcNow;
+        if (item.BumpedAt.HasValue && item.BumpedAt.Value > now - BumpCooldown)
+        {
+            var hoursLeft = (int)Math.Ceiling((item.BumpedAt.Value + BumpCooldown - now).TotalHours);
+            throw new InvalidOperationException($"You can bump this item again in {hoursLeft} hour(s).");
+        }
+
+        item.BumpedAt = now;
+        await this._context.SaveChangesAsync();
+
+        return this._mapper.Map<ItemDto>(item);
     }
 }

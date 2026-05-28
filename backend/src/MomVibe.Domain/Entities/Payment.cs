@@ -17,7 +17,6 @@ using Constants;
 /// - EF Core <see cref="CommentAttribute"/> provides descriptive database column comments.
 /// - Indexes support common query patterns (by item, participants, status, creation time).
 /// </remarks>
-[Index(nameof(ItemId))]
 [Index(nameof(BuyerId))]
 [Index(nameof(SellerId))]
 [Index(nameof(Status))]
@@ -25,10 +24,15 @@ using Constants;
 public class Payment : BaseEntity
 {
     /// <summary>
-    /// Foreign key referencing the purchased item.
+    /// Foreign key referencing the purchased item. Null when the payment is for a bundle.
     /// </summary>
     [Comment(PaymentConstants.Comments.ItemId)]
-    public Guid ItemId { get; set; }
+    public Guid? ItemId { get; set; }
+
+    /// <summary>
+    /// Foreign key referencing the purchased bundle. Null when the payment is for a single item.
+    /// </summary>
+    public Guid? BundleId { get; set; }
 
     /// <summary>
     /// Identifier of the buying user (FK to ApplicationUser.Id).
@@ -87,9 +91,14 @@ public class Payment : BaseEntity
     public string? EBillNumber { get; set; }
 
     /// <summary>
-    /// Navigation to the purchased item.
+    /// Navigation to the purchased item. Null for bundle payments.
     /// </summary>
-    public Item Item { get; set; } = null!;
+    public Item? Item { get; set; }
+
+    /// <summary>
+    /// Navigation to the purchased bundle. Null for single-item payments.
+    /// </summary>
+    public Bundle? Bundle { get; set; }
 
     /// <summary>
     /// Navigation to the buying user.

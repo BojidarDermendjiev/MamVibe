@@ -64,6 +64,9 @@ public class ApplicationUser : IdentityUser
     /// <summary>Gets the collection of marketplace items listed by the user.</summary>
     public ICollection<Item> Items { get; set; } = [];
 
+    /// <summary>Gets the collection of item bundles created by the user.</summary>
+    public ICollection<Bundle> Bundles { get; set; } = [];
+
     /// <summary>Gets the collection of items the user has liked.</summary>
     public ICollection<Like> Likes { get; set; } = [];
 
@@ -87,4 +90,13 @@ public class ApplicationUser : IdentityUser
 
     /// <summary>Gets the collection of ratings the user has received from other users.</summary>
     public ICollection<UserRating> RatingsReceived { get; set; } = [];
+
+    /// <summary>Gets the saved search alert subscriptions owned by this user.</summary>
+    public ICollection<SavedSearch> SavedSearches { get; set; } = [];
+
+    /// <summary>Gets the follow relationships this user has initiated (users they follow).</summary>
+    public ICollection<Follow> Following { get; set; } = [];
+
+    /// <summary>Gets the follow relationships pointing at this user (their followers).</summary>
+    public ICollection<Follow> Followers { get; set; } = [];
 }

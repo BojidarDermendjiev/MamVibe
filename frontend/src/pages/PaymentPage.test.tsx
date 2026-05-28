@@ -44,6 +44,7 @@ const sellItem = {
   viewCount: 0,
   likeCount: 0,
   isLikedByCurrentUser: false,
+  bumpedAt: null,
   createdAt: '2024-01-01',
   aiModerationStatus: 1,
   aiModerationNotes: null,

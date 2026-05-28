@@ -30,6 +30,7 @@ const baseItem: Item = {
   likeCount: 7,
   isLikedByCurrentUser: false,
   photos: [],
+  bumpedAt: null,
   createdAt: '2024-01-01T00:00:00Z',
   aiModerationStatus: 1,
   aiModerationNotes: null,

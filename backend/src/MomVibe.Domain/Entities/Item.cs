@@ -133,6 +133,9 @@ public class Item : BaseEntity
     /// <summary>Set to true once a completed payment/purchase-request marks this item as sold.</summary>
     public bool IsSold { get; set; }
 
+    /// <summary>UTC timestamp of the most recent bump; null if never bumped.</summary>
+    public DateTime? BumpedAt { get; set; }
+
     /// <summary>Standardized condition tier selected by the seller at listing time.</summary>
     public ItemCondition Condition { get; set; } = ItemCondition.Unspecified;
 

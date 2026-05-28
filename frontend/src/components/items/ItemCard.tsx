@@ -12,9 +12,10 @@ interface ItemCardProps {
   onLikeToggle?: (id: string) => void;
   onRequireAuth?: () => void;
   showStatus?: boolean;
+  onBump?: (id: string) => void;
 }
 
-export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus }: ItemCardProps) {
+export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus, onBump }: ItemCardProps) {
   const { t } = useTranslation();
   const photo = item.photos[0];
 
@@ -22,6 +23,14 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
   const isPending = showStatus && !item.isActive && !item.isSold;
   const isFlagged = isPending && item.aiModerationStatus === 3;
   const isReserved = item.isReserved;
+
+  const now = Date.now();
+  const bumpedMs = item.bumpedAt ? new Date(item.bumpedAt).getTime() : null;
+  const isBumpActive = bumpedMs !== null && now - bumpedMs < 24 * 60 * 60 * 1000;
+  const isOnCooldown = bumpedMs !== null && now - bumpedMs < 7 * 24 * 60 * 60 * 1000;
+  const cooldownHoursLeft = isOnCooldown && bumpedMs !== null
+    ? Math.ceil((bumpedMs + 7 * 24 * 60 * 60 * 1000 - now) / (60 * 60 * 1000))
+    : 0;
 
   return (
     <div className={`bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl shadow-sm border hover-lift group animate-fade-in transition-all duration-300 ${
@@ -128,6 +137,11 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
           {item.condition !== ItemCondition.Unspecified && (
             <ConditionBadge condition={item.condition} size="sm" />
           )}
+          {isBumpActive && (
+            <span className="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-semibold uppercase tracking-wide">
+              🚀 {t('items.bumped')}
+            </span>
+          )}
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="font-bold text-lg text-mauve">
@@ -149,6 +163,23 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
             />
           </div>
         </div>
+
+        {onBump && (
+          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5">
+            {isBumpActive ? (
+              <p className="text-xs text-center text-orange-500 font-medium">🚀 {t('items.bump_active')}</p>
+            ) : isOnCooldown ? (
+              <p className="text-xs text-center text-gray-400">{t('items.bump_cooldown', { hours: cooldownHoursLeft })}</p>
+            ) : (
+              <button
+                onClick={e => { e.preventDefault(); onBump(item.id); }}
+                className="w-full text-xs font-medium py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors"
+              >
+                🚀 {t('items.bump')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

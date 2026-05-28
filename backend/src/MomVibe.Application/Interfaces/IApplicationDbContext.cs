@@ -15,6 +15,12 @@ public interface IApplicationDbContext
     /// <summary>Gets the set of marketplace items.</summary>
     DbSet<Item> Items { get; }
 
+    /// <summary>Gets the set of seller-curated item bundles.</summary>
+    DbSet<Bundle> Bundles { get; }
+
+    /// <summary>Gets the set of item-to-bundle membership records.</summary>
+    DbSet<BundleItem> BundleItems { get; }
+
     /// <summary>Gets the set of photos attached to marketplace items.</summary>
     DbSet<ItemPhoto> ItemPhotos { get; }
 
@@ -59,6 +65,15 @@ public interface IApplicationDbContext
 
     /// <summary>Gets the append-only security audit log.</summary>
     DbSet<AuditLog> AuditLogs { get; }
+
+    /// <summary>Gets the set of price offers made by buyers on sell listings.</summary>
+    DbSet<Offer> Offers { get; }
+
+    /// <summary>Gets the set of seller follow relationships.</summary>
+    DbSet<Follow> Follows { get; }
+
+    /// <summary>Gets the set of saved search alert subscriptions.</summary>
+    DbSet<SavedSearch> SavedSearches { get; }
 
     /// <summary>Gets the underlying <see cref="DatabaseFacade"/> for executing raw SQL and managing transactions.</summary>
     DatabaseFacade Database { get; }

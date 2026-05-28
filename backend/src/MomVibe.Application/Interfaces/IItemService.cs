@@ -66,4 +66,12 @@ public interface IItemService
     /// <summary>Checks the reputation of the seller who owns the specified item.</summary>
     /// <param name="itemId">The unique identifier of the item whose seller is to be checked.</param>
     Task<SellerCheckResultDto> CheckSellerAsync(Guid itemId);
+
+    /// <summary>
+    /// Bumps the item to the top of browse results for 24 hours.
+    /// Enforces a 7-day cooldown between bumps per item.
+    /// Throws <see cref="UnauthorizedAccessException"/> when the caller is not the owner.
+    /// Throws <see cref="InvalidOperationException"/> when the cooldown has not expired.
+    /// </summary>
+    Task<ItemDto> BumpAsync(Guid itemId, string userId);
 }

@@ -14,8 +14,8 @@ public class PaymentDto
 {
     /// <summary>Gets or sets the unique payment identifier.</summary>
     public Guid Id { get; set; }
-    /// <summary>Gets or sets the identifier of the item involved in the transaction.</summary>
-    public Guid ItemId { get; set; }
+    /// <summary>Gets or sets the identifier of the item involved in the transaction. Null for bundle payments.</summary>
+    public Guid? ItemId { get; set; }
     /// <summary>Gets or sets the title of the item at the time of purchase, for display purposes.</summary>
     public string? ItemTitle { get; set; }
     /// <summary>Gets or sets the identifier of the user who made the purchase.</summary>

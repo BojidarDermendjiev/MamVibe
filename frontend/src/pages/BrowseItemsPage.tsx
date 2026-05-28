@@ -13,6 +13,7 @@ import ItemFilters from '../components/items/ItemFilters';
 import Pagination from '../components/common/Pagination';
 import Modal from '../components/common/Modal';
 import { AgeGroup } from '../types/item';
+import SaveSearchButton from '../components/search/SaveSearchButton';
 
 const AGE_QUERY_MAP: Record<string, AgeGroup> = {
   newborn: AgeGroup.Newborn,
@@ -142,6 +143,11 @@ export default function BrowseItemsPage() {
           >
             {t('common.search')}
           </button>
+          <SaveSearchButton
+            filter={filter}
+            searchTerm={searchTerm}
+            onRequireAuth={handleRequireAuth}
+          />
         </form>
 
         <div className="flex flex-col lg:flex-row gap-6">

@@ -11,10 +11,10 @@ export type PurchaseRequestStatus = (typeof PurchaseRequestStatus)[keyof typeof 
 
 export interface PurchaseRequest {
   id: string;
-  itemId: string;
+  itemId: string | null;
   itemTitle: string | null;
   itemPhotoUrl: string | null;
-  listingType: ListingType;
+  listingType: ListingType | null;
   price: number | null;
   buyerId: string;
   buyerDisplayName: string | null;
@@ -23,4 +23,7 @@ export interface PurchaseRequest {
   status: PurchaseRequestStatus;
   createdAt: string;
   shipmentId?: string;
+  bundleId?: string | null;
+  bundleTitle?: string | null;
+  bundlePhotoUrl?: string | null;
 }

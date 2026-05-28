@@ -96,6 +96,54 @@ public class PurchaseRequestService : IPurchaseRequestService
         return dto;
     }
 
+    public async Task<PurchaseRequestDto> CreateForBundleAsync(Guid bundleId, string buyerId)
+    {
+        var bundle = await this._context.Bundles
+            .Include(b => b.BundleItems).ThenInclude(bi => bi.Item)
+            .FirstOrDefaultAsync(b => b.Id == bundleId);
+
+        if (bundle == null)
+            throw new KeyNotFoundException("Bundle not found.");
+        if (bundle.SellerId == buyerId)
+            throw new InvalidOperationException("You cannot request your own bundle.");
+        if (!bundle.IsActive || bundle.IsSold)
+            throw new InvalidOperationException("This bundle is not available.");
+
+        // Check no active request already exists for this bundle
+        var existing = await this._context.PurchaseRequests
+            .AnyAsync(r => r.BundleId == bundleId && r.BuyerId == buyerId
+                        && r.Status != PurchaseRequestStatus.Declined
+                        && r.Status != PurchaseRequestStatus.Cancelled);
+        if (existing)
+            throw new InvalidOperationException("You already have an active request for this bundle.");
+
+        // Reserve all bundle items
+        foreach (var bi in bundle.BundleItems)
+            bi.Item.IsReserved = true;
+
+        var request = new PurchaseRequest
+        {
+            BundleId = bundleId,
+            ItemId = null,
+            BuyerId = buyerId,
+            SellerId = bundle.SellerId,
+            Status = PurchaseRequestStatus.Pending
+        };
+        this._context.PurchaseRequests.Add(request);
+        await this._context.SaveChangesAsync();
+
+        // Reload with bundle navigations for the DTO
+        var saved = await this._context.PurchaseRequests
+            .Include(r => r.Bundle).ThenInclude(b => b!.BundleItems).ThenInclude(bi => bi.Item).ThenInclude(i => i.Photos)
+            .Include(r => r.Buyer)
+            .FirstAsync(r => r.Id == request.Id);
+
+        var dto = this._mapper.Map<PurchaseRequestDto>(saved);
+        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); } catch { /* best effort */ }
+
+        return dto;
+    }
+
     public async Task<PurchaseRequestDto> AcceptAsync(Guid requestId, string sellerId)
     {
         var request = await this._context.PurchaseRequests
@@ -140,7 +188,21 @@ public class PurchaseRequestService : IPurchaseRequestService
             throw new InvalidOperationException("Only pending requests can be declined.");
 
         request.Status = PurchaseRequestStatus.Declined;
-        request.Item.IsReserved = false; // Clear reservation so item is available again
+
+        // Clear reservation — for item requests clear the item; for bundle requests clear all bundle items
+        if (request.Item != null)
+        {
+            request.Item.IsReserved = false;
+        }
+        else if (request.BundleId.HasValue)
+        {
+            var bundleItems = await this._context.BundleItems
+                .Include(bi => bi.Item)
+                .Where(bi => bi.BundleId == request.BundleId.Value)
+                .ToListAsync();
+            foreach (var bi in bundleItems)
+                bi.Item.IsReserved = false;
+        }
 
         await this._context.SaveChangesAsync();
 
@@ -186,17 +248,17 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dtos = this._mapper.Map<List<PurchaseRequestDto>>(requests);
 
-        // Enrich completed requests with ShipmentId (only when a shipment was actually created)
+        // Enrich completed item requests with ShipmentId (only when a shipment was actually created)
         // so the seller's "View Waybill" button only appears when there is a real waybill to view.
         var completedItemIds = requests
-            .Where(r => r.Status == PurchaseRequestStatus.Completed)
-            .Select(r => r.ItemId)
+            .Where(r => r.Status == PurchaseRequestStatus.Completed && r.ItemId.HasValue)
+            .Select(r => r.ItemId!.Value)
             .ToList();
 
         if (completedItemIds.Count > 0)
         {
             var paymentToShipment = await this._context.Payments
-                .Where(p => completedItemIds.Contains(p.ItemId) && p.SellerId == sellerId)
+                .Where(p => p.ItemId.HasValue && completedItemIds.Contains(p.ItemId.Value) && p.SellerId == sellerId)
                 .Join(this._context.Shipments,
                     p => p.Id,
                     s => s.PaymentId,
@@ -205,6 +267,7 @@ public class PurchaseRequestService : IPurchaseRequestService
 
             foreach (var dto in dtos)
             {
+                if (!dto.ItemId.HasValue) continue;
                 var match = paymentToShipment.FirstOrDefault(x => x.ItemId == dto.ItemId && x.BuyerId == dto.BuyerId);
                 if (match != null)
                     dto.ShipmentId = match.ShipmentId;

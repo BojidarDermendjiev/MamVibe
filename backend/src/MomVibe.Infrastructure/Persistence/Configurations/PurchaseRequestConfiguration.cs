@@ -14,6 +14,7 @@ public class PurchaseRequestConfiguration : IEntityTypeConfiguration<PurchaseReq
     public void Configure(EntityTypeBuilder<PurchaseRequest> builder)
     {
         builder.HasIndex(r => r.ItemId);
+        builder.HasIndex(r => r.BundleId);
         builder.HasIndex(r => r.BuyerId);
         builder.HasIndex(r => r.SellerId);
         builder.HasIndex(r => r.Status);
@@ -22,7 +23,14 @@ public class PurchaseRequestConfiguration : IEntityTypeConfiguration<PurchaseReq
         builder.HasOne(r => r.Item)
             .WithMany()
             .HasForeignKey(r => r.ItemId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
+
+        builder.HasOne(r => r.Bundle)
+            .WithMany()
+            .HasForeignKey(r => r.BundleId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         builder.HasOne(r => r.Buyer)
             .WithMany()
