@@ -475,7 +475,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: i * 0.05 }}
-                className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-gray-100 dark:border-white/5 hover:shadow-md transition-shadow duration-300"
+                className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#201d30] hover:shadow-md transition-shadow duration-300"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
