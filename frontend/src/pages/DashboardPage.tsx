@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/useSEO';
 import toast from '@/utils/toast';
-import { useAuthStore } from '../store/authStore';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
 import EBillCard from '../components/payment/EBillCard';
 import { itemsApi } from '../api/itemsApi';
@@ -31,7 +30,6 @@ import RateSellerModal from '../components/purchase/RateSellerModal';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
   const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, receivedOffers, sentOffers, shipments, ebills, followingFeed, following, followers, savedSearches, bundles, loading, removeLikedItem, refreshTab } = useDashboard();
   const [showCreateBundle, setShowCreateBundle] = useState(false);
 
@@ -485,7 +483,7 @@ export default function DashboardPage() {
                   <section>
                     <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.to_send_section')}</h2>
                     <div className="space-y-3">
-                      {toSend.map((s) => <ShipmentCard key={s.id} shipment={s} currentUserId={user?.id} />)}
+                      {toSend.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
                     </div>
                   </section>
                 )}
@@ -493,7 +491,7 @@ export default function DashboardPage() {
                   <section>
                     <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.incoming_section')}</h2>
                     <div className="space-y-3">
-                      {incoming.map((s) => <ShipmentCard key={s.id} shipment={s} currentUserId={user?.id} />)}
+                      {incoming.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
                     </div>
                   </section>
                 )}

@@ -8,7 +8,6 @@ import toast from '../../utils/toast';
 
 interface ShipmentCardProps {
   shipment: Shipment;
-  currentUserId?: string;
 }
 
 const statusColors: Record<number, string> = {
@@ -33,7 +32,7 @@ const statusKeys: Record<number, string> = {
   [ShipmentStatus.Cancelled]: 'cancelled',
 };
 
-export default function ShipmentCard({ shipment, currentUserId }: ShipmentCardProps) {
+export default function ShipmentCard({ shipment }: ShipmentCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);

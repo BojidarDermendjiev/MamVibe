@@ -1,16 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { ThemeProvider, useTheme } from './ThemeContext'
 
 function ThemeConsumer() {
-  const { theme, toggleTheme } = useTheme()
-  return (
-    <div>
-      <span data-testid="theme">{theme}</span>
-      <button onClick={toggleTheme}>toggle</button>
-    </div>
-  )
+  const { theme } = useTheme()
+  return <span data-testid="theme">{theme}</span>
 }
 
 beforeEach(() => {
@@ -19,39 +13,18 @@ beforeEach(() => {
 })
 
 describe('ThemeContext', () => {
-  it('defaults to light theme', () => {
-    render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
-    expect(screen.getByTestId('theme')).toHaveTextContent('light')
-  })
-
-  it('reads dark theme from localStorage', () => {
-    localStorage.setItem('theme', 'dark')
+  it('always reports dark theme', () => {
     render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
     expect(screen.getByTestId('theme')).toHaveTextContent('dark')
   })
 
-  it('toggles to dark on click', async () => {
+  it('adds dark class to html element on mount', () => {
     render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
-    await userEvent.click(screen.getByText('toggle'))
-    expect(screen.getByTestId('theme')).toHaveTextContent('dark')
-  })
-
-  it('toggles back to light on second click', async () => {
-    render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
-    await userEvent.click(screen.getByText('toggle'))
-    await userEvent.click(screen.getByText('toggle'))
-    expect(screen.getByTestId('theme')).toHaveTextContent('light')
-  })
-
-  it('adds dark class to html element when dark', async () => {
-    render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
-    await userEvent.click(screen.getByText('toggle'))
     expect(document.documentElement).toHaveClass('dark')
   })
 
-  it('persists theme to localStorage', async () => {
+  it('persists dark to localStorage on mount', () => {
     render(<ThemeProvider><ThemeConsumer /></ThemeProvider>)
-    await userEvent.click(screen.getByText('toggle'))
     expect(localStorage.getItem('theme')).toBe('dark')
   })
 })

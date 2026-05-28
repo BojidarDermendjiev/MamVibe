@@ -99,7 +99,7 @@ export default function BrowseItemsPage() {
   return (
     <div>
       {/* Hero */}
-      <div className="bg-[#FAF3EE] dark:bg-[#2d2a42] py-12 px-4 mb-8">
+      <div className="bg-[#1a1825] py-12 px-4 mb-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}

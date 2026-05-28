@@ -1,8 +1,6 @@
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { Sun, Moon } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { useTheme } from "../contexts/ThemeContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const SWITCH_ROUTES = ["/login", "/register"];
@@ -13,9 +11,6 @@ export default function AuthLayout() {
   const isLogin = location.pathname === "/login";
   const showSwitch = SWITCH_ROUTES.includes(location.pathname);
   const { isAuthenticated, isLoading } = useAuthStore();
-
-  // Must be declared before any early returns (Rules of Hooks)
-  const { theme, toggleTheme } = useTheme();
 
   const [transitionOverride, setTransitionOverride] = useState<boolean | null>(null);
   const isActive = transitionOverride ?? !isLogin;
@@ -60,15 +55,6 @@ export default function AuthLayout() {
         style={{ background: "linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)" }}
       />
 
-      {/* Theme toggle — top-right corner */}
-      <button
-        onClick={toggleTheme}
-        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        className="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-colors"
-      >
-        {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
       <div className="w-full max-w-[820px]">
         {showSwitch ? (
           /* ═══════════════════════════════════════

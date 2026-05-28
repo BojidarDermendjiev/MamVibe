@@ -61,6 +61,27 @@ const PLACE_TYPE_LABELS: Record<number, string> = {
   10: "Other",
 };
 
+// ── WaveDivider ─────────────────────────────────────────────────────────────
+function WaveDivider({ from, to, flip = false }: { from: string; to: string; flip?: boolean }) {
+  return (
+    <div style={{ backgroundColor: from, lineHeight: 0 }}>
+      <svg
+        viewBox="0 0 1440 70"
+        preserveAspectRatio="none"
+        style={{ display: "block", width: "100%", height: 60, fill: to }}
+      >
+        <path
+          d={
+            flip
+              ? "M0,70 C360,0 1080,70 1440,0 L1440,70 Z"
+              : "M0,0 C360,70 1080,0 1440,70 L1440,70 L0,70 Z"
+          }
+        />
+      </svg>
+    </div>
+  );
+}
+
 // ── BrandCard ───────────────────────────────────────────────────────────────
 function BrandCard({
   name,
@@ -341,7 +362,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Trusted Brands ── */}
-      <section aria-labelledby="brands-heading" className="bg-white dark:bg-[#201d30] py-12 overflow-hidden">
+      <section aria-labelledby="brands-heading" className="bg-[#201d30] py-12 overflow-hidden">
         {/* h2 styled to look like a small label — semantically correct for heading hierarchy */}
         <h2 id="brands-heading" className="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-8">
           {t("home.brands_title")}
@@ -359,23 +380,24 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#201d30]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white dark:from-[#201d30]" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#201d30]" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#201d30]" />
         </div>
       </section>
+
+      <WaveDivider from="#201d30" to="#2d2a42" flip />
 
       {/* ── How it works ── */}
       <section
         aria-labelledby="how-it-works-heading"
-        className="dark-section pt-40 pb-[6.5rem] px-4"
-        style={{ backgroundColor: "#FAF3EE" }}
+        className="bg-[#2d2a42] py-20 px-4"
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold text-white mb-3">
               {t("home.how_it_works")}
             </h2>
-            <p className="text-gray-500">{t("home.how_it_works_subtitle")}</p>
+            <p className="text-gray-400">{t("home.how_it_works_subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
@@ -401,10 +423,10 @@ export default function HomePage() {
                 </div>
                 {/* Text */}
                 <div>
-                  <h3 className="font-bold text-gray-800 text-base mb-2">
+                  <h3 className="font-bold text-gray-100 text-base mb-2">
                     {t(step.titleKey)}
                   </h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-sm text-gray-400 leading-relaxed">
                     {t(step.descKey)}
                   </p>
                 </div>
@@ -415,22 +437,20 @@ export default function HomePage() {
       </section>
 
       {/* ── Shop by Age ── */}
-      <section
-        className="bg-[#FAF3EE] dark:bg-[#2d2a42] pt-[6.5rem] pb-40 px-4"
-      >
+      <section className="bg-[#2d2a42] py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
               {t("home.shop_by_age")}
             </h2>
-            <p className="text-gray-500">{t("home.shop_by_age_subtitle")}</p>
+            <p className="text-gray-400">{t("home.shop_by_age_subtitle")}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-14">
             {AGE_GROUPS.map((group) => (
               <Link
                 key={group.labelKey}
                 to={`/browse?age=${group.query}`}
-                className="bg-[#ffffff] dark:bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                className="bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center"
@@ -439,7 +459,7 @@ export default function HomePage() {
                   <group.icon size={26} style={{ color: group.color }} />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-gray-800 text-sm">
+                  <p className="font-bold text-gray-100 text-sm">
                     {t(group.labelKey)}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
@@ -451,6 +471,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <WaveDivider from="#2d2a42" to="#201d30" />
 
       {/* ── Features + Stats ── */}
       <section
@@ -528,6 +550,8 @@ export default function HomePage() {
 
       {/* ── Doctor Reviews ── */}
       {doctorReviews.length > 0 && (
+        <>
+        <WaveDivider from="#201d30" to="#2d2a42" flip />
         <section className="bg-[#2d2a42] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
@@ -588,10 +612,13 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </>
       )}
 
       {/* ── Child-Friendly Places ── */}
       {childPlaces.length > 0 && (
+        <>
+        <WaveDivider from={doctorReviews.length > 0 ? "#2d2a42" : "#201d30"} to="#201d30" />
         <section className="bg-[#201d30] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
@@ -656,7 +683,14 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </>
       )}
+
+      <WaveDivider
+        from={childPlaces.length > 0 ? "#201d30" : doctorReviews.length > 0 ? "#2d2a42" : "#201d30"}
+        to="#2d2a42"
+        flip
+      />
 
       {/* ── Support section ── */}
       <section className="bg-[#2d2a42] py-24 px-4">
@@ -697,6 +731,8 @@ export default function HomePage() {
           </Link>
         </motion.div>
       </section>
+
+      <WaveDivider from="#2d2a42" to="#201d30" />
     </div>
   );
 }

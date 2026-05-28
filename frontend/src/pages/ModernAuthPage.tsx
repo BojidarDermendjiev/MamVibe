@@ -4,10 +4,9 @@ import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
-import { HiOutlineUser, HiOutlineLockClosed, HiOutlineMail, HiSun, HiMoon } from "react-icons/hi";
+import { HiOutlineUser, HiOutlineLockClosed, HiOutlineMail } from "react-icons/hi";
 import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
-import { useTheme } from "../contexts/ThemeContext";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
 
@@ -16,7 +15,6 @@ export default function ModernAuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setAuth } = useAuthStore();
-  const { theme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(location.pathname === "/register");
 
   // Auth pages: noindex to prevent thin/duplicate content in the index.
@@ -141,16 +139,6 @@ export default function ModernAuthPage() {
         <img src="/logo.png" alt="MamVibe" className="h-9 w-9 object-contain" />
         <span className="text-base font-bold text-[#3f4b7f] dark:text-[#c1c4e3]">MamVibe</span>
       </Link>
-
-      {/* Theme toggle */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        aria-label="Toggle theme"
-        className="absolute top-5 right-6 z-20 w-10 h-10 rounded-full bg-white dark:bg-[#2a2740] shadow-md flex items-center justify-center text-gray-500 dark:text-gray-300 hover:scale-105 transition-transform"
-      >
-        {theme === "dark" ? <HiSun size={20} /> : <HiMoon size={20} />}
-      </button>
 
       {/* Card */}
       <div className={`auth-card${isSignUp ? " active" : ""}`}>

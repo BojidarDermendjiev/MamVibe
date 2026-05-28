@@ -11,12 +11,9 @@ import {
   LayoutDashboard,
   MessageSquare,
   LogIn,
-  Sun,
-  Moon,
   Stethoscope,
   Baby,
 } from "lucide-react";
-import { useTheme } from "../contexts/ThemeContext";
 import { useAuthStore } from "../store/authStore";
 import { authApi } from "../api/authApi";
 import { useNotification } from "../contexts/NotificationContext";
@@ -100,7 +97,6 @@ function NavPill({ navItems, pathname, mobile = false }: NavPillProps) {
 /* ─── AuthControls ────────────────────────────────────────────────────────── */
 
 function AuthControls() {
-  const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -124,14 +120,6 @@ function AuthControls() {
         />
       )}
       <div className="flex items-center gap-2">
-        <button
-          onClick={toggleTheme}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 hover:scale-110 active:scale-95 transition-all duration-200 text-gray-700 dark:text-gray-200"
-        >
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
         <LanguageSwitcher />
 
         {isAuthenticated ? (
@@ -267,7 +255,7 @@ export default function MainLayout() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-[#1a1825] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-[#1a1825]">
       {/* ══════════════════════════════════════════════════════
           DESKTOP  ≥ md
           Three floating elements at top — exactly like reference:
@@ -355,7 +343,8 @@ export default function MainLayout() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="bg-[#201d30] border-t border-gray-700/60 py-10 mt-auto transition-colors duration-300">
+      <footer className="bg-[#201d30] mt-auto transition-colors duration-300">
+        <div className="py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand / About — E-E-A-T: brand statement establishes trustworthiness */}
@@ -520,6 +509,7 @@ export default function MainLayout() {
               <Link to="/cookies" className="hover:text-primary transition-colors">{t("footer.legal_cookies")}</Link>
             </nav>
           </div>
+        </div>
         </div>
       </footer>
 
