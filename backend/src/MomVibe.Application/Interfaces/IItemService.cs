@@ -2,6 +2,7 @@
 
 using DTOs.Items;
 using DTOs.Common;
+using DTOs.Stats;
 
 /// <summary>
 /// Item service contract for marketplace operations:
@@ -74,4 +75,7 @@ public interface IItemService
     /// Throws <see cref="InvalidOperationException"/> when the cooldown has not expired.
     /// </summary>
     Task<ItemDto> BumpAsync(Guid itemId, string userId);
+
+    /// <summary>Returns public platform statistics suitable for the homepage (no auth required).</summary>
+    Task<PublicStatsDto> GetPublicStatsAsync();
 }

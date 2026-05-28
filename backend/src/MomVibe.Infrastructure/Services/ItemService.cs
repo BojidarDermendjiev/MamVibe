@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Domain.Enums;
 using Domain.Entities;
 using Application.DTOs.Items;
+using Application.DTOs.Stats;
 using Application.Interfaces;
 using Application.DTOs.Common;
 using Configuration;
@@ -604,5 +605,28 @@ public class ItemService : IItemService
         await this._context.SaveChangesAsync();
 
         return this._mapper.Map<ItemDto>(item);
+    }
+
+    public async Task<PublicStatsDto> GetPublicStatsAsync()
+    {
+        const string cacheKey = "public:stats";
+        if (this._cache.TryGetValue(cacheKey, out PublicStatsDto? cached))
+            return cached!;
+
+        var activeItems = this._context.Items.Where(i => i.IsActive && !i.User!.IsOnHoliday);
+
+        var stats = new PublicStatsDto
+        {
+            ActiveListings = await activeItems.CountAsync(),
+            TotalSellers = await activeItems.Select(i => i.UserId).Distinct().CountAsync(),
+            HappyFamilies = await this._context.Payments
+                .Where(p => p.Status == Domain.Enums.PaymentStatus.Completed)
+                .Select(p => p.BuyerId)
+                .Distinct()
+                .CountAsync(),
+        };
+
+        this._cache.Set(cacheKey, stats, TimeSpan.FromMinutes(10));
+        return stats;
     }
 }

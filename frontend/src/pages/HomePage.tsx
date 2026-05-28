@@ -10,6 +10,7 @@ import { GiFootprint } from "react-icons/gi";
 import { MapPin, ChevronRight } from "lucide-react";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
+import { statsApi, type PublicStats } from "../api/statsApi";
 import type { DoctorReviewDto } from "../types/doctorReview";
 import type { ChildFriendlyPlaceDto } from "../types/childFriendlyPlace";
 import StarRating from "../components/common/StarRating";
@@ -145,6 +146,18 @@ const AGE_GROUPS = [
   },
 ];
 
+// ── Platform features ───────────────────────────────────────────────────────
+const FEATURES = [
+  { icon: "🔔", titleKey: "home.feat_price_drop",   descKey: "home.feat_price_drop_desc",   bg: "#FDDDD6", color: "#C4705A" },
+  { icon: "🔍", titleKey: "home.feat_saved_search", descKey: "home.feat_saved_search_desc", bg: "#D4EDE8", color: "#4A9E8E" },
+  { icon: "💬", titleKey: "home.feat_offers",       descKey: "home.feat_offers_desc",       bg: "#EDE4F5", color: "#7E54A8" },
+  { icon: "📦", titleKey: "home.feat_bundles",      descKey: "home.feat_bundles_desc",      bg: "#D4E8E8", color: "#3A8F8F" },
+  { icon: "⭐", titleKey: "home.feat_bump",         descKey: "home.feat_bump_desc",         bg: "#FFF3CD", color: "#B8860B" },
+  { icon: "👥", titleKey: "home.feat_follow",       descKey: "home.feat_follow_desc",       bg: "#FDDDE0", color: "#C4607A" },
+  { icon: "🌴", titleKey: "home.feat_holiday",      descKey: "home.feat_holiday_desc",      bg: "#D4EDE8", color: "#3A8F6A" },
+  { icon: "✅", titleKey: "home.feat_condition",    descKey: "home.feat_condition_desc",    bg: "#E8F4E8", color: "#3A7A3A" },
+] as const;
+
 // ── Organisation schema (homepage) ─────────────────────────────────────────
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
@@ -195,6 +208,7 @@ export default function HomePage() {
   });
   const [doctorReviews, setDoctorReviews] = useState<DoctorReviewDto[]>([]);
   const [childPlaces, setChildPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
+  const [stats, setStats] = useState<PublicStats | null>(null);
   const titles = useMemo(
     () => [
       t("home.hero_word_amazing"),
@@ -222,6 +236,7 @@ export default function HomePage() {
       .getAll({ pageSize: 3 })
       .then(setChildPlaces)
       .catch(() => {});
+    statsApi.getPublic().then(setStats).catch(() => {});
   }, []);
 
   const steps = [
@@ -394,6 +409,80 @@ export default function HomePage() {
                   </p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features + Stats ── */}
+      <section
+        aria-labelledby="features-heading"
+        className="bg-white dark:bg-[#201d30] py-24 px-4"
+      >
+        <div className="max-w-5xl mx-auto">
+          {/* Stats bar */}
+          {stats && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-3 gap-4 mb-16"
+            >
+              {[
+                { value: stats.activeListings, labelKey: "home.stat_listings" },
+                { value: stats.totalSellers,   labelKey: "home.stat_sellers" },
+                { value: stats.happyFamilies,  labelKey: "home.stat_families" },
+              ].map(({ value, labelKey }) => (
+                <div
+                  key={labelKey}
+                  className="bg-[#FAF3EE] dark:bg-[#2d2a42] rounded-2xl py-6 flex flex-col items-center gap-1 border border-gray-100 dark:border-white/5"
+                >
+                  <span className="text-3xl md:text-4xl font-extrabold text-primary-dark tabular-nums">
+                    {value > 0 ? `${value.toLocaleString()}+` : "—"}
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                    {t(labelKey)}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Section heading */}
+          <div className="text-center mb-12">
+            <h2 id="features-heading" className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+              {t("home.features_title")}
+            </h2>
+            <p className="text-gray-500 max-w-xl mx-auto">{t("home.features_subtitle")}</p>
+          </div>
+
+          {/* Feature grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {FEATURES.map((feat, i) => (
+              <motion.div
+                key={feat.titleKey}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.05 }}
+                className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-gray-100 dark:border-white/5 hover:shadow-md transition-shadow duration-300"
+              >
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                  style={{ backgroundColor: feat.bg }}
+                >
+                  {feat.icon}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1">
+                    {t(feat.titleKey)}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                    {t(feat.descKey)}
+                  </p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
