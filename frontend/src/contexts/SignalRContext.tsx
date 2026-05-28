@@ -7,14 +7,14 @@ import type { Shipment } from '../types/shipping';
 import type { NewFollowerNotification } from '../types/follow';
 import type { Item, PriceDropNotification } from '../types/item';
 import type { SavedSearchMatchNotification } from '../types/savedSearch';
+import type { PaymentChosenNotification } from '../types/purchaseRequest';
 
 type MessageHandler = (message: Message) => void;
 type TypingHandler = (userId: string) => void;
 type ReadHandler = (userId: string) => void;
 type OnlineHandler = (userId: string) => void;
 type PurchaseRequestHandler = (request: PurchaseRequest) => void;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PaymentChosenHandler = (notification: any) => void;
+type PaymentChosenHandler = (notification: PaymentChosenNotification) => void;
 type ShipmentHandler = (shipment: Shipment) => void;
 type NewFollowerHandler = (notification: NewFollowerNotification) => void;
 type NewItemFromFollowedSellerHandler = (item: Item) => void;

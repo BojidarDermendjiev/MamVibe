@@ -1,6 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import type { Message } from '../types/message';
-import type { PurchaseRequest } from '../types/purchaseRequest';
+import type { PurchaseRequest, PaymentChosenNotification } from '../types/purchaseRequest';
 import type { Shipment } from '../types/shipping';
 import type { NewFollowerNotification } from '../types/follow';
 import type { Item } from '../types/item';
@@ -12,8 +12,7 @@ type ReadHandler = (senderId: string) => void;
 type TypingHandler = (userId: string) => void;
 type OnlineHandler = (userId: string) => void;
 type PurchaseRequestHandler = (request: PurchaseRequest) => void;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PaymentChosenHandler = (notification: any) => void;
+type PaymentChosenHandler = (notification: PaymentChosenNotification) => void;
 type ShipmentHandler = (shipment: Shipment) => void;
 type NewFollowerHandler = (notification: NewFollowerNotification) => void;
 type NewItemFromFollowedSellerHandler = (item: Item) => void;
@@ -78,8 +77,7 @@ class SignalRService {
       this.purchaseRequestUpdatedHandlers.forEach((h) => h(request));
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.connection.on('PaymentMethodChosen', (notification: any) => {
+    this.connection.on('PaymentMethodChosen', (notification: PaymentChosenNotification) => {
       this.paymentChosenHandlers.forEach((h) => h(notification));
     });
 

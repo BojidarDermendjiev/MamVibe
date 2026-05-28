@@ -27,3 +27,9 @@ export interface PurchaseRequest {
   bundleTitle?: string | null;
   bundlePhotoUrl?: string | null;
 }
+
+export interface PaymentChosenNotification {
+  requestId: string;
+  paymentMethod: string;
+  buyerName: string;
+}

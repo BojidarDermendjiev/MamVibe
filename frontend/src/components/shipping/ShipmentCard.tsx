@@ -38,7 +38,7 @@ export default function ShipmentCard({ shipment, currentUserId }: ShipmentCardPr
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
 
-  const isSeller = !!(currentUserId && shipment.sellerId && shipment.sellerId === currentUserId);
+  const isSeller = shipment.isCurrentUserSeller;
   const canPrintLabel = isSeller && (shipment.status === ShipmentStatus.Created || shipment.status === ShipmentStatus.PickedUp);
 
   const courierNames: Record<number, string> = {

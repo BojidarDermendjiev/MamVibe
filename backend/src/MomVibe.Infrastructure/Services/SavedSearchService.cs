@@ -115,7 +115,17 @@ public class SavedSearchService : ISavedSearchService
                 {
                     SavedSearchId = match.Id,
                     SavedSearchName = match.Name,
-                    Item = item
+                    Item = new Application.DTOs.SavedSearches.SavedSearchMatchItemDto
+                    {
+                        Id         = item.Id,
+                        Title      = item.Title,
+                        CategoryName = item.CategoryName,
+                        ListingType  = item.ListingType,
+                        Price        = item.Price,
+                        FirstPhotoUrl = item.Photos?.OrderBy(p => p.DisplayOrder).Select(p => p.Url).FirstOrDefault(),
+                        AgeGroup   = item.AgeGroup,
+                        Condition  = item.Condition
+                    }
                 });
             }
             catch { /* notification failure must never throw */ }

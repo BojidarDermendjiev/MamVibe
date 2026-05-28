@@ -474,8 +474,8 @@ export default function DashboardPage() {
 
           {/* ── My Shipments ── */}
           {tab === 'shipments' && (() => {
-            const toSend = shipments.filter(s => s.sellerId === user?.id);
-            const incoming = shipments.filter(s => s.sellerId !== user?.id);
+            const toSend = shipments.filter(s => s.isCurrentUserSeller);
+            const incoming = shipments.filter(s => !s.isCurrentUserSeller);
             if (shipments.length === 0) {
               return <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>;
             }

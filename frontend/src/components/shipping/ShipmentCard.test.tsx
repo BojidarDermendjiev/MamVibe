@@ -53,13 +53,15 @@ const baseShipment: Shipment = {
   weight: 0.5,
   labelUrl: null,
   createdAt: '2024-01-01T00:00:00Z',
-  sellerId: 'seller-1',
+  isCurrentUserSeller: false,
 }
 
-function setup(shipment = baseShipment, userId?: string) {
+const sellerShipment: Shipment = { ...baseShipment, isCurrentUserSeller: true }
+
+function setup(shipment = baseShipment) {
   return render(
     <MemoryRouter>
-      <ShipmentCard shipment={shipment} currentUserId={userId} />
+      <ShipmentCard shipment={shipment} />
     </MemoryRouter>
   )
 }
@@ -86,34 +88,34 @@ describe('ShipmentCard', () => {
   })
 
   it('shows Sender badge when current user is seller', () => {
-    setup(baseShipment, 'seller-1')
+    setup(sellerShipment)
     expect(screen.getByText('shipping.role_sender')).toBeInTheDocument()
   })
 
   it('shows Recipient badge when current user is not seller', () => {
-    setup(baseShipment, 'buyer-99')
+    setup(baseShipment)
     expect(screen.getByText('shipping.role_recipient')).toBeInTheDocument()
   })
 
   it('does not show label download when user is not seller', () => {
-    setup(baseShipment, 'buyer-99')
+    setup(baseShipment)
     expect(screen.queryByText('shipping.download_label')).toBeNull()
   })
 
   it('shows label download button for seller when status is Created', () => {
-    const shipment = { ...baseShipment, status: ShipmentStatus.Created }
-    setup(shipment, 'seller-1')
+    const shipment = { ...sellerShipment, status: ShipmentStatus.Created }
+    setup(shipment)
     expect(screen.getByText(/shipping\.download_label/)).toBeInTheDocument()
   })
 
   it('shows label download button for seller when status is PickedUp', () => {
-    const shipment = { ...baseShipment, status: ShipmentStatus.PickedUp }
-    setup(shipment, 'seller-1')
+    const shipment = { ...sellerShipment, status: ShipmentStatus.PickedUp }
+    setup(shipment)
     expect(screen.getByText(/shipping\.download_label/)).toBeInTheDocument()
   })
 
   it('does not show label button for seller when status is InTransit', () => {
-    setup(baseShipment, 'seller-1') // baseShipment is InTransit
+    setup(sellerShipment) // sellerShipment is InTransit
     expect(screen.queryByText(/shipping\.download_label/)).toBeNull()
   })
 
@@ -147,15 +149,10 @@ describe('ShipmentCard', () => {
     expect(screen.getByText(/Pigeon Express/)).toBeInTheDocument()
   })
 
-  it('shows Recipient badge when sellerId does not match', () => {
-    setup({ ...baseShipment, sellerId: null })
-    expect(screen.getByText('shipping.role_recipient')).toBeInTheDocument()
-  })
-
   it('downloads label on button click (success path)', async () => {
-    const shipment = { ...baseShipment, status: ShipmentStatus.Created }
+    const shipment = { ...sellerShipment, status: ShipmentStatus.Created }
     mockGetLabel.mockResolvedValue({ data: new Blob(['pdf']) } as never)
-    setup(shipment, 'seller-1')
+    setup(shipment)
     await userEvent.click(screen.getByText(/shipping\.download_label/))
     await waitFor(() => expect(mockGetLabel).toHaveBeenCalledWith('ship-1'))
     expect(window.URL.createObjectURL).toHaveBeenCalled()
@@ -164,18 +161,18 @@ describe('ShipmentCard', () => {
 
   it('shows error toast when label download fails', async () => {
     const toast = await import('../../utils/toast')
-    const shipment = { ...baseShipment, status: ShipmentStatus.Created }
+    const shipment = { ...sellerShipment, status: ShipmentStatus.Created }
     mockGetLabel.mockRejectedValue(new Error('Network error'))
-    setup(shipment, 'seller-1')
+    setup(shipment)
     await userEvent.click(screen.getByText(/shipping\.download_label/))
     await waitFor(() => expect(vi.mocked(toast.default.error)).toHaveBeenCalledWith('shipping.label_error'))
   })
 
   it('disables label button while downloading', async () => {
-    const shipment = { ...baseShipment, status: ShipmentStatus.Created }
+    const shipment = { ...sellerShipment, status: ShipmentStatus.Created }
     let resolveDownload!: () => void
     mockGetLabel.mockReturnValue(new Promise<never>((res) => { resolveDownload = res as never }))
-    setup(shipment, 'seller-1')
+    setup(shipment)
     const btn = screen.getByText(/shipping\.download_label/).closest('button')!
     await userEvent.click(btn)
     expect(btn).toBeDisabled()
@@ -189,16 +186,16 @@ describe('ShipmentCard', () => {
   })
 
   it('does not navigate when label wrapper div is clicked (stopPropagation)', () => {
-    const { container } = setup({ ...baseShipment, status: ShipmentStatus.Created }, 'seller-1')
+    const { container } = setup({ ...sellerShipment, status: ShipmentStatus.Created })
     const wrapper = container.querySelector('.mt-3')!
     fireEvent.click(wrapper)
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('uses shipment id in label filename when trackingNumber is null', async () => {
-    const shipment = { ...baseShipment, status: ShipmentStatus.Created, trackingNumber: null }
+    const shipment = { ...sellerShipment, status: ShipmentStatus.Created, trackingNumber: null }
     mockGetLabel.mockResolvedValue({ data: new Blob(['pdf']) } as never)
-    setup(shipment, 'seller-1')
+    setup(shipment)
     await userEvent.click(screen.getByText(/shipping\.download_label/))
     await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled())
   })

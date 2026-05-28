@@ -60,6 +60,10 @@ public class ShipmentDto
     public string? LabelUrl { get; set; }
     /// <summary>Gets or sets the timestamp when this shipment record was created.</summary>
     public DateTime CreatedAt { get; set; }
-    /// <summary>Gets or sets the seller (sender) user ID, used by the frontend to distinguish role.</summary>
+    /// <summary>Internal field used for role detection — not serialized to JSON.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? SellerId { get; set; }
+
+    /// <summary>Gets or sets whether the current authenticated user is the seller/sender for this shipment.</summary>
+    public bool IsCurrentUserSeller { get; set; }
 }

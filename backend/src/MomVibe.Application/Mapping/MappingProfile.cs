@@ -74,7 +74,8 @@ public class MappingProfile : Profile
             .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s =>
                 s.Payment != null && s.Payment.Item != null ? s.Payment.Item.Title : null))
             .ForMember(d => d.SellerId, opt => opt.MapFrom(s =>
-                s.Payment != null ? s.Payment.SellerId : null));
+                s.Payment != null ? s.Payment.SellerId : null))
+            .ForMember(d => d.IsCurrentUserSeller, opt => opt.Ignore());
 
         CreateMap<PurchaseRequest, PurchaseRequestDto>()
             .ForMember(d => d.ItemTitle, opt => opt.MapFrom(s => s.Item != null ? s.Item.Title : null))

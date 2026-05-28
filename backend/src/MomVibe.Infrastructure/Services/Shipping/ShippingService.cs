@@ -239,7 +239,9 @@ public class ShippingService : IShippingService
         if (shipment.Payment.BuyerId != userId && shipment.Payment.SellerId != userId)
             throw new UnauthorizedAccessException("You do not have access to this shipment.");
 
-        return this._mapper.Map<ShipmentDto>(shipment);
+        var dto = this._mapper.Map<ShipmentDto>(shipment);
+        dto.IsCurrentUserSeller = dto.SellerId == userId;
+        return dto;
     }
 
     public async Task<List<ShipmentDto>> GetShipmentsByUserAsync(string userId)
@@ -252,7 +254,10 @@ public class ShippingService : IShippingService
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
 
-        return _mapper.Map<List<ShipmentDto>>(shipments);
+        var dtos = _mapper.Map<List<ShipmentDto>>(shipments);
+        foreach (var dto in dtos)
+            dto.IsCurrentUserSeller = dto.SellerId == userId;
+        return dtos;
     }
 
     public async Task<List<ShipmentDto>> GetAllShipmentsAsync(int page = 1, int pageSize = 50)

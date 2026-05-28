@@ -1,4 +1,4 @@
-import type { ListingType, AgeGroup, ItemCondition, Item } from './item';
+import type { ListingType, AgeGroup, ItemCondition } from './item';
 
 export interface SavedSearchDto {
   id: string;
@@ -27,8 +27,19 @@ export interface CreateSavedSearchDto {
   maxPrice?: number | null;
 }
 
+export interface SavedSearchMatchItemDto {
+  id: string;
+  title: string;
+  categoryName: string | null;
+  listingType: ListingType;
+  price: number | null;
+  firstPhotoUrl: string | null;
+  ageGroup: AgeGroup | null;
+  condition: ItemCondition;
+}
+
 export interface SavedSearchMatchNotification {
   savedSearchId: string;
   savedSearchName: string;
-  item: Item;
+  item: SavedSearchMatchItemDto;
 }
