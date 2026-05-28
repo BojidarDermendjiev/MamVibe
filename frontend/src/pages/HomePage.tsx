@@ -455,7 +455,7 @@ export default function HomePage() {
       {/* ── Features + Stats ── */}
       <section
         aria-labelledby="features-heading"
-        className="bg-white dark:bg-[#201d30] py-24 px-4"
+        className="bg-[#201d30] py-24 px-4"
       >
         <div className="max-w-5xl mx-auto">
           {/* Section heading */}
