@@ -659,7 +659,7 @@ export default function HomePage() {
       )}
 
       {/* ── Support section ── */}
-      <section className="bg-[#ffffff] dark:bg-[#201d30] py-24 px-4">
+      <section className="bg-[#2d2a42] py-24 px-4">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
