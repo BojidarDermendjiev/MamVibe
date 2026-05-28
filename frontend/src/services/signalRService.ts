@@ -5,6 +5,7 @@ import type { Shipment } from '../types/shipping';
 import type { NewFollowerNotification } from '../types/follow';
 import type { Item } from '../types/item';
 import type { SavedSearchMatchNotification } from '../types/savedSearch';
+import type { PriceDropNotification } from '../types/item';
 
 type MessageHandler = (message: Message) => void;
 type ReadHandler = (senderId: string) => void;
@@ -17,6 +18,7 @@ type ShipmentHandler = (shipment: Shipment) => void;
 type NewFollowerHandler = (notification: NewFollowerNotification) => void;
 type NewItemFromFollowedSellerHandler = (item: Item) => void;
 type SavedSearchMatchHandler = (notification: SavedSearchMatchNotification) => void;
+type PriceDropHandler = (notification: PriceDropNotification) => void;
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -33,6 +35,7 @@ class SignalRService {
   private newFollowerHandlers: NewFollowerHandler[] = [];
   private newItemFromFollowedSellerHandlers: NewItemFromFollowedSellerHandler[] = [];
   private savedSearchMatchHandlers: SavedSearchMatchHandler[] = [];
+  private priceDropHandlers: PriceDropHandler[] = [];
 
   async connect(accessToken: string): Promise<void> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -98,6 +101,10 @@ class SignalRService {
 
     this.connection.on('SavedSearchMatch', (notification: SavedSearchMatchNotification) => {
       this.savedSearchMatchHandlers.forEach((h) => h(notification));
+    });
+
+    this.connection.on('PriceDropped', (notification: PriceDropNotification) => {
+      this.priceDropHandlers.forEach((h) => h(notification));
     });
 
     await this.connection.start();
@@ -211,6 +218,13 @@ class SignalRService {
     this.savedSearchMatchHandlers.push(handler);
     return () => {
       this.savedSearchMatchHandlers = this.savedSearchMatchHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onPriceDrop(handler: PriceDropHandler): () => void {
+    this.priceDropHandlers.push(handler);
+    return () => {
+      this.priceDropHandlers = this.priceDropHandlers.filter((h) => h !== handler);
     };
   }
 }

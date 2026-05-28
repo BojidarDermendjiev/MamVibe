@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Shipment } from '../types/shipping'
+import type { PriceDropNotification } from '../types/item'
 
 type ShipmentPayload = Pick<Shipment, 'id' | 'courierProvider' | 'itemTitle' | 'trackingNumber'>
 
@@ -11,6 +12,7 @@ const captured = vi.hoisted(() => ({
   onPurchaseRequest: null as (() => void) | null,
   onSellerShipmentReady: null as ((s: ShipmentPayload) => void) | null,
   onShipmentStatusChanged: null as ((s: ShipmentPayload) => void) | null,
+  onPriceDrop: null as ((n: PriceDropNotification) => void) | null,
 }))
 
 vi.mock('./SignalRContext', () => ({
@@ -30,6 +32,10 @@ vi.mock('./SignalRContext', () => ({
     onShipmentStatusChanged: (cb: (s: ShipmentPayload) => void) => {
       captured.onShipmentStatusChanged = cb
       return () => { captured.onShipmentStatusChanged = null }
+    },
+    onPriceDrop: (cb: (n: PriceDropNotification) => void) => {
+      captured.onPriceDrop = cb
+      return () => { captured.onPriceDrop = null }
     },
   }),
 }))
@@ -90,6 +96,7 @@ beforeEach(() => {
   captured.onPurchaseRequest = null
   captured.onSellerShipmentReady = null
   captured.onShipmentStatusChanged = null
+  captured.onPriceDrop = null
   mockGetConversations.mockClear()
   mockGetAsSeller.mockClear()
   mockMarkAsRead.mockClear()
@@ -342,5 +349,39 @@ describe('NotificationContext', () => {
     expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
     // isAuthenticated is false → getConversations re-fetch should NOT be called
     expect(mockGetConversations).not.toHaveBeenCalled()
+  })
+
+  it('fires toast when a liked item price drops', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onPriceDrop).not.toBeNull())
+    act(() => captured.onPriceDrop!({
+      itemId: 'item-1',
+      itemTitle: 'Baby shoes',
+      oldPrice: 25,
+      newPrice: 15,
+      photoUrl: null,
+    }))
+    expect(mockToast).toHaveBeenCalled()
+  })
+
+  it('renders price drop toast content and calls dismiss on link click', async () => {
+    mockGetConversations.mockResolvedValue({ data: [] } as never)
+    mockGetAsSeller.mockResolvedValue({ data: [] } as never)
+    setup()
+    await waitFor(() => expect(captured.onPriceDrop).not.toBeNull())
+    act(() => captured.onPriceDrop!({
+      itemId: 'item-2',
+      itemTitle: 'Winter jacket',
+      oldPrice: 50,
+      newPrice: 30,
+      photoUrl: null,
+    }))
+    const renderFn = mockToast.mock.calls[0][0] as (t: { id: string }) => React.ReactElement
+    const { getByText } = render(renderFn({ id: 'price-drop-toast-id' }))
+    expect(getByText('Price dropped!')).toBeTruthy()
+    await userEvent.click(getByText('View item →'))
+    expect(vi.mocked(toast.dismiss)).toHaveBeenCalledWith('price-drop-toast-id')
   })
 })

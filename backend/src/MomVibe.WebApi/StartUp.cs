@@ -52,6 +52,7 @@ builder.Services.AddScoped<IShipmentNotifier, SignalRShipmentNotifier>();
 builder.Services.AddScoped<IOfferNotifier, SignalROfferNotifier>();
 builder.Services.AddScoped<IFollowNotifier, SignalRFollowNotifier>();
 builder.Services.AddScoped<ISavedSearchNotifier, SignalRSavedSearchNotifier>();
+builder.Services.AddScoped<IPriceDropNotifier, SignalRPriceDropNotifier>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();

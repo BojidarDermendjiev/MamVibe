@@ -29,6 +29,7 @@ public class ItemService : IItemService
     private readonly IMemoryCache _cache;
     private readonly IFollowNotifier? _followNotifier;
     private readonly ISavedSearchService? _savedSearchService;
+    private readonly IPriceDropNotifier? _priceDropNotifier;
 
     private const double AutoApproveThreshold = 0.85;
     private const double NewSellerAutoApproveThreshold = 0.95;
@@ -45,7 +46,8 @@ public class ItemService : IItemService
         INekorektenService nekorekten,
         IMemoryCache cache,
         IFollowNotifier? followNotifier = null,
-        ISavedSearchService? savedSearchService = null)
+        ISavedSearchService? savedSearchService = null,
+        IPriceDropNotifier? priceDropNotifier = null)
     {
         this._context = context;
         this._mapper = mapper;
@@ -56,6 +58,7 @@ public class ItemService : IItemService
         this._cache = cache;
         this._followNotifier = followNotifier;
         this._savedSearchService = savedSearchService;
+        this._priceDropNotifier = priceDropNotifier;
     }
 
     private static string BuildCacheKey(ItemFilterDto filter) =>
@@ -323,6 +326,8 @@ public class ItemService : IItemService
         if (item.UserId != userId)
             throw new UnauthorizedAccessException("You can only edit your own items.");
 
+        var oldPrice = item.Price;
+
         if (dto.Title != null) item.Title = dto.Title;
         if (dto.Description != null) item.Description = dto.Description;
         if (dto.CategoryId.HasValue) item.CategoryId = dto.CategoryId.Value;
@@ -355,6 +360,37 @@ public class ItemService : IItemService
         }
 
         await this._context.SaveChangesAsync();
+
+        // Fan-out price drop notification to all users who liked this item
+        if (this._priceDropNotifier != null
+            && dto.Price.HasValue
+            && oldPrice.HasValue
+            && dto.Price.Value < oldPrice.Value)
+        {
+            var photoUrl = await this._context.ItemPhotos
+                .Where(p => p.ItemId == item.Id)
+                .OrderBy(p => p.DisplayOrder)
+                .Select(p => p.Url)
+                .FirstOrDefaultAsync();
+
+            var notification = new Application.DTOs.Items.PriceDropNotification
+            {
+                ItemId = item.Id,
+                ItemTitle = item.Title,
+                OldPrice = oldPrice.Value,
+                NewPrice = dto.Price.Value,
+                PhotoUrl = photoUrl
+            };
+
+            var likerIds = await this._context.Likes
+                .Where(l => l.ItemId == item.Id)
+                .Select(l => l.UserId)
+                .ToListAsync();
+
+            var tasks = likerIds.Select(uid => this._priceDropNotifier.NotifyAsync(uid, notification));
+            await Task.WhenAll(tasks);
+        }
+
         return (await GetByIdAsync(item.Id))!;
     }
 

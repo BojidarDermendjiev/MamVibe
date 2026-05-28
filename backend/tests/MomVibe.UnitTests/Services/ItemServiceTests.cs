@@ -48,7 +48,8 @@ public class ItemServiceTests
     private static ItemService CreateService(
         ApplicationDbContext db,
         Mock<IAiService>? aiMock = null,
-        Mock<INekorektenService>? nekorektenMock = null)
+        Mock<INekorektenService>? nekorektenMock = null,
+        IPriceDropNotifier? priceDropNotifier = null)
     {
         aiMock ??= new Mock<IAiService>();
         nekorektenMock ??= new Mock<INekorektenService>();
@@ -67,7 +68,8 @@ public class ItemServiceTests
             n8nOptions,
             aiMock.Object,
             nekorektenMock.Object,
-            cacheMock.Object);
+            cacheMock.Object,
+            priceDropNotifier: priceDropNotifier);
     }
 
     /// <summary>
@@ -682,5 +684,103 @@ public class ItemServiceTests
 
         result.BumpedAt.Should().NotBeNull();
         result.BumpedAt!.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    // =========================================================================
+    // UpdateAsync — Price Drop Notifications
+    // =========================================================================
+
+    [Fact]
+    public async Task UpdateAsync_Notifies_All_Likers_When_Price_Drops()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1", price: 50m);
+
+        // Two likers
+        db.Users.Add(new ApplicationUser { Id = "liker-a", DisplayName = "A", Email = "a@test.com", UserName = "liker-a" });
+        db.Users.Add(new ApplicationUser { Id = "liker-b", DisplayName = "B", Email = "b@test.com", UserName = "liker-b" });
+        db.Likes.Add(new Like { UserId = "liker-a", ItemId = item.Id });
+        db.Likes.Add(new Like { UserId = "liker-b", ItemId = item.Id });
+        await db.SaveChangesAsync();
+
+        var notifierMock = new Mock<IPriceDropNotifier>();
+        notifierMock.Setup(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<PriceDropNotification>()))
+            .Returns(Task.CompletedTask);
+
+        var svc = CreateService(db, priceDropNotifier: notifierMock.Object);
+        await svc.UpdateAsync(item.Id, new UpdateItemDto { Price = 30m }, "seller-1");
+
+        notifierMock.Verify(n => n.NotifyAsync("liker-a", It.Is<PriceDropNotification>(p =>
+            p.OldPrice == 50m && p.NewPrice == 30m && p.ItemId == item.Id)), Times.Once);
+        notifierMock.Verify(n => n.NotifyAsync("liker-b", It.Is<PriceDropNotification>(p =>
+            p.OldPrice == 50m && p.NewPrice == 30m)), Times.Once);
+        notifierMock.Verify(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<PriceDropNotification>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Does_Not_Notify_When_Price_Does_Not_Change()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1", price: 40m);
+
+        db.Users.Add(new ApplicationUser { Id = "liker-a", DisplayName = "A", Email = "a@test.com", UserName = "liker-a" });
+        db.Likes.Add(new Like { UserId = "liker-a", ItemId = item.Id });
+        await db.SaveChangesAsync();
+
+        var notifierMock = new Mock<IPriceDropNotifier>();
+        var svc = CreateService(db, priceDropNotifier: notifierMock.Object);
+
+        await svc.UpdateAsync(item.Id, new UpdateItemDto { Price = 40m }, "seller-1");
+
+        notifierMock.Verify(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<PriceDropNotification>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Does_Not_Notify_When_Price_Increases()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1", price: 20m);
+
+        db.Users.Add(new ApplicationUser { Id = "liker-a", DisplayName = "A", Email = "a@test.com", UserName = "liker-a" });
+        db.Likes.Add(new Like { UserId = "liker-a", ItemId = item.Id });
+        await db.SaveChangesAsync();
+
+        var notifierMock = new Mock<IPriceDropNotifier>();
+        var svc = CreateService(db, priceDropNotifier: notifierMock.Object);
+
+        await svc.UpdateAsync(item.Id, new UpdateItemDto { Price = 35m }, "seller-1");
+
+        notifierMock.Verify(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<PriceDropNotification>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Does_Not_Notify_When_Item_Has_No_Likers()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1", price: 60m);
+
+        var notifierMock = new Mock<IPriceDropNotifier>();
+        var svc = CreateService(db, priceDropNotifier: notifierMock.Object);
+
+        await svc.UpdateAsync(item.Id, new UpdateItemDto { Price = 45m }, "seller-1");
+
+        notifierMock.Verify(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<PriceDropNotification>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_Succeeds_Without_PriceDropNotifier_Registered()
+    {
+        await using var db = CreateDb();
+        var item = await SeedItemAsync(db, userId: "seller-1", price: 50m);
+
+        db.Users.Add(new ApplicationUser { Id = "liker-a", DisplayName = "A", Email = "a@test.com", UserName = "liker-a" });
+        db.Likes.Add(new Like { UserId = "liker-a", ItemId = item.Id });
+        await db.SaveChangesAsync();
+
+        // No notifier injected
+        var svc = CreateService(db);
+        var act = async () => await svc.UpdateAsync(item.Id, new UpdateItemDto { Price = 25m }, "seller-1");
+
+        await act.Should().NotThrowAsync();
     }
 }

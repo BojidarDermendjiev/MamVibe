@@ -5,7 +5,7 @@ import type { Message } from '../types/message';
 import type { PurchaseRequest } from '../types/purchaseRequest';
 import type { Shipment } from '../types/shipping';
 import type { NewFollowerNotification } from '../types/follow';
-import type { Item } from '../types/item';
+import type { Item, PriceDropNotification } from '../types/item';
 import type { SavedSearchMatchNotification } from '../types/savedSearch';
 
 type MessageHandler = (message: Message) => void;
@@ -19,6 +19,7 @@ type ShipmentHandler = (shipment: Shipment) => void;
 type NewFollowerHandler = (notification: NewFollowerNotification) => void;
 type NewItemFromFollowedSellerHandler = (item: Item) => void;
 type SavedSearchMatchHandler = (notification: SavedSearchMatchNotification) => void;
+type PriceDropHandler = (notification: PriceDropNotification) => void;
 
 interface SignalRContextValue {
   isConnected: boolean;
@@ -39,6 +40,7 @@ interface SignalRContextValue {
   onNewFollower: (handler: NewFollowerHandler) => () => void;
   onNewItemFromFollowedSeller: (handler: NewItemFromFollowedSellerHandler) => () => void;
   onSavedSearchMatch: (handler: SavedSearchMatchHandler) => () => void;
+  onPriceDrop: (handler: PriceDropHandler) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue>({
@@ -60,6 +62,7 @@ const SignalRContext = createContext<SignalRContextValue>({
   onNewFollower: () => () => {},
   onNewItemFromFollowedSeller: () => () => {},
   onSavedSearchMatch: () => () => {},
+  onPriceDrop: () => () => {},
 });
 
 export function SignalRProvider({ children }: { children: ReactNode }) {
@@ -190,6 +193,11 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const onPriceDrop = useCallback(
+    (handler: PriceDropHandler) => signalRService.onPriceDrop(handler),
+    []
+  );
+
   return (
     <SignalRContext.Provider
       value={{
@@ -211,6 +219,7 @@ export function SignalRProvider({ children }: { children: ReactNode }) {
         onNewFollower,
         onNewItemFromFollowedSeller,
         onSavedSearchMatch,
+        onPriceDrop,
       }}
     >
       {children}

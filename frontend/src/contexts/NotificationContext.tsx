@@ -25,7 +25,7 @@ const NotificationContext = createContext<NotificationContextValue>({
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuthStore();
-  const { onMessage, onPurchaseRequest, onSellerShipmentReady, onShipmentStatusChanged } = useSignalR();
+  const { onMessage, onPurchaseRequest, onSellerShipmentReady, onShipmentStatusChanged, onPriceDrop } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const activeChatRef = useRef<string | null>(null);
@@ -152,6 +152,38 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
     return unsub;
   }, [onShipmentStatusChanged]);
+
+  // Notify user when an item they liked has dropped in price
+  useEffect(() => {
+    const unsub = onPriceDrop((notification) => {
+      const formatPrice = (p: number) =>
+        new Intl.NumberFormat('bg-BG', { style: 'currency', currency: 'EUR' }).format(p);
+
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-rose-400 min-w-[280px] max-w-[380px]">
+            <p className="font-semibold text-primary">Price dropped!</p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">"{notification.itemTitle}"</span>
+              {' '}dropped from{' '}
+              <span className="line-through text-gray-400">{formatPrice(notification.oldPrice)}</span>
+              {' '}to{' '}
+              <span className="font-semibold text-rose-500">{formatPrice(notification.newPrice)}</span>
+            </p>
+            <a
+              href={`/items/${notification.itemId}`}
+              onClick={() => toast.dismiss(t.id)}
+              className="text-sm font-medium text-primary underline mt-1"
+            >
+              View item →
+            </a>
+          </div>
+        ),
+        { duration: 10000 }
+      );
+    });
+    return unsub;
+  }, [onPriceDrop]);
 
   const setActiveChatUserId = useCallback((userId: string | null) => {
     activeChatRef.current = userId;

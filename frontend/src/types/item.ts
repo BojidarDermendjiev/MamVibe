@@ -142,3 +142,11 @@ export interface Category {
   description: string;
   slug: string;
 }
+
+export interface PriceDropNotification {
+  itemId: string;
+  itemTitle: string;
+  oldPrice: number;
+  newPrice: number;
+  photoUrl: string | null;
+}

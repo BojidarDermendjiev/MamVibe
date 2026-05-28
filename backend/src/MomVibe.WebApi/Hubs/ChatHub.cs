@@ -167,4 +167,8 @@ public interface IChatClient
     // Saved search events
     /// <summary>Invoked when a new item matches one of the current user's saved searches.</summary>
     Task SavedSearchMatch(SavedSearchMatchNotification notification);
+
+    // Price drop events
+    /// <summary>Invoked when the price of a liked item has dropped.</summary>
+    Task PriceDropped(PriceDropNotification notification);
 }
