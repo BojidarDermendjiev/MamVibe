@@ -414,41 +414,50 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Shop by Age ── */}
+      <section
+        className="bg-[#FAF3EE] dark:bg-[#2d2a42] pt-[6.5rem] pb-40 px-4"
+      >
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
+              {t("home.shop_by_age")}
+            </h2>
+            <p className="text-gray-500">{t("home.shop_by_age_subtitle")}</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-14">
+            {AGE_GROUPS.map((group) => (
+              <Link
+                key={group.labelKey}
+                to={`/browse?age=${group.query}`}
+                className="bg-[#ffffff] dark:bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{ backgroundColor: group.bg }}
+                >
+                  <group.icon size={26} style={{ color: group.color }} />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-gray-800 text-sm">
+                    {t(group.labelKey)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {t(group.rangeKey)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Features + Stats ── */}
       <section
         aria-labelledby="features-heading"
         className="bg-white dark:bg-[#201d30] py-24 px-4"
       >
         <div className="max-w-5xl mx-auto">
-          {/* Stats bar */}
-          {stats && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-              className="grid grid-cols-3 gap-4 mb-16"
-            >
-              {[
-                { value: stats.activeListings, labelKey: "home.stat_listings" },
-                { value: stats.totalSellers,   labelKey: "home.stat_sellers" },
-                { value: stats.happyFamilies,  labelKey: "home.stat_families" },
-              ].map(({ value, labelKey }) => (
-                <div
-                  key={labelKey}
-                  className="bg-[#FAF3EE] dark:bg-[#2d2a42] rounded-2xl py-6 flex flex-col items-center gap-1 border border-gray-100 dark:border-white/5"
-                >
-                  <span className="text-3xl md:text-4xl font-extrabold text-primary-dark tabular-nums">
-                    {value > 0 ? `${value.toLocaleString()}+` : "—"}
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                    {t(labelKey)}
-                  </span>
-                </div>
-              ))}
-            </motion.div>
-          )}
-
           {/* Section heading */}
           <div className="text-center mb-12">
             <h2 id="features-heading" className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
@@ -485,44 +494,35 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── Shop by Age ── */}
-      <section
-        className="bg-[#FAF3EE] dark:bg-[#2d2a42] pt-[6.5rem] pb-40 px-4"
-      >
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
-              {t("home.shop_by_age")}
-            </h2>
-            <p className="text-gray-500">{t("home.shop_by_age_subtitle")}</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-14">
-            {AGE_GROUPS.map((group) => (
-              <Link
-                key={group.labelKey}
-                to={`/browse?age=${group.query}`}
-                className="bg-[#ffffff] dark:bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
-              >
+          {/* Stats bar — below the feature grid */}
+          {stats && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-3 gap-4 mt-16"
+            >
+              {[
+                { value: stats.activeListings, labelKey: "home.stat_listings" },
+                { value: stats.totalSellers,   labelKey: "home.stat_sellers" },
+                { value: stats.happyFamilies,  labelKey: "home.stat_families" },
+              ].map(({ value, labelKey }) => (
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                  style={{ backgroundColor: group.bg }}
+                  key={labelKey}
+                  className="bg-[#FAF3EE] dark:bg-[#2d2a42] rounded-2xl py-6 flex flex-col items-center gap-1 border border-gray-100 dark:border-white/5"
                 >
-                  <group.icon size={26} style={{ color: group.color }} />
+                  <span className="text-3xl md:text-4xl font-extrabold text-primary-dark tabular-nums">
+                    {value > 0 ? `${value.toLocaleString()}+` : "—"}
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                    {t(labelKey)}
+                  </span>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-800 text-sm">
-                    {t(group.labelKey)}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {t(group.rangeKey)}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 
