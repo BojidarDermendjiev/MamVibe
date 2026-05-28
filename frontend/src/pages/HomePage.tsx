@@ -528,7 +528,7 @@ export default function HomePage() {
 
       {/* ── Doctor Reviews ── */}
       {doctorReviews.length > 0 && (
-        <section className="bg-[#ffffff] dark:bg-[#201d30] py-20 px-4">
+        <section className="bg-[#2d2a42] py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
