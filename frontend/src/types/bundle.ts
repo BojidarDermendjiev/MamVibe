@@ -15,6 +15,7 @@ export interface BundleDto {
   sellerAvatarUrl: string | null;
   isActive: boolean;
   isSold: boolean;
+  isOwnedByCurrentUser: boolean;
   items: BundleItemDto[];
   createdAt: string;
 }

@@ -2,11 +2,13 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Application.Interfaces;
 
 [ApiController]
 [Route("api/follows")]
+[EnableRateLimiting(RateLimitPolicies.Global)]
 public class FollowsController : ControllerBase
 {
     private readonly IFollowService _followService;
@@ -68,6 +70,8 @@ public class FollowsController : ControllerBase
     [HttpGet("feed")]
     public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 50) pageSize = 12;
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         var result = await this._followService.GetFollowingFeedAsync(userId, page, pageSize);

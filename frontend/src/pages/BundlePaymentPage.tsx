@@ -98,8 +98,7 @@ export default function BundlePaymentPage() {
       }
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
-        ?? (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.details
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error
         ?? t('common.error');
       toast.error(message);
     } finally {

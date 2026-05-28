@@ -98,6 +98,7 @@ public class SavedSearchService : ISavedSearchService
             .Where(s => s.ClothingSize == null || s.ClothingSize == item.ClothingSize)
             .Where(s => s.Condition == null || s.Condition == item.Condition)
             .Where(s => s.MaxPrice == null || item.Price == null || s.MaxPrice >= item.Price)
+            .Take(500)
             .ToListAsync();
 
         // In-memory filter for keyword match

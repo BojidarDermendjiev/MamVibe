@@ -114,8 +114,8 @@ public class OfferServiceTests
 
         result.Status.Should().Be(OfferStatus.Pending);
         result.OfferedPrice.Should().Be(70m);
-        result.BuyerId.Should().Be("buyer-1");
-        result.SellerId.Should().Be("seller-1");
+        result.BuyerDisplayName.Should().Be("Buyer");
+        result.SellerDisplayName.Should().Be("Seller");
         notifier.Verify(n => n.NotifySellerAsync("seller-1", It.IsAny<OfferDto>()), Times.Once);
     }
 
@@ -466,7 +466,7 @@ public class OfferServiceTests
         var result = await svc.GetReceivedAsync("seller-1");
 
         result.Should().HaveCount(1);
-        result[0].SellerId.Should().Be("seller-1");
+        result[0].SellerDisplayName.Should().Be("Seller");
     }
 
     [Fact]
@@ -482,7 +482,7 @@ public class OfferServiceTests
         var result = await svc.GetSentAsync("buyer-2");
 
         result.Should().HaveCount(1);
-        result[0].BuyerId.Should().Be("buyer-2");
+        result[0].BuyerDisplayName.Should().Be("Buyer");
     }
 
     [Fact]

@@ -260,9 +260,84 @@ public class PaymentService : IPaymentService
                 return;
             }
 
-            var isBulk = session.Metadata.ContainsKey("isBulk") && session.Metadata["isBulk"] == "true";
+            var isBulk   = session.Metadata.ContainsKey("isBulk")   && session.Metadata["isBulk"]   == "true";
+            var isBundle = session.Metadata.ContainsKey("isBundle") && session.Metadata["isBundle"] == "true";
 
-            if (isBulk)
+            if (isBundle)
+            {
+                var bundleId = Guid.Parse(session.Metadata["bundleId"]);
+                var bundleBuyerId  = session.Metadata["buyerId"];
+                var bundleSellerId = session.Metadata["sellerId"];
+
+                var bundlePayment = new PaymentEntity
+                {
+                    BundleId = bundleId,
+                    ItemId   = null,
+                    BuyerId  = bundleBuyerId,
+                    SellerId = bundleSellerId,
+                    Amount   = session.AmountTotal!.Value / 100m,
+                    PaymentMethod   = Domain.Enums.PaymentMethod.Card,
+                    StripeSessionId = session.Id,
+                    Status   = PaymentStatus.Completed
+                };
+                this._context.Payments.Add(bundlePayment);
+                await this._context.SaveChangesAsync();
+
+                // Auto-create shipment when delivery metadata was embedded at checkout
+                if (session.Metadata.ContainsKey("delivery_name") && !string.IsNullOrEmpty(session.Metadata["delivery_name"]))
+                {
+                    try
+                    {
+                        await this._shippingService.CreateShipmentAsync(new CreateShipmentDto
+                        {
+                            PaymentId        = bundlePayment.Id,
+                            CourierProvider  = Enum.Parse<Domain.Enums.CourierProvider>(session.Metadata["delivery_courier"]),
+                            DeliveryType     = Enum.Parse<Domain.Enums.DeliveryType>(session.Metadata["delivery_type"]),
+                            RecipientName    = session.Metadata["delivery_name"],
+                            RecipientPhone   = session.Metadata["delivery_phone"],
+                            City             = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_city")) ? null : session.Metadata["delivery_city"],
+                            DeliveryAddress  = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_address")) ? null : session.Metadata["delivery_address"],
+                            OfficeId         = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_office_id")) ? null : session.Metadata["delivery_office_id"],
+                            OfficeName       = string.IsNullOrEmpty(session.Metadata.GetValueOrDefault("delivery_office_name")) ? null : session.Metadata["delivery_office_name"],
+                            Weight           = decimal.TryParse(session.Metadata.GetValueOrDefault("delivery_weight"), out var bw) ? bw : 1m,
+                            IsCod            = false,
+                            CodAmount        = 0,
+                            IsInsured        = false,
+                            InsuredAmount    = 0
+                        });
+                    }
+                    catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for bundle Stripe session {SessionId}.", session.Id); }
+                }
+
+                // Complete the bundle: mark purchase request done, items sold, bundle sold
+                try
+                {
+                    var req = await this._context.PurchaseRequests
+                        .FirstOrDefaultAsync(r => r.BundleId == bundleId
+                                               && r.BuyerId  == bundleBuyerId
+                                               && r.Status   == PurchaseRequestStatus.Accepted);
+                    if (req != null) req.Status = PurchaseRequestStatus.Completed;
+
+                    var bundleItems = await this._context.BundleItems
+                        .Include(bi => bi.Item)
+                        .Where(bi => bi.BundleId == bundleId)
+                        .ToListAsync();
+
+                    foreach (var bi in bundleItems)
+                    {
+                        bi.Item.IsActive   = false;
+                        bi.Item.IsReserved = false;
+                        bi.Item.IsSold     = true;
+                    }
+
+                    var bundle = await this._context.Bundles.FirstOrDefaultAsync(b => b.Id == bundleId);
+                    if (bundle != null) { bundle.IsSold = true; bundle.IsActive = false; }
+
+                    await this._context.SaveChangesAsync();
+                }
+                catch (Exception ex) { this._logger.LogError(ex, "Failed to complete bundle purchase for bundle {BundleId}, buyer {BuyerId}.", bundleId, bundleBuyerId); }
+            }
+            else if (isBulk)
             {
                 var itemIdStrings = session.Metadata["itemIds"].Split(',');
                 var sellerIdStrings = session.Metadata["sellerIds"].Split(',');

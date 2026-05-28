@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Application.Interfaces;
 using Application.DTOs.Offers;
@@ -9,6 +10,7 @@ using Application.DTOs.Offers;
 [ApiController]
 [Route("api/offers")]
 [Authorize]
+[EnableRateLimiting(RateLimitPolicies.Global)]
 public class OffersController : ControllerBase
 {
     private readonly IOfferService _service;

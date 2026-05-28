@@ -20,6 +20,9 @@ public class BundleDto
     /// <summary>Gets or sets the identifier of the seller who created the bundle.</summary>
     public string SellerId { get; set; } = "";
 
+    /// <summary>Gets or sets whether the current authenticated user owns this bundle. Set server-side; do not use SellerId for ownership checks on the client.</summary>
+    public bool IsOwnedByCurrentUser { get; set; }
+
     /// <summary>Gets or sets the display name of the seller, for UI rendering.</summary>
     public string? SellerDisplayName { get; set; }
 

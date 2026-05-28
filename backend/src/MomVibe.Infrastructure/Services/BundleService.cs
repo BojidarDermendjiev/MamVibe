@@ -159,7 +159,7 @@ public class BundleService : IBundleService
         string cancelUrl,
         PaymentDeliveryRequest? delivery = null)
     {
-        var bundle = await LoadBundleForPaymentAsync(bundleId);
+        var bundle = await LoadBundleForPaymentAsync(bundleId, buyerId);
 
         if (!IsStripeConfigured())
         {
@@ -296,7 +296,7 @@ public class BundleService : IBundleService
     /// <inheritdoc/>
     public async Task<PaymentDto> CreateOnSpotPaymentAsync(Guid bundleId, string buyerId, PaymentDeliveryRequest? delivery = null)
     {
-        var bundle = await LoadBundleForPaymentAsync(bundleId);
+        var bundle = await LoadBundleForPaymentAsync(bundleId, buyerId);
 
         var payment = new PaymentEntity
         {
@@ -333,7 +333,7 @@ public class BundleService : IBundleService
     /// <inheritdoc/>
     public async Task<PaymentDto> CreateCashOnDeliveryAsync(Guid bundleId, string buyerId, PaymentDeliveryRequest delivery)
     {
-        var bundle = await LoadBundleForPaymentAsync(bundleId);
+        var bundle = await LoadBundleForPaymentAsync(bundleId, buyerId);
 
         decimal shippingFee = 0;
         try
@@ -398,7 +398,7 @@ public class BundleService : IBundleService
         return !string.IsNullOrWhiteSpace(stripeKey) && !stripeKey.Contains("YOUR_STRIPE");
     }
 
-    private async Task<Bundle> LoadBundleForPaymentAsync(Guid bundleId)
+    private async Task<Bundle> LoadBundleForPaymentAsync(Guid bundleId, string buyerId)
     {
         var bundle = await this._context.Bundles
             .Include(b => b.BundleItems)
@@ -407,6 +407,7 @@ public class BundleService : IBundleService
 
         if (bundle == null) throw new KeyNotFoundException("Bundle not found.");
         if (!bundle.IsActive || bundle.IsSold) throw new InvalidOperationException("This bundle is not available.");
+        if (bundle.SellerId == buyerId) throw new InvalidOperationException("You cannot purchase your own bundle.");
 
         return bundle;
     }

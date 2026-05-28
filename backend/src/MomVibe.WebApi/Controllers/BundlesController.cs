@@ -32,6 +32,8 @@ public class BundlesController : ControllerBase
         try
         {
             var bundle = await this._bundleService.GetByIdAsync(id);
+            bundle.IsOwnedByCurrentUser = this._currentUserService.UserId != null
+                && this._currentUserService.UserId == bundle.SellerId;
             return Ok(bundle);
         }
         catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }

@@ -14,10 +14,8 @@ export interface Offer {
   itemTitle: string | null;
   itemPhotoUrl: string | null;
   itemPrice: number | null;
-  buyerId: string;
   buyerDisplayName: string | null;
   buyerAvatarUrl: string | null;
-  sellerId: string;
   sellerDisplayName: string | null;
   offeredPrice: number;
   counterPrice: number | null;

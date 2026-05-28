@@ -387,7 +387,16 @@ public class ItemService : IItemService
                 .Select(l => l.UserId)
                 .ToListAsync();
 
-            var tasks = likerIds.Select(uid => this._priceDropNotifier.NotifyAsync(uid, notification));
+            // Cap concurrent SignalR dispatches to avoid thread-pool exhaustion on popular items
+            const int MaxConcurrency = 50;
+            var semaphore = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
+            var tasks = likerIds.Select(async uid =>
+            {
+                await semaphore.WaitAsync();
+                try   { await this._priceDropNotifier.NotifyAsync(uid, notification); }
+                catch { /* best-effort: notification failure must not break the update */ }
+                finally { semaphore.Release(); }
+            });
             await Task.WhenAll(tasks);
         }
 

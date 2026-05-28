@@ -46,7 +46,7 @@ export default function BundleDetailPage() {
   if (loading) return <LoadingSpinner size="lg" className="py-20" />;
   if (!bundle) return null;
 
-  const isOwner = user?.id === bundle.sellerId;
+  const isOwner = bundle.isOwnedByCurrentUser;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
