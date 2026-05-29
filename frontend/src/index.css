@@ -604,12 +604,44 @@ a:hover {
   color: #9ca3af;
 }
 
-/* ─── Light Mode Border Overrides ─── */
-/* Make card/panel borders more visible in light mode */
+/* ─── Semantic Section Background Tokens ─── */
+/*
+  Page-level background: bg-page
+  Section A (lighter): bg-section-a
+  Section B (darker):  bg-section-b
+  Card surface:        bg-surface
+  These replace the hardcoded #1a1825 / #2d2a42 / #201d30 values in page files.
+*/
 :root {
+  --bg-page:      #f5f0ea;
+  --bg-section-a: #fdf7f2;
+  --bg-section-b: #ede5dc;
+  --bg-surface:   #ffffff;
+
+  --text-page:    #2d1f1a;
+  --text-muted:   #6b5a54;
+
   --border-subtle: rgba(148, 92, 103, 0.18);
   --border-light:  rgba(148, 92, 103, 0.28);
 }
+
+.dark {
+  --bg-page:      #1a1825;
+  --bg-section-a: #2d2a42;
+  --bg-section-b: #201d30;
+  --bg-surface:   #2d2a42;
+
+  --text-page:    #f0ece8;
+  --text-muted:   #a8a4c0;
+}
+
+/* Utility classes backed by the tokens above */
+.bg-page      { background-color: var(--bg-page); }
+.bg-section-a { background-color: var(--bg-section-a); }
+.bg-section-b { background-color: var(--bg-section-b); }
+.bg-surface   { background-color: var(--bg-surface); }
+.text-page    { color: var(--text-page); }
+.text-muted   { color: var(--text-muted); }
 
 /* ─── Light Mode Text Overrides ─── */
 /* Remap pink/mauve text classes → dark slate in light mode */
@@ -656,8 +688,6 @@ a:hover {
 
 /* Nav pill */
 .dark .bg-white\/90      { background-color: rgba(45,42,66,0.92) !important; }
-.dark .bg-white\/10      { background-color: rgba(255,255,255,0.06) !important; }
-.dark .border-white\/20  { border-color: rgba(193,196,227,0.15) !important; }
 .dark .border-lavender\/40 { border-color: rgba(193,196,227,0.15) !important; }
 
 /* Dropdown */
@@ -1028,3 +1058,173 @@ a:hover {
 }
 
 .dark .auth-mobile-link-btn { color: #c1c4e3; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE — comprehensive overrides
+   Applied when .dark class is ABSENT from <html>
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Base ── */
+body {
+  background-color: var(--bg-page);
+  color: var(--text-page);
+}
+
+/* ── Backgrounds — Tailwind utility overrides for light mode ── */
+/* When .dark is absent, bg-white stays white (no override needed).
+   The bg-gray-* classes need to look warm/cream in light mode. */
+.bg-gray-50  { background-color: #fdf7f2; }
+.bg-gray-100 { background-color: #f0e9e1; }
+
+/* The explicit dark-section class used in some sections */
+.dark-section { background-color: var(--bg-section-b); }
+
+/* ── Brand card in marquee strip — light bg for section ── */
+/* The brands section uses bg-[#201d30]; we override via token class */
+
+/* ── Text — ensure readable contrast on light backgrounds ── */
+.text-gray-100 { color: #1f1a18; }
+.text-gray-200 { color: #2d2824; }
+.text-gray-300 { color: #3d3530; }
+.text-gray-400 { color: #6b5a54; }
+.text-gray-500 { color: #5a4a44; }
+.text-gray-600 { color: #4a3c38; }
+.text-gray-700 { color: #38302c; }
+.text-gray-800 { color: #2d2420; }
+.text-gray-900 { color: #1f1612; }
+
+/* In dark mode the text-gray-* overrides above must be reverted */
+.dark .text-gray-100 { color: #f0ece8 !important; }
+.dark .text-gray-200 { color: #e0dce8 !important; }
+.dark .text-gray-300 { color: #d0ccd8 !important; }
+.dark .text-gray-400 { color: #8884a0 !important; }
+.dark .text-gray-500 { color: #a8a4c0 !important; }
+.dark .text-gray-600 { color: #c8c4d8 !important; }
+.dark .text-gray-700 { color: #e0dce8 !important; }
+.dark .text-gray-800 { color: #f0ece8 !important; }
+.dark .text-gray-900 { color: #f8f5f2 !important; }
+
+/* ── Cards and surfaces ── */
+.card { background-color: #ffffff; }
+
+/* ── Nav pill — light mode glass effect ── */
+/* The pill uses bg-white/10 + border-white/20 which reads as translucent
+   on dark bgs. On light, we need a more visible treatment. */
+html:not(.dark) .bg-white\/10  { background-color: rgba(255,255,255,0.7) !important; }
+html:not(.dark) .border-white\/20 { border-color: rgba(148,92,103,0.18) !important; }
+
+/* Logo pill & auth pill on light */
+html:not(.dark) .bg-white\/10.border.border-white\/20 {
+  background-color: rgba(255,255,255,0.82) !important;
+  border-color: rgba(148,92,103,0.18) !important;
+}
+
+/* ── Mobile header ── */
+/* Already uses bg-white/90 which is fine for light mode */
+
+/* ── Nav link active state text ── */
+html:not(.dark) .text-gray-500.hover\:text-gray-900 { color: #5a4a44; }
+
+/* ── Footer ── */
+html:not(.dark) footer.bg-\[\#201d30\] {
+  background-color: #ede5dc !important;
+}
+html:not(.dark) footer { background-color: #ede5dc; }
+
+/* Scope footer-specific overrides so they only apply inside footer */
+footer .text-gray-500 { color: #a89088 !important; }
+footer .text-gray-400 { color: #9a8078 !important; }
+footer .text-gray-800 { color: #f5f0ea !important; }
+footer .text-gray-100 { color: #f5f0ea !important; }
+footer .border-gray-200 { border-color: rgba(255,255,255,0.12) !important; }
+footer .bg-gray-100 { background-color: rgba(255,255,255,0.08) !important; }
+
+.dark footer { border-top-color: transparent; }
+.dark footer .text-gray-500 { color: #a8a4c0 !important; }
+.dark footer .text-gray-400 { color: #8884a0 !important; }
+.dark footer .text-gray-800 { color: #f0ece8 !important; }
+.dark footer .text-gray-100 { color: #f0ece8 !important; }
+
+html:not(.dark) footer .text-gray-800 { color: #3d2c26 !important; }
+html:not(.dark) footer .text-gray-100 { color: #3d2c26 !important; }
+html:not(.dark) footer .text-gray-500 { color: #6b4f45 !important; }
+html:not(.dark) footer .text-gray-400 { color: #7a5c52 !important; }
+html:not(.dark) footer .text-gray-600 { color: #5a4038 !important; }
+html:not(.dark) footer a { color: #6b4f45 !important; }
+html:not(.dark) footer a:hover { color: #3d2c26 !important; }
+
+/* ── Inputs — light mode ── */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  background-color: #ffffff;
+  color: #2d2420;
+  border-color: rgba(148, 92, 103, 0.25);
+}
+
+input::placeholder,
+textarea::placeholder { color: #9a8078; }
+
+input:focus:not([type="checkbox"]):not([type="radio"]),
+textarea:focus,
+select:focus {
+  border-color: rgba(148, 92, 103, 0.55);
+  box-shadow: 0 0 0 2px rgba(148, 92, 103, 0.12);
+}
+
+/* ── Auth page — light mode ── */
+.auth-page {
+  background: linear-gradient(135deg, #f0e8de 0%, #e8d8cc 100%);
+}
+
+.auth-card { background: #ffffff; }
+
+.auth-title { color: #2d2420; }
+
+.auth-or { color: #9a8078; }
+
+.auth-forgot { color: #9a8078; }
+
+.auth-social-icon {
+  border-color: rgba(148, 92, 103, 0.22);
+}
+
+.auth-field-input {
+  background-color: #f5ede8;
+  color: #2d2420;
+}
+
+.auth-field-input::placeholder { color: #9a8078; }
+
+.auth-field-input:focus {
+  background-color: #ffe8e0;
+  box-shadow: 0 0 0 2px rgba(148, 92, 103, 0.2);
+}
+
+.auth-mobile-link { color: #9a8078; }
+.auth-mobile-link-btn { color: #945c67; }
+
+/* ── Dropdown menu — light mode ── */
+html:not(.dark) .bg-white.rounded-xl {
+  background-color: #ffffff !important;
+  border-color: rgba(148, 92, 103, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(63, 75, 127, 0.12);
+}
+
+/* ── Scrollbar — ensure light mode body has white bg for scrollbar track ── */
+html:not(.dark) body { color-scheme: light; }
+
+/* ── BrandCard in marquee — light bg on light sections ── */
+html:not(.dark) .bg-white.rounded-2xl.border.border-gray-100 {
+  background-color: #ffffff;
+  border-color: rgba(148, 92, 103, 0.14) !important;
+}
+
+/* ── Feature cards (bg-[#2d2a42] inside bg-[#201d30]) — light fallback ── */
+/* These use inline Tailwind arbitrary values — we can target via the token classes */
+
+/* ── Pagination ── */
+html:not(.dark) .bg-gray-100 { background-color: #f0e8e0 !important; }
+html:not(.dark) .hover\:bg-gray-200:hover { background-color: #e8ddd5 !important; }
+
+/* ── Shimmer text — light mode already defined in main block above ── */

@@ -62,6 +62,7 @@ const PLACE_TYPE_LABELS: Record<number, string> = {
 };
 
 // ── WaveDivider ─────────────────────────────────────────────────────────────
+// `from` and `to` accept either a literal hex or a CSS var() expression.
 function WaveDivider({ from, to, flip = false }: { from: string; to: string; flip?: boolean }) {
   return (
     <div style={{ backgroundColor: from, lineHeight: 0 }}>
@@ -82,6 +83,9 @@ function WaveDivider({ from, to, flip = false }: { from: string; to: string; fli
   );
 }
 
+const CSS_SECTION_A = "var(--bg-section-a)";
+const CSS_SECTION_B = "var(--bg-section-b)";
+
 // ── BrandCard ───────────────────────────────────────────────────────────────
 function BrandCard({
   name,
@@ -95,7 +99,7 @@ function BrandCard({
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="group/card flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 select-none shrink-0 px-5 py-3.5 min-w-max">
+    <div className="group/card flex items-center gap-3 bg-surface rounded-2xl border border-gray-100 dark:border-white/8 shadow-sm hover:shadow-md transition-all duration-300 select-none shrink-0 px-5 py-3.5 min-w-max">
       {/* Brand icon */}
       {!imgError ? (
         <img
@@ -362,7 +366,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Trusted Brands ── */}
-      <section aria-labelledby="brands-heading" className="bg-[#201d30] py-12 overflow-hidden">
+      <section aria-labelledby="brands-heading" className="bg-section-b py-12 overflow-hidden">
         {/* h2 styled to look like a small label — semantically correct for heading hierarchy */}
         <h2 id="brands-heading" className="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-8">
           {t("home.brands_title")}
@@ -380,24 +384,24 @@ export default function HomePage() {
               />
             ))}
           </div>
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#201d30]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#201d30]" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-24" style={{ background: `linear-gradient(to right, var(--bg-section-b), transparent)` }} />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-24" style={{ background: `linear-gradient(to left, var(--bg-section-b), transparent)` }} />
         </div>
       </section>
 
-      <WaveDivider from="#201d30" to="#2d2a42" flip />
+      <WaveDivider from={CSS_SECTION_B} to={CSS_SECTION_A} flip />
 
       {/* ── How it works ── */}
       <section
         aria-labelledby="how-it-works-heading"
-        className="bg-[#2d2a42] py-20 px-4"
+        className="bg-section-a py-20 px-4"
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold mb-3" style={{ color: "#3f4b7f" }}>
+            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold mb-3 text-primary-dark">
               {t("home.how_it_works")}
             </h2>
-            <p className="text-gray-400">{t("home.how_it_works_subtitle")}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t("home.how_it_works_subtitle")}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
@@ -423,10 +427,10 @@ export default function HomePage() {
                 </div>
                 {/* Text */}
                 <div>
-                  <h3 className="font-bold text-gray-100 text-base mb-2">
+                  <h3 className="font-bold text-gray-800 dark:text-gray-100 text-base mb-2">
                     {t(step.titleKey)}
                   </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                     {t(step.descKey)}
                   </p>
                 </div>
@@ -437,20 +441,20 @@ export default function HomePage() {
       </section>
 
       {/* ── Shop by Age ── */}
-      <section className="bg-[#2d2a42] py-20 px-4">
+      <section className="bg-section-a py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: "#3f4b7f" }}>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-primary-dark">
               {t("home.shop_by_age")}
             </h2>
-            <p className="text-gray-400">{t("home.shop_by_age_subtitle")}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t("home.shop_by_age_subtitle")}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-14">
             {AGE_GROUPS.map((group) => (
               <Link
                 key={group.labelKey}
                 to={`/browse?age=${group.query}`}
-                className="bg-[#201d30] rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                className="bg-section-b rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center"
@@ -459,10 +463,10 @@ export default function HomePage() {
                   <group.icon size={26} style={{ color: group.color }} />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-gray-100 text-sm">
+                  <p className="font-bold text-gray-800 dark:text-gray-100 text-sm">
                     {t(group.labelKey)}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {t(group.rangeKey)}
                   </p>
                 </div>
@@ -472,12 +476,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <WaveDivider from="#2d2a42" to="#201d30" />
+      <WaveDivider from={CSS_SECTION_A} to={CSS_SECTION_B} />
 
       {/* ── Features + Stats ── */}
       <section
         aria-labelledby="features-heading"
-        className="bg-[#201d30] py-24 px-4"
+        className="bg-section-b py-24 px-4"
       >
         <div className="max-w-5xl mx-auto">
           {/* Section heading */}
@@ -485,7 +489,7 @@ export default function HomePage() {
             <h2 id="features-heading" className="text-3xl md:text-4xl font-bold text-primary-dark mb-3">
               {t("home.features_title")}
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">{t("home.features_subtitle")}</p>
+            <p className="text-gray-500 dark:text-gray-500 max-w-xl mx-auto">{t("home.features_subtitle")}</p>
           </div>
 
           {/* Feature grid */}
@@ -497,7 +501,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: i * 0.05 }}
-                className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-white/5 bg-[#2d2a42] hover:shadow-md transition-shadow duration-300"
+                className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl border border-black/6 dark:border-white/5 bg-surface hover:shadow-md transition-shadow duration-300"
               >
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
@@ -533,12 +537,12 @@ export default function HomePage() {
               ].map(({ value, labelKey }) => (
                 <div
                   key={labelKey}
-                  className="bg-[#FAF3EE] dark:bg-[#2d2a42] rounded-2xl py-6 flex flex-col items-center gap-1 border border-gray-100 dark:border-white/5"
+                  className="bg-surface rounded-2xl py-6 flex flex-col items-center gap-1 border border-black/8 dark:border-white/5"
                 >
                   <span className="text-3xl md:text-4xl font-extrabold text-primary-dark tabular-nums">
                     {value > 0 ? `${value.toLocaleString()}+` : "—"}
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     {t(labelKey)}
                   </span>
                 </div>
@@ -551,14 +555,14 @@ export default function HomePage() {
       {/* ── Doctor Reviews ── */}
       {doctorReviews.length > 0 && (
         <>
-        <WaveDivider from="#201d30" to="#2d2a42" flip />
-        <section className="bg-[#2d2a42] py-20 px-4">
+        <WaveDivider from={CSS_SECTION_B} to={CSS_SECTION_A} flip />
+        <section className="bg-section-a py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
                 {t("home.doctors_title")}
               </h2>
-              <p className="text-gray-500">{t("home.doctors_subtitle")}</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("home.doctors_subtitle")}</p>
               <Link
                 to="/doctor-reviews"
                 className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors mt-3"
@@ -571,24 +575,24 @@ export default function HomePage() {
               {doctorReviews.map((review) => (
                 <div
                   key={review.id}
-                  className="bg-[#2d2a3e] rounded-2xl p-5 flex flex-col gap-3 border border-white/10 hover:shadow-md transition-shadow duration-300"
+                  className="bg-surface rounded-2xl p-5 flex flex-col gap-3 border border-black/6 dark:border-white/10 hover:shadow-md transition-shadow duration-300"
                 >
                   <StarRating value={review.rating} readonly size="sm" />
                   <div>
-                    <p className="font-bold text-gray-100 text-base">
+                    <p className="font-bold text-gray-800 dark:text-gray-100 text-base">
                       {review.doctorName}
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {review.specialization}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
                     <MapPin className="w-3 h-3" /> {review.city}
                   </div>
-                  <p className="text-sm text-gray-300 line-clamp-3 flex-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 flex-1">
                     {review.content}
                   </p>
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 pt-2 border-t border-black/6 dark:border-white/10 text-xs text-gray-500">
                     <div className="w-6 h-6 rounded-full bg-peach-light flex items-center justify-center font-bold text-primary text-xs">
                       {review.isAnonymous
                         ? "?"
@@ -618,14 +622,14 @@ export default function HomePage() {
       {/* ── Child-Friendly Places ── */}
       {childPlaces.length > 0 && (
         <>
-        <WaveDivider from={doctorReviews.length > 0 ? "#2d2a42" : "#201d30"} to="#201d30" />
-        <section className="bg-[#201d30] py-20 px-4">
+        <WaveDivider from={doctorReviews.length > 0 ? CSS_SECTION_A : CSS_SECTION_B} to={CSS_SECTION_B} />
+        <section className="bg-section-b py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">
                 {t("home.places_title")}
               </h2>
-              <p className="text-gray-500">{t("home.places_subtitle")}</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("home.places_subtitle")}</p>
               <Link
                 to="/child-friendly-places"
                 className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition-colors mt-3"
@@ -637,7 +641,7 @@ export default function HomePage() {
               {childPlaces.map((place) => (
                 <div
                   key={place.id}
-                  className="bg-[#2d2a3e] rounded-2xl overflow-hidden border border-white/10 hover:shadow-md transition-shadow duration-300 flex flex-col"
+                  className="bg-surface rounded-2xl overflow-hidden border border-black/6 dark:border-white/10 hover:shadow-md transition-shadow duration-300 flex flex-col"
                 >
                   {place.photoUrl ? (
                     <img
@@ -650,23 +654,23 @@ export default function HomePage() {
                       className="w-full h-40 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-40 bg-[#3a3650] flex items-center justify-center text-4xl">
+                    <div className="w-full h-40 bg-section-a flex items-center justify-center text-4xl">
                       🏡
                     </div>
                   )}
                   <div className="p-5 flex flex-col gap-2 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-bold text-gray-100 text-base leading-tight">
+                      <p className="font-bold text-gray-800 dark:text-gray-100 text-base leading-tight">
                         {place.name}
                       </p>
                       <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-peach-light text-primary">
                         {PLACE_TYPE_LABELS[place.placeType] ?? "Place"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
                       <MapPin className="w-3 h-3" /> {place.city}
                     </div>
-                    <p className="text-sm text-gray-300 line-clamp-2 flex-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 flex-1">
                       {place.description}
                     </p>
                   </div>
@@ -687,13 +691,13 @@ export default function HomePage() {
       )}
 
       <WaveDivider
-        from={childPlaces.length > 0 ? "#201d30" : doctorReviews.length > 0 ? "#2d2a42" : "#201d30"}
-        to="#2d2a42"
+        from={childPlaces.length > 0 ? CSS_SECTION_B : doctorReviews.length > 0 ? CSS_SECTION_A : CSS_SECTION_B}
+        to={CSS_SECTION_A}
         flip
       />
 
       {/* ── Support section ── */}
-      <section className="bg-[#2d2a42] py-24 px-4">
+      <section className="bg-section-a py-24 px-4">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -732,7 +736,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      <WaveDivider from="#2d2a42" to="#201d30" />
+      <WaveDivider from={CSS_SECTION_A} to={CSS_SECTION_B} />
     </div>
   );
 }

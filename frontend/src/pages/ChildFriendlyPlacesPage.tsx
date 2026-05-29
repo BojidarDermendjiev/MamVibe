@@ -168,7 +168,7 @@ export default function ChildFriendlyPlacesPage() {
   return (
     <div>
       {/* Hero */}
-      <div className="bg-[#1a1825] py-12 px-4 mb-8">
+      <div className="bg-page py-12 px-4 mb-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <motion.div
             initial={{ opacity: 0, y: 16 }}

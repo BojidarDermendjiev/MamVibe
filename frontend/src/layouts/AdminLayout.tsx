@@ -20,10 +20,10 @@ export default function AdminLayout() {
     exact ? location.pathname === path : location.pathname.startsWith(path);
 
   return (
-    <div className="min-h-screen bg-[#1a1825] flex">
+    <div className="min-h-screen bg-[#1a1825] dark:bg-[#1a1825] flex">
 
       {/* ── Desktop Sidebar ── */}
-      <aside className="w-64 bg-[#2d2a42] text-white flex-shrink-0 hidden md:flex flex-col">
+      <aside className="w-64 bg-[#2d2a42] dark:bg-[#2d2a42] text-white flex-shrink-0 hidden md:flex flex-col">
 
         <div className="p-6">
           <h2 className="text-xl font-bold flex items-center gap-2">
