@@ -394,7 +394,7 @@ export default function HomePage() {
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold text-white mb-3">
+            <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold mb-3" style={{ color: "#3f4b7f" }}>
               {t("home.how_it_works")}
             </h2>
             <p className="text-gray-400">{t("home.how_it_works_subtitle")}</p>
@@ -440,7 +440,7 @@ export default function HomePage() {
       <section className="bg-[#2d2a42] py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: "#3f4b7f" }}>
               {t("home.shop_by_age")}
             </h2>
             <p className="text-gray-400">{t("home.shop_by_age_subtitle")}</p>
