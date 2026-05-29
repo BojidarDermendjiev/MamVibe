@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { HiEye } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
@@ -24,13 +25,17 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
   const isFlagged = isPending && item.aiModerationStatus === 3;
   const isReserved = item.isReserved;
 
-  const now = Date.now();
-  const bumpedMs = item.bumpedAt ? new Date(item.bumpedAt).getTime() : null;
-  const isBumpActive = bumpedMs !== null && now - bumpedMs < 24 * 60 * 60 * 1000;
-  const isOnCooldown = bumpedMs !== null && now - bumpedMs < 7 * 24 * 60 * 60 * 1000;
-  const cooldownHoursLeft = isOnCooldown && bumpedMs !== null
-    ? Math.ceil((bumpedMs + 7 * 24 * 60 * 60 * 1000 - now) / (60 * 60 * 1000))
-    : 0;
+  const { isBumpActive, isOnCooldown, cooldownHoursLeft } = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now();
+    const bumpedMs = item.bumpedAt ? new Date(item.bumpedAt).getTime() : null;
+    const bumpActive = bumpedMs !== null && now - bumpedMs < 24 * 60 * 60 * 1000;
+    const onCooldown = bumpedMs !== null && now - bumpedMs < 7 * 24 * 60 * 60 * 1000;
+    const hoursLeft = onCooldown && bumpedMs !== null
+      ? Math.ceil((bumpedMs + 7 * 24 * 60 * 60 * 1000 - now) / (60 * 60 * 1000))
+      : 0;
+    return { isBumpActive: bumpActive, isOnCooldown: onCooldown, cooldownHoursLeft: hoursLeft };
+  }, [item.bumpedAt]);
 
   return (
     <div className={`bg-[#ffffff] dark:bg-[#2d2a42] rounded-2xl shadow-sm border hover-lift group animate-fade-in transition-all duration-300 ${
