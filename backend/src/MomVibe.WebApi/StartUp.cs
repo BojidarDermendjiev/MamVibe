@@ -266,10 +266,12 @@ builder.Services.AddOutputCache(options =>
 
     // Items list: 30-second cache keyed by all query params, anonymous requests only.
     // Authenticated requests are personalised (isLikedByCurrentUser) so they bypass the cache.
+    // Lock prevents thundering herd: on cache miss only one request rebuilds; others wait for it.
     options.AddPolicy("ItemsList", policy => policy
         .Expire(TimeSpan.FromSeconds(30))
         .SetVaryByQuery("*")
         .Tag("items")
+        .SetLocking(true)
         .With(ctx => !ctx.HttpContext.Request.Headers.ContainsKey("Authorization")));
 });
 
