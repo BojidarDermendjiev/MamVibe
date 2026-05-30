@@ -1,10 +1,13 @@
 // Bulgaria's fixed EUR/BGN peg (since 1999)
 const EUR_RATE = 1.95583;
 
+export function bgnToEur(amountBGN: number): number {
+  return amountBGN / EUR_RATE;
+}
+
 export function formatPrice(amountBGN: number | null | undefined): string {
   if (amountBGN == null) return '';
-  const eur = amountBGN / EUR_RATE;
-  return `€${eur.toFixed(2)} (${amountBGN.toFixed(2)} лв)`;
+  return `€${bgnToEur(amountBGN).toFixed(2)}`;
 }
 
 export function formatEur(amount: number | null | undefined): string {

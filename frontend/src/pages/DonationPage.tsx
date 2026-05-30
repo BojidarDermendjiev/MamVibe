@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
+import { bgnToEur } from "@/utils/currency";
 
 interface PresetTier {
   value: number;
@@ -75,7 +76,7 @@ export default function DonationPage() {
   };
 
   const donateLabel = canDonate
-    ? t("donate.donate_btn").replace("{amount}", effectiveAmount.toFixed(2))
+    ? t("donate.donate_btn").replace("{amount}", `€${bgnToEur(effectiveAmount).toFixed(2)}`)
     : t("donate.donate_btn_default");
 
   return (
@@ -242,7 +243,7 @@ export default function DonationPage() {
                               color: isActive ? activeBorder : "#374151",
                             }}
                           >
-                            {value} лв.
+                            €{bgnToEur(value).toFixed(2)}
                           </span>
                         )}
                         <span

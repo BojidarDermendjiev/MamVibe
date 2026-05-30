@@ -594,7 +594,7 @@ export default function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-primary">{s.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {[s.categoryName, s.searchTerm, s.maxPrice != null ? `≤ ${s.maxPrice} лв` : null].filter(Boolean).join(' · ')}
+                        {[s.categoryName, s.searchTerm, s.maxPrice != null ? `≤ ${formatPrice(s.maxPrice)}` : null].filter(Boolean).join(' · ')}
                       </p>
                     </div>
                     <button

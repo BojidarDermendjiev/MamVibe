@@ -457,7 +457,7 @@ export default function AdminItemsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                      {item.price ? `${item.price.toFixed(2)} BGN` : 'Free'}
+                      {item.price ? formatPrice(item.price) : 'Free'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.userDisplayName}</td>
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>

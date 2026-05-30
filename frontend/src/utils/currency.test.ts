@@ -3,7 +3,7 @@ import { formatPrice, formatEur } from './currency'
 
 describe('formatPrice', () => {
   it('converts BGN to EUR with fixed peg', () => {
-    expect(formatPrice(19.56)).toBe('€10.00 (19.56 лв)')
+    expect(formatPrice(19.56)).toBe('€10.00')
   })
 
   it('returns empty string for null', () => {
@@ -15,7 +15,7 @@ describe('formatPrice', () => {
   })
 
   it('handles zero', () => {
-    expect(formatPrice(0)).toBe('€0.00 (0.00 лв)')
+    expect(formatPrice(0)).toBe('€0.00')
   })
 })
 

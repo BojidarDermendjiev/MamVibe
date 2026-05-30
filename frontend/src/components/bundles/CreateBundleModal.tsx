@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from '../../utils/toast';
+import { formatPrice } from '../../utils/currency';
 import { bundlesApi } from '../../api/bundlesApi';
 import type { Item } from '../../types/item';
 import Modal from '../common/Modal';
@@ -135,7 +136,7 @@ export default function CreateBundleModal({ isOpen, onClose, myItems, onCreated 
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-primary truncate">{item.title}</p>
-                      <p className="text-xs text-gray-400">{item.price != null ? `${item.price} лв` : 'Free'}</p>
+                      <p className="text-xs text-gray-400">{item.price != null ? formatPrice(item.price) : 'Free'}</p>
                     </div>
                   </label>
                 );

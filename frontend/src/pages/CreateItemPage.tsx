@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
+import { bgnToEur } from "@/utils/currency";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
@@ -424,11 +425,11 @@ export default function CreateItemPage() {
                   <div className="flex-1">
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span className="text-xl font-bold text-primary">
-                        {priceSuggestion.suggestedPrice} BGN
+                        €{bgnToEur(priceSuggestion.suggestedPrice).toFixed(2)}
                       </span>
                       {priceSuggestion.low != null && priceSuggestion.high != null && (
                         <span className="text-sm text-gray-500">
-                          range: {priceSuggestion.low}–{priceSuggestion.high} BGN
+                          range: €{bgnToEur(priceSuggestion.low).toFixed(2)}–€{bgnToEur(priceSuggestion.high).toFixed(2)}
                         </span>
                       )}
                       {priceSuggestion.comparableCount > 0 && (
