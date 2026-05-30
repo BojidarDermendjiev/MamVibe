@@ -24,17 +24,20 @@ public class UsersController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IItemService _itemService;
     private readonly IUserRatingService _ratingService;
+    private readonly IGdprService _gdprService;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         ICurrentUserService currentUserService,
         IItemService itemService,
-        IUserRatingService ratingService)
+        IUserRatingService ratingService,
+        IGdprService gdprService)
     {
         this._userManager = userManager;
         this._currentUserService = currentUserService;
         this._itemService = itemService;
         this._ratingService = ratingService;
+        this._gdprService = gdprService;
     }
 
     /// <summary>
@@ -203,6 +206,56 @@ public class UsersController : ControllerBase
 
         user.ExpoPushToken = dto.Token;
         await this._userManager.UpdateAsync(user);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Exports all personal data held for the authenticated user (GDPR Article 20 — Data Portability).
+    /// Returns a JSON file containing profile, items, messages, payments, likes, and all community submissions.
+    /// </summary>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 200 OK with a <c>application/json</c> file attachment named <c>my-data.json</c>.
+    /// </returns>
+    [Authorize]
+    [HttpGet("me/export")]
+    public async Task<IActionResult> ExportMyData()
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+
+        var data = await this._gdprService.ExportDataAsync(userId);
+        var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        return File(bytes, "application/json", "my-data.json");
+    }
+
+    /// <summary>
+    /// Permanently deletes the authenticated user's account and all associated personal data
+    /// (GDPR Article 17 — Right to Erasure). Financial payment records are retained for the
+    /// 5-year fiscal period required under Bulgarian law.
+    /// </summary>
+    /// <returns>
+    /// 401 Unauthorized if the current user context is missing.<br/>
+    /// 404 Not Found if the user cannot be located.<br/>
+    /// 204 No Content on successful deletion.
+    /// </returns>
+    [Authorize]
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMyAccount()
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId == null) return Unauthorized();
+
+        var user = await this._userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        await this._gdprService.ErasePersonalDataAsync(userId);
+        await this._userManager.DeleteAsync(user);
+
         return NoContent();
     }
 }
