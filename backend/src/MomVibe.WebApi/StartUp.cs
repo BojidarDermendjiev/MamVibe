@@ -258,11 +258,19 @@ builder.WebHost.ConfigureKestrel(options =>
 // Memory cache (used by BlockedUserMiddleware for per-user block-status caching)
 builder.Services.AddMemoryCache();
 
-// Output cache — used for public, non-user-specific endpoints (categories, etc.)
+// Output cache — used for public, non-user-specific endpoints (categories, items list, etc.)
 builder.Services.AddOutputCache(options =>
 {
     options.AddBasePolicy(policy => policy.Expire(TimeSpan.FromSeconds(30)));
     options.AddPolicy("Categories", policy => policy.Expire(TimeSpan.FromHours(1)).Tag("categories"));
+
+    // Items list: 30-second cache keyed by all query params, anonymous requests only.
+    // Authenticated requests are personalised (isLikedByCurrentUser) so they bypass the cache.
+    options.AddPolicy("ItemsList", policy => policy
+        .Expire(TimeSpan.FromSeconds(30))
+        .SetVaryByQuery("*")
+        .Tag("items")
+        .With(ctx => !ctx.HttpContext.Request.Headers.ContainsKey("Authorization")));
 });
 
 // Controllers

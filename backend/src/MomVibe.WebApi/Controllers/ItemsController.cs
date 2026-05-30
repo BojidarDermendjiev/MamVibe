@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
 
@@ -26,19 +27,22 @@ public class ItemsController : ControllerBase
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
     private readonly IAiService _aiService;
+    private readonly IOutputCacheStore _cacheStore;
 
     public ItemsController(
         IItemService itemService,
         ICurrentUserService currentUserService,
         IValidator<CreateItemDto> createItemValidator,
         IValidator<UpdateItemDto> updateItemValidator,
-        IAiService aiService)
+        IAiService aiService,
+        IOutputCacheStore cacheStore)
     {
         this._itemService = itemService;
         this._currentUserService = currentUserService;
         this._createItemValidator = createItemValidator;
         this._updateItemValidator = updateItemValidator;
         this._aiService = aiService;
+        this._cacheStore = cacheStore;
     }
 
     /// <summary>
@@ -50,6 +54,7 @@ public class ItemsController : ControllerBase
     /// 200 OK with a paged result set of items.
     /// </returns>
     [HttpGet]
+    [OutputCache(PolicyName = "ItemsList")]
     public async Task<IActionResult> GetAll([FromQuery] ItemFilterDto filter)
     {
         var result = await this._itemService.GetAllAsync(filter, this._currentUserService.UserId);
@@ -198,6 +203,7 @@ public class ItemsController : ControllerBase
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         var item = await this._itemService.CreateAsync(dto, userId);
+        await this._cacheStore.EvictByTagAsync("items", HttpContext.RequestAborted);
         return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
     }
 
@@ -226,6 +232,7 @@ public class ItemsController : ControllerBase
         try
         {
             var item = await this._itemService.UpdateAsync(id, dto, userId);
+            await this._cacheStore.EvictByTagAsync("items", HttpContext.RequestAborted);
             return Ok(item);
         }
         catch (UnauthorizedAccessException)
@@ -253,6 +260,7 @@ public class ItemsController : ControllerBase
         try
         {
             await this._itemService.DeleteAsync(id, userId, this._currentUserService.IsAdmin);
+            await this._cacheStore.EvictByTagAsync("items", HttpContext.RequestAborted);
             return NoContent();
         }
         catch (UnauthorizedAccessException)
@@ -274,6 +282,7 @@ public class ItemsController : ControllerBase
         try
         {
             var item = await this._itemService.BumpAsync(id, userId);
+            await this._cacheStore.EvictByTagAsync("items", HttpContext.RequestAborted);
             return Ok(item);
         }
         catch (UnauthorizedAccessException) { return Forbid(); }
