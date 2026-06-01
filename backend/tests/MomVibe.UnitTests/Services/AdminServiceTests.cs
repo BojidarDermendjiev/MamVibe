@@ -68,7 +68,7 @@ public class AdminServiceTests
         distCacheMock ??= new Mock<IDistributedCache>();
         auditMock ??= new Mock<IAuditLogService>();
         memoryCache ??= CreateRealMemoryCache();
-        var webhookMock = new Mock<IN8nWebhookService>();
+        var outboxMock = new Mock<IOutboxWriter>();
         var n8nOptions = Options.Create(new N8nSettings());
 
         return new AdminService(
@@ -76,7 +76,7 @@ public class AdminServiceTests
             db,
             db,
             CreateMapper(),
-            webhookMock.Object,
+            outboxMock.Object,
             n8nOptions,
             memoryCache,
             distCacheMock.Object,

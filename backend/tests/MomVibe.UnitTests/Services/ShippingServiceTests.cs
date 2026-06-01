@@ -459,8 +459,7 @@ public class ShippingServiceTests
         // A real CourierProviderFactory with an empty provider list — never called in MockMode.
         var factory = new CourierProviderFactory(Array.Empty<ICourierProvider>());
 
-        var webhook = new Mock<IN8nWebhookService>();
-        webhook.Setup(w => w.Send(It.IsAny<string>(), It.IsAny<object>()));
+        var outbox = new Mock<IOutboxWriter>();
 
         var notifier = new Mock<IShipmentNotifier>();
         notifier.Setup(n => n.NotifySellerShipmentReadyAsync(It.IsAny<string>(), It.IsAny<ShipmentDto>()))
@@ -475,7 +474,7 @@ public class ShippingServiceTests
             db,
             mapper,
             factory,
-            webhook.Object,
+            outbox.Object,
             n8nOptions,
             shippingOptions,
             notifier.Object,

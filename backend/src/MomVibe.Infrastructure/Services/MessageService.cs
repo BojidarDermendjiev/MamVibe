@@ -20,7 +20,7 @@ public class MessageService : IMessageService
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IN8nWebhookService _webhook;
+    private readonly IOutboxWriter _outbox;
     private readonly N8nSettings _n8nSettings;
     private readonly UserPresenceTracker _presenceTracker;
     private readonly IAiService _aiService;
@@ -29,7 +29,7 @@ public class MessageService : IMessageService
     public MessageService(
         IApplicationDbContext context,
         IMapper mapper,
-        IN8nWebhookService webhook,
+        IOutboxWriter outbox,
         IOptions<N8nSettings> n8nSettings,
         UserPresenceTracker presenceTracker,
         IAiService aiService,
@@ -37,7 +37,7 @@ public class MessageService : IMessageService
     {
         this._context = context;
         this._mapper = mapper;
-        this._webhook = webhook;
+        this._outbox = outbox;
         this._n8nSettings = n8nSettings.Value;
         this._presenceTracker = presenceTracker;
         this._aiService = aiService;
@@ -166,12 +166,13 @@ public class MessageService : IMessageService
             .Include(m => m.Receiver)
             .FirstAsync(m => m.Id == message.Id);
 
-        // If receiver is offline (and not the AI bot), fire webhook for offline notification
+        // If receiver is offline (and not the AI bot), queue an offline-notification webhook
+        // through the transactional outbox. The processor will deliver it with retry + backoff.
         try
         {
             if (receiverId != AiBotConstants.UserId && !this._presenceTracker.IsOnline(receiverId))
             {
-                this._webhook.Send(this._n8nSettings.NewChatMessage, new
+                var body = new
                 {
                     Event = "chat.message_offline",
                     Timestamp = DateTime.UtcNow,
@@ -180,16 +181,25 @@ public class MessageService : IMessageService
                     ReceiverId = receiverId,
                     ReceiverEmail = MaskEmail(saved.Receiver?.Email),
                     ContentPreview = content.Length > 100 ? content[..100] + "..." : content
-                });
+                };
+                this._outbox.Enqueue(OutboxMessageTypes.N8nWebhook, new N8nWebhookOutboxPayload(
+                    this._n8nSettings.NewChatMessage,
+                    System.Text.Json.JsonSerializer.Serialize(body, OutboxJson)));
+                await this._context.SaveChangesAsync();
             }
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning(ex, "n8n chat.message_offline webhook failed for message {MessageId}", saved.Id);
+            this._logger.LogWarning(ex, "Failed to enqueue n8n chat.message_offline for message {MessageId}", saved.Id);
         }
 
         return this._mapper.Map<MessageDto>(saved);
     }
+
+    private static readonly System.Text.Json.JsonSerializerOptions OutboxJson = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
 
     public async Task MarkAsReadAsync(string userId, string senderId)
     {

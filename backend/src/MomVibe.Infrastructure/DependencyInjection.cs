@@ -120,9 +120,8 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(5);
         })
         .AddHttpMessageHandler<N8nHmacHandler>();
-        services.AddSingleton<N8nWebhookService>();
-        services.AddSingleton<IN8nWebhookService>(sp => sp.GetRequiredService<N8nWebhookService>());
-        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<N8nWebhookService>());
+        // (The legacy in-memory Channel-based N8nWebhookService was retired once every caller
+        //  switched to the transactional outbox below. Webhook delivery is now durable.)
 
         // Transactional outbox: writer stages messages in the caller's EF unit of work,
         // dispatchers route by MessageType, OutboxProcessor drains pending rows with retry.

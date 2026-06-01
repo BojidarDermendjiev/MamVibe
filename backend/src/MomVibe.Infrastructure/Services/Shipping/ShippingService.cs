@@ -19,10 +19,15 @@ using Infrastructure.Configuration;
 /// </summary>
 public class ShippingService : IShippingService
 {
+    private static readonly System.Text.Json.JsonSerializerOptions OutboxJson = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly CourierProviderFactory _factory;
-    private readonly IN8nWebhookService _webhook;
+    private readonly IOutboxWriter _outbox;
     private readonly N8nSettings _n8nSettings;
     private readonly ShippingSettings _shippingSettings;
     private readonly IShipmentNotifier _notifier;
@@ -32,7 +37,7 @@ public class ShippingService : IShippingService
         IApplicationDbContext context,
         IMapper mapper,
         CourierProviderFactory factory,
-        IN8nWebhookService webhook,
+        IOutboxWriter outbox,
         IOptions<N8nSettings> n8nSettings,
         IOptions<ShippingSettings> shippingSettings,
         IShipmentNotifier notifier,
@@ -41,12 +46,17 @@ public class ShippingService : IShippingService
         this._context = context;
         this._mapper = mapper;
         this._factory = factory;
-        this._webhook = webhook;
+        this._outbox = outbox;
         this._n8nSettings = n8nSettings.Value;
         this._shippingSettings = shippingSettings.Value;
         this._notifier = notifier;
         this._logger = logger;
     }
+
+    private void EnqueueWebhook<T>(string path, T body) where T : notnull =>
+        this._outbox.Enqueue(OutboxMessageTypes.N8nWebhook, new N8nWebhookOutboxPayload(
+            path,
+            System.Text.Json.JsonSerializer.Serialize(body, OutboxJson)));
 
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
     {
@@ -135,7 +145,7 @@ public class ShippingService : IShippingService
         this._context.Shipments.Add(shipment);
         await this._context.SaveChangesAsync();
 
-        // Fire shipment.created webhook
+        // Queue shipment.created webhook through the transactional outbox
         try
         {
             var buyer = await this._context.Payments
@@ -144,7 +154,7 @@ public class ShippingService : IShippingService
                 .Select(p => p.Buyer)
                 .FirstOrDefaultAsync();
 
-            this._webhook.Send(this._n8nSettings.ShipmentCreated, new
+            EnqueueWebhook(this._n8nSettings.ShipmentCreated, new
             {
                 Event = "shipment.created",
                 Timestamp = DateTime.UtcNow,
@@ -155,10 +165,11 @@ public class ShippingService : IShippingService
                 BuyerEmail = buyer?.Email,
                 RecipientName = shipment.RecipientName
             });
+            await this._context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning(ex, "n8n shipment.created webhook failed for shipment {ShipmentId}", shipment.Id);
+            this._logger.LogWarning(ex, "Failed to enqueue n8n shipment.created for shipment {ShipmentId}", shipment.Id);
         }
 
         shipment.Payment = payment;
@@ -398,12 +409,14 @@ public class ShippingService : IShippingService
 
         await this._context.SaveChangesAsync();
 
-        // Fire shipment.delivered webhook for newly delivered shipments
+        // Queue shipment.delivered + shipment.out_for_delivery webhooks through the outbox.
+        // All staged rows commit together at the end of the loop.
+        var enqueueErrored = false;
         foreach (var shipment in newlyDelivered)
         {
             try
             {
-                this._webhook.Send(this._n8nSettings.ShipmentDelivered, new
+                EnqueueWebhook(this._n8nSettings.ShipmentDelivered, new
                 {
                     Event = "shipment.delivered",
                     Timestamp = DateTime.UtcNow,
@@ -416,16 +429,16 @@ public class ShippingService : IShippingService
             }
             catch (Exception ex)
             {
-                this._logger.LogWarning(ex, "n8n shipment.delivered webhook failed for shipment {ShipmentId}", shipment.Id);
+                enqueueErrored = true;
+                this._logger.LogWarning(ex, "Failed to enqueue n8n shipment.delivered for shipment {ShipmentId}", shipment.Id);
             }
         }
 
-        // Fire shipment.out_for_delivery webhook
         foreach (var shipment in newlyOutForDelivery)
         {
             try
             {
-                this._webhook.Send(this._n8nSettings.ShipmentOutForDelivery, new
+                EnqueueWebhook(this._n8nSettings.ShipmentOutForDelivery, new
                 {
                     Event = "shipment.out_for_delivery",
                     Timestamp = DateTime.UtcNow,
@@ -439,7 +452,18 @@ public class ShippingService : IShippingService
             }
             catch (Exception ex)
             {
-                this._logger.LogWarning(ex, "n8n shipment.out_for_delivery webhook failed for shipment {ShipmentId}", shipment.Id);
+                enqueueErrored = true;
+                this._logger.LogWarning(ex, "Failed to enqueue n8n shipment.out_for_delivery for shipment {ShipmentId}", shipment.Id);
+            }
+        }
+
+        // Commit every webhook staged above. Skipped if every Enqueue threw (nothing to commit).
+        if (!enqueueErrored || newlyDelivered.Count + newlyOutForDelivery.Count > 0)
+        {
+            try { await this._context.SaveChangesAsync(); }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "Failed to commit shipment-status outbox rows");
             }
         }
 

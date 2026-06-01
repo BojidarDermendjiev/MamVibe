@@ -31,11 +31,7 @@ public class PaymentService : IPaymentService
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
-    private readonly ITakeANapService _takeANapService;
-    private readonly IN8nWebhookService _webhook;
-    private readonly N8nSettings _n8nSettings;
     private readonly IShippingService _shippingService;
-    private readonly IEBillService _eBillService;
     private readonly IPublisher _publisher;
     private readonly ILogger<PaymentService> _logger;
 
@@ -43,34 +39,16 @@ public class PaymentService : IPaymentService
         IApplicationDbContext context,
         IMapper mapper,
         IConfiguration configuration,
-        ITakeANapService takeANapService,
-        IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings,
         IShippingService shippingService,
-        IEBillService eBillService,
         IPublisher publisher,
         ILogger<PaymentService> logger)
     {
         this._context = context;
         this._mapper = mapper;
         this._configuration = configuration;
-        this._takeANapService = takeANapService;
-        this._webhook = webhook;
-        this._n8nSettings = n8nSettings.Value;
         this._shippingService = shippingService;
-        this._eBillService = eBillService;
         this._publisher = publisher;
         this._logger = logger;
-    }
-
-    private static string MaskEmail(string? email)
-    {
-        if (string.IsNullOrEmpty(email)) return "***";
-        var at = email.IndexOf('@');
-        if (at <= 0) return "***";
-        var local = email[..at];
-        var domain = email[at..];
-        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
     }
 
     private bool IsStripeConfigured()

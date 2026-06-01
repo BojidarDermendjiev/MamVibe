@@ -1,5 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
+using System.Text.Json;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,26 +15,29 @@ using Infrastructure.Configuration;
 /// <summary>
 /// Daily background service that runs at 8:00 AM UTC.
 /// Checks for stale items, stuck shipments, deliveries needing feedback, and sends a daily summary.
+/// Each webhook is enqueued through the transactional outbox so delivery survives process restarts.
 /// </summary>
 public class N8nScheduledService : BackgroundService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _settings;
     private readonly ILogger<N8nScheduledService> _logger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="N8nScheduledService"/> with the required scope factory,
-    /// webhook dispatcher, settings, and logger.
+    /// settings, and logger.
     /// </summary>
     public N8nScheduledService(
         IServiceScopeFactory scopeFactory,
-        IN8nWebhookService webhook,
         IOptions<N8nSettings> settings,
         ILogger<N8nScheduledService> logger)
     {
         this._scopeFactory = scopeFactory;
-        this._webhook = webhook;
         this._settings = settings.Value;
         this._logger = logger;
     }
@@ -65,7 +70,7 @@ public class N8nScheduledService : BackgroundService
 
     /// <summary>
     /// Queries the database for stale items, stuck shipments, deliveries needing feedback,
-    /// and platform totals, then dispatches the corresponding n8n webhook events.
+    /// and platform totals, then enqueues the corresponding n8n webhook events on the outbox.
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
     private async Task RunDailyChecksAsync(CancellationToken ct)
@@ -74,6 +79,7 @@ public class N8nScheduledService : BackgroundService
 
         using var scope = this._scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var outbox = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
         var now = DateTime.UtcNow;
 
         // Stale items: active sell items listed 30+ days
@@ -94,7 +100,7 @@ public class N8nScheduledService : BackgroundService
 
         if (staleItems.Count > 0)
         {
-            this._webhook.Send(this._settings.StaleItems, new
+            Enqueue(outbox, this._settings.StaleItems, new
             {
                 Event = "stale_items",
                 Timestamp = now,
@@ -123,7 +129,7 @@ public class N8nScheduledService : BackgroundService
 
         if (stuckShipments.Count > 0)
         {
-            this._webhook.Send(this._settings.ShipmentStuck, new
+            Enqueue(outbox, this._settings.ShipmentStuck, new
             {
                 Event = "shipment.stuck",
                 Timestamp = now,
@@ -149,7 +155,7 @@ public class N8nScheduledService : BackgroundService
 
         if (deliveredNeedingFeedback.Count > 0)
         {
-            this._webhook.Send(this._settings.FeedbackPrompt, new
+            Enqueue(outbox, this._settings.FeedbackPrompt, new
             {
                 Event = "feedback_prompt",
                 Timestamp = now,
@@ -167,7 +173,7 @@ public class N8nScheduledService : BackgroundService
                           && s.Status != ShipmentStatus.Cancelled
                           && s.Status != ShipmentStatus.Returned, ct);
 
-        this._webhook.Send(this._settings.DailySummary, new
+        Enqueue(outbox, this._settings.DailySummary, new
         {
             Event = "daily_summary",
             Timestamp = now,
@@ -176,5 +182,13 @@ public class N8nScheduledService : BackgroundService
             NewShipments = newShipments,
             ActiveShipments = activeShipments
         });
+
+        // Commit every webhook row staged above in a single transaction.
+        await context.SaveChangesAsync(ct);
     }
+
+    private static void Enqueue<T>(IOutboxWriter outbox, string path, T body) where T : notnull =>
+        outbox.Enqueue(OutboxMessageTypes.N8nWebhook, new N8nWebhookOutboxPayload(
+            path,
+            JsonSerializer.Serialize(body, JsonOptions)));
 }

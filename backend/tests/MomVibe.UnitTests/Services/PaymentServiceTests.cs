@@ -63,26 +63,16 @@ public class PaymentServiceTests
         ApplicationDbContext db,
         IConfiguration? config = null,
         Mock<IShippingService>? shippingMock = null,
-        Mock<IEBillService>? eBillMock = null,
-        Mock<ITakeANapService>? takeANapMock = null,
         Mock<IPublisher>? publisherMock = null)
     {
         shippingMock ??= new Mock<IShippingService>();
-        eBillMock ??= new Mock<IEBillService>();
-        takeANapMock ??= new Mock<ITakeANapService>();
         publisherMock ??= new Mock<IPublisher>();
-        var webhookMock = new Mock<IN8nWebhookService>();
-        var n8nOptions = Options.Create(new N8nSettings());
 
         return new PaymentService(
             db,
             CreateMapper(),
             config ?? CreateConfig(),
-            takeANapMock.Object,
-            webhookMock.Object,
-            n8nOptions,
             shippingMock.Object,
-            eBillMock.Object,
             publisherMock.Object,
             NullLogger<PaymentService>.Instance);
     }

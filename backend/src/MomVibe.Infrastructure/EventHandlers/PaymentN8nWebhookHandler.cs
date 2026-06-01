@@ -13,9 +13,8 @@ using Infrastructure.Configuration;
 
 /// <summary>
 /// On <see cref="PaymentCompletedEvent"/>, queues the n8n <c>payment.completed</c> webhook through
-/// the transactional outbox. Writing to the outbox (instead of calling <see cref="IN8nWebhookService"/>
-/// directly) means the webhook survives an API restart between the moment the Payment row commits
-/// and the moment n8n actually receives the call.
+/// the transactional outbox so the webhook survives an API restart between the moment the Payment
+/// row commits and the moment n8n actually receives the call.
 /// </summary>
 public sealed class PaymentN8nWebhookHandler : INotificationHandler<PaymentCompletedEvent>
 {

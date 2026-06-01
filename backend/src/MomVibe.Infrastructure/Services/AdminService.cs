@@ -27,7 +27,7 @@ public class AdminService : IAdminService
     private readonly IApplicationDbContext _context;
     private readonly ApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly IN8nWebhookService _webhook;
+    private readonly IOutboxWriter _outbox;
     private readonly N8nSettings _n8nSettings;
     private readonly IMemoryCache _cache;
     private readonly IDistributedCache _distributedCache;
@@ -39,7 +39,7 @@ public class AdminService : IAdminService
         IApplicationDbContext context,
         ApplicationDbContext dbContext,
         IMapper mapper,
-        IN8nWebhookService webhook,
+        IOutboxWriter outbox,
         IOptions<N8nSettings> n8nSettings,
         IMemoryCache cache,
         IDistributedCache distributedCache,
@@ -50,7 +50,7 @@ public class AdminService : IAdminService
         this._context = context;
         this._dbContext = dbContext;
         this._mapper = mapper;
-        this._webhook = webhook;
+        this._outbox = outbox;
         this._n8nSettings = n8nSettings.Value;
         this._cache = cache;
         this._distributedCache = distributedCache;
@@ -115,20 +115,29 @@ public class AdminService : IAdminService
 
         try
         {
-            this._webhook.Send(this._n8nSettings.UserBlocked, new
+            var body = new
             {
                 Event = "user.blocked",
                 Timestamp = DateTime.UtcNow,
                 UserId = user.Id,
                 Email = user.Email,
                 user.DisplayName
-            });
+            };
+            this._outbox.Enqueue(OutboxMessageTypes.N8nWebhook, new N8nWebhookOutboxPayload(
+                this._n8nSettings.UserBlocked,
+                System.Text.Json.JsonSerializer.Serialize(body, OutboxJson)));
+            await this._context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning(ex, "n8n user.blocked webhook failed for user {UserId}", user.Id);
+            this._logger.LogWarning(ex, "Failed to enqueue n8n user.blocked for user {UserId}", user.Id);
         }
     }
+
+    private static readonly System.Text.Json.JsonSerializerOptions OutboxJson = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
 
     public async Task UnblockUserAsync(string userId)
     {

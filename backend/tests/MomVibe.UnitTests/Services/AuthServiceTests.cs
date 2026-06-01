@@ -80,8 +80,6 @@ public class AuthServiceTests
 
         var jwtOptions = CreateJwtOptions();
         var tokenService = new TokenService(jwtOptions);
-        var webhookMock = new Mock<IN8nWebhookService>();
-        var n8nOptions = Options.Create(new N8nSettings());
 
         return new AuthService(
             umMock.Object,
@@ -90,8 +88,6 @@ public class AuthServiceTests
             CreateMapper(),
             CreateConfig(),
             emailMock.Object,
-            webhookMock.Object,
-            n8nOptions,
             jwtOptions,
             auditMock.Object,
             new Mock<MediatR.IPublisher>().Object,

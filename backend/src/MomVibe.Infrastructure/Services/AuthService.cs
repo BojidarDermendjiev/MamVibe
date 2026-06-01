@@ -32,8 +32,6 @@ public class AuthService : IAuthService
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
-    private readonly IN8nWebhookService _webhook;
-    private readonly N8nSettings _n8nSettings;
     private readonly JwtSettings _jwt;
     private readonly IAuditLogService _audit;
     private readonly IPublisher _publisher;
@@ -46,8 +44,6 @@ public class AuthService : IAuthService
         IMapper mapper,
         IConfiguration configuration,
         IEmailService emailService,
-        IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings,
         IOptions<JwtSettings> jwt,
         IAuditLogService audit,
         IPublisher publisher,
@@ -59,8 +55,6 @@ public class AuthService : IAuthService
         this._mapper = mapper;
         this._configuration = configuration;
         this._emailService = emailService;
-        this._webhook = webhook;
-        this._n8nSettings = n8nSettings.Value;
         this._jwt = jwt.Value;
         this._audit = audit;
         this._publisher = publisher;
@@ -285,20 +279,6 @@ public class AuthService : IAuthService
         var result = await this._userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
         if (!result.Succeeded)
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
-    }
-
-    /// <summary>
-    /// Returns a masked email for logging/webhook payloads to avoid exposing PII.
-    /// e.g. "john.doe@example.com" → "jo***@example.com"
-    /// </summary>
-    private static string MaskEmail(string? email)
-    {
-        if (string.IsNullOrEmpty(email)) return "***";
-        var at = email.IndexOf('@');
-        if (at <= 0) return "***";
-        var local = email[..at];
-        var domain = email[at..];
-        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
     }
 
     /// <summary>

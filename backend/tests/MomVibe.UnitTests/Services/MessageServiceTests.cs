@@ -46,11 +46,11 @@ public class MessageServiceTests
 
     private static MessageService CreateService(
         ApplicationDbContext db,
-        Mock<IN8nWebhookService>? webhookMock = null,
+        Mock<IOutboxWriter>? outboxMock = null,
         Mock<IAiService>? aiMock = null,
         UserPresenceTracker? presenceTracker = null)
     {
-        webhookMock ??= new Mock<IN8nWebhookService>();
+        outboxMock ??= new Mock<IOutboxWriter>();
         aiMock ??= new Mock<IAiService>();
         presenceTracker ??= new UserPresenceTracker();
         var n8nOptions = Options.Create(new N8nSettings());
@@ -58,7 +58,7 @@ public class MessageServiceTests
         return new MessageService(
             db,
             CreateMapper(),
-            webhookMock.Object,
+            outboxMock.Object,
             n8nOptions,
             presenceTracker,
             aiMock.Object,
@@ -259,32 +259,38 @@ public class MessageServiceTests
         SeedUser(db, "bob");
         await db.SaveChangesAsync();
 
-        var webhookMock = new Mock<IN8nWebhookService>();
+        var outboxMock = new Mock<IOutboxWriter>();
         // Presence tracker has no connections — bob is offline
         var presenceTracker = new UserPresenceTracker();
 
-        var svc = CreateService(db, webhookMock, presenceTracker: presenceTracker);
+        var svc = CreateService(db, outboxMock, presenceTracker: presenceTracker);
         await svc.SendMessageAsync("alice", "bob", "You there?");
 
-        webhookMock.Verify(w => w.Send(It.IsAny<string?>(), It.IsAny<object>()), Times.Once);
+        outboxMock.Verify(o => o.Enqueue(
+            OutboxMessageTypes.N8nWebhook,
+            It.IsAny<N8nWebhookOutboxPayload>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task SendMessageAsync_Does_Not_Fire_Webhook_When_Receiver_Is_Online()
+    public async Task SendMessageAsync_Does_Not_Enqueue_Webhook_When_Receiver_Is_Online()
     {
         await using var db = CreateDb();
         SeedUser(db, "alice");
         SeedUser(db, "bob");
         await db.SaveChangesAsync();
 
-        var webhookMock = new Mock<IN8nWebhookService>();
+        var outboxMock = new Mock<IOutboxWriter>();
         var presenceTracker = new UserPresenceTracker();
         presenceTracker.AddConnection("bob", "conn-1"); // bob is online
 
-        var svc = CreateService(db, webhookMock, presenceTracker: presenceTracker);
+        var svc = CreateService(db, outboxMock, presenceTracker: presenceTracker);
         await svc.SendMessageAsync("alice", "bob", "You there?");
 
-        webhookMock.Verify(w => w.Send(It.IsAny<string?>(), It.IsAny<object>()), Times.Never);
+        outboxMock.Verify(o => o.Enqueue(
+            It.IsAny<string>(),
+            It.IsAny<N8nWebhookOutboxPayload>()),
+            Times.Never);
     }
 
     // =========================================================================

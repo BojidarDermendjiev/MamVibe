@@ -50,7 +50,7 @@ public class MessageServiceSqliteTests : IAsyncLifetime
         return new MessageService(
             _db,
             mapper,
-            new Mock<IN8nWebhookService>().Object,
+            new Mock<IOutboxWriter>().Object,
             Options.Create(new N8nSettings()),
             new UserPresenceTracker(),
             new Mock<IAiService>().Object,
