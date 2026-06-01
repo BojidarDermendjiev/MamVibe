@@ -1,11 +1,13 @@
 namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Domain.Entities;
 using Domain.Enums;
+using Application.Events;
 using Application.Interfaces;
 using Application.DTOs.PurchaseRequests;
 
@@ -21,6 +23,7 @@ public class PurchaseRequestService : IPurchaseRequestService
     private readonly IMapper _mapper;
     private readonly IPurchaseRequestNotifier _notifier;
     private readonly INekorektenService _nekorekten;
+    private readonly IPublisher _publisher;
     private readonly ILogger<PurchaseRequestService> _logger;
 
     public PurchaseRequestService(
@@ -28,12 +31,14 @@ public class PurchaseRequestService : IPurchaseRequestService
         IMapper mapper,
         IPurchaseRequestNotifier notifier,
         INekorektenService nekorekten,
+        IPublisher publisher,
         ILogger<PurchaseRequestService> logger)
     {
         this._context = context;
         this._mapper = mapper;
         this._notifier = notifier;
         this._nekorekten = nekorekten;
+        this._publisher = publisher;
         this._logger = logger;
     }
 
@@ -94,9 +99,8 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dto = this._mapper.Map<PurchaseRequestDto>(saved);
 
-        // Notify seller via SignalR (fire-and-forget; failure must not break the request)
-        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); }
-        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request seller notification failed for request {RequestId}", saved.Id); }
+        // Seller notification is now a PurchaseRequestCreatedNotifierHandler subscriber.
+        await this._publisher.Publish(new PurchaseRequestCreatedEvent(saved.Id));
 
         return dto;
     }
@@ -144,8 +148,7 @@ public class PurchaseRequestService : IPurchaseRequestService
             .FirstAsync(r => r.Id == request.Id);
 
         var dto = this._mapper.Map<PurchaseRequestDto>(saved);
-        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); }
-        catch (Exception ex) { this._logger.LogWarning(ex, "Bundle purchase-request seller notification failed for request {RequestId}", saved.Id); }
+        await this._publisher.Publish(new PurchaseRequestCreatedEvent(saved.Id));
 
         return dto;
     }
@@ -174,8 +177,8 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dto = this._mapper.Map<PurchaseRequestDto>(request);
 
-        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); }
-        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request buyer notification failed for request {RequestId} (status={Status})", request.Id, request.Status); }
+        // Buyer notification is now a PurchaseRequestStatusChangedNotifierHandler subscriber.
+        await this._publisher.Publish(new PurchaseRequestStatusChangedEvent(request.Id, request.Status));
 
         return dto;
     }
@@ -215,8 +218,7 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dto = this._mapper.Map<PurchaseRequestDto>(request);
 
-        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); }
-        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request buyer notification failed for request {RequestId} (status={Status})", request.Id, request.Status); }
+        await this._publisher.Publish(new PurchaseRequestStatusChangedEvent(request.Id, request.Status));
 
         return dto;
     }

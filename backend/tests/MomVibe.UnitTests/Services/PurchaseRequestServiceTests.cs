@@ -49,7 +49,13 @@ public class PurchaseRequestServiceTests
     {
         notifierMock ??= new Mock<IPurchaseRequestNotifier>();
         nekorektenMock ??= new Mock<INekorektenService>();
-        return new PurchaseRequestService(db, CreateMapper(), notifierMock.Object, nekorektenMock.Object, NullLogger<PurchaseRequestService>.Instance);
+        return new PurchaseRequestService(
+            db,
+            CreateMapper(),
+            notifierMock.Object,
+            nekorektenMock.Object,
+            new Mock<MediatR.IPublisher>().Object,
+            NullLogger<PurchaseRequestService>.Instance);
     }
 
     /// <summary>

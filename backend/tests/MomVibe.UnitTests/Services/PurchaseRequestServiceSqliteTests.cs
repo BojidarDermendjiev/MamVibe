@@ -110,7 +110,13 @@ public class PurchaseRequestServiceSqliteTests : IAsyncLifetime
                 .Returns(Task.CompletedTask);
         var nekorekten = new Mock<INekorektenService>();
 
-        return new PurchaseRequestService(_db, mapper, notifier.Object, nekorekten.Object, NullLogger<PurchaseRequestService>.Instance);
+        return new PurchaseRequestService(
+            _db,
+            mapper,
+            notifier.Object,
+            nekorekten.Object,
+            new Mock<MediatR.IPublisher>().Object,
+            NullLogger<PurchaseRequestService>.Instance);
     }
 
     private async Task<Item> SeedActiveItemAsync(string? sellerId = null)

@@ -341,7 +341,8 @@ public class ItemService : IItemService
 
     public async Task<bool> ToggleLikeAsync(Guid itemId, string userId)
     {
-        await using var transaction = await ((Microsoft.EntityFrameworkCore.DbContext)this._context).Database.BeginTransactionAsync();
+        // IApplicationDbContext already exposes Database (the DatabaseFacade); no cast needed.
+        await using var transaction = await this._context.Database.BeginTransactionAsync();
         try
         {
             var existingLike = await this._context.Likes
