@@ -75,6 +75,9 @@ public interface IApplicationDbContext
     /// <summary>Gets the set of saved search alert subscriptions.</summary>
     DbSet<SavedSearch> SavedSearches { get; }
 
+    /// <summary>Gets the set of transactional outbox messages pending external delivery.</summary>
+    DbSet<OutboxMessage> OutboxMessages { get; }
+
     /// <summary>Gets the underlying <see cref="DatabaseFacade"/> for executing raw SQL and managing transactions.</summary>
     DatabaseFacade Database { get; }
 

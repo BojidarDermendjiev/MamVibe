@@ -124,6 +124,12 @@ public static class DependencyInjection
         services.AddSingleton<IN8nWebhookService>(sp => sp.GetRequiredService<N8nWebhookService>());
         services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<N8nWebhookService>());
 
+        // Transactional outbox: writer stages messages in the caller's EF unit of work,
+        // dispatchers route by MessageType, OutboxProcessor drains pending rows with retry.
+        services.AddScoped<IOutboxWriter, Outbox.OutboxWriter>();
+        services.AddScoped<IOutboxMessageDispatcher, Outbox.N8nOutboxDispatcher>();
+        services.AddHostedService<Outbox.OutboxProcessor>();
+
         // Distributed cache — Redis when available, in-memory fallback for local dev
         var redisUrl = configuration["Redis:Url"];
         if (!string.IsNullOrWhiteSpace(redisUrl))

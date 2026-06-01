@@ -1,5 +1,7 @@
 namespace MomVibe.Infrastructure.EventHandlers;
 
+using System.Text.Json;
+
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,25 +12,30 @@ using Application.Interfaces;
 using Infrastructure.Configuration;
 
 /// <summary>
-/// On <see cref="ItemCreatedEvent"/>, fires the n8n <c>item.pending_approval</c> webhook
-/// when the AI moderation result left the item inactive (NeedsReview / FlaggedForReview).
-/// Auto-approved items skip this handler — there's nothing for an admin to triage.
+/// On <see cref="ItemCreatedEvent"/>, queues the n8n <c>item.pending_approval</c> webhook through
+/// the transactional outbox when the AI moderation result left the item inactive. Auto-approved
+/// items skip the enqueue — there's nothing for an admin to triage.
 /// </summary>
 public sealed class ItemPendingApprovalN8nHandler : INotificationHandler<ItemCreatedEvent>
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly IApplicationDbContext _context;
-    private readonly IN8nWebhookService _webhook;
+    private readonly IOutboxWriter _outbox;
     private readonly N8nSettings _n8nSettings;
     private readonly ILogger<ItemPendingApprovalN8nHandler> _logger;
 
     public ItemPendingApprovalN8nHandler(
         IApplicationDbContext context,
-        IN8nWebhookService webhook,
+        IOutboxWriter outbox,
         IOptions<N8nSettings> n8nSettings,
         ILogger<ItemPendingApprovalN8nHandler> logger)
     {
         this._context = context;
-        this._webhook = webhook;
+        this._outbox = outbox;
         this._n8nSettings = n8nSettings.Value;
         this._logger = logger;
     }
@@ -44,7 +51,7 @@ public sealed class ItemPendingApprovalN8nHandler : INotificationHandler<ItemCre
                 .FirstOrDefaultAsync(i => i.Id == notification.ItemId, cancellationToken);
             if (item is null || item.IsActive) return;
 
-            this._webhook.Send(this._n8nSettings.ItemPendingApproval, new
+            var body = new
             {
                 Event = "item.pending_approval",
                 Timestamp = DateTime.UtcNow,
@@ -58,11 +65,16 @@ public sealed class ItemPendingApprovalN8nHandler : INotificationHandler<ItemCre
                 SellerEmail = MaskEmail(item.User?.Email),
                 AiRecommendation = item.AiModerationStatus.ToString(),
                 AiReason = item.AiModerationNotes
-            });
+            };
+
+            this._outbox.Enqueue(OutboxMessageTypes.N8nWebhook, new N8nWebhookOutboxPayload(
+                this._n8nSettings.ItemPendingApproval,
+                JsonSerializer.Serialize(body, JsonOptions)));
+            await this._context.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning(ex, "n8n item.pending_approval webhook failed for item {ItemId}", notification.ItemId);
+            this._logger.LogWarning(ex, "Failed to enqueue n8n item.pending_approval for item {ItemId}", notification.ItemId);
         }
     }
 
