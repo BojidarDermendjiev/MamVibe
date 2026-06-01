@@ -4,6 +4,7 @@ using AutoMapper;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,7 @@ using Domain.Entities;
 using Domain.Exceptions;
 using Application.DTOs.Auth;
 using Application.DTOs.Users;
+using Application.Events;
 using Application.Interfaces;
 using Infrastructure.Configuration;
 
@@ -34,6 +36,7 @@ public class AuthService : IAuthService
     private readonly N8nSettings _n8nSettings;
     private readonly JwtSettings _jwt;
     private readonly IAuditLogService _audit;
+    private readonly IPublisher _publisher;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -47,6 +50,7 @@ public class AuthService : IAuthService
         IOptions<N8nSettings> n8nSettings,
         IOptions<JwtSettings> jwt,
         IAuditLogService audit,
+        IPublisher publisher,
         ILogger<AuthService> logger)
     {
         this._userManager = userManager;
@@ -59,6 +63,7 @@ public class AuthService : IAuthService
         this._n8nSettings = n8nSettings.Value;
         this._jwt = jwt.Value;
         this._audit = audit;
+        this._publisher = publisher;
         this._logger = logger;
     }
 
@@ -84,22 +89,8 @@ public class AuthService : IAuthService
 
         await this._userManager.AddToRoleAsync(user, "User");
 
-        try
-        {
-            this._webhook.Send(this._n8nSettings.UserRegistered, new
-            {
-                Event = "user.registered",
-                Timestamp = DateTime.UtcNow,
-                Email = MaskEmail(user.Email),
-                user.DisplayName,
-                ProfileType = user.ProfileType.ToString(),
-                user.LanguagePreference
-            });
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogWarning(ex, "n8n user.registered webhook failed for user {UserId}", user.Id);
-        }
+        // n8n user.registered webhook now lives in INotificationHandler<UserRegisteredEvent>.
+        await this._publisher.Publish(new UserRegisteredEvent(user.Id));
 
         return await GenerateAuthResponseAsync(user);
     }

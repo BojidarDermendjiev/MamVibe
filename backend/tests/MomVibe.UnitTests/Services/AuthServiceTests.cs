@@ -94,6 +94,7 @@ public class AuthServiceTests
             n8nOptions,
             jwtOptions,
             auditMock.Object,
+            new Mock<MediatR.IPublisher>().Object,
             NullLogger<AuthService>.Instance);
     }
 

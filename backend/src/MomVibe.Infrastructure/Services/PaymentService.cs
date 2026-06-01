@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ using Stripe.Checkout;
 using Microsoft.Extensions.Options;
 
 using Domain.Enums;
+using Application.Events;
 using Application.Interfaces;
 using Application.DTOs.Common;
 using Application.DTOs.Payments;
@@ -34,6 +36,7 @@ public class PaymentService : IPaymentService
     private readonly N8nSettings _n8nSettings;
     private readonly IShippingService _shippingService;
     private readonly IEBillService _eBillService;
+    private readonly IPublisher _publisher;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
@@ -45,6 +48,7 @@ public class PaymentService : IPaymentService
         IOptions<N8nSettings> n8nSettings,
         IShippingService shippingService,
         IEBillService eBillService,
+        IPublisher publisher,
         ILogger<PaymentService> logger)
     {
         this._context = context;
@@ -55,6 +59,7 @@ public class PaymentService : IPaymentService
         this._n8nSettings = n8nSettings.Value;
         this._shippingService = shippingService;
         this._eBillService = eBillService;
+        this._publisher = publisher;
         this._logger = logger;
     }
 
@@ -154,23 +159,9 @@ public class PaymentService : IPaymentService
             this._context.Payments.Add(payment);
             await this._context.SaveChangesAsync();
 
-            try
-            {
-                this._webhook.Send(this._n8nSettings.PaymentCompleted, new
-                {
-                    Event = "payment.completed",
-                    Timestamp = DateTime.UtcNow,
-                    PaymentId = payment.Id,
-                    ItemId = item.Id,
-                    ItemTitle = item.Title,
-                    Amount = payment.Amount,
-                    TestMode = true
-                });
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogWarning(ex, "n8n payment.completed webhook (test mode) failed for payment {PaymentId}", payment.Id);
-            }
+            // Side-effects (n8n webhook, purchase-request completion) now fan out via
+            // INotificationHandler<PaymentCompletedEvent> implementations in Infrastructure.EventHandlers.
+            await this._publisher.Publish(new PaymentCompletedEvent(payment.Id, IsTestMode: true));
 
             // Auto-create shipment in test mode if delivery info provided
             if (delivery != null)
@@ -197,9 +188,6 @@ public class PaymentService : IPaymentService
                 }
                 catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for payment {PaymentId}. Buyer's delivery details were recorded but no waybill was generated.", payment.Id); }
             }
-
-            try { await CompletePurchaseRequestAsync(itemId, buyerId); }
-            catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
 
             return successUrl + "?session_id=test_simulated";
         }
@@ -370,7 +358,9 @@ public class PaymentService : IPaymentService
                     catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for bundle Stripe session {SessionId}.", session.Id); }
                 }
 
-                // Complete the bundle: mark purchase request done, items sold, bundle sold
+                // Complete the bundle: mark purchase request done, items sold, bundle sold.
+                // This is bundle-specific (touches every member item atomically) so it stays
+                // inline; the PaymentCompletedEvent handler skips bundle payments.
                 try
                 {
                     var req = await this._context.PurchaseRequests
@@ -397,6 +387,10 @@ public class PaymentService : IPaymentService
                     await this._context.SaveChangesAsync();
                 }
                 catch (Exception ex) { this._logger.LogError(ex, "Failed to complete bundle purchase for bundle {BundleId}, buyer {BuyerId}.", bundleId, bundleBuyerId); }
+
+                // Fan out the standard side-effects (n8n webhook, take-a-nap receipt, e-bill).
+                // The complete-purchase-request handler is a no-op for bundle payments.
+                await this._publisher.Publish(new PaymentCompletedEvent(bundlePayment.Id));
             }
             else if (isBulk)
             {
@@ -406,6 +400,7 @@ public class PaymentService : IPaymentService
                 var itemIds = itemIdStrings.Select(Guid.Parse).ToList();
                 var items = await this._context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
 
+                var createdPayments = new List<PaymentEntity>();
                 for (var idx = 0; idx < itemIds.Count; idx++)
                 {
                     var currentItem = items.FirstOrDefault(i => i.Id == itemIds[idx]);
@@ -421,38 +416,15 @@ public class PaymentService : IPaymentService
                         Status = PaymentStatus.Completed
                     };
                     this._context.Payments.Add(payment);
+                    createdPayments.Add(payment);
                 }
 
                 await this._context.SaveChangesAsync();
 
-                // Fire webhook for each bulk payment
-                try
-                {
-                    var buyer = await this._context.Payments
-                        .Where(p => p.BuyerId == buyerId)
-                        .Select(p => p.Buyer)
-                        .FirstOrDefaultAsync();
-
-                    foreach (var item in items)
-                    {
-                        this._webhook.Send(this._n8nSettings.PaymentCompleted, new
-                        {
-                            Event = "payment.completed",
-                            Timestamp = DateTime.UtcNow,
-                            ItemId = item.Id,
-                            ItemTitle = item.Title,
-                            BuyerEmail = MaskEmail(buyer?.Email),
-                            BuyerName = buyer?.DisplayName,
-                            SellerEmail = MaskEmail(item.User?.Email),
-                            SellerName = item.User?.DisplayName,
-                            Amount = item.Price ?? 0
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this._logger.LogWarning(ex, "n8n payment.completed webhook fan-out failed for bulk Stripe session {SessionId}", session.Id);
-                }
+                // Side-effects (n8n webhook, take-a-nap, e-bill, purchase-request completion)
+                // run per payment via the PaymentCompletedEvent handler chain.
+                foreach (var payment in createdPayments)
+                    await this._publisher.Publish(new PaymentCompletedEvent(payment.Id));
             }
             else
             {
@@ -496,74 +468,11 @@ public class PaymentService : IPaymentService
                     catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for Stripe payment session {SessionId}.", session.Id); }
                 }
 
-                // Fire webhook for single payment
-                try
-                {
-                    var paidItem = await this._context.Items.Include(i => i.User).FirstOrDefaultAsync(i => i.Id == payment.ItemId);
-                    var payBuyer = await this._context.Payments
-                        .Include(p => p.Buyer)
-                        .Where(p => p.Id == payment.Id)
-                        .Select(p => p.Buyer)
-                        .FirstOrDefaultAsync();
-
-                    this._webhook.Send(this._n8nSettings.PaymentCompleted, new
-                    {
-                        Event = "payment.completed",
-                        Timestamp = DateTime.UtcNow,
-                        PaymentId = payment.Id,
-                        ItemId = payment.ItemId,
-                        ItemTitle = paidItem?.Title,
-                        BuyerEmail = MaskEmail(payBuyer?.Email),
-                        BuyerName = payBuyer?.DisplayName,
-                        SellerEmail = MaskEmail(paidItem?.User?.Email),
-                        SellerName = paidItem?.User?.DisplayName,
-                        payment.Amount
-                    });
-                }
-                catch (Exception ex)
-                {
-                    this._logger.LogWarning(ex, "n8n payment.completed webhook failed for payment {PaymentId}", payment.Id);
-                }
-
-                // Create digital receipt via Take a NAP (non-blocking on failure)
-                try
-                {
-                    var item = await this._context.Items.FindAsync(payment.ItemId);
-                    payment.Item = item!;
-                    var receiptUrl = await this._takeANapService.CreateOrderAndGetReceiptAsync(payment);
-                    if (receiptUrl != null)
-                    {
-                        payment.ReceiptUrl = receiptUrl;
-                        await this._context.SaveChangesAsync();
-                    }
-                }
-                catch
-                {
-                    // Receipt failure should not break payment flow
-                }
-
-                // Issue e-bill and send receipt email to buyer (non-blocking on failure)
-                try
-                {
-                    var buyerEmail = await this._context.Payments
-                        .Include(p => p.Buyer)
-                        .Where(p => p.Id == payment.Id)
-                        .Select(p => p.Buyer!.Email)
-                        .FirstOrDefaultAsync();
-
-                    if (buyerEmail != null)
-                        await this._eBillService.IssueEBillAsync(payment.Id, buyerEmail);
-                }
-                catch (Exception ex)
-                {
-                    this._logger.LogError(ex, "E-bill issuance failed for payment {PaymentId}.", payment.Id);
-                }
-
-                if (payment.ItemId.HasValue)
-                {
-                    try { await CompletePurchaseRequestAsync(payment.ItemId.Value, payment.BuyerId); }
-                    catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", payment.ItemId, payment.BuyerId); }
-                }
+                // n8n webhook, take-a-nap receipt, e-bill, and purchase-request completion
+                // are now handled by INotificationHandler<PaymentCompletedEvent> implementations
+                // (PaymentN8nWebhookHandler, PaymentTakeANapHandler, PaymentEBillHandler,
+                // PaymentCompletePurchaseRequestHandler) in Infrastructure.EventHandlers.
+                await this._publisher.Publish(new PaymentCompletedEvent(payment.Id));
             }
         }
     }
@@ -670,8 +579,10 @@ public class PaymentService : IPaymentService
             catch (Exception ex) { this._logger.LogError(ex, "Auto-shipment creation failed for booking payment {PaymentId}. Delivery details were recorded but no waybill was generated.", payment.Id); }
         }
 
-        try { await CompletePurchaseRequestAsync(itemId, buyerId); }
-        catch (Exception ex) { this._logger.LogError(ex, "Failed to complete purchase request for item {ItemId}, buyer {BuyerId}.", itemId, buyerId); }
+        // Donation-style booking is Completed at creation; let the standard handler chain
+        // run (no e-bill or take-a-nap because Amount = 0; PaymentCompletePurchaseRequestHandler
+        // marks the purchase request Completed).
+        await this._publisher.Publish(new PaymentCompletedEvent(payment.Id));
 
         return this._mapper.Map<PaymentDto>(payment);
     }
@@ -841,6 +752,7 @@ public class PaymentService : IPaymentService
                 return successUrl + "?session_id=test_simulated";
 
             var testSessionId = $"test_{Guid.NewGuid()}";
+            var createdPayments = new List<PaymentEntity>();
             foreach (var item in saleItems)
             {
                 var payment = new PaymentEntity
@@ -855,28 +767,13 @@ public class PaymentService : IPaymentService
                     IdempotencyKey = BulkKeyFor(idempotencyKey, item.Id)
                 };
                 this._context.Payments.Add(payment);
+                createdPayments.Add(payment);
             }
             await this._context.SaveChangesAsync();
 
-            try
-            {
-                foreach (var item in saleItems)
-                {
-                    this._webhook.Send(this._n8nSettings.PaymentCompleted, new
-                    {
-                        Event = "payment.completed",
-                        Timestamp = DateTime.UtcNow,
-                        ItemId = item.Id,
-                        ItemTitle = item.Title,
-                        Amount = item.Price ?? 0,
-                        TestMode = true
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogWarning(ex, "n8n payment.completed webhook fan-out failed for bulk test-mode checkout (testSessionId {TestSessionId})", testSessionId);
-            }
+            // Test-mode bulk: hand each payment to the standard PaymentCompletedEvent pipeline.
+            foreach (var payment in createdPayments)
+                await this._publisher.Publish(new PaymentCompletedEvent(payment.Id, IsTestMode: true));
 
             return successUrl + "?session_id=test_simulated";
         }
@@ -946,6 +843,10 @@ public class PaymentService : IPaymentService
         }
 
         await this._context.SaveChangesAsync();
+
+        foreach (var payment in payments)
+            await this._publisher.Publish(new PaymentCompletedEvent(payment.Id));
+
         return this._mapper.Map<List<PaymentDto>>(payments);
     }
 

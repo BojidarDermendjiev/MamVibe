@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -63,11 +64,13 @@ public class PaymentServiceTests
         IConfiguration? config = null,
         Mock<IShippingService>? shippingMock = null,
         Mock<IEBillService>? eBillMock = null,
-        Mock<ITakeANapService>? takeANapMock = null)
+        Mock<ITakeANapService>? takeANapMock = null,
+        Mock<IPublisher>? publisherMock = null)
     {
         shippingMock ??= new Mock<IShippingService>();
         eBillMock ??= new Mock<IEBillService>();
         takeANapMock ??= new Mock<ITakeANapService>();
+        publisherMock ??= new Mock<IPublisher>();
         var webhookMock = new Mock<IN8nWebhookService>();
         var n8nOptions = Options.Create(new N8nSettings());
 
@@ -80,6 +83,7 @@ public class PaymentServiceTests
             n8nOptions,
             shippingMock.Object,
             eBillMock.Object,
+            publisherMock.Object,
             NullLogger<PaymentService>.Instance);
     }
 
@@ -366,26 +370,22 @@ public class PaymentServiceTests
     // =========================================================================
 
     [Fact]
-    public async Task CreateCheckoutSessionAsync_TestMode_Completes_Accepted_PurchaseRequest()
+    public async Task CreateCheckoutSessionAsync_TestMode_Publishes_PaymentCompletedEvent()
     {
+        // Purchase-request completion now lives in PaymentCompletePurchaseRequestHandler
+        // (see Infrastructure.EventHandlers). At the PaymentService unit-test boundary
+        // we verify the event is published — the handler's behaviour is covered separately.
         await using var db = CreateDb();
         var item = await SeedSellItemAsync(db);
 
-        var pr = new PurchaseRequest
-        {
-            ItemId = item.Id,
-            BuyerId = "buyer-1",
-            SellerId = "seller-1",
-            Status = PurchaseRequestStatus.Accepted
-        };
-        db.PurchaseRequests.Add(pr);
-        await db.SaveChangesAsync();
-
-        var svc = CreateService(db, CreateConfig(stripeKey: ""));
+        var publisher = new Mock<MediatR.IPublisher>();
+        var svc = CreateService(db, CreateConfig(stripeKey: ""), publisherMock: publisher);
         await svc.CreateCheckoutSessionAsync(item.Id, "buyer-1", "https://app/success", "https://app/cancel");
 
-        var updated = await db.PurchaseRequests.FindAsync(pr.Id);
-        updated!.Status.Should().Be(PurchaseRequestStatus.Completed);
+        publisher.Verify(p => p.Publish(
+            It.Is<MomVibe.Application.Events.PaymentCompletedEvent>(e => e.IsTestMode),
+            It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     // =========================================================================

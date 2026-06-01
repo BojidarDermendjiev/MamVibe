@@ -1,18 +1,18 @@
 namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using Domain.Enums;
 using Domain.Entities;
 using Application.DTOs.Items;
 using Application.DTOs.Stats;
+using Application.Events;
 using Application.Interfaces;
 using Application.DTOs.Common;
-using Configuration;
 
 /// <summary>
 /// Service for managing marketplace items: filtered and paginated listing, detailed retrieval,
@@ -24,15 +24,11 @@ public class ItemService : IItemService
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IN8nWebhookService _webhook;
-    private readonly N8nSettings _n8nSettings;
     private readonly IAiService _aiService;
     private readonly INekorektenService _nekorekten;
     private readonly IMemoryCache _cache;
+    private readonly IPublisher _publisher;
     private readonly ILogger<ItemService> _logger;
-    private readonly IFollowNotifier? _followNotifier;
-    private readonly ISavedSearchService? _savedSearchService;
-    private readonly IPriceDropNotifier? _priceDropNotifier;
 
     private const double AutoApproveThreshold = 0.85;
     private const double NewSellerAutoApproveThreshold = 0.95;
@@ -43,41 +39,23 @@ public class ItemService : IItemService
     public ItemService(
         IApplicationDbContext context,
         IMapper mapper,
-        IN8nWebhookService webhook,
-        IOptions<N8nSettings> n8nSettings,
         IAiService aiService,
         INekorektenService nekorekten,
         IMemoryCache cache,
-        ILogger<ItemService> logger,
-        IFollowNotifier? followNotifier = null,
-        ISavedSearchService? savedSearchService = null,
-        IPriceDropNotifier? priceDropNotifier = null)
+        IPublisher publisher,
+        ILogger<ItemService> logger)
     {
         this._context = context;
         this._mapper = mapper;
-        this._webhook = webhook;
-        this._n8nSettings = n8nSettings.Value;
         this._aiService = aiService;
         this._nekorekten = nekorekten;
         this._cache = cache;
+        this._publisher = publisher;
         this._logger = logger;
-        this._followNotifier = followNotifier;
-        this._savedSearchService = savedSearchService;
-        this._priceDropNotifier = priceDropNotifier;
     }
 
     private static string BuildCacheKey(ItemFilterDto filter) =>
         $"{CacheKeyPrefix}{filter.CategoryId}|{filter.ListingType}|{filter.SearchTerm}|{filter.Brand}|{filter.AgeGroup}|{filter.ShoeSize}|{filter.ClothingSize}|{filter.Condition}|{filter.SortBy}|{filter.Page}|{filter.PageSize}";
-
-    private static string MaskEmail(string? email)
-    {
-        if (string.IsNullOrEmpty(email)) return "***";
-        var at = email.IndexOf('@');
-        if (at <= 0) return "***";
-        var local = email[..at];
-        var domain = email[at..];
-        return (local.Length <= 2 ? "***" : local[..2] + "***") + domain;
-    }
 
     public async Task<PagedResult<ItemDto>> GetAllAsync(ItemFilterDto filter, string? currentUserId = null)
     {
@@ -271,63 +249,13 @@ public class ItemService : IItemService
             this._logger.LogWarning(ex, "AI moderation failed for item {ItemId}; item left in NeedsReview state", item.Id);
         }
 
-        // Only notify admin for items that still need manual review
-        if (!item.IsActive)
-        {
-            try
-            {
-                this._webhook.Send(this._n8nSettings.ItemPendingApproval, new
-                {
-                    Event = "item.pending_approval",
-                    Timestamp = DateTime.UtcNow,
-                    ItemId = item.Id,
-                    Title = dto.Title,
-                    Description = dto.Description,
-                    Category = createdItem?.Category?.Name,
-                    ListingType = dto.ListingType.ToString(),
-                    Price = dto.Price,
-                    SellerName = createdItem?.User?.DisplayName,
-                    SellerEmail = MaskEmail(createdItem?.User?.Email),
-                    AiRecommendation = item.AiModerationStatus.ToString(),
-                    AiReason = item.AiModerationNotes
-                });
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogWarning(ex, "n8n item.pending_approval webhook failed for item {ItemId}", item.Id);
-            }
-        }
-
+        // Side-effects that used to live here — n8n item.pending_approval webhook (admin alert
+        // for items still in review), follower fan-out, saved-search match fan-out — are now
+        // INotificationHandler<ItemCreatedEvent> implementations in Infrastructure.EventHandlers.
+        // Each handler re-reads the item state, so it correctly sees whether AI moderation
+        // auto-approved (IsActive=true) or held the item for review.
         var result = (await GetByIdAsync(item.Id))!;
-
-        // Notify saved-search subscribers and followers if item went live immediately
-        if (item.IsActive && this._savedSearchService != null)
-        {
-            try { await this._savedSearchService.NotifyMatchingSearchesAsync(result); }
-            catch (Exception ex)
-            {
-                this._logger.LogWarning(ex, "Saved-search notification fan-out failed for item {ItemId}", item.Id);
-            }
-        }
-
-        if (item.IsActive && this._followNotifier != null)
-        {
-            try
-            {
-                var followerIds = await this._context.Follows
-                    .AsNoTracking()
-                    .Where(f => f.FolloweeId == userId)
-                    .Select(f => f.FollowerId)
-                    .ToListAsync();
-                if (followerIds.Count > 0)
-                    await this._followNotifier.NotifyFollowersOfNewItemAsync(followerIds, result);
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogWarning(ex, "Follower-of-new-item notification fan-out failed for item {ItemId} by seller {SellerId}", item.Id, userId);
-            }
-        }
-
+        await this._publisher.Publish(new ItemCreatedEvent(item.Id, userId));
         return result;
     }
 
@@ -378,46 +306,11 @@ public class ItemService : IItemService
 
         await this._context.SaveChangesAsync();
 
-        // Fan-out price drop notification to all users who liked this item
-        if (this._priceDropNotifier != null
-            && dto.Price.HasValue
-            && oldPrice.HasValue
-            && dto.Price.Value < oldPrice.Value)
+        // Price-drop fan-out to likers (with concurrency cap) lives in
+        // INotificationHandler<ItemPriceDroppedEvent>. We just publish the event here.
+        if (dto.Price.HasValue && oldPrice.HasValue && dto.Price.Value < oldPrice.Value)
         {
-            var photoUrl = await this._context.ItemPhotos
-                .Where(p => p.ItemId == item.Id)
-                .OrderBy(p => p.DisplayOrder)
-                .Select(p => p.Url)
-                .FirstOrDefaultAsync();
-
-            var notification = new Application.DTOs.Items.PriceDropNotification
-            {
-                ItemId = item.Id,
-                ItemTitle = item.Title,
-                OldPrice = oldPrice.Value,
-                NewPrice = dto.Price.Value,
-                PhotoUrl = photoUrl
-            };
-
-            var likerIds = await this._context.Likes
-                .Where(l => l.ItemId == item.Id)
-                .Select(l => l.UserId)
-                .ToListAsync();
-
-            // Cap concurrent SignalR dispatches to avoid thread-pool exhaustion on popular items
-            const int MaxConcurrency = 50;
-            var semaphore = new SemaphoreSlim(MaxConcurrency, MaxConcurrency);
-            var tasks = likerIds.Select(async uid =>
-            {
-                await semaphore.WaitAsync();
-                try   { await this._priceDropNotifier.NotifyAsync(uid, notification); }
-                catch (Exception ex)
-                {
-                    this._logger.LogWarning(ex, "Price-drop SignalR notification failed for item {ItemId}, recipient {UserId}", item.Id, uid);
-                }
-                finally { semaphore.Release(); }
-            });
-            await Task.WhenAll(tasks);
+            await this._publisher.Publish(new ItemPriceDroppedEvent(item.Id, oldPrice.Value, dto.Price.Value));
         }
 
         return (await GetByIdAsync(item.Id))!;
