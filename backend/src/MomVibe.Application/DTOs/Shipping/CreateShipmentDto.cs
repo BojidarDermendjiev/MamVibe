@@ -34,10 +34,10 @@ public class CreateShipmentDto
     public decimal Weight { get; set; }
     /// <summary>Gets or sets a value indicating whether cash-on-delivery is enabled for this shipment.</summary>
     public bool IsCod { get; set; }
-    /// <summary>Gets or sets the amount the courier should collect on delivery in BGN.</summary>
+    /// <summary>Gets or sets the amount the courier should collect on delivery in EUR.</summary>
     public decimal CodAmount { get; set; }
     /// <summary>Gets or sets a value indicating whether shipment insurance is enabled.</summary>
     public bool IsInsured { get; set; }
-    /// <summary>Gets or sets the declared value in BGN for insurance premium calculation.</summary>
+    /// <summary>Gets or sets the declared value in EUR for insurance premium calculation.</summary>
     public decimal InsuredAmount { get; set; }
 }

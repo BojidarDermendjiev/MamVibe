@@ -3,6 +3,8 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -46,15 +48,19 @@ public class AuthServiceTests
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["JwtSettings:Secret"] = "SuperSecretKeyForTestingPurposes123456!",
-                ["JwtSettings:Issuer"] = "MomVibe-Test",
-                ["JwtSettings:Audience"] = "MomVibe-Test",
-                ["JwtSettings:ExpirationMinutes"] = "60",
-                ["JwtSettings:AccessTokenExpirationMinutes"] = "15",
-                ["JwtSettings:RefreshTokenExpirationDays"] = "7",
                 ["FrontendUrl"] = "https://localhost:5173"
             })
             .Build();
+
+    private static IOptions<JwtSettings> CreateJwtOptions() =>
+        Options.Create(new JwtSettings
+        {
+            Secret = "SuperSecretKeyForTestingPurposes123456!",
+            Issuer = "MomVibe-Test",
+            Audience = "MomVibe-Test",
+            AccessTokenExpirationMinutes = 15,
+            RefreshTokenExpirationDays = 7
+        });
 
     private static Mock<UserManager<ApplicationUser>> CreateUserManagerMock()
     {
@@ -72,7 +78,8 @@ public class AuthServiceTests
         emailMock ??= new Mock<IEmailService>();
         auditMock ??= new Mock<IAuditLogService>();
 
-        var tokenService = new TokenService(CreateConfig());
+        var jwtOptions = CreateJwtOptions();
+        var tokenService = new TokenService(jwtOptions);
         var webhookMock = new Mock<IN8nWebhookService>();
         var n8nOptions = Options.Create(new N8nSettings());
 
@@ -85,7 +92,9 @@ public class AuthServiceTests
             emailMock.Object,
             webhookMock.Object,
             n8nOptions,
-            auditMock.Object);
+            jwtOptions,
+            auditMock.Object,
+            NullLogger<AuthService>.Instance);
     }
 
     // =========================================================================

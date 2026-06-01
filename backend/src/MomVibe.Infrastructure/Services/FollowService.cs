@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Domain.Entities;
 using Application.Interfaces;
@@ -12,11 +13,13 @@ public class FollowService : IFollowService
 {
     private readonly IApplicationDbContext _context;
     private readonly IFollowNotifier _notifier;
+    private readonly ILogger<FollowService> _logger;
 
-    public FollowService(IApplicationDbContext context, IFollowNotifier notifier)
+    public FollowService(IApplicationDbContext context, IFollowNotifier notifier, ILogger<FollowService> logger)
     {
         this._context = context;
         this._notifier = notifier;
+        this._logger = logger;
     }
 
     public async Task<FollowToggleResult> ToggleFollowAsync(string followerId, string followeeId)
@@ -68,7 +71,10 @@ public class FollowService : IFollowService
                     });
                 }
             }
-            catch { /* ignore */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "New-follower SignalR notification failed (follower {FollowerId} → followee {FolloweeId})", followerId, followeeId);
+            }
         }
 
         var followerCount = await this._context.Follows

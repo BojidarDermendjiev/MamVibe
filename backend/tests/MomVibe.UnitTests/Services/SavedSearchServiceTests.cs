@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.DTOs.Items;
@@ -33,7 +34,7 @@ public class SavedSearchServiceTests
         notifierMock ??= new Mock<ISavedSearchNotifier>();
         notifierMock.Setup(n => n.NotifyAsync(It.IsAny<string>(), It.IsAny<SavedSearchMatchNotification>()))
                     .Returns(Task.CompletedTask);
-        return new SavedSearchService(db, notifierMock.Object);
+        return new SavedSearchService(db, notifierMock.Object, NullLogger<SavedSearchService>.Instance);
     }
 
     private static async Task SeedUserAsync(ApplicationDbContext db, string userId, string displayName = "User")

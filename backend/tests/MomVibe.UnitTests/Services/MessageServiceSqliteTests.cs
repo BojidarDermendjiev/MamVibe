@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -52,7 +53,8 @@ public class MessageServiceSqliteTests : IAsyncLifetime
             new Mock<IN8nWebhookService>().Object,
             Options.Create(new N8nSettings()),
             new UserPresenceTracker(),
-            new Mock<IAiService>().Object);
+            new Mock<IAiService>().Object,
+            NullLogger<MessageService>.Instance);
     }
 
     private ApplicationUser SeedUser(string userId)

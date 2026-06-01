@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Domain.Entities;
@@ -23,6 +24,7 @@ public class MessageService : IMessageService
     private readonly N8nSettings _n8nSettings;
     private readonly UserPresenceTracker _presenceTracker;
     private readonly IAiService _aiService;
+    private readonly ILogger<MessageService> _logger;
 
     public MessageService(
         IApplicationDbContext context,
@@ -30,7 +32,8 @@ public class MessageService : IMessageService
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
         UserPresenceTracker presenceTracker,
-        IAiService aiService)
+        IAiService aiService,
+        ILogger<MessageService> logger)
     {
         this._context = context;
         this._mapper = mapper;
@@ -38,6 +41,7 @@ public class MessageService : IMessageService
         this._n8nSettings = n8nSettings.Value;
         this._presenceTracker = presenceTracker;
         this._aiService = aiService;
+        this._logger = logger;
     }
 
     private static string MaskEmail(string? email)
@@ -179,7 +183,10 @@ public class MessageService : IMessageService
                 });
             }
         }
-        catch { /* Webhook failure must not break message flow */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "n8n chat.message_offline webhook failed for message {MessageId}", saved.Id);
+        }
 
         return this._mapper.Map<MessageDto>(saved);
     }
@@ -216,7 +223,7 @@ public class MessageService : IMessageService
             for buying and selling second-hand baby and children's items.
 
             You help parents with:
-            - Pricing advice for listings (typical prices in BGN)
+            - Pricing advice for listings (typical prices in EUR)
             - Listing tips: what photos to take, how to write a good description
             - Safety tips for meeting buyers or sellers in person
             - How the platform works (posting items, searching, contacting sellers)

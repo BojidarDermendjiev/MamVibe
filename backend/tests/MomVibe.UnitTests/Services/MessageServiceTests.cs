@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -60,7 +61,8 @@ public class MessageServiceTests
             webhookMock.Object,
             n8nOptions,
             presenceTracker,
-            aiMock.Object);
+            aiMock.Object,
+            NullLogger<MessageService>.Instance);
     }
 
     /// <summary>Seeds a user. Idempotent — skips if the user already exists.</summary>

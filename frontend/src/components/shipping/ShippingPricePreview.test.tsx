@@ -40,7 +40,7 @@ describe('ShippingPricePreview', () => {
 
   it('shows price after API resolves', async () => {
     vi.useFakeTimers()
-    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'BGN', estimatedDelivery: null } } as never)
+    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'EUR', estimatedDelivery: null } } as never)
     render(<ShippingPricePreview request={request} />)
     await act(async () => {
       vi.advanceTimersByTime(600)
@@ -53,7 +53,7 @@ describe('ShippingPricePreview', () => {
 
   it('shows estimated delivery when provided', async () => {
     vi.useFakeTimers()
-    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'BGN', estimatedDelivery: '2024-01-15' } } as never)
+    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'EUR', estimatedDelivery: '2024-01-15' } } as never)
     render(<ShippingPricePreview request={request} />)
     await act(async () => {
       vi.advanceTimersByTime(600)
@@ -79,7 +79,7 @@ describe('ShippingPricePreview', () => {
 
   it('calls onPriceChange with price when API succeeds', async () => {
     vi.useFakeTimers()
-    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'BGN', estimatedDelivery: null } } as never)
+    mockCalculatePrice.mockResolvedValue({ data: { price: 5.9, currency: 'EUR', estimatedDelivery: null } } as never)
     const onPriceChange = vi.fn()
     render(<ShippingPricePreview request={request} onPriceChange={onPriceChange} />)
     await act(async () => {

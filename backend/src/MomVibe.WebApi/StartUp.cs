@@ -145,7 +145,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(CorsPolicy.MamVibe, policy =>
     {
         policy.WithOrigins(frontendUrl)
-              .WithHeaders("Content-Type", "Authorization", "X-Language", "Cache-Control")
+              .WithHeaders("Content-Type", "Authorization", "X-Language", "Cache-Control", "Idempotency-Key", "X-Client")
               .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
               .AllowCredentials()
               .WithExposedHeaders("X-Pagination");
@@ -349,6 +349,11 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("database");
 
 var app = builder.Build();
+
+// Stripe SDK uses a process-global static for its API key. Set it once at app startup.
+// Previously this was assigned in PaymentService's constructor (scoped lifetime),
+// which rewrote the global on every request.
+Stripe.StripeConfiguration.ApiKey = app.Configuration["Stripe:SecretKey"];
 
 // Seed roles and admin
 using (var scope = app.Services.CreateScope())

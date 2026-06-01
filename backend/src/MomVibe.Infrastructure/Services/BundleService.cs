@@ -250,7 +250,7 @@ public class BundleService : IBundleService
                 PriceData = new SessionLineItemPriceDataOptions
                 {
                     UnitAmount = (long)(bundle.Price * 100),
-                    Currency = "bgn",
+                    Currency = "eur",
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
                         Name = bundle.Title,
@@ -270,7 +270,7 @@ public class BundleService : IBundleService
                 PriceData = new SessionLineItemPriceDataOptions
                 {
                     UnitAmount = (long)(shippingFee * 100),
-                    Currency = "bgn",
+                    Currency = "eur",
                     ProductData = new SessionLineItemPriceDataProductDataOptions { Name = "Доставка / Shipping" }
                 },
                 Quantity = 1

@@ -40,6 +40,13 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
+        // Strongly-typed JwtSettings — validated at app startup so a misconfigured
+        // deployment fails immediately rather than crashing on the first auth request.
+        services.AddOptions<JwtSettings>()
+            .Bind(configuration.GetSection("JwtSettings"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IAuthService, AuthService>();

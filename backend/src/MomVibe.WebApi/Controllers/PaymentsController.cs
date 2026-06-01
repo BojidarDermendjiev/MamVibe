@@ -36,6 +36,21 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
+    /// Reads the optional <c>Idempotency-Key</c> request header.
+    /// Returns null when the header is missing, empty, or longer than the column limit (255 chars).
+    /// Forwarded by the service layer to both the database (unique index) and Stripe
+    /// (<c>RequestOptions.IdempotencyKey</c>) so a double-tap or retried request does not
+    /// create a duplicate Payment row or charge.
+    /// </summary>
+    private string? IdempotencyKey()
+    {
+        var raw = this.Request.Headers["Idempotency-Key"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var trimmed = raw.Trim();
+        return trimmed.Length is > 0 and <= 255 ? trimmed : null;
+    }
+
+    /// <summary>
     /// Creates a Stripe checkout session for the specified item.
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>
@@ -59,7 +74,8 @@ public class PaymentsController : ControllerBase
                 itemId, userId,
                 $"{frontendUrl}/payment/success?itemId={itemId}",
                 $"{frontendUrl}/payment/cancel",
-                delivery);
+                delivery,
+                this.IdempotencyKey());
             return Ok(new { sessionUrl });
         }
         catch (KeyNotFoundException ex)
@@ -91,7 +107,7 @@ public class PaymentsController : ControllerBase
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
-        var payment = await this._paymentService.CreateOnSpotPaymentAsync(itemId, userId, delivery);
+        var payment = await this._paymentService.CreateOnSpotPaymentAsync(itemId, userId, delivery, this.IdempotencyKey());
         return Ok(payment);
     }
 
@@ -114,7 +130,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var payment = await this._paymentService.CreateBookingAsync(itemId, userId, delivery);
+            var payment = await this._paymentService.CreateBookingAsync(itemId, userId, delivery, this.IdempotencyKey());
             return Ok(payment);
         }
         catch (KeyNotFoundException ex)
@@ -146,7 +162,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var payment = await this._paymentService.CreateCashOnDeliveryAsync(itemId, userId, delivery);
+            var payment = await this._paymentService.CreateCashOnDeliveryAsync(itemId, userId, delivery, this.IdempotencyKey());
             return Ok(payment);
         }
         catch (KeyNotFoundException ex)
@@ -177,7 +193,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var clientSecret = await this._paymentService.CreatePaymentIntentAsync(itemId, userId);
+            var clientSecret = await this._paymentService.CreatePaymentIntentAsync(itemId, userId, this.IdempotencyKey());
             return Ok(new { clientSecret });
         }
         catch (KeyNotFoundException ex)
@@ -223,7 +239,8 @@ public class PaymentsController : ControllerBase
             var sessionUrl = await this._paymentService.CreateBulkCheckoutSessionAsync(
                 itemIds, userId,
                 $"{frontendUrl}/payment/success",
-                $"{frontendUrl}/payment/cancel");
+                $"{frontendUrl}/payment/cancel",
+                this.IdempotencyKey());
             return Ok(new { sessionUrl });
         }
         catch (KeyNotFoundException ex)
@@ -258,7 +275,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var payments = await this._paymentService.CreateBulkBookingAsync(request.ItemIds, userId);
+            var payments = await this._paymentService.CreateBulkBookingAsync(request.ItemIds, userId, this.IdempotencyKey());
             return Ok(payments);
         }
         catch (KeyNotFoundException ex)
@@ -289,7 +306,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var payments = await this._paymentService.CreateBulkOnSpotPaymentAsync(request.ItemIds, userId);
+            var payments = await this._paymentService.CreateBulkOnSpotPaymentAsync(request.ItemIds, userId, this.IdempotencyKey());
             return Ok(payments);
         }
         catch (KeyNotFoundException ex)
@@ -316,7 +333,7 @@ public class PaymentsController : ControllerBase
     {
         try
         {
-            var clientSecret = await this._paymentService.CreateDonationIntentAsync(request.Amount);
+            var clientSecret = await this._paymentService.CreateDonationIntentAsync(request.Amount, this.IdempotencyKey());
             return Ok(new { clientSecret });
         }
         catch (InvalidOperationException ex)
@@ -347,7 +364,8 @@ public class PaymentsController : ControllerBase
             var sessionUrl = await this._paymentService.CreateDonationCheckoutAsync(
                 request.Amount,
                 $"{frontendUrl}/payment/success",
-                $"{frontendUrl}/donate");
+                $"{frontendUrl}/donate",
+                this.IdempotencyKey());
             return Ok(new { sessionUrl });
         }
         catch (InvalidOperationException ex)

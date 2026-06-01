@@ -20,7 +20,7 @@ public class AiListingSuggestionDto
     /// <summary>Gets or sets the AI-suggested listing type (e.g., sale or donation).</summary>
     public ListingType ListingType { get; set; }
 
-    /// <summary>Gets or sets the AI-suggested price in BGN, or <c>null</c> if the item appears to be a donation.</summary>
+    /// <summary>Gets or sets the AI-suggested price in EUR, or <c>null</c> if the item appears to be a donation.</summary>
     public decimal? SuggestedPrice { get; set; }
 
     /// <summary>Gets or sets the AI-inferred target age group, or <c>null</c> if not determinable from the photo.</summary>

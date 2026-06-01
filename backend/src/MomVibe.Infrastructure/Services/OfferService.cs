@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Domain.Entities;
 using Domain.Enums;
@@ -13,12 +14,14 @@ public class OfferService : IOfferService
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IOfferNotifier _notifier;
+    private readonly ILogger<OfferService> _logger;
 
-    public OfferService(IApplicationDbContext context, IMapper mapper, IOfferNotifier notifier)
+    public OfferService(IApplicationDbContext context, IMapper mapper, IOfferNotifier notifier, ILogger<OfferService> logger)
     {
         this._context = context;
         this._mapper = mapper;
         this._notifier = notifier;
+        this._logger = logger;
     }
 
     public async Task<OfferDto> CreateAsync(CreateOfferDto dto, string buyerId)
@@ -56,7 +59,8 @@ public class OfferService : IOfferService
         var saved = await this.LoadOfferAsync(offer.Id);
         var offerDto = this.MapOffer(saved);
 
-        try { await this._notifier.NotifySellerAsync(saved.SellerId, offerDto); } catch { /* best effort */ }
+        try { await this._notifier.NotifySellerAsync(saved.SellerId, offerDto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer-created seller notification failed for offer {OfferId}", saved.Id); }
 
         return offerDto;
     }
@@ -72,7 +76,8 @@ public class OfferService : IOfferService
         await this._context.SaveChangesAsync();
 
         var dto = this.MapOffer(offer);
-        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer status-change buyer notification failed for offer {OfferId} (status={Status})", offer.Id, offer.Status); }
         return dto;
     }
 
@@ -87,7 +92,8 @@ public class OfferService : IOfferService
         await this._context.SaveChangesAsync();
 
         var dto = this.MapOffer(offer);
-        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer status-change buyer notification failed for offer {OfferId} (status={Status})", offer.Id, offer.Status); }
         return dto;
     }
 
@@ -103,7 +109,8 @@ public class OfferService : IOfferService
         await this._context.SaveChangesAsync();
 
         var dto = this.MapOffer(offer);
-        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifyBuyerAsync(offer.BuyerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer status-change buyer notification failed for offer {OfferId} (status={Status})", offer.Id, offer.Status); }
         return dto;
     }
 
@@ -118,7 +125,8 @@ public class OfferService : IOfferService
         await this._context.SaveChangesAsync();
 
         var dto = this.MapOffer(offer);
-        try { await this._notifier.NotifySellerAsync(offer.SellerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifySellerAsync(offer.SellerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer counter-response seller notification failed for offer {OfferId} (status={Status})", offer.Id, offer.Status); }
         return dto;
     }
 
@@ -133,7 +141,8 @@ public class OfferService : IOfferService
         await this._context.SaveChangesAsync();
 
         var dto = this.MapOffer(offer);
-        try { await this._notifier.NotifySellerAsync(offer.SellerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifySellerAsync(offer.SellerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Offer counter-response seller notification failed for offer {OfferId} (status={Status})", offer.Id, offer.Status); }
         return dto;
     }
 

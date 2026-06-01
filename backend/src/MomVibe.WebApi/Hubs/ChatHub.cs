@@ -4,6 +4,7 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 using Application.Interfaces;
 using Application.DTOs.Messages;
@@ -30,12 +31,14 @@ public class ChatHub : Hub<IChatClient>
 {
     private readonly IMessageService _messageService;
     private readonly UserPresenceTracker _presenceTracker;
+    private readonly ILogger<ChatHub> _logger;
 
     /// <summary>Initializes a new instance of <see cref="ChatHub"/> with the message service and presence tracker.</summary>
-    public ChatHub(IMessageService messageService, UserPresenceTracker presenceTracker)
+    public ChatHub(IMessageService messageService, UserPresenceTracker presenceTracker, ILogger<ChatHub> logger)
     {
         this._messageService = messageService;
         this._presenceTracker = presenceTracker;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -71,7 +74,10 @@ public class ChatHub : Hub<IChatClient>
                 if (aiReply != null)
                     await Clients.Group($"user_{senderId}").ReceiveMessage(aiReply);
             }
-            catch { /* AI response failure must never break the user's send */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "AI bot reply failed for sender {SenderId}", senderId);
+            }
         }
 
         return message;

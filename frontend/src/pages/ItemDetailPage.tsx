@@ -12,7 +12,7 @@ import ConditionBadge from '../components/items/ConditionBadge';
 import type { UserRatingSummary } from '../types/userRating';
 import { useAuthStore } from '../store/authStore';
 import { getCategoryImage } from '../utils/categoryImages';
-import { formatPrice, bgnToEur } from '../utils/currency';
+import { formatPrice, formatEur } from '../utils/currency';
 import LikeButton from '../components/items/LikeButton';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
@@ -135,7 +135,7 @@ export default function ItemDetailPage() {
       offers: {
         "@type": "Offer",
         priceCurrency: "EUR",
-        price: item.price != null ? bgnToEur(item.price).toFixed(2) : "0.00",
+        price: item.price != null ? item.price.toFixed(2) : "0.00",
         availability: !item.isActive
           ? "https://schema.org/SoldOut"
           : item.isReserved
@@ -209,7 +209,7 @@ export default function ItemDetailPage() {
   usePageSEO({
     title: item ? `${item.title} — ${item.categoryName}` : "Item Detail",
     description: item
-      ? `${item.title} for ${item.price ? `€${bgnToEur(item.price).toFixed(2)}` : "free"} on MamVibe. ${item.description?.slice(0, 100) ?? ""}`
+      ? `${item.title} for ${item.price ? formatEur(item.price) : "free"} on MamVibe. ${item.description?.slice(0, 100) ?? ""}`
       : "View this item on MamVibe.",
     canonical: item ? `https://mamvibe.com/items/${item.id}` : undefined,
     image: item?.photos?.[0]?.url,

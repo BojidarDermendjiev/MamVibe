@@ -51,7 +51,7 @@ public class ShippingService : IShippingService
     public async Task<ShippingPriceResultDto> CalculatePriceAsync(CalculateShippingDto request)
     {
         if (this._shippingSettings.MockMode)
-            return await Task.FromResult(new ShippingPriceResultDto { Price = 4.99m, Currency = "BGN" });
+            return await Task.FromResult(new ShippingPriceResultDto { Price = 4.99m, Currency = "EUR" });
 
         var provider = this._factory.GetProvider(request.CourierProvider);
         return await provider.CalculatePriceAsync(request);
@@ -156,12 +156,19 @@ public class ShippingService : IShippingService
                 RecipientName = shipment.RecipientName
             });
         }
-        catch { /* Webhook failure must not break shipment flow */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "n8n shipment.created webhook failed for shipment {ShipmentId}", shipment.Id);
+        }
 
         shipment.Payment = payment;
         var dto = this._mapper.Map<ShipmentDto>(shipment);
         // Notify the SELLER: waybill is ready to print and attach to the package
-        try { await this._notifier.NotifySellerShipmentReadyAsync(payment.SellerId, dto); } catch { /* notification failure must not break shipment creation */ }
+        try { await this._notifier.NotifySellerShipmentReadyAsync(payment.SellerId, dto); }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "SignalR seller-shipment-ready notification failed for shipment {ShipmentId}", shipment.Id);
+        }
         return dto;
     }
 
@@ -407,7 +414,10 @@ public class ShippingService : IShippingService
                     SellerEmail = shipment.Payment?.Seller?.Email
                 });
             }
-            catch { /* Webhook failure must not break sync flow */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "n8n shipment.delivered webhook failed for shipment {ShipmentId}", shipment.Id);
+            }
         }
 
         // Fire shipment.out_for_delivery webhook
@@ -427,7 +437,10 @@ public class ShippingService : IShippingService
                     RecipientName = shipment.RecipientName
                 });
             }
-            catch { /* Webhook failure must not break sync flow */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "n8n shipment.out_for_delivery webhook failed for shipment {ShipmentId}", shipment.Id);
+            }
         }
 
         // Push real-time SignalR notification for newly picked-up shipments
@@ -438,7 +451,10 @@ public class ShippingService : IShippingService
                 var dto = _mapper.Map<ShipmentDto>(shipment);
                 await _notifier.NotifyShipmentStatusChangedAsync(shipment.Payment.BuyerId, dto);
             }
-            catch { /* Notification failure must not break sync flow */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "SignalR shipment-status-changed notification (PickedUp) failed for shipment {ShipmentId}", shipment.Id);
+            }
         }
     }
 }

@@ -1,8 +1,9 @@
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 using MomVibe.Domain.Enums;
 using MomVibe.Domain.Entities;
+using MomVibe.Infrastructure.Configuration;
 using MomVibe.Infrastructure.Services;
 
 
@@ -14,16 +15,14 @@ public class TokenServiceTests
 
     public TokenServiceTests()
     {
-        var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["JwtSettings:Secret"] = "ThisIsAVeryLongSecretKeyForTestingPurposes123456!",
-                ["JwtSettings:Issuer"] = "MomVibe-Test",
-                ["JwtSettings:Audience"] = "MomVibe-Test",
-                ["JwtSettings:ExpirationMinutes"] = "60"
-            })
-            .Build();
-        _tokenService = new TokenService(config);
+        var jwt = Options.Create(new JwtSettings
+        {
+            Secret = "ThisIsAVeryLongSecretKeyForTestingPurposes123456!",
+            Issuer = "MomVibe-Test",
+            Audience = "MomVibe-Test",
+            AccessTokenExpirationMinutes = 60
+        });
+        _tokenService = new TokenService(jwt);
     }
 
     [Fact]

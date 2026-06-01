@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
-import { bgnToEur } from "@/utils/currency";
+import { formatEur } from "@/utils/currency";
 
 interface PresetTier {
   value: number;
@@ -76,7 +76,7 @@ export default function DonationPage() {
   };
 
   const donateLabel = canDonate
-    ? t("donate.donate_btn").replace("{amount}", `€${bgnToEur(effectiveAmount).toFixed(2)}`)
+    ? t("donate.donate_btn").replace("{amount}", formatEur(effectiveAmount))
     : t("donate.donate_btn_default");
 
   return (
@@ -243,7 +243,7 @@ export default function DonationPage() {
                               color: isActive ? activeBorder : "#374151",
                             }}
                           >
-                            €{bgnToEur(value).toFixed(2)}
+                            {formatEur(value)}
                           </span>
                         )}
                         <span
@@ -275,18 +275,21 @@ export default function DonationPage() {
                   transition={{ duration: 0.2 }}
                   className="mb-1"
                 >
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    step="0.50"
-                    value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
-                    placeholder={t("donate.custom_placeholder")}
-                    className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none text-lg font-semibold text-gray-700 placeholder:text-gray-400 transition-colors bg-peach-light/40"
-                    style={{ borderColor: "rgba(148,92,103,0.3)" }}
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-gray-500 select-none">€</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="500"
+                      step="0.50"
+                      value={customAmount}
+                      onChange={(e) => setCustomAmount(e.target.value)}
+                      placeholder={t("donate.custom_placeholder")}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none text-lg font-semibold text-gray-700 placeholder:text-gray-400 transition-colors bg-peach-light/40"
+                      style={{ borderColor: "rgba(148,92,103,0.3)" }}
+                      autoFocus
+                    />
+                  </div>
                 </motion.div>
               )}
 

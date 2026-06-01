@@ -44,15 +44,15 @@ public class ShipmentDto
     public string? OfficeId { get; set; }
     /// <summary>Gets or sets the human-readable name of the target office or locker.</summary>
     public string? OfficeName { get; set; }
-    /// <summary>Gets or sets the total shipping cost for this shipment in BGN.</summary>
+    /// <summary>Gets or sets the total shipping cost for this shipment in EUR.</summary>
     public decimal ShippingPrice { get; set; }
     /// <summary>Gets or sets a value indicating whether cash-on-delivery is enabled.</summary>
     public bool IsCod { get; set; }
-    /// <summary>Gets or sets the cash-on-delivery amount the courier collects in BGN.</summary>
+    /// <summary>Gets or sets the cash-on-delivery amount the courier collects in EUR.</summary>
     public decimal CodAmount { get; set; }
     /// <summary>Gets or sets a value indicating whether shipment insurance is active.</summary>
     public bool IsInsured { get; set; }
-    /// <summary>Gets or sets the declared insured value in BGN.</summary>
+    /// <summary>Gets or sets the declared insured value in EUR.</summary>
     public decimal InsuredAmount { get; set; }
     /// <summary>Gets or sets the package weight in kilograms.</summary>
     public decimal Weight { get; set; }

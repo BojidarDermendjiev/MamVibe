@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -79,7 +80,8 @@ public class AdminServiceTests
             n8nOptions,
             memoryCache,
             distCacheMock.Object,
-            auditMock.Object);
+            auditMock.Object,
+            NullLogger<AdminService>.Instance);
     }
 
     /// <summary>Seeds a user and an item; returns the item. isActive defaults to true.</summary>

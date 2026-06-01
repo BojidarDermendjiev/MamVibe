@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { formatPrice, formatEur } from './currency'
 
 describe('formatPrice', () => {
-  it('converts BGN to EUR with fixed peg', () => {
-    expect(formatPrice(19.56)).toBe('€10.00')
+  it('formats a positive EUR amount with the euro sign and two decimals', () => {
+    expect(formatPrice(10)).toBe('€10.00')
   })
 
   it('returns empty string for null', () => {
@@ -16,6 +16,10 @@ describe('formatPrice', () => {
 
   it('handles zero', () => {
     expect(formatPrice(0)).toBe('€0.00')
+  })
+
+  it('rounds to two decimal places', () => {
+    expect(formatPrice(3.5)).toBe('€3.50')
   })
 })
 

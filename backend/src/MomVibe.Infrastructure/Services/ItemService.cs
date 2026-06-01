@@ -3,6 +3,7 @@ namespace MomVibe.Infrastructure.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Domain.Enums;
@@ -28,6 +29,7 @@ public class ItemService : IItemService
     private readonly IAiService _aiService;
     private readonly INekorektenService _nekorekten;
     private readonly IMemoryCache _cache;
+    private readonly ILogger<ItemService> _logger;
     private readonly IFollowNotifier? _followNotifier;
     private readonly ISavedSearchService? _savedSearchService;
     private readonly IPriceDropNotifier? _priceDropNotifier;
@@ -46,6 +48,7 @@ public class ItemService : IItemService
         IAiService aiService,
         INekorektenService nekorekten,
         IMemoryCache cache,
+        ILogger<ItemService> logger,
         IFollowNotifier? followNotifier = null,
         ISavedSearchService? savedSearchService = null,
         IPriceDropNotifier? priceDropNotifier = null)
@@ -57,6 +60,7 @@ public class ItemService : IItemService
         this._aiService = aiService;
         this._nekorekten = nekorekten;
         this._cache = cache;
+        this._logger = logger;
         this._followNotifier = followNotifier;
         this._savedSearchService = savedSearchService;
         this._priceDropNotifier = priceDropNotifier;
@@ -262,7 +266,10 @@ public class ItemService : IItemService
 
             await this._context.SaveChangesAsync();
         }
-        catch { /* Moderation failure must not block item creation */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "AI moderation failed for item {ItemId}; item left in NeedsReview state", item.Id);
+        }
 
         // Only notify admin for items that still need manual review
         if (!item.IsActive)
@@ -285,7 +292,10 @@ public class ItemService : IItemService
                     AiReason = item.AiModerationNotes
                 });
             }
-            catch { /* Webhook failure must not break item creation */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "n8n item.pending_approval webhook failed for item {ItemId}", item.Id);
+            }
         }
 
         var result = (await GetByIdAsync(item.Id))!;
@@ -294,7 +304,10 @@ public class ItemService : IItemService
         if (item.IsActive && this._savedSearchService != null)
         {
             try { await this._savedSearchService.NotifyMatchingSearchesAsync(result); }
-            catch { /* never block item creation */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "Saved-search notification fan-out failed for item {ItemId}", item.Id);
+            }
         }
 
         if (item.IsActive && this._followNotifier != null)
@@ -309,7 +322,10 @@ public class ItemService : IItemService
                 if (followerIds.Count > 0)
                     await this._followNotifier.NotifyFollowersOfNewItemAsync(followerIds, result);
             }
-            catch { /* never block item creation */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "Follower-of-new-item notification fan-out failed for item {ItemId} by seller {SellerId}", item.Id, userId);
+            }
         }
 
         return result;
@@ -395,7 +411,10 @@ public class ItemService : IItemService
             {
                 await semaphore.WaitAsync();
                 try   { await this._priceDropNotifier.NotifyAsync(uid, notification); }
-                catch { /* best-effort: notification failure must not break the update */ }
+                catch (Exception ex)
+                {
+                    this._logger.LogWarning(ex, "Price-drop SignalR notification failed for item {ItemId}, recipient {UserId}", item.Id, uid);
+                }
                 finally { semaphore.Release(); }
             });
             await Task.WhenAll(tasks);

@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.DTOs.Offers;
@@ -41,7 +42,7 @@ public class OfferServiceTests
     private static OfferService CreateService(ApplicationDbContext db, Mock<IOfferNotifier>? notifierMock = null)
     {
         notifierMock ??= new Mock<IOfferNotifier>();
-        return new OfferService(db, CreateMapper(), notifierMock.Object);
+        return new OfferService(db, CreateMapper(), notifierMock.Object, NullLogger<OfferService>.Instance);
     }
 
     private static async Task<Item> SeedItemAsync(

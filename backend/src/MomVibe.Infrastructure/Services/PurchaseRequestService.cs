@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Domain.Entities;
 using Domain.Enums;
@@ -20,17 +21,20 @@ public class PurchaseRequestService : IPurchaseRequestService
     private readonly IMapper _mapper;
     private readonly IPurchaseRequestNotifier _notifier;
     private readonly INekorektenService _nekorekten;
+    private readonly ILogger<PurchaseRequestService> _logger;
 
     public PurchaseRequestService(
         IApplicationDbContext context,
         IMapper mapper,
         IPurchaseRequestNotifier notifier,
-        INekorektenService nekorekten)
+        INekorektenService nekorekten,
+        ILogger<PurchaseRequestService> logger)
     {
         this._context = context;
         this._mapper = mapper;
         this._notifier = notifier;
         this._nekorekten = nekorekten;
+        this._logger = logger;
     }
 
     public async Task<PurchaseRequestDto> CreateAsync(Guid itemId, string buyerId)
@@ -91,7 +95,8 @@ public class PurchaseRequestService : IPurchaseRequestService
         var dto = this._mapper.Map<PurchaseRequestDto>(saved);
 
         // Notify seller via SignalR (fire-and-forget; failure must not break the request)
-        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request seller notification failed for request {RequestId}", saved.Id); }
 
         return dto;
     }
@@ -139,7 +144,8 @@ public class PurchaseRequestService : IPurchaseRequestService
             .FirstAsync(r => r.Id == request.Id);
 
         var dto = this._mapper.Map<PurchaseRequestDto>(saved);
-        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifySellerAsync(saved.SellerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Bundle purchase-request seller notification failed for request {RequestId}", saved.Id); }
 
         return dto;
     }
@@ -168,7 +174,8 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dto = this._mapper.Map<PurchaseRequestDto>(request);
 
-        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request buyer notification failed for request {RequestId} (status={Status})", request.Id, request.Status); }
 
         return dto;
     }
@@ -208,7 +215,8 @@ public class PurchaseRequestService : IPurchaseRequestService
 
         var dto = this._mapper.Map<PurchaseRequestDto>(request);
 
-        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); } catch { /* best effort */ }
+        try { await this._notifier.NotifyBuyerAsync(request.BuyerId, dto); }
+        catch (Exception ex) { this._logger.LogWarning(ex, "Purchase-request buyer notification failed for request {RequestId} (status={Status})", request.Id, request.Status); }
 
         return dto;
     }
@@ -232,7 +240,10 @@ public class PurchaseRequestService : IPurchaseRequestService
         {
             await this._notifier.NotifyPaymentChosenAsync(request.SellerId, requestId, paymentMethod, buyerName);
         }
-        catch { /* best effort */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "Payment-method-chosen seller notification failed for request {RequestId}", requestId);
+        }
 
         return this._mapper.Map<PurchaseRequestDto>(request);
     }

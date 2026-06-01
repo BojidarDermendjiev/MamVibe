@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.Interfaces;
@@ -30,7 +31,7 @@ public class FollowServiceTests
         notifierMock ??= new Mock<IFollowNotifier>();
         notifierMock.Setup(n => n.NotifyNewFollowerAsync(It.IsAny<string>(), It.IsAny<Application.DTOs.Follows.NewFollowerNotification>()))
                     .Returns(Task.CompletedTask);
-        return new FollowService(db, notifierMock.Object);
+        return new FollowService(db, notifierMock.Object, NullLogger<FollowService>.Instance);
     }
 
     private static async Task SeedUserAsync(ApplicationDbContext db, string userId, string displayName = "User")

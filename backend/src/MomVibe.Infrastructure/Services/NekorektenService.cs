@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Application.Interfaces;
@@ -16,11 +17,13 @@ public class NekorektenService : INekorektenService
 {
     private readonly HttpClient _http;
     private readonly NekorektenSettings _settings;
+    private readonly ILogger<NekorektenService> _logger;
 
-    public NekorektenService(IHttpClientFactory factory, IOptions<NekorektenSettings> options)
+    public NekorektenService(IHttpClientFactory factory, IOptions<NekorektenSettings> options, ILogger<NekorektenService> logger)
     {
         this._http = factory.CreateClient("Nekorekten");
         this._settings = options.Value;
+        this._logger = logger;
     }
 
     public async Task<BuyerCheckResult> CheckAsync(string? name, string? email, string? phone)
@@ -96,7 +99,7 @@ public class NekorektenService : INekorektenService
 
     // ── JSON parsing ──────────────────────────────────────────────────────────
     // Handles both a bare JSON array and a wrapped { "data": [...] } / { "reports": [...] }
-    private static List<NekorektenReport> ParseReports(string json)
+    private List<NekorektenReport> ParseReports(string json)
     {
         var result = new List<NekorektenReport>();
         try
@@ -127,7 +130,10 @@ public class NekorektenService : INekorektenService
                 });
             }
         }
-        catch { /* return whatever was parsed */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "Failed to parse a nekorekten report; returning partial results");
+        }
 
         return result;
     }

@@ -1,14 +1,16 @@
-import { type InputHTMLAttributes, forwardRef, useState } from 'react';
+import { type InputHTMLAttributes, type ReactNode, forwardRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?: string;
   error?: string;
+  /** Optional adornment rendered inside the left edge of the input (e.g. a "€" sign for price fields). */
+  prefix?: ReactNode;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className, type, ...props }, ref) => {
+  ({ label, error, className, type, prefix, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
 
@@ -20,11 +22,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className="relative">
+          {prefix && (
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm select-none">
+              {prefix}
+            </span>
+          )}
           <input
             ref={ref}
             type={isPassword && showPassword ? 'text' : type}
             className={clsx(
-              'w-full px-4 py-2.5 rounded-lg border bg-white text-gray-800 placeholder-gray-400 transition-colors duration-200',
+              'w-full py-2.5 rounded-lg border bg-white text-gray-800 placeholder-gray-400 transition-colors duration-200',
+              prefix ? 'pl-9 pr-4' : 'px-4',
               'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
               error ? 'border-red-400' : 'border-lavender',
               isPassword && 'pr-11',

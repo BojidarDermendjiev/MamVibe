@@ -5,24 +5,26 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.IdentityModel.Tokens.Jwt;
 
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Configuration;
 
 using Domain.Entities;
 using Application.Interfaces;
+using Infrastructure.Configuration;
 
 /// <summary>
 /// Service for JWT operations: generates signed access tokens with user and role claims
 /// and creates cryptographically secure refresh tokens.
-/// Configured via JwtSettings (Secret, Issuer, Audience, expirations) and uses HMAC-SHA256 symmetric signing.
+/// Configured via strongly-typed <see cref="JwtSettings"/> (Secret, Issuer, Audience, expirations)
+/// using HMAC-SHA256 symmetric signing.
 /// </summary>
 public class TokenService : ITokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly JwtSettings _jwt;
 
-    public TokenService(IConfiguration configuration)
+    public TokenService(IOptions<JwtSettings> jwt)
     {
-        this._configuration = configuration;
+        this._jwt = jwt.Value;
     }
 
     public async Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles)
@@ -41,16 +43,14 @@ public class TokenService : ITokenService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            this._configuration["JwtSettings:Secret"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._jwt.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: this._configuration["JwtSettings:Issuer"],
-            audience: this._configuration["JwtSettings:Audience"],
+            issuer: this._jwt.Issuer,
+            audience: this._jwt.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(this._configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "15")),
+            expires: DateTime.UtcNow.AddMinutes(this._jwt.AccessTokenExpirationMinutes),
             signingCredentials: credentials
         );
 

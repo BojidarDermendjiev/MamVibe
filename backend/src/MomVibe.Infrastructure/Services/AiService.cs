@@ -139,7 +139,7 @@ public class AiService : IAiService
               "description": "2-3 sentence English description covering visible condition and key features",
               "categorySlug": "one slug from the list above",
               "listingType": 1 for Sell or 0 for Donate,
-              "suggestedPrice": price in BGN as a number if selling, null if donating,
+              "suggestedPrice": price in EUR as a number if selling, null if donating,
               "ageGroup": integer 0-5 or null,
               "clothingSize": EU clothing size as integer (e.g. 68, 74, 80, 86, 92) or null,
               "shoeSize": EU shoe size as integer or null
@@ -209,7 +209,7 @@ public class AiService : IAiService
         decimal? price,
         string? firstPhotoUrl = null)
     {
-        var priceText = price.HasValue ? $"{price} BGN" : "Free / Donation";
+        var priceText = price.HasValue ? $"{price} EUR" : "Free / Donation";
         var typeText = listingType == ListingType.Sell ? "Sell" : "Donate";
 
         var prompt = $$"""
@@ -383,7 +383,7 @@ public class AiService : IAiService
         IReadOnlyList<decimal> comparablePrices)
     {
         var comparablesText = comparablePrices.Count > 0
-            ? $"Comparable listings currently on this platform ({comparablePrices.Count} items): {string.Join(", ", comparablePrices.Select(p => $"{p} BGN"))}"
+            ? $"Comparable listings currently on this platform ({comparablePrices.Count} items): {string.Join(", ", comparablePrices.Select(p => $"{p} EUR"))}"
             : "No comparable listings found on this platform yet — use general knowledge of the Bulgarian second-hand baby market.";
 
         var sizeContext = new List<string>();
@@ -394,7 +394,7 @@ public class AiService : IAiService
 
         var prompt = $$"""
             You are a pricing assistant for MamVibe, a Bulgarian marketplace for second-hand baby and children's items.
-            Suggest a fair selling price in BGN for this listing.
+            Suggest a fair selling price in EUR for this listing.
 
             Title: {{title}}
             Category: {{categoryName}}
@@ -412,7 +412,7 @@ public class AiService : IAiService
             }
 
             Guidelines:
-            - suggestedPrice, low, high are numbers in BGN (Bulgarian Lev), rounded to the nearest whole number
+            - suggestedPrice, low, high are numbers in EUR, rounded to the nearest whole number
             - If comparable prices exist, base your suggestion on them; otherwise use general knowledge of the Bulgarian second-hand baby market
             - low = reasonable minimum a seller could accept, high = reasonable maximum
             - confidence: 0.0 (very uncertain) to 1.0 (very confident)

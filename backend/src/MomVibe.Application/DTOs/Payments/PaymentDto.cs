@@ -22,7 +22,7 @@ public class PaymentDto
     public required string BuyerId { get; set; }
     /// <summary>Gets or sets the identifier of the user who listed the item.</summary>
     public required string SellerId { get; set; }
-    /// <summary>Gets or sets the total amount charged for this payment in BGN.</summary>
+    /// <summary>Gets or sets the total amount charged for this payment in EUR.</summary>
     public decimal Amount { get; set; }
     /// <summary>Gets or sets the payment method used (Stripe, on-spot, booking, etc.).</summary>
     public PaymentMethod PaymentMethod { get; set; }

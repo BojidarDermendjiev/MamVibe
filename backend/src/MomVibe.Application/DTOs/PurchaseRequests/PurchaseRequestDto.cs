@@ -26,7 +26,7 @@ public class PurchaseRequestDto
     public string? ItemPhotoUrl { get; set; }
     /// <summary>Gets or sets the listing type of the item (Sell, Donate, etc.).</summary>
     public ListingType ListingType { get; set; }
-    /// <summary>Gets or sets the item price in BGN; null for donated items.</summary>
+    /// <summary>Gets or sets the item price in EUR; null for donated items.</summary>
     public decimal? Price { get; set; }
     /// <summary>Gets or sets the identifier of the user who submitted the purchase request.</summary>
     public string BuyerId { get; set; } = "";

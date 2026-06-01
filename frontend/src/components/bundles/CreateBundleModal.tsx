@@ -97,14 +97,17 @@ export default function CreateBundleModal({ isOpen, onClose, myItems, onCreated 
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             {t('bundle.price_label')}
           </label>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            min="0.01"
-            step="0.01"
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e1c2e] text-sm focus:outline-none focus:ring-2 focus:ring-mauve/30"
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm select-none">€</span>
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0.01"
+              step="0.01"
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e1c2e] text-sm focus:outline-none focus:ring-2 focus:ring-mauve/30"
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

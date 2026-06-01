@@ -203,6 +203,7 @@ export default function EditItemPage() {
             type="number"
             min="0.01"
             step="0.01"
+            prefix="€"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
             required

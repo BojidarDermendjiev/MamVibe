@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.DTOs.PurchaseRequests;
@@ -109,7 +110,7 @@ public class PurchaseRequestServiceSqliteTests : IAsyncLifetime
                 .Returns(Task.CompletedTask);
         var nekorekten = new Mock<INekorektenService>();
 
-        return new PurchaseRequestService(_db, mapper, notifier.Object, nekorekten.Object);
+        return new PurchaseRequestService(_db, mapper, notifier.Object, nekorekten.Object, NullLogger<PurchaseRequestService>.Instance);
     }
 
     private async Task<Item> SeedActiveItemAsync(string? sellerId = null)

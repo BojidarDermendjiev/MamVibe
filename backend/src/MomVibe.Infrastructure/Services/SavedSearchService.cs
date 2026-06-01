@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Domain.Entities;
 using Application.Interfaces;
@@ -13,11 +14,13 @@ public class SavedSearchService : ISavedSearchService
 
     private readonly IApplicationDbContext _context;
     private readonly ISavedSearchNotifier _notifier;
+    private readonly ILogger<SavedSearchService> _logger;
 
-    public SavedSearchService(IApplicationDbContext context, ISavedSearchNotifier notifier)
+    public SavedSearchService(IApplicationDbContext context, ISavedSearchNotifier notifier, ILogger<SavedSearchService> logger)
     {
         this._context = context;
         this._notifier = notifier;
+        this._logger = logger;
     }
 
     public async Task<SavedSearchDto> CreateAsync(string userId, CreateSavedSearchDto dto)
@@ -128,7 +131,10 @@ public class SavedSearchService : ISavedSearchService
                     }
                 });
             }
-            catch { /* notification failure must never throw */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "Saved-search match SignalR notification failed for item {ItemId}", item.Id);
+            }
         }
     }
 

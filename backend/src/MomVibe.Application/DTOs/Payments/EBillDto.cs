@@ -26,10 +26,10 @@ public class EBillDto
     /// <summary>Gets or sets the display name of the seller, for rendering on the e-bill.</summary>
     public string? SellerDisplayName { get; set; }
 
-    /// <summary>Gets or sets the total amount charged for this transaction in BGN.</summary>
+    /// <summary>Gets or sets the total amount charged for this transaction in EUR.</summary>
     public decimal Amount { get; set; }
-    /// <summary>Gets or sets the ISO 4217 currency code for the transaction (default: "BGN").</summary>
-    public string Currency { get; set; } = "BGN";
+    /// <summary>Gets or sets the ISO 4217 currency code for the transaction (default: "EUR").</summary>
+    public string Currency { get; set; } = "EUR";
 
     /// <summary>Gets or sets the payment method used for this purchase.</summary>
     public PaymentMethod PaymentMethod { get; set; }

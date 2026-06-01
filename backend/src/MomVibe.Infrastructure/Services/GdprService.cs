@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Application.Interfaces;
 using Infrastructure.Persistence;
@@ -14,11 +15,13 @@ public class GdprService : IGdprService
 {
     private readonly ApplicationDbContext _db;
     private readonly IPhotoService _photoService;
+    private readonly ILogger<GdprService> _logger;
 
-    public GdprService(ApplicationDbContext db, IPhotoService photoService)
+    public GdprService(ApplicationDbContext db, IPhotoService photoService, ILogger<GdprService> logger)
     {
         _db = db;
         _photoService = photoService;
+        _logger = logger;
     }
 
     public async Task<object> ExportDataAsync(string userId)
@@ -159,7 +162,10 @@ public class GdprService : IGdprService
             foreach (var photo in item.Photos)
             {
                 try { await _photoService.DeletePhotoAsync(photo.Url); }
-                catch { /* orphaned photo — continue */ }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "GDPR erasure: failed to delete photo {PhotoUrl} (orphaned, continuing)", photo.Url);
+                }
             }
         }
 

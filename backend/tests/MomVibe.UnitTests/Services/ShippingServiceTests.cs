@@ -188,7 +188,7 @@ public class ShippingServiceTests
         });
 
         result.Price.Should().Be(7.50m);
-        result.Currency.Should().Be("BGN");
+        result.Currency.Should().Be("EUR");
     }
 
     [Fact]
@@ -271,7 +271,7 @@ public class ShippingServiceTests
         });
 
         result.Price.Should().Be(6.20m);
-        result.Currency.Should().Be("BGN");
+        result.Currency.Should().Be("EUR");
     }
 
     [Fact]
@@ -348,7 +348,7 @@ public class ShippingServiceTests
         });
 
         result.Price.Should().Be(4.99m);
-        result.Currency.Should().Be("BGN");
+        result.Currency.Should().Be("EUR");
     }
 
     [Fact]
@@ -420,7 +420,7 @@ public class ShippingServiceTests
         });
 
         result.Price.Should().Be(5.50m);
-        result.Currency.Should().Be("BGN");
+        result.Currency.Should().Be("EUR");
     }
 
     [Fact]
@@ -496,7 +496,7 @@ public class ShippingServiceTests
         });
 
         result.Price.Should().Be(4.99m);
-        result.Currency.Should().Be("BGN");
+        result.Currency.Should().Be("EUR");
     }
 
     [Fact]

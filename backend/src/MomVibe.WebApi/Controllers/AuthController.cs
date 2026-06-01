@@ -69,6 +69,21 @@ public class AuthController : ControllerBase
         });
 
     /// <summary>
+    /// Shapes the JSON response body for auth flows. Mobile clients (signalled by the
+    /// <c>X-Client: mobile</c> header) receive the refresh token in the body because they
+    /// cannot rely on httpOnly cookies; web clients receive only the access token in the
+    /// body, with the refresh token delivered via the httpOnly cookie set by
+    /// <see cref="SetRefreshTokenCookie"/>.
+    /// </summary>
+    private object BuildAuthResponseBody(Application.DTOs.Auth.AuthResponseDto result)
+    {
+        var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
+        return isMobile
+            ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
+            : (object)new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
+    }
+
+    /// <summary>
     /// Registers a new user account.
     /// </summary>
     /// <param name="request">Registration details including email, password, and profile type.</param>
@@ -83,11 +98,7 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RegisterAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
-            object body = isMobile
-                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
-                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
-            return Ok(body);
+            return Ok(this.BuildAuthResponseBody(result));
         }
         catch (InvalidOperationException ex)
         {
@@ -110,11 +121,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.LoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
-            object body = isMobile
-                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
-                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
-            return Ok(body);
+            return Ok(this.BuildAuthResponseBody(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -143,11 +154,12 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.RefreshTokenAsync(refreshToken);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
-            object responseBody = isMobile
-                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
-                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
-            return Ok(responseBody);
+            return Ok(this.BuildAuthResponseBody(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            this.ClearRefreshTokenCookie();
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -171,11 +183,11 @@ public class AuthController : ControllerBase
         {
             var result = await this._authService.GoogleLoginAsync(request);
             this.SetRefreshTokenCookie(result.RefreshToken);
-            var isMobile = this.Request.Headers["X-Client"].FirstOrDefault()?.Equals("mobile", StringComparison.OrdinalIgnoreCase) == true;
-            object body = isMobile
-                ? new { accessToken = result.AccessToken, refreshToken = result.RefreshToken, user = result.User, expiresAt = result.ExpiresAt }
-                : new { accessToken = result.AccessToken, user = result.User, expiresAt = result.ExpiresAt };
-            return Ok(body);
+            return Ok(this.BuildAuthResponseBody(result));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -220,6 +232,10 @@ public class AuthController : ControllerBase
         {
             await this._authService.ChangePasswordAsync(userId, dto);
             return Ok(new { message = "Password changed successfully." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {

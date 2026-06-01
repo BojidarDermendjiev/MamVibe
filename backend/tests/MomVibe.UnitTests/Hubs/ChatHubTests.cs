@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.DTOs.Messages;
@@ -51,7 +52,7 @@ public class ChatHubTests
         _groupClient.Setup(c => c.UserOnline(It.IsAny<string>())).Returns(Task.CompletedTask);
         _groupClient.Setup(c => c.UserOffline(It.IsAny<string>())).Returns(Task.CompletedTask);
 
-        return new ChatHub(_messageService.Object, _presenceTracker)
+        return new ChatHub(_messageService.Object, _presenceTracker, NullLogger<ChatHub>.Instance)
         {
             Context = _context.Object,
             Clients = _clients.Object,

@@ -21,6 +21,7 @@ using Constants;
 [Index(nameof(SellerId))]
 [Index(nameof(Status))]
 [Index(nameof(CreatedAt))]
+[Index(nameof(IdempotencyKey), IsUnique = true)]
 public class Payment : BaseEntity
 {
     /// <summary>
@@ -89,6 +90,16 @@ public class Payment : BaseEntity
     [MaxLength(PaymentConstants.Lengths.EBillNumberMax)]
     [Comment(PaymentConstants.Comments.EBillNumber)]
     public string? EBillNumber { get; set; }
+
+    /// <summary>
+    /// Client-supplied idempotency key (from the <c>Idempotency-Key</c> request header).
+    /// Used to dedupe duplicate payment-creation requests caused by double-taps or retries.
+    /// A unique index on this column lets a concurrent second request fail at the DB level
+    /// rather than create a duplicate Payment row.
+    /// </summary>
+    [MaxLength(PaymentConstants.Lengths.IdempotencyKeyMax)]
+    [Comment(PaymentConstants.Comments.IdempotencyKey)]
+    public string? IdempotencyKey { get; set; }
 
     /// <summary>
     /// Navigation to the purchased item. Null for bundle payments.

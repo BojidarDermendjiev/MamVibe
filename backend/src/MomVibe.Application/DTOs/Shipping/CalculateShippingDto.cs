@@ -27,10 +27,10 @@ public class CalculateShippingDto
     public decimal Weight { get; set; }
     /// <summary>Gets or sets a value indicating whether cash-on-delivery is requested.</summary>
     public bool IsCod { get; set; }
-    /// <summary>Gets or sets the cash-on-delivery amount in BGN; used to calculate the COD surcharge.</summary>
+    /// <summary>Gets or sets the cash-on-delivery amount in EUR; used to calculate the COD surcharge.</summary>
     public decimal CodAmount { get; set; }
     /// <summary>Gets or sets a value indicating whether shipment insurance is requested.</summary>
     public bool IsInsured { get; set; }
-    /// <summary>Gets or sets the declared value in BGN for insurance premium calculation.</summary>
+    /// <summary>Gets or sets the declared value in EUR for insurance premium calculation.</summary>
     public decimal InsuredAmount { get; set; }
 }

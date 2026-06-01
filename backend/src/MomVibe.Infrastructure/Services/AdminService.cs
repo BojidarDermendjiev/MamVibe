@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ public class AdminService : IAdminService
     private readonly IMemoryCache _cache;
     private readonly IDistributedCache _distributedCache;
     private readonly IAuditLogService _audit;
+    private readonly ILogger<AdminService> _logger;
 
     public AdminService(
         UserManager<ApplicationUser> userManager,
@@ -41,7 +43,8 @@ public class AdminService : IAdminService
         IOptions<N8nSettings> n8nSettings,
         IMemoryCache cache,
         IDistributedCache distributedCache,
-        IAuditLogService audit)
+        IAuditLogService audit,
+        ILogger<AdminService> logger)
     {
         this._userManager = userManager;
         this._context = context;
@@ -52,6 +55,7 @@ public class AdminService : IAdminService
         this._cache = cache;
         this._distributedCache = distributedCache;
         this._audit = audit;
+        this._logger = logger;
     }
 
     public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(int page = 1, int pageSize = 20, string? search = null)
@@ -120,7 +124,10 @@ public class AdminService : IAdminService
                 user.DisplayName
             });
         }
-        catch { /* Webhook failure must not break admin flow */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "n8n user.blocked webhook failed for user {UserId}", user.Id);
+        }
     }
 
     public async Task UnblockUserAsync(string userId)

@@ -6,7 +6,7 @@ import { Heart } from 'lucide-react';
 import toast from '@/utils/toast';
 import { paymentsApi } from '../api/paymentsApi';
 import PaymentCardForm from '../components/payment/PaymentCardForm';
-import { bgnToEur } from '@/utils/currency';
+import { formatEur } from '@/utils/currency';
 
 export default function DonationCardPage() {
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ export default function DonationCardPage() {
     }
   };
 
-  const payLabel = t('donate.card_pay').replace('{amount}', `€${bgnToEur(amount).toFixed(2)}`);
+  const payLabel = t('donate.card_pay').replace('{amount}', formatEur(amount));
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
@@ -55,7 +55,7 @@ export default function DonationCardPage() {
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
             {t('donate.card_amount')}
           </p>
-          <p className="text-2xl font-bold text-primary">€{bgnToEur(amount).toFixed(2)}</p>
+          <p className="text-2xl font-bold text-primary">{formatEur(amount)}</p>
         </div>
       </div>
 

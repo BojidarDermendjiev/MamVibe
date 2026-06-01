@@ -25,17 +25,17 @@ beforeEach(() => {
 describe('paymentsApi', () => {
   it('createCheckout posts to /payments/checkout/:itemId', () => {
     paymentsApi.createCheckout('item-1', delivery)
-    expect(client.post).toHaveBeenCalledWith('/payments/checkout/item-1', delivery)
+    expect(client.post).toHaveBeenCalledWith('/payments/checkout/item-1', delivery, undefined)
   })
 
   it('createOnSpot posts to /payments/onspot/:itemId', () => {
     paymentsApi.createOnSpot('item-1', delivery)
-    expect(client.post).toHaveBeenCalledWith('/payments/onspot/item-1', delivery)
+    expect(client.post).toHaveBeenCalledWith('/payments/onspot/item-1', delivery, undefined)
   })
 
   it('createBooking posts to /payments/booking/:itemId', () => {
     paymentsApi.createBooking('item-1', delivery)
-    expect(client.post).toHaveBeenCalledWith('/payments/booking/item-1', delivery)
+    expect(client.post).toHaveBeenCalledWith('/payments/booking/item-1', delivery, undefined)
   })
 
   it('getMyPayments gets /payments/my-payments', () => {
@@ -45,11 +45,32 @@ describe('paymentsApi', () => {
 
   it('createPaymentIntent posts to /payments/create-intent/:itemId', () => {
     paymentsApi.createPaymentIntent('item-1')
-    expect(client.post).toHaveBeenCalledWith('/payments/create-intent/item-1')
+    expect(client.post).toHaveBeenCalledWith('/payments/create-intent/item-1', null, undefined)
   })
 
   it('createDonationCheckout posts to /payments/donation/checkout', () => {
     paymentsApi.createDonationCheckout(10)
-    expect(client.post).toHaveBeenCalledWith('/payments/donation/checkout', { amount: 10 })
+    expect(client.post).toHaveBeenCalledWith('/payments/donation/checkout', { amount: 10 }, undefined)
+  })
+
+  it('createCheckout forwards Idempotency-Key header when provided', () => {
+    paymentsApi.createCheckout('item-1', delivery, 'key-abc')
+    expect(client.post).toHaveBeenCalledWith('/payments/checkout/item-1', delivery, {
+      headers: { 'Idempotency-Key': 'key-abc' },
+    })
+  })
+
+  it('createCod forwards Idempotency-Key header when provided', () => {
+    paymentsApi.createCod('item-1', delivery, 'key-xyz')
+    expect(client.post).toHaveBeenCalledWith('/payments/cod/item-1', delivery, {
+      headers: { 'Idempotency-Key': 'key-xyz' },
+    })
+  })
+
+  it('createDonationCheckout forwards Idempotency-Key header when provided', () => {
+    paymentsApi.createDonationCheckout(25, 'don-key-1')
+    expect(client.post).toHaveBeenCalledWith('/payments/donation/checkout', { amount: 25 }, {
+      headers: { 'Idempotency-Key': 'don-key-1' },
+    })
   })
 })

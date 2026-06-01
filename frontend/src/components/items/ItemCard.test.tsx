@@ -19,7 +19,7 @@ const baseItem: Item = {
   ageGroup: null,
   shoeSize: null,
   clothingSize: null,
-  price: 19.56,
+  price: 10.00,
   userId: 'u-1',
   userDisplayName: 'Seller',
   userAvatarUrl: null,

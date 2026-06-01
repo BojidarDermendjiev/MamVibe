@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 using MomVibe.Application.Mapping;
@@ -48,7 +49,7 @@ public class PurchaseRequestServiceTests
     {
         notifierMock ??= new Mock<IPurchaseRequestNotifier>();
         nekorektenMock ??= new Mock<INekorektenService>();
-        return new PurchaseRequestService(db, CreateMapper(), notifierMock.Object, nekorektenMock.Object);
+        return new PurchaseRequestService(db, CreateMapper(), notifierMock.Object, nekorektenMock.Object, NullLogger<PurchaseRequestService>.Instance);
     }
 
     /// <summary>

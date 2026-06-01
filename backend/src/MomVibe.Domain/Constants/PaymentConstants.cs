@@ -19,6 +19,9 @@ public static class PaymentConstants
 
         /// <summary>Maximum length for <c>EBillNumber</c> (e.g. "MV-2026-A1B2C3D4").</summary>
         public const int EBillNumberMax = 32;
+
+        /// <summary>Maximum length for <c>IdempotencyKey</c>. Matches Stripe's own 255-char limit.</summary>
+        public const int IdempotencyKeyMax = 255;
     }
 
     /// <summary>
@@ -94,5 +97,11 @@ public static class PaymentConstants
         /// Column comment: human-readable e-bill number assigned when a purchase is completed (e.g. MV-2026-A1B2C3D4).
         /// </summary>
         public const string EBillNumber = "Human-readable e-bill number assigned when a purchase is completed (e.g. MV-2026-A1B2C3D4).";
+
+        /// <summary>
+        /// Column comment: client-supplied idempotency key (Idempotency-Key header) used to dedupe
+        /// duplicate payment-creation requests within a 24-hour window.
+        /// </summary>
+        public const string IdempotencyKey = "Client-supplied idempotency key used to dedupe duplicate payment-creation requests.";
     }
 }

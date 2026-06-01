@@ -5,6 +5,7 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
@@ -31,7 +32,9 @@ public class AuthService : IAuthService
     private readonly IEmailService _emailService;
     private readonly IN8nWebhookService _webhook;
     private readonly N8nSettings _n8nSettings;
+    private readonly JwtSettings _jwt;
     private readonly IAuditLogService _audit;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -42,7 +45,9 @@ public class AuthService : IAuthService
         IEmailService emailService,
         IN8nWebhookService webhook,
         IOptions<N8nSettings> n8nSettings,
-        IAuditLogService audit)
+        IOptions<JwtSettings> jwt,
+        IAuditLogService audit,
+        ILogger<AuthService> logger)
     {
         this._userManager = userManager;
         this._tokenService = tokenService;
@@ -52,7 +57,9 @@ public class AuthService : IAuthService
         this._emailService = emailService;
         this._webhook = webhook;
         this._n8nSettings = n8nSettings.Value;
+        this._jwt = jwt.Value;
         this._audit = audit;
+        this._logger = logger;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
@@ -89,7 +96,10 @@ public class AuthService : IAuthService
                 user.LanguagePreference
             });
         }
-        catch { /* Webhook failure must not break registration flow */ }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "n8n user.registered webhook failed for user {UserId}", user.Id);
+        }
 
         return await GenerateAuthResponseAsync(user);
     }
@@ -149,8 +159,7 @@ public class AuthService : IAuthService
         {
             Token = newTokenHash,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(
-                int.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7"))
+            ExpiresAt = DateTime.UtcNow.AddDays(this._jwt.RefreshTokenExpirationDays)
         };
 
         this._context.RefreshTokens.Add(newRefreshTokenEntity);
@@ -163,8 +172,7 @@ public class AuthService : IAuthService
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "15")),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(this._jwt.AccessTokenExpirationMinutes),
             User = userDto
         };
     }
@@ -322,8 +330,7 @@ public class AuthService : IAuthService
         {
             Token = HashToken(refreshToken),   // Store SHA-256 hash; plaintext goes to httpOnly cookie only
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(
-                int.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7"))
+            ExpiresAt = DateTime.UtcNow.AddDays(this._jwt.RefreshTokenExpirationDays)
         };
 
         this._context.RefreshTokens.Add(refreshTokenEntity);
@@ -336,8 +343,7 @@ public class AuthService : IAuthService
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"] ?? "15")),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(this._jwt.AccessTokenExpirationMinutes),
             User = userDto
         };
     }

@@ -71,7 +71,7 @@ public class EcontCourierProvider : ICourierProvider
         return new ShippingPriceResultDto
         {
             Price = price,
-            Currency = "BGN",
+            Currency = "EUR",
             EstimatedDelivery = "1-3 business days"
         };
     }

@@ -6,13 +6,13 @@ namespace MomVibe.Application.DTOs.Items;
 /// </summary>
 public class PriceSuggestionResultDto
 {
-    /// <summary>Gets or sets the single recommended listing price in BGN, or <c>null</c> if no suggestion could be produced.</summary>
+    /// <summary>Gets or sets the single recommended listing price in EUR, or <c>null</c> if no suggestion could be produced.</summary>
     public decimal? SuggestedPrice { get; set; }
 
-    /// <summary>Gets or sets the lower bound of the suggested price range in BGN.</summary>
+    /// <summary>Gets or sets the lower bound of the suggested price range in EUR.</summary>
     public decimal? Low { get; set; }
 
-    /// <summary>Gets or sets the upper bound of the suggested price range in BGN.</summary>
+    /// <summary>Gets or sets the upper bound of the suggested price range in EUR.</summary>
     public decimal? High { get; set; }
 
     /// <summary>Gets or sets a value between 0 and 1 indicating the model's confidence in the suggestion.</summary>

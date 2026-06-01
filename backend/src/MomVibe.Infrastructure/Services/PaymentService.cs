@@ -56,7 +56,6 @@ public class PaymentService : IPaymentService
         this._shippingService = shippingService;
         this._eBillService = eBillService;
         this._logger = logger;
-        StripeConfiguration.ApiKey = this._configuration["Stripe:SecretKey"];
     }
 
     private static string MaskEmail(string? email)
@@ -75,7 +74,57 @@ public class PaymentService : IPaymentService
         return !string.IsNullOrWhiteSpace(stripeKey) && !stripeKey.Contains("YOUR_STRIPE");
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl, PaymentDeliveryRequest? delivery = null)
+    /// <summary>
+    /// Looks up a recent Payment row created with the same client-supplied idempotency key.
+    /// Returns null when the key is empty, no match exists, or the match is older than 24 hours.
+    /// The DB has a partial unique index on IdempotencyKey so concurrent races are also caught
+    /// at SaveChangesAsync time (DbUpdateException → callers can retry the read).
+    /// </summary>
+    private async Task<PaymentEntity?> FindRecentByIdempotencyKeyAsync(string? idempotencyKey)
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey)) return null;
+        var cutoff = DateTime.UtcNow.AddHours(-24);
+        return await this._context.Payments
+            .AsNoTracking()
+            .Include(p => p.Item)
+            .Where(p => p.IdempotencyKey == idempotencyKey && p.CreatedAt > cutoff)
+            .FirstOrDefaultAsync();
+    }
+
+    /// <summary>
+    /// Convenience wrapper: passes the idempotency key to Stripe's <see cref="Stripe.RequestOptions"/>
+    /// so that a retried Stripe API call returns the original session/intent instead of creating
+    /// a duplicate. Returns null (Stripe's "no options" sentinel) when the key is empty.
+    /// </summary>
+    private static Stripe.RequestOptions? StripeOptionsForKey(string? idempotencyKey) =>
+        string.IsNullOrWhiteSpace(idempotencyKey)
+            ? null
+            : new Stripe.RequestOptions { IdempotencyKey = idempotencyKey };
+
+    /// <summary>
+    /// Bulk-payment idempotency: looks up every Payment whose key starts with
+    /// <c>{key}#</c>. Individual Payments in a bulk request get the per-item key
+    /// <c>{key}#{itemId}</c> so the unique index still applies while the batch as
+    /// a whole can be matched by prefix.
+    /// </summary>
+    private async Task<List<PaymentEntity>> FindBulkByIdempotencyKeyAsync(string? idempotencyKey)
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey)) return new();
+        var prefix = idempotencyKey + "#";
+        var cutoff = DateTime.UtcNow.AddHours(-24);
+        return await this._context.Payments
+            .AsNoTracking()
+            .Include(p => p.Item)
+            .Where(p => p.IdempotencyKey != null
+                     && p.IdempotencyKey.StartsWith(prefix)
+                     && p.CreatedAt > cutoff)
+            .ToListAsync();
+    }
+
+    private static string? BulkKeyFor(string? idempotencyKey, Guid itemId) =>
+        string.IsNullOrWhiteSpace(idempotencyKey) ? null : $"{idempotencyKey}#{itemId}";
+
+    public async Task<string> CreateCheckoutSessionAsync(Guid itemId, string buyerId, string successUrl, string cancelUrl, PaymentDeliveryRequest? delivery = null, string? idempotencyKey = null)
     {
         var item = await this._context.Items.Include(i => i.Photos).FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
@@ -85,6 +134,12 @@ public class PaymentService : IPaymentService
         // Test mode: simulate payment when Stripe is not configured
         if (!IsStripeConfigured())
         {
+            // Idempotency short-circuit: a recent duplicate request returns the same simulated URL
+            // without creating a second Payment row.
+            var existing = await FindRecentByIdempotencyKeyAsync(idempotencyKey);
+            if (existing != null)
+                return successUrl + "?session_id=test_simulated";
+
             var payment = new PaymentEntity
             {
                 ItemId = itemId,
@@ -93,7 +148,8 @@ public class PaymentService : IPaymentService
                 Amount = item.Price ?? 0,
                 PaymentMethod = Domain.Enums.PaymentMethod.Card,
                 StripeSessionId = $"test_{Guid.NewGuid()}",
-                Status = PaymentStatus.Completed
+                Status = PaymentStatus.Completed,
+                IdempotencyKey = idempotencyKey
             };
             this._context.Payments.Add(payment);
             await this._context.SaveChangesAsync();
@@ -111,7 +167,10 @@ public class PaymentService : IPaymentService
                     TestMode = true
                 });
             }
-            catch { /* Webhook failure must not break payment flow */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "n8n payment.completed webhook (test mode) failed for payment {PaymentId}", payment.Id);
+            }
 
             // Auto-create shipment in test mode if delivery info provided
             if (delivery != null)
@@ -196,7 +255,7 @@ public class PaymentService : IPaymentService
                 PriceData = new SessionLineItemPriceDataOptions
                 {
                     UnitAmount = (long)(item.Price!.Value * 100),
-                    Currency = "bgn",
+                    Currency = "eur",
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
                         Name = item.Title,
@@ -214,7 +273,7 @@ public class PaymentService : IPaymentService
                 PriceData = new SessionLineItemPriceDataOptions
                 {
                     UnitAmount = (long)(shippingFee * 100),
-                    Currency = "bgn",
+                    Currency = "eur",
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
                         Name = "Доставка / Shipping"
@@ -236,7 +295,9 @@ public class PaymentService : IPaymentService
         };
 
         var service = new SessionService();
-        var session = await service.CreateAsync(options);
+        // Forward the client's Idempotency-Key to Stripe: a retried call within 24h returns
+        // the same session URL instead of creating a duplicate checkout.
+        var session = await service.CreateAsync(options, StripeOptionsForKey(idempotencyKey));
         return session.Url!;
     }
 
@@ -388,7 +449,10 @@ public class PaymentService : IPaymentService
                         });
                     }
                 }
-                catch { /* Webhook failure must not break payment flow */ }
+                catch (Exception ex)
+                {
+                    this._logger.LogWarning(ex, "n8n payment.completed webhook fan-out failed for bulk Stripe session {SessionId}", session.Id);
+                }
             }
             else
             {
@@ -456,7 +520,10 @@ public class PaymentService : IPaymentService
                         payment.Amount
                     });
                 }
-                catch { /* Webhook failure must not break payment flow */ }
+                catch (Exception ex)
+                {
+                    this._logger.LogWarning(ex, "n8n payment.completed webhook failed for payment {PaymentId}", payment.Id);
+                }
 
                 // Create digital receipt via Take a NAP (non-blocking on failure)
                 try
@@ -501,8 +568,11 @@ public class PaymentService : IPaymentService
         }
     }
 
-    public async Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null)
+    public async Task<PaymentDto> CreateOnSpotPaymentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null, string? idempotencyKey = null)
     {
+        var existing = await FindRecentByIdempotencyKeyAsync(idempotencyKey);
+        if (existing != null) return this._mapper.Map<PaymentDto>(existing);
+
         var item = await this._context.Items.FindAsync(itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
 
@@ -513,7 +583,8 @@ public class PaymentService : IPaymentService
             SellerId = item.UserId,
             Amount = item.Price ?? 0,
             PaymentMethod = Domain.Enums.PaymentMethod.OnSpot,
-            Status = PaymentStatus.Pending
+            Status = PaymentStatus.Pending,
+            IdempotencyKey = idempotencyKey
         };
 
         this._context.Payments.Add(payment);
@@ -550,8 +621,11 @@ public class PaymentService : IPaymentService
         return this._mapper.Map<PaymentDto>(payment);
     }
 
-    public async Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null)
+    public async Task<PaymentDto> CreateBookingAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null, string? idempotencyKey = null)
     {
+        var existing = await FindRecentByIdempotencyKeyAsync(idempotencyKey);
+        if (existing != null) return this._mapper.Map<PaymentDto>(existing);
+
         var item = await this._context.Items.FindAsync(itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
         if (item.ListingType != ListingType.Donate)
@@ -564,7 +638,8 @@ public class PaymentService : IPaymentService
             SellerId = item.UserId,
             Amount = 0,
             PaymentMethod = Domain.Enums.PaymentMethod.Booking,
-            Status = PaymentStatus.Completed
+            Status = PaymentStatus.Completed,
+            IdempotencyKey = idempotencyKey
         };
 
         this._context.Payments.Add(payment);
@@ -601,8 +676,11 @@ public class PaymentService : IPaymentService
         return this._mapper.Map<PaymentDto>(payment);
     }
 
-    public async Task<PaymentDto> CreateCashOnDeliveryAsync(Guid itemId, string buyerId, PaymentDeliveryRequest delivery)
+    public async Task<PaymentDto> CreateCashOnDeliveryAsync(Guid itemId, string buyerId, PaymentDeliveryRequest delivery, string? idempotencyKey = null)
     {
+        var existing = await FindRecentByIdempotencyKeyAsync(idempotencyKey);
+        if (existing != null) return this._mapper.Map<PaymentDto>(existing);
+
         var item = await this._context.Items.FindAsync(itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
         if (item.ListingType != ListingType.Sell)
@@ -637,7 +715,8 @@ public class PaymentService : IPaymentService
             SellerId = item.UserId,
             Amount = totalAmount,
             PaymentMethod = Domain.Enums.PaymentMethod.CashOnDelivery,
-            Status = PaymentStatus.Pending
+            Status = PaymentStatus.Pending,
+            IdempotencyKey = idempotencyKey
         };
 
         this._context.Payments.Add(payment);
@@ -743,7 +822,7 @@ public class PaymentService : IPaymentService
         };
     }
 
-    public async Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl)
+    public async Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl, string? idempotencyKey = null)
     {
         var items = await this._context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
         if (items.Count != itemIds.Count)
@@ -756,6 +835,11 @@ public class PaymentService : IPaymentService
         // Test mode: simulate bulk payment when Stripe is not configured
         if (!IsStripeConfigured())
         {
+            // Idempotency short-circuit: a recent duplicate batch returns the same simulated URL.
+            var existingBatch = await FindBulkByIdempotencyKeyAsync(idempotencyKey);
+            if (existingBatch.Count > 0)
+                return successUrl + "?session_id=test_simulated";
+
             var testSessionId = $"test_{Guid.NewGuid()}";
             foreach (var item in saleItems)
             {
@@ -767,7 +851,8 @@ public class PaymentService : IPaymentService
                     Amount = item.Price ?? 0,
                     PaymentMethod = Domain.Enums.PaymentMethod.Card,
                     StripeSessionId = testSessionId,
-                    Status = PaymentStatus.Completed
+                    Status = PaymentStatus.Completed,
+                    IdempotencyKey = BulkKeyFor(idempotencyKey, item.Id)
                 };
                 this._context.Payments.Add(payment);
             }
@@ -788,7 +873,10 @@ public class PaymentService : IPaymentService
                     });
                 }
             }
-            catch { /* Webhook failure must not break payment flow */ }
+            catch (Exception ex)
+            {
+                this._logger.LogWarning(ex, "n8n payment.completed webhook fan-out failed for bulk test-mode checkout (testSessionId {TestSessionId})", testSessionId);
+            }
 
             return successUrl + "?session_id=test_simulated";
         }
@@ -798,7 +886,7 @@ public class PaymentService : IPaymentService
             PriceData = new SessionLineItemPriceDataOptions
             {
                 UnitAmount = (long)(item.Price!.Value * 100),
-                Currency = "bgn",
+                Currency = "eur",
                 ProductData = new SessionLineItemPriceDataProductDataOptions
                 {
                     Name = item.Title,
@@ -825,12 +913,15 @@ public class PaymentService : IPaymentService
         };
 
         var service = new SessionService();
-        var session = await service.CreateAsync(options);
+        var session = await service.CreateAsync(options, StripeOptionsForKey(idempotencyKey));
         return session.Url!;
     }
 
-    public async Task<List<PaymentDto>> CreateBulkBookingAsync(List<Guid> itemIds, string buyerId)
+    public async Task<List<PaymentDto>> CreateBulkBookingAsync(List<Guid> itemIds, string buyerId, string? idempotencyKey = null)
     {
+        var existingBatch = await FindBulkByIdempotencyKeyAsync(idempotencyKey);
+        if (existingBatch.Count > 0) return this._mapper.Map<List<PaymentDto>>(existingBatch);
+
         var items = await this._context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
         if (items.Count != itemIds.Count)
             throw new KeyNotFoundException("One or more items not found.");
@@ -847,7 +938,8 @@ public class PaymentService : IPaymentService
                 SellerId = item.UserId,
                 Amount = 0,
                 PaymentMethod = Domain.Enums.PaymentMethod.Booking,
-                Status = PaymentStatus.Completed
+                Status = PaymentStatus.Completed,
+                IdempotencyKey = BulkKeyFor(idempotencyKey, item.Id)
             };
             this._context.Payments.Add(payment);
             payments.Add(payment);
@@ -857,8 +949,11 @@ public class PaymentService : IPaymentService
         return this._mapper.Map<List<PaymentDto>>(payments);
     }
 
-    public async Task<List<PaymentDto>> CreateBulkOnSpotPaymentAsync(List<Guid> itemIds, string buyerId)
+    public async Task<List<PaymentDto>> CreateBulkOnSpotPaymentAsync(List<Guid> itemIds, string buyerId, string? idempotencyKey = null)
     {
+        var existingBatch = await FindBulkByIdempotencyKeyAsync(idempotencyKey);
+        if (existingBatch.Count > 0) return this._mapper.Map<List<PaymentDto>>(existingBatch);
+
         var items = await this._context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
         if (items.Count != itemIds.Count)
             throw new KeyNotFoundException("One or more items not found.");
@@ -874,7 +969,8 @@ public class PaymentService : IPaymentService
                 SellerId = item.UserId,
                 Amount = item.Price ?? 0,
                 PaymentMethod = Domain.Enums.PaymentMethod.OnSpot,
-                Status = PaymentStatus.Pending
+                Status = PaymentStatus.Pending,
+                IdempotencyKey = BulkKeyFor(idempotencyKey, item.Id)
             };
             this._context.Payments.Add(payment);
             payments.Add(payment);
@@ -884,7 +980,7 @@ public class PaymentService : IPaymentService
         return this._mapper.Map<List<PaymentDto>>(payments);
     }
 
-    public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId)
+    public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, string? idempotencyKey = null)
     {
         if (!IsStripeConfigured())
             return "test_simulated_client_secret";
@@ -897,7 +993,7 @@ public class PaymentService : IPaymentService
         var options = new PaymentIntentCreateOptions
         {
             Amount = (long)(item.Price!.Value * 100),
-            Currency = "bgn",
+            Currency = "eur",
             Metadata = new Dictionary<string, string>
             {
                 { "itemId", item.Id.ToString() },
@@ -907,14 +1003,14 @@ public class PaymentService : IPaymentService
         };
 
         var service = new PaymentIntentService();
-        var paymentIntent = await service.CreateAsync(options);
+        var paymentIntent = await service.CreateAsync(options, StripeOptionsForKey(idempotencyKey));
         return paymentIntent.ClientSecret;
     }
 
-    public async Task<string> CreateDonationCheckoutAsync(decimal amount, string successUrl, string cancelUrl)
+    public async Task<string> CreateDonationCheckoutAsync(decimal amount, string successUrl, string cancelUrl, string? idempotencyKey = null)
     {
         if (amount < 1.00m || amount > 10000.00m)
-            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 BGN.");
+            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 EUR.");
 
         if (!IsStripeConfigured())
             return successUrl + "?session_id=test_donation_simulated";
@@ -929,7 +1025,7 @@ public class PaymentService : IPaymentService
                     PriceData = new SessionLineItemPriceDataOptions
                     {
                         UnitAmount = (long)(amount * 100),
-                        Currency = "bgn",
+                        Currency = "eur",
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = "MamVibe Donation 💛",
@@ -950,14 +1046,14 @@ public class PaymentService : IPaymentService
         };
 
         var sessionService = new SessionService();
-        var session = await sessionService.CreateAsync(options);
+        var session = await sessionService.CreateAsync(options, StripeOptionsForKey(idempotencyKey));
         return session.Url!;
     }
 
-    public async Task<string> CreateDonationIntentAsync(decimal amount)
+    public async Task<string> CreateDonationIntentAsync(decimal amount, string? idempotencyKey = null)
     {
         if (amount < 1.00m || amount > 10000.00m)
-            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 BGN.");
+            throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 EUR.");
 
         if (!IsStripeConfigured())
             return "test_simulated_donation_client_secret";
@@ -965,7 +1061,7 @@ public class PaymentService : IPaymentService
         var options = new PaymentIntentCreateOptions
         {
             Amount = (long)(amount * 100),
-            Currency = "bgn",
+            Currency = "eur",
             Metadata = new Dictionary<string, string>
             {
                 { "type", "donation" },
@@ -974,7 +1070,7 @@ public class PaymentService : IPaymentService
         };
 
         var service = new PaymentIntentService();
-        var intent = await service.CreateAsync(options);
+        var intent = await service.CreateAsync(options, StripeOptionsForKey(idempotencyKey));
         return intent.ClientSecret;
     }
 }

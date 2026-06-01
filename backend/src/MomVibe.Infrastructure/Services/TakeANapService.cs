@@ -60,7 +60,7 @@ public class TakeANapService : ITakeANapService
         {
             shopId = _settings.ShopId,
             internalId = payment.Id.ToString(),
-            currency = "BGN",
+            currency = "EUR",
             paymentType = "PAYMENT_PROCESSOR",
             customer = new
             {

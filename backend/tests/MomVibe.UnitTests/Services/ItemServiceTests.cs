@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -69,6 +70,7 @@ public class ItemServiceTests
             aiMock.Object,
             nekorektenMock.Object,
             cacheMock.Object,
+            NullLogger<ItemService>.Instance,
             priceDropNotifier: priceDropNotifier);
     }
 

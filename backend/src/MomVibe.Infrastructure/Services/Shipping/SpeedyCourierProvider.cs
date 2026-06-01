@@ -69,7 +69,7 @@ public class SpeedyCourierProvider : ICourierProvider
         return new ShippingPriceResultDto
         {
             Price = price,
-            Currency = "BGN",
+            Currency = "EUR",
             EstimatedDelivery = "1-2 business days"
         };
     }
