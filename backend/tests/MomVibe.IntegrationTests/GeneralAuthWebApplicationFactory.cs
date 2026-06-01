@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 
 using MomVibe.Domain.Entities;
 using MomVibe.Application.Interfaces;
+using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
@@ -27,10 +28,15 @@ public class GeneralAuthWebApplicationFactory : WebApplicationFactory<StartUp>
 {
     public const string TestUserId = AuthenticatedWebApplicationFactory.TestUserId;
 
-    private readonly string _dbName = $"MomVibeGeneralAuthDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"momvibe_generalauth_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var connectionString = PostgresContainerFixture
+            .GetConnectionStringAsync(_dbName)
+            .GetAwaiter()
+            .GetResult();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -39,6 +45,7 @@ public class GeneralAuthWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Issuer"] = "MomVibeTest",
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             });
         });
 
@@ -50,8 +57,7 @@ public class GeneralAuthWebApplicationFactory : WebApplicationFactory<StartUp>
             if (ctxDescriptor != null) services.Remove(ctxDescriptor);
 
             services.AddDbContext<ApplicationDbContext>(o => o
-                .UseInMemoryDatabase(_dbName)
-                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
+                .UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Stub AI service — avoids live Anthropic API calls
             var aiDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAiService));

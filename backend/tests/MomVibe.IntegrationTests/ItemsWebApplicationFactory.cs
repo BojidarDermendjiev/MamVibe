@@ -15,6 +15,7 @@ using MomVibe.Domain.Enums;
 using MomVibe.Domain.Entities;
 using MomVibe.Application.DTOs.Items;
 using MomVibe.Application.Interfaces;
+using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
@@ -27,10 +28,15 @@ public class ItemsWebApplicationFactory : WebApplicationFactory<StartUp>
 {
     public const string TestUserId = AuthenticatedWebApplicationFactory.TestUserId;
 
-    private readonly string _dbName = $"MomVibeItemsTestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"momvibe_items_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var connectionString = PostgresContainerFixture
+            .GetConnectionStringAsync(_dbName)
+            .GetAwaiter()
+            .GetResult();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -39,6 +45,7 @@ public class ItemsWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Issuer"] = "MomVibeTest",
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             });
         });
 
@@ -49,8 +56,7 @@ public class ItemsWebApplicationFactory : WebApplicationFactory<StartUp>
             var ctxDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ApplicationDbContext));
             if (ctxDescriptor != null) services.Remove(ctxDescriptor);
             services.AddDbContext<ApplicationDbContext>(o => o
-                .UseInMemoryDatabase(_dbName)
-                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
+                .UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Swap out the real AI service so CreateAsync doesn't make live Anthropic HTTP calls
             var aiDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAiService));

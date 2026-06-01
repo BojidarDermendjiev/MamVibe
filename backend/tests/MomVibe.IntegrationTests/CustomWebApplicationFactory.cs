@@ -4,16 +4,31 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
 
+/// <summary>
+/// Integration-test factory backed by a real PostgreSQL container (via Testcontainers).
+/// Each factory instance owns its own database within the shared container so test classes
+/// don't see each other's data. Migrations are applied by <c>StartUp.cs</c>'s non-production
+/// auto-migrate path on first request.
+/// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<StartUp>
 {
-    private readonly string _dbName = $"MomVibeTestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"momvibe_test_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Resolve the per-factory connection string before host services are built so the
+        // DbContext registration below can capture it. Sync-over-async is acceptable here —
+        // this runs once per factory at xUnit fixture setup, never on a request hot path.
+        var connectionString = PostgresContainerFixture
+            .GetConnectionStringAsync(_dbName)
+            .GetAwaiter()
+            .GetResult();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -22,29 +37,25 @@ public class CustomWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Issuer"] = "MomVibeTest",
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            // Remove existing DbContext registration
+            // Replace the production DbContext registration so it targets the test database.
             var descriptor = services.SingleOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-            if (descriptor != null)
-                services.Remove(descriptor);
+            if (descriptor != null) services.Remove(descriptor);
 
-            // Also remove the DbContext itself to avoid conflicts
             var dbContextDescriptor = services.SingleOrDefault(
                 d => d.ServiceType == typeof(ApplicationDbContext));
-            if (dbContextDescriptor != null)
-                services.Remove(dbContextDescriptor);
+            if (dbContextDescriptor != null) services.Remove(dbContextDescriptor);
 
-            // Add InMemory database with a fixed name per factory instance
             services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseInMemoryDatabase(_dbName)
-                    .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
-            });
+                options.UseNpgsql(
+                    connectionString,
+                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
         });
 
         builder.UseEnvironment("Development");

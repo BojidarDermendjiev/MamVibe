@@ -2,11 +2,13 @@ using System.Net;
 using FluentAssertions;
 using System.Net.Http.Json;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 using MomVibe.Domain.Enums;
 using MomVibe.Application.DTOs.Items;
-using MomVibe.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
 using MomVibe.Domain.Entities;
+using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
 
@@ -148,10 +150,34 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
 
     // Helpers: seed items directly into DB so tests don't depend on the full CreateAsync AI pipeline
 
+    /// <summary>
+    /// Idempotently seeds the "other-user-001" ApplicationUser. Required because the real
+    /// PostgreSQL backing the integration tests enforces the Items→AspNetUsers foreign key;
+    /// EF Core InMemory used to let this slide.
+    /// </summary>
+    private static async Task EnsureOtherUserSeededAsync(ApplicationDbContext db)
+    {
+        const string otherUserId = "other-user-001";
+        if (await db.Users.AnyAsync(u => u.Id == otherUserId)) return;
+        db.Users.Add(new ApplicationUser
+        {
+            Id = otherUserId,
+            UserName = "other-001@momvibe.test",
+            NormalizedUserName = "OTHER-001@MOMVIBE.TEST",
+            Email = "other-001@momvibe.test",
+            NormalizedEmail = "OTHER-001@MOMVIBE.TEST",
+            DisplayName = "Other Test User",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString(),
+        });
+        await db.SaveChangesAsync();
+    }
+
     private async Task<Guid> SeedDonateItemAsync()
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await EnsureOtherUserSeededAsync(db);
 
         var item = new Item
         {
@@ -173,6 +199,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await EnsureOtherUserSeededAsync(db);
 
         var item = new Item
         {

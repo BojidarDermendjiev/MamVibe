@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
@@ -21,10 +22,15 @@ public class AdminWebApplicationFactory : WebApplicationFactory<StartUp>
 {
     public const string TestAdminId = "test-admin-user-001";
 
-    private readonly string _dbName = $"MomVibeAdminTestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"momvibe_admin_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var connectionString = PostgresContainerFixture
+            .GetConnectionStringAsync(_dbName)
+            .GetAwaiter()
+            .GetResult();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -33,6 +39,7 @@ public class AdminWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Issuer"] = "MomVibeTest",
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             });
         });
 
@@ -45,8 +52,7 @@ public class AdminWebApplicationFactory : WebApplicationFactory<StartUp>
             if (ctxDescriptor != null) services.Remove(ctxDescriptor);
 
             services.AddDbContext<ApplicationDbContext>(o => o
-                .UseInMemoryDatabase(_dbName)
-                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
+                .UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, AdminTestAuthHandler>(AdminTestAuthHandler.SchemeName, _ => { });

@@ -6,9 +6,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using MomVibe.Domain.Entities;
+using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
 namespace MomVibe.IntegrationTests;
@@ -23,10 +26,15 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
 {
     public const string TestUserId = "test-ebill-user-001";
 
-    private readonly string _dbName = $"MomVibeAuthTestDb_{Guid.NewGuid()}";
+    private readonly string _dbName = $"momvibe_auth_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var connectionString = PostgresContainerFixture
+            .GetConnectionStringAsync(_dbName)
+            .GetAwaiter()
+            .GetResult();
+
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -35,12 +43,13 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Issuer"] = "MomVibeTest",
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            // Replace real DB with InMemory
+            // Replace the production DbContext registration to point at the test database.
             var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
             if (dbDescriptor != null) services.Remove(dbDescriptor);
 
@@ -48,8 +57,7 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
             if (ctxDescriptor != null) services.Remove(ctxDescriptor);
 
             services.AddDbContext<ApplicationDbContext>(o => o
-                .UseInMemoryDatabase(_dbName)
-                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
+                .UseNpgsql(connectionString, b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Register our test auth scheme (handler must be registered first).
             services.AddAuthentication()
@@ -64,10 +72,45 @@ public class AuthenticatedWebApplicationFactory : WebApplicationFactory<StartUp>
                 options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
                 options.DefaultForbidScheme = TestAuthHandler.SchemeName;
             });
+
+            // Seed the test user so Payment.BuyerId → AspNetUsers FK resolves in Postgres.
+            services.AddHostedService<AuthenticatedTestDataSeeder>();
         });
 
         builder.UseEnvironment("Development");
     }
+}
+
+/// <summary>
+/// Seeds the <see cref="AuthenticatedWebApplicationFactory.TestUserId"/> ApplicationUser
+/// on host start so endpoints that insert a row referencing the authenticated user
+/// (Payment.BuyerId, Item.UserId, …) don't trip the AspNetUsers FK on real Postgres.
+/// </summary>
+file sealed class AuthenticatedTestDataSeeder(IServiceProvider sp) : IHostedService
+{
+    public async Task StartAsync(CancellationToken ct)
+    {
+        using var scope = sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (!await db.Users.AnyAsync(u => u.Id == AuthenticatedWebApplicationFactory.TestUserId, ct))
+        {
+            db.Users.Add(new ApplicationUser
+            {
+                Id = AuthenticatedWebApplicationFactory.TestUserId,
+                UserName = "testebill@momvibe.test",
+                NormalizedUserName = "TESTEBILL@MOMVIBE.TEST",
+                Email = "testebill@momvibe.test",
+                NormalizedEmail = "TESTEBILL@MOMVIBE.TEST",
+                DisplayName = "Test E-Bill User",
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString(),
+            });
+            await db.SaveChangesAsync(ct);
+        }
+    }
+
+    public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
 }
 
 /// <summary>
