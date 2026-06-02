@@ -1,5 +1,7 @@
 using Serilog;
 using Prometheus;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -31,7 +33,8 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("/app/dataprotection-keys"))
     .SetApplicationName("MomVibe");
 
-// Serilog
+// Serilog — enriched with OpenTelemetry's Activity context so log lines and traces
+// share the same TraceId/SpanId for cross-system correlation.
 builder.Host.UseSerilog((context, config) =>
     config.ReadFrom.Configuration(context.Configuration)
           .MinimumLevel.Information()
@@ -40,7 +43,29 @@ builder.Host.UseSerilog((context, config) =>
           .MinimumLevel.Override("Microsoft.AspNetCore.Routing", Serilog.Events.LogEventLevel.Warning)
           .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", Serilog.Events.LogEventLevel.Warning)
           .Enrich.FromLogContext()
+          .Enrich.WithProperty("Application", "MomVibe")
+          .Enrich.With(new MomVibe.WebApi.Logging.ActivityEnricher())
           .WriteTo.Console());
+
+// OpenTelemetry — traces for ASP.NET Core requests, outbound HttpClient calls, and EF Core
+// commands. Exported via OTLP when OpenTelemetry:Otlp:Endpoint is configured; otherwise the
+// instrumentation runs (so logs/Activity still get TraceId enrichment) but nothing exits.
+var otlpEndpoint = builder.Configuration["OpenTelemetry:Otlp:Endpoint"];
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(serviceName: "momvibe-api"))
+    .WithTracing(t =>
+    {
+        t.AddAspNetCoreInstrumentation(opts =>
+        {
+            // Suppress noisy traces for liveness/readiness probes and Prometheus scrapes.
+            opts.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")
+                              && !ctx.Request.Path.StartsWithSegments("/metrics");
+        });
+        t.AddHttpClientInstrumentation();
+        t.AddEntityFrameworkCoreInstrumentation();
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+            t.AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint));
+    });
 
 // Add layers
 builder.Services.AddApplicationServices();
@@ -344,9 +369,29 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.AddSupportedUICultures(supportedCultures);
 });
 
-// Health checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<ApplicationDbContext>("database");
+// Health checks — tagged so /health/live (process up) and /health/ready (downstream deps)
+// can be probed independently. The "live" tag is the cheap liveness probe; "ready" includes
+// everything a request actually depends on so Kubernetes-style readiness gating works.
+var healthChecks = builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database", tags: ["ready"]);
+
+// Redis: only registered when configured. Tagged "ready" because losing Redis degrades
+// SignalR backplane + distributed cache, both of which the API depends on at request time.
+var healthRedisUrl = builder.Configuration["Redis:Url"];
+if (!string.IsNullOrWhiteSpace(healthRedisUrl))
+    healthChecks.AddRedis(healthRedisUrl, name: "redis", tags: ["ready"]);
+
+// Stripe reachability: a 2-second HEAD against the Stripe API root. Only registered when
+// a real key is present so dev environments without Stripe stay healthy by default.
+var stripeKey = builder.Configuration["Stripe:SecretKey"];
+if (!string.IsNullOrWhiteSpace(stripeKey) && !stripeKey.Contains("YOUR_STRIPE"))
+{
+    healthChecks.AddUrlGroup(
+        new Uri("https://api.stripe.com/healthcheck"),
+        name: "stripe",
+        tags: ["ready"],
+        timeout: TimeSpan.FromSeconds(2));
+}
 
 var app = builder.Build();
 
@@ -381,14 +426,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
-{
-    app.Use(async (context, next) =>
-    {
-        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-        await next();
-    });
-}
+// HSTS is now emitted by SecurityHeadersMiddleware (registered below) in non-development
+// environments — consolidated so all security headers live in one place.
 
 // ForwardedHeaders MUST be first so that RemoteIpAddress is resolved from X-Forwarded-For
 // before rate limiting, authentication, and all other middleware inspect it.
@@ -445,6 +484,18 @@ app.UseMiddleware<BlockedUserMiddleware>();
 
 app.UseAuthorization();
 
+// /health/live — process is up; matches a Kubernetes liveness probe (cheap, no deps touched).
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
+// /health/ready — full readiness; DB + Redis (if configured) + Stripe (if configured).
+// Matches a Kubernetes readiness probe — failing means "don't send me traffic yet."
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
+// Backwards-compat alias for existing monitors that hit /health.
 app.MapHealthChecks("/health");
 app.MapMetrics("/metrics");
 app.MapControllers();
