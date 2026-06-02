@@ -19,7 +19,8 @@ using Application.Interfaces;
 /// </summary>
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [EnableRateLimiting(RateLimitPolicies.Auth)]
 public class AuthController : ControllerBase
 {
@@ -55,7 +56,7 @@ public class AuthController : ControllerBase
             Secure = !this._env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddDays(days),
-            Path = "/api/auth"
+            Path = "/api/v1/auth"
         });
     }
 
@@ -65,7 +66,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure   = !this._env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Path     = "/api/auth"
+            Path     = "/api/v1/auth"
         });
 
     /// <summary>

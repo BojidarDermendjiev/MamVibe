@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Application.Interfaces;
 
 [ApiController]
-[Route("api/follows")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/follows")]
 [EnableRateLimiting(RateLimitPolicies.Global)]
 public class FollowsController : ControllerBase
 {

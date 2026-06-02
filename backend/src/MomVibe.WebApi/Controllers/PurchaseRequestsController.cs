@@ -9,7 +9,8 @@ using Application.Interfaces;
 /// API endpoints for the buyer purchase/reservation request workflow.
 /// </summary>
 [ApiController]
-[Route("api/purchase-requests")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/purchase-requests")]
 [Authorize]
 public class PurchaseRequestsController : ControllerBase
 {

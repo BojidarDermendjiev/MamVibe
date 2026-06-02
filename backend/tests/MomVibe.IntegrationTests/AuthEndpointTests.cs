@@ -32,7 +32,7 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             ProfileType = ProfileType.Female
         };
 
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<WebAuthResponse>();
@@ -55,8 +55,8 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             ProfileType = ProfileType.Male
         };
 
-        await _client.PostAsJsonAsync("/api/auth/register", request);
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        await _client.PostAsJsonAsync("/api/v1/auth/register", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -73,14 +73,14 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             DisplayName = "Login Test",
             ProfileType = ProfileType.Family
         };
-        await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+        await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
 
         var loginRequest = new LoginRequestDto
         {
             Email = email,
             Password = "Password123!"
         };
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", loginRequest);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<WebAuthResponse>();
@@ -96,7 +96,7 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             Password = "WrongPassword123!"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -104,7 +104,7 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task Me_WithoutAuth_ShouldReturnUnauthorized()
     {
-        var response = await _client.GetAsync("/api/auth/me");
+        var response = await _client.GetAsync("/api/v1/auth/me");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -121,13 +121,13 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             DisplayName = "Me Test",
             ProfileType = ProfileType.Female
         };
-        var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+        var registerResponse = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
         var authResult = await registerResponse.Content.ReadFromJsonAsync<WebAuthResponse>();
 
         _client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResult!.AccessToken);
 
-        var response = await _client.GetAsync("/api/auth/me");
+        var response = await _client.GetAsync("/api/v1/auth/me");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }

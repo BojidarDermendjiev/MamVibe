@@ -7,7 +7,8 @@ using Application.Interfaces;
 using Application.DTOs.SavedSearches;
 
 [ApiController]
-[Route("api/saved-searches")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/saved-searches")]
 [Authorize]
 public class SavedSearchesController : ControllerBase
 {

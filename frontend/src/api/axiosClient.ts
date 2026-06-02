@@ -2,7 +2,10 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const axiosClient = axios.create({
-  baseURL: '/api',
+  // Versioned at /api/v1; the Vite proxy still matches the /api prefix so this is purely
+  // a baseURL concern for the SPA. Every relative call (e.g. `client.get('/items')`)
+  // resolves to /api/v1/items.
+  baseURL: '/api/v1',
   withCredentials: true, // Send the httpOnly refresh-token cookie automatically
 });
 
@@ -73,7 +76,7 @@ axiosClient.interceptors.response.use(
 
       try {
         // The httpOnly cookie is sent automatically — no token in the body
-        const { data } = await axios.post('/api/auth/refresh', null, { withCredentials: true });
+        const { data } = await axios.post('/api/v1/auth/refresh', null, { withCredentials: true });
 
         useAuthStore.setState({
           accessToken: data.accessToken,

@@ -77,14 +77,14 @@ public class PhotosPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task Upload_WithoutAuth_Returns401()
     {
         using var content = BuildFileContent("test.jpg");
-        var response = await _client.PostAsync("/api/photos/upload", content);
+        var response = await _client.PostAsync("/api/v1/photos/upload", content);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Delete_WithoutAuth_Returns401()
     {
-        var response = await _client.DeleteAsync("/api/photos?url=/uploads/test.jpg");
+        var response = await _client.DeleteAsync("/api/v1/photos?url=/uploads/test.jpg");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -114,7 +114,7 @@ public class PhotosAuthTests : IClassFixture<PhotosPermittedFactory>
     {
         // Send an empty multipart body — no "file" part
         using var content = new MultipartFormDataContent();
-        var response = await _client.PostAsync("/api/photos/upload", content);
+        var response = await _client.PostAsync("/api/v1/photos/upload", content);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -126,7 +126,7 @@ public class PhotosAuthTests : IClassFixture<PhotosPermittedFactory>
         emptyFile.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
         content.Add(emptyFile, "file", "empty.jpg");
 
-        var response = await _client.PostAsync("/api/photos/upload", content);
+        var response = await _client.PostAsync("/api/v1/photos/upload", content);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -134,7 +134,7 @@ public class PhotosAuthTests : IClassFixture<PhotosPermittedFactory>
     public async Task Upload_ValidFile_Returns200WithUrl()
     {
         using var content = BuildFileContent("baby-jacket.jpg");
-        var response = await _client.PostAsync("/api/photos/upload", content);
+        var response = await _client.PostAsync("/api/v1/photos/upload", content);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<UploadResponse>();
@@ -144,7 +144,7 @@ public class PhotosAuthTests : IClassFixture<PhotosPermittedFactory>
     [Fact]
     public async Task Delete_OwnedPhoto_Returns204()
     {
-        var response = await _client.DeleteAsync("/api/photos?url=/uploads/my-photo.jpg");
+        var response = await _client.DeleteAsync("/api/v1/photos?url=/uploads/my-photo.jpg");
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -174,7 +174,7 @@ public class PhotosForbiddenTests : IClassFixture<PhotosForbiddenFactory>
     [Fact]
     public async Task Delete_NotOwnedPhoto_Returns403()
     {
-        var response = await _client.DeleteAsync("/api/photos?url=/uploads/someone-elses-photo.jpg");
+        var response = await _client.DeleteAsync("/api/v1/photos?url=/uploads/someone-elses-photo.jpg");
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }

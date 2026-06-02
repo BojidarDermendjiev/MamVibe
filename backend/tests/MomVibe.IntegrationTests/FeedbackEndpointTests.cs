@@ -19,14 +19,14 @@ public class FeedbackPublicTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetAll_Returns200WithPagedResult()
     {
-        var response = await _client.GetAsync("/api/feedback");
+        var response = await _client.GetAsync("/api/v1/feedback");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetAll_WithPagination_Returns200()
     {
-        var response = await _client.GetAsync("/api/feedback?page=1&pageSize=5");
+        var response = await _client.GetAsync("/api/v1/feedback?page=1&pageSize=5");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -34,14 +34,14 @@ public class FeedbackPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task Create_WithoutAuth_Returns401()
     {
         var dto = new CreateFeedbackDto { Rating = 5, Category = FeedbackCategory.Praise, Content = "Great platform!" };
-        var response = await _client.PostAsJsonAsync("/api/feedback", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/feedback", dto);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Delete_WithoutAuth_Returns401()
     {
-        var response = await _client.DeleteAsync($"/api/feedback/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/feedback/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -66,7 +66,7 @@ public class FeedbackAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
             IsContactable = false,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/feedback", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/feedback", dto);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
@@ -80,7 +80,7 @@ public class FeedbackAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
             Content = "",  // validator requires NotEmpty
         };
 
-        var response = await _client.PostAsJsonAsync("/api/feedback", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/feedback", dto);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -94,14 +94,14 @@ public class FeedbackAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
             Content = "This content is long enough to pass validation",
         };
 
-        var response = await _client.PostAsJsonAsync("/api/feedback", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/feedback", dto);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Delete_NonExistentFeedback_Returns404()
     {
-        var response = await _client.DeleteAsync($"/api/feedback/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/feedback/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -116,11 +116,11 @@ public class FeedbackAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
             IsContactable = true,
         };
 
-        var createResp = await _client.PostAsJsonAsync("/api/feedback", dto);
+        var createResp = await _client.PostAsJsonAsync("/api/v1/feedback", dto);
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<FeedbackDto>();
 
-        var deleteResp = await _client.DeleteAsync($"/api/feedback/{created!.Id}");
+        var deleteResp = await _client.DeleteAsync($"/api/v1/feedback/{created!.Id}");
         deleteResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

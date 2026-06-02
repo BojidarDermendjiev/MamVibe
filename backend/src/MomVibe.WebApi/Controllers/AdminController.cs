@@ -20,7 +20,8 @@ using Application.DTOs.ChildFriendlyPlaces;
 /// </summary>
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 public class AdminController : ControllerBase
 {

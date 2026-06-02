@@ -1144,7 +1144,7 @@
     "s2_row_samesite": "SameSite",
     "s2_row_samesite_val": "Strict — never sent on cross-site requests, protecting against CSRF",
     "s2_row_path": "Path",
-    "s2_row_path_val": "/api/auth — sent only to authentication endpoints, not to unrelated API calls",
+    "s2_row_path_val": "/api/v1/auth — sent only to authentication endpoints, not to unrelated API calls",
     "s2_row_content": "Content",
     "s2_row_content_val": "An opaque token string (SHA-256 hash). It contains no personal data.",
     "s2_consent_label": "Why is this cookie exempt from consent?",

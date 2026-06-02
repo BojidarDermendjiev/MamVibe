@@ -16,14 +16,14 @@ public class MessagesPublicTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetConversations_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/messages/conversations");
+        var response = await _client.GetAsync("/api/v1/messages/conversations");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task GetMessages_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/messages/some-user-id");
+        var response = await _client.GetAsync("/api/v1/messages/some-user-id");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -31,14 +31,14 @@ public class MessagesPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task SendMessage_WithoutAuth_Returns401()
     {
         var request = new { ReceiverId = "some-id", Content = "Hello" };
-        var response = await _client.PostAsJsonAsync("/api/messages", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/messages", request);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task MarkAsRead_WithoutAuth_Returns401()
     {
-        var response = await _client.PutAsJsonAsync("/api/messages/some-sender/read", new { });
+        var response = await _client.PutAsJsonAsync("/api/v1/messages/some-sender/read", new { });
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -55,14 +55,14 @@ public class MessagesAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
     [Fact]
     public async Task GetConversations_Returns200WithEmptyList()
     {
-        var response = await _client.GetAsync("/api/messages/conversations");
+        var response = await _client.GetAsync("/api/v1/messages/conversations");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetMessages_WithOtherUserId_Returns200()
     {
-        var response = await _client.GetAsync("/api/messages/other-user-123");
+        var response = await _client.GetAsync("/api/v1/messages/other-user-123");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -79,7 +79,7 @@ public class MessagesAuthTests : IClassFixture<GeneralAuthWebApplicationFactory>
             Content = "Hello, testing messages!"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/messages", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/messages", request);
         // Service may allow or reject self-messaging — either is acceptable
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }

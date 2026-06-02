@@ -8,7 +8,8 @@ using Application.DTOs.Payments;
 using Application.Interfaces;
 
 [ApiController]
-[Route("api/bundles")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/bundles")]
 public class BundlesController : ControllerBase
 {
     private readonly IBundleService _bundleService;

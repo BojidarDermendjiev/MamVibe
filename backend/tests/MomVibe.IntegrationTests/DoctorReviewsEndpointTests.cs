@@ -18,28 +18,28 @@ public class DoctorReviewsPublicTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task GetAll_Returns200()
     {
-        var response = await _client.GetAsync("/api/doctor-reviews");
+        var response = await _client.GetAsync("/api/v1/doctor-reviews");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetAll_WithFilters_Returns200()
     {
-        var response = await _client.GetAsync("/api/doctor-reviews?city=Sofia&specialization=Pediatrics&page=1&pageSize=5");
+        var response = await _client.GetAsync("/api/v1/doctor-reviews?city=Sofia&specialization=Pediatrics&page=1&pageSize=5");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetById_NonExistent_Returns404()
     {
-        var response = await _client.GetAsync($"/api/doctor-reviews/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/doctor-reviews/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task GetMine_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/doctor-reviews/mine");
+        var response = await _client.GetAsync("/api/v1/doctor-reviews/mine");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -47,14 +47,14 @@ public class DoctorReviewsPublicTests : IClassFixture<CustomWebApplicationFactor
     public async Task Create_WithoutAuth_Returns401()
     {
         var dto = new CreateDoctorReviewDto { DoctorName = "Dr. Smith", Specialization = "Pediatrics", City = "Sofia", Rating = 5, Content = "Great doctor" };
-        var response = await _client.PostAsJsonAsync("/api/doctor-reviews", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/doctor-reviews", dto);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Delete_WithoutAuth_Returns401()
     {
-        var response = await _client.DeleteAsync($"/api/doctor-reviews/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/doctor-reviews/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -81,14 +81,14 @@ public class DoctorReviewsAuthTests : IClassFixture<GeneralAuthWebApplicationFac
     [Fact]
     public async Task GetMine_Returns200WithEmptyList()
     {
-        var response = await _client.GetAsync("/api/doctor-reviews/mine");
+        var response = await _client.GetAsync("/api/v1/doctor-reviews/mine");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task Create_WithValidData_Returns201()
     {
-        var response = await _client.PostAsJsonAsync("/api/doctor-reviews", ValidDto());
+        var response = await _client.PostAsJsonAsync("/api/v1/doctor-reviews", ValidDto());
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var review = await response.Content.ReadFromJsonAsync<DoctorReviewDto>();
@@ -100,41 +100,41 @@ public class DoctorReviewsAuthTests : IClassFixture<GeneralAuthWebApplicationFac
     [Fact]
     public async Task GetById_AfterCreate_Returns200()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/doctor-reviews", ValidDto($"Dr. {Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/doctor-reviews", ValidDto($"Dr. {Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<DoctorReviewDto>();
 
-        var getResp = await _client.GetAsync($"/api/doctor-reviews/{created!.Id}");
+        var getResp = await _client.GetAsync($"/api/v1/doctor-reviews/{created!.Id}");
         getResp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task Delete_NonExistent_Returns404()
     {
-        var response = await _client.DeleteAsync($"/api/doctor-reviews/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/doctor-reviews/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_OwnReview_Returns204()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/doctor-reviews", ValidDto($"Dr. Del-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/doctor-reviews", ValidDto($"Dr. Del-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<DoctorReviewDto>();
 
-        var deleteResp = await _client.DeleteAsync($"/api/doctor-reviews/{created!.Id}");
+        var deleteResp = await _client.DeleteAsync($"/api/v1/doctor-reviews/{created!.Id}");
         deleteResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task Create_ThenGetById_ReviewIsRetrievable()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/doctor-reviews", ValidDto($"Dr. Lookup-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/doctor-reviews", ValidDto($"Dr. Lookup-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<DoctorReviewDto>();
 
         // Verify the created review is retrievable by its ID
-        var getResp = await _client.GetAsync($"/api/doctor-reviews/{created!.Id}");
+        var getResp = await _client.GetAsync($"/api/v1/doctor-reviews/{created!.Id}");
         getResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var fetched = await getResp.Content.ReadFromJsonAsync<DoctorReviewDto>();
         fetched!.Id.Should().Be(created.Id);

@@ -11,7 +11,8 @@ using Application.DTOs.Assistant;
 /// Uses claude-haiku (cheapest model) with a platform-specific RAG system prompt.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize(Policy = AuthorizationPolicies.ActiveUser)]
 [EnableRateLimiting(RateLimitPolicies.Assistant)]
 public class AssistantController : ControllerBase

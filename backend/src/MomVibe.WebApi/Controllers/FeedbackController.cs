@@ -15,7 +15,8 @@ using Application.DTOs.Feedbacks;
 /// </summary>
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;

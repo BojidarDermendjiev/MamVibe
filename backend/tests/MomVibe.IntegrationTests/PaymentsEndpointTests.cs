@@ -27,35 +27,35 @@ public class PaymentsUnauthTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task MyPayments_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/payments/my-payments");
+        var response = await _client.GetAsync("/api/v1/payments/my-payments");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task CreateCheckout_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsync($"/api/payments/checkout/{Guid.NewGuid()}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/checkout/{Guid.NewGuid()}", null);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task CreateBooking_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsync($"/api/payments/booking/{Guid.NewGuid()}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/booking/{Guid.NewGuid()}", null);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task CreateOnSpot_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsync($"/api/payments/onspot/{Guid.NewGuid()}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/onspot/{Guid.NewGuid()}", null);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task BulkBooking_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsJsonAsync("/api/payments/bulk-booking",
+        var response = await _client.PostAsJsonAsync("/api/v1/payments/bulk-booking",
             new { itemIds = new[] { Guid.NewGuid() } });
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -80,7 +80,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     [Fact]
     public async Task MyPayments_WithAuth_Returns200WithEmptyList()
     {
-        var response = await _client.GetAsync("/api/payments/my-payments");
+        var response = await _client.GetAsync("/api/v1/payments/my-payments");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -88,7 +88,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     [Fact]
     public async Task CreateBooking_NonExistentItem_ReturnsBadRequest()
     {
-        var response = await _client.PostAsync($"/api/payments/booking/{Guid.NewGuid()}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/booking/{Guid.NewGuid()}", null);
 
         // Service throws KeyNotFoundException → controller returns BadRequest
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound);
@@ -100,7 +100,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
         // Seed a donate item directly into the DB for this test
         var itemId = await SeedDonateItemAsync();
 
-        var response = await _client.PostAsync($"/api/payments/booking/{itemId}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/booking/{itemId}", null);
 
         // Booking a free donate item should succeed
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -111,7 +111,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     {
         var itemId = await SeedSellItemAsync();
 
-        var response = await _client.PostAsync($"/api/payments/onspot/{itemId}", null);
+        var response = await _client.PostAsync($"/api/v1/payments/onspot/{itemId}", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -121,7 +121,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     {
         // Empty item list: service accepts it gracefully (returns 200 with no bookings created),
         // or the controller may reject it as 400 — either is acceptable.
-        var response = await _client.PostAsJsonAsync("/api/payments/bulk-booking",
+        var response = await _client.PostAsJsonAsync("/api/v1/payments/bulk-booking",
             new { itemIds = Array.Empty<Guid>() });
 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
@@ -131,7 +131,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
     public async Task BulkCheckout_TooManyItems_ReturnsBadRequest()
     {
         var tooMany = Enumerable.Range(0, 51).Select(_ => Guid.NewGuid()).ToArray();
-        var response = await _client.PostAsJsonAsync("/api/payments/bulk-checkout",
+        var response = await _client.PostAsJsonAsync("/api/v1/payments/bulk-checkout",
             new { itemIds = tooMany });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -143,7 +143,7 @@ public class PaymentsAuthTests : IClassFixture<AuthenticatedWebApplicationFactor
         var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
         content.Headers.Add("Stripe-Signature", "invalid_sig");
 
-        var response = await _client.PostAsync("/api/payments/webhook", content);
+        var response = await _client.PostAsync("/api/v1/payments/webhook", content);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

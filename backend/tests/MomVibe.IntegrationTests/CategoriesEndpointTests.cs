@@ -16,7 +16,7 @@ public class CategoriesEndpointTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task GetCategories_ShouldReturnSeededCategories()
     {
-        var response = await _client.GetAsync("/api/categories");
+        var response = await _client.GetAsync("/api/v1/categories");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }

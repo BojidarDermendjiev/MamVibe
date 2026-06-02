@@ -8,7 +8,8 @@ using Application.Interfaces;
 using Application.DTOs.Offers;
 
 [ApiController]
-[Route("api/offers")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/offers")]
 [Authorize]
 [EnableRateLimiting(RateLimitPolicies.Global)]
 public class OffersController : ControllerBase

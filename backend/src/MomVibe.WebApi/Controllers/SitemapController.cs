@@ -21,7 +21,8 @@ using Application.Interfaces;
 ///   (1.0) and browse page (0.9) in the static sitemap.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class SitemapController : ControllerBase
 {
     private readonly IItemService _itemService;

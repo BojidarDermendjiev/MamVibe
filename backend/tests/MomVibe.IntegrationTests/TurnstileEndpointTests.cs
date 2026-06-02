@@ -23,7 +23,7 @@ public class TurnstileEndpointTests : IClassFixture<GeneralAuthWebApplicationFac
     public async Task Verify_WithValidToken_Returns200WithVerifiedTrue()
     {
         var request = new TurnstileVerifyRequestDto { Token = "valid-token-abc" };
-        var response = await _client.PostAsJsonAsync("/api/turnstile/verify", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/turnstile/verify", request);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.Content.ReadFromJsonAsync<VerifyResponse>();
@@ -34,7 +34,7 @@ public class TurnstileEndpointTests : IClassFixture<GeneralAuthWebApplicationFac
     public async Task Verify_WithInvalidToken_Returns400()
     {
         var request = new TurnstileVerifyRequestDto { Token = "invalid-token" };
-        var response = await _client.PostAsJsonAsync("/api/turnstile/verify", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/turnstile/verify", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 

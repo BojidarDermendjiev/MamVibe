@@ -19,7 +19,7 @@ public class AssistantPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task Chat_WithoutAuth_Returns401()
     {
         var request = new AssistantChatRequest { Message = "How do I sell items?" };
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -37,7 +37,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
     public async Task Chat_WithEmptyMessage_Returns400()
     {
         var request = new AssistantChatRequest { Message = "" };
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -45,7 +45,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
     public async Task Chat_WithWhitespaceMessage_Returns400()
     {
         var request = new AssistantChatRequest { Message = "   " };
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -53,7 +53,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
     public async Task Chat_WithMessageExceeding600Chars_Returns400()
     {
         var request = new AssistantChatRequest { Message = new string('a', 601) };
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -66,7 +66,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
             Language = "en",
         };
 
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.Content.ReadFromJsonAsync<ChatResponse>();
@@ -83,7 +83,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
             History = [new AssistantMessage { Role = "user", Content = "Hello" }, new AssistantMessage { Role = "assistant", Content = "Hi there!" }]
         };
 
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -91,7 +91,7 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
     public async Task Chat_WithExactly600Chars_Returns200()
     {
         var request = new AssistantChatRequest { Message = new string('a', 600) };
-        var response = await _client.PostAsJsonAsync("/api/assistant/chat", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 

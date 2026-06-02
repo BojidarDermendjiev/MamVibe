@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Interfaces;
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [AllowAnonymous]
 public class StatsController : ControllerBase
 {

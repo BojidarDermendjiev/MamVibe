@@ -15,7 +15,8 @@ using Application.DTOs.Payments;
 /// </summary>
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;

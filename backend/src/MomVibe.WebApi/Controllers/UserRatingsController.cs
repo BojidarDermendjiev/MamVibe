@@ -7,7 +7,8 @@ using Application.Interfaces;
 using Application.DTOs.UserRatings;
 
 [ApiController]
-[Route("api/purchase-requests/{purchaseRequestId:guid}/rating")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/purchase-requests/{purchaseRequestId:guid}/rating")]
 public class UserRatingsController : ControllerBase
 {
     private readonly IUserRatingService _ratingService;
@@ -62,7 +63,8 @@ public class UserRatingsController : ControllerBase
 }
 
 [ApiController]
-[Route("api/users/{userId}/ratings")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/users/{userId}/ratings")]
 public class UserRatingsByUserController : ControllerBase
 {
     private readonly IUserRatingService _ratingService;

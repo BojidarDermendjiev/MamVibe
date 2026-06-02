@@ -300,7 +300,23 @@ builder.Services.AddOutputCache(options =>
         .With(ctx => !ctx.HttpContext.Request.Headers.ContainsKey("Authorization")));
 });
 
-// Controllers
+// Controllers + API versioning
+// Versioning uses the URL-segment scheme: /api/v1/... is the only path that resolves a
+// controller. DefaultApiVersion = 1.0 + AssumeDefaultVersionWhenUnspecified means the
+// version constraint in route templates resolves to "v1" if the client omits an explicit
+// version (defensive — every controller declares [ApiVersion("1.0")] explicitly so this
+// only matters for routes that forget to).
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 

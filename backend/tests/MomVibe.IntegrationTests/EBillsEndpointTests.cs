@@ -22,7 +22,7 @@ public class EBillsUnauthenticatedTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task GetMyEBills_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/ebills");
+        var response = await _client.GetAsync("/api/v1/ebills");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -30,7 +30,7 @@ public class EBillsUnauthenticatedTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task GetEBill_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync($"/api/ebills/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/ebills/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -38,7 +38,7 @@ public class EBillsUnauthenticatedTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task ResendEBill_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsync($"/api/ebills/{Guid.NewGuid()}/resend", null);
+        var response = await _client.PostAsync($"/api/v1/ebills/{Guid.NewGuid()}/resend", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
@@ -60,7 +60,7 @@ public class EBillsAuthenticatedTests : IClassFixture<AuthenticatedWebApplicatio
     [Fact]
     public async Task GetMyEBills_WithAuth_ReturnsEmptyList_ForNewUser()
     {
-        var response = await _client.GetAsync("/api/ebills");
+        var response = await _client.GetAsync("/api/v1/ebills");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var bills = await response.Content.ReadFromJsonAsync<List<EBillDto>>();
@@ -71,7 +71,7 @@ public class EBillsAuthenticatedTests : IClassFixture<AuthenticatedWebApplicatio
     [Fact]
     public async Task GetEBill_NonExistentId_Returns404()
     {
-        var response = await _client.GetAsync($"/api/ebills/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/ebills/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -79,7 +79,7 @@ public class EBillsAuthenticatedTests : IClassFixture<AuthenticatedWebApplicatio
     [Fact]
     public async Task ResendEBill_NonExistentId_Returns404()
     {
-        var response = await _client.PostAsync($"/api/ebills/{Guid.NewGuid()}/resend", null);
+        var response = await _client.PostAsync($"/api/v1/ebills/{Guid.NewGuid()}/resend", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }

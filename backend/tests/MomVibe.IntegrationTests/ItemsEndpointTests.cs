@@ -22,28 +22,28 @@ public class ItemsPublicTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetAll_ReturnsOkWithPagedResult()
     {
-        var response = await _client.GetAsync("/api/items");
+        var response = await _client.GetAsync("/api/v1/items");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetAll_WithSearchFilter_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/items?searchTerm=baby&page=1&pageSize=10");
+        var response = await _client.GetAsync("/api/v1/items?searchTerm=baby&page=1&pageSize=10");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetAll_WithListingTypeFilter_ReturnsOk()
     {
-        var response = await _client.GetAsync($"/api/items?listingType={(int)ListingType.Donate}");
+        var response = await _client.GetAsync($"/api/v1/items?listingType={(int)ListingType.Donate}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetById_NonExistentItem_Returns404()
     {
-        var response = await _client.GetAsync($"/api/items/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/items/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -58,28 +58,28 @@ public class ItemsPublicTests : IClassFixture<CustomWebApplicationFactory>
             ListingType = ListingType.Donate,
             PhotoUrls = []
         };
-        var response = await _client.PostAsJsonAsync("/api/items", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/items", dto);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Update_WithoutAuth_Returns401()
     {
-        var response = await _client.PutAsJsonAsync($"/api/items/{Guid.NewGuid()}", new UpdateItemDto());
+        var response = await _client.PutAsJsonAsync($"/api/v1/items/{Guid.NewGuid()}", new UpdateItemDto());
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Delete_WithoutAuth_Returns401()
     {
-        var response = await _client.DeleteAsync($"/api/items/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/items/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task ToggleLike_WithoutAuth_Returns401()
     {
-        var response = await _client.PostAsync($"/api/items/{Guid.NewGuid()}/like", null);
+        var response = await _client.PostAsync($"/api/v1/items/{Guid.NewGuid()}/like", null);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -87,7 +87,7 @@ public class ItemsPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task IncrementView_Returns204()
     {
         // IncrementView is public (no auth required) and returns 204 NoContent
-        var response = await _client.PostAsync($"/api/items/{Guid.NewGuid()}/view", null);
+        var response = await _client.PostAsync($"/api/v1/items/{Guid.NewGuid()}/view", null);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }
@@ -131,7 +131,7 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     [Fact]
     public async Task Create_DonateItem_Returns201WithItemDto()
     {
-        var response = await _client.PostAsJsonAsync("/api/items", MakeDonateItem());
+        var response = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem());
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var item = await response.Content.ReadFromJsonAsync<ItemDto>();
@@ -144,7 +144,7 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     [Fact]
     public async Task Create_SellItem_Returns201WithPrice()
     {
-        var response = await _client.PostAsJsonAsync("/api/items", MakeSellItem());
+        var response = await _client.PostAsJsonAsync("/api/v1/items", MakeSellItem());
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var item = await response.Content.ReadFromJsonAsync<ItemDto>();
@@ -164,7 +164,7 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
             PhotoUrls = []
         };
 
-        var response = await _client.PostAsJsonAsync("/api/items", dto);
+        var response = await _client.PostAsJsonAsync("/api/v1/items", dto);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -172,11 +172,11 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     [Fact]
     public async Task GetById_ExistingItem_Returns200()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/items", MakeDonateItem($"GetById-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem($"GetById-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<ItemDto>();
 
-        var getResp = await _client.GetAsync($"/api/items/{created!.Id}");
+        var getResp = await _client.GetAsync($"/api/v1/items/{created!.Id}");
 
         getResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var fetched = await getResp.Content.ReadFromJsonAsync<ItemDto>();
@@ -187,12 +187,12 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     [Fact]
     public async Task Update_OwnItem_Returns200WithUpdatedTitle()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/items", MakeDonateItem($"UpdateTest-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem($"UpdateTest-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<ItemDto>();
 
         var update = new UpdateItemDto { Title = "Updated Title" };
-        var updateResp = await _client.PutAsJsonAsync($"/api/items/{created!.Id}", update);
+        var updateResp = await _client.PutAsJsonAsync($"/api/v1/items/{created!.Id}", update);
 
         updateResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var updated = await updateResp.Content.ReadFromJsonAsync<ItemDto>();
@@ -203,46 +203,46 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     public async Task Update_NonExistentItem_Returns404()
     {
         var update = new UpdateItemDto { Title = "Ghost" };
-        var response = await _client.PutAsJsonAsync($"/api/items/{Guid.NewGuid()}", update);
+        var response = await _client.PutAsJsonAsync($"/api/v1/items/{Guid.NewGuid()}", update);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_OwnItem_Returns204()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/items", MakeDonateItem($"DeleteTest-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem($"DeleteTest-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResp.Content.ReadFromJsonAsync<ItemDto>();
 
-        var deleteResp = await _client.DeleteAsync($"/api/items/{created!.Id}");
+        var deleteResp = await _client.DeleteAsync($"/api/v1/items/{created!.Id}");
         deleteResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getResp = await _client.GetAsync($"/api/items/{created.Id}");
+        var getResp = await _client.GetAsync($"/api/v1/items/{created.Id}");
         getResp.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Delete_NonExistentItem_Returns404()
     {
-        var response = await _client.DeleteAsync($"/api/items/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/items/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task ToggleLike_LikeAndUnlike_TogglesCorrectly()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/items", MakeDonateItem($"LikeTest-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem($"LikeTest-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var item = await createResp.Content.ReadFromJsonAsync<ItemDto>();
 
         // First call: like
-        var likeResp = await _client.PostAsync($"/api/items/{item!.Id}/like", null);
+        var likeResp = await _client.PostAsync($"/api/v1/items/{item!.Id}/like", null);
         likeResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var body1 = await likeResp.Content.ReadFromJsonAsync<LikeResult>();
         body1!.IsLiked.Should().BeTrue();
 
         // Second call: unlike
-        var unlikeResp = await _client.PostAsync($"/api/items/{item.Id}/like", null);
+        var unlikeResp = await _client.PostAsync($"/api/v1/items/{item.Id}/like", null);
         unlikeResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var body2 = await unlikeResp.Content.ReadFromJsonAsync<LikeResult>();
         body2!.IsLiked.Should().BeFalse();
@@ -255,7 +255,7 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
         // KeyNotFoundException from the service reaches ExceptionHandlingMiddleware.
         // The middleware maps KeyNotFoundException → 404 if configured, otherwise → 500.
         // Accept either 400, 404, or 500 to avoid coupling to middleware internals.
-        var response = await _client.PostAsync($"/api/items/{Guid.NewGuid()}/like", null);
+        var response = await _client.PostAsync($"/api/v1/items/{Guid.NewGuid()}/like", null);
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
@@ -265,12 +265,12 @@ public class ItemsAuthTests : IClassFixture<ItemsWebApplicationFactory>
     [Fact]
     public async Task IncrementView_ExistingItem_Returns204()
     {
-        var createResp = await _client.PostAsJsonAsync("/api/items", MakeDonateItem($"ViewTest-{Guid.NewGuid():N}"));
+        var createResp = await _client.PostAsJsonAsync("/api/v1/items", MakeDonateItem($"ViewTest-{Guid.NewGuid():N}"));
         createResp.StatusCode.Should().Be(HttpStatusCode.Created);
         var item = await createResp.Content.ReadFromJsonAsync<ItemDto>();
 
         // IncrementView returns 204 NoContent by design
-        var viewResp = await _client.PostAsync($"/api/items/{item!.Id}/view", null);
+        var viewResp = await _client.PostAsync($"/api/v1/items/{item!.Id}/view", null);
         viewResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 

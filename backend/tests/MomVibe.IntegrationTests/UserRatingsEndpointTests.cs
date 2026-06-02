@@ -18,14 +18,14 @@ public class UserRatingsPublicTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetRatingsForUser_Returns200WithEmptyList()
     {
-        var response = await _client.GetAsync($"/api/users/{Guid.NewGuid()}/ratings");
+        var response = await _client.GetAsync($"/api/v1/users/{Guid.NewGuid()}/ratings");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetRatingSummary_Returns200()
     {
-        var response = await _client.GetAsync($"/api/users/{Guid.NewGuid()}/ratings/summary");
+        var response = await _client.GetAsync($"/api/v1/users/{Guid.NewGuid()}/ratings/summary");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -33,7 +33,7 @@ public class UserRatingsPublicTests : IClassFixture<CustomWebApplicationFactory>
     public async Task CreateRating_WithoutAuth_Returns401()
     {
         var dto = new CreateUserRatingDto { Rating = 5 };
-        var response = await _client.PostAsJsonAsync($"/api/purchase-requests/{Guid.NewGuid()}/rating", dto);
+        var response = await _client.PostAsJsonAsync($"/api/v1/purchase-requests/{Guid.NewGuid()}/rating", dto);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -51,7 +51,7 @@ public class UserRatingsAuthTests : IClassFixture<GeneralAuthWebApplicationFacto
     public async Task CreateRating_WithRatingBelowOne_Returns400()
     {
         var dto = new CreateUserRatingDto { Rating = 0 };
-        var response = await _client.PostAsJsonAsync($"/api/purchase-requests/{Guid.NewGuid()}/rating", dto);
+        var response = await _client.PostAsJsonAsync($"/api/v1/purchase-requests/{Guid.NewGuid()}/rating", dto);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -59,7 +59,7 @@ public class UserRatingsAuthTests : IClassFixture<GeneralAuthWebApplicationFacto
     public async Task CreateRating_WithRatingAboveFive_Returns400()
     {
         var dto = new CreateUserRatingDto { Rating = 6 };
-        var response = await _client.PostAsJsonAsync($"/api/purchase-requests/{Guid.NewGuid()}/rating", dto);
+        var response = await _client.PostAsJsonAsync($"/api/v1/purchase-requests/{Guid.NewGuid()}/rating", dto);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -67,14 +67,14 @@ public class UserRatingsAuthTests : IClassFixture<GeneralAuthWebApplicationFacto
     public async Task CreateRating_ForNonExistentPurchaseRequest_Returns404()
     {
         var dto = new CreateUserRatingDto { Rating = 5, Comment = "Great seller!" };
-        var response = await _client.PostAsJsonAsync($"/api/purchase-requests/{Guid.NewGuid()}/rating", dto);
+        var response = await _client.PostAsJsonAsync($"/api/v1/purchase-requests/{Guid.NewGuid()}/rating", dto);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task GetRatingSummary_ForUserWithNoRatings_ReturnsZeroCounts()
     {
-        var response = await _client.GetAsync($"/api/users/{Guid.NewGuid()}/ratings/summary");
+        var response = await _client.GetAsync($"/api/v1/users/{Guid.NewGuid()}/ratings/summary");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var body = await response.Content.ReadFromJsonAsync<RatingSummary>();

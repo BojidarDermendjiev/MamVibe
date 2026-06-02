@@ -14,7 +14,8 @@ using Application.Interfaces;
 /// Donations (Booking) and on-spot payments are excluded.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class EBillsController : ControllerBase
 {

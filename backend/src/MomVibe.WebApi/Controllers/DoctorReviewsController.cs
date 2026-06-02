@@ -7,7 +7,8 @@ using Application.Interfaces;
 using Application.DTOs.DoctorReviews;
 
 [ApiController]
-[Route("api/doctor-reviews")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/doctor-reviews")]
 public class DoctorReviewsController : ControllerBase
 {
     private readonly IDoctorReviewService _service;

@@ -8,7 +8,8 @@ using Application.DTOs.ChildFriendlyPlaces;
 using Domain.Enums;
 
 [ApiController]
-[Route("api/child-friendly-places")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/child-friendly-places")]
 public class ChildFriendlyPlacesController : ControllerBase
 {
     private readonly IChildFriendlyPlaceService _service;

@@ -15,21 +15,21 @@ public class SitemapEndpointTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetItemsSitemap_Returns200()
     {
-        var response = await _client.GetAsync("/api/sitemap/items");
+        var response = await _client.GetAsync("/api/v1/sitemap/items");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetItemsSitemap_ReturnsXmlContentType()
     {
-        var response = await _client.GetAsync("/api/sitemap/items");
+        var response = await _client.GetAsync("/api/v1/sitemap/items");
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/xml");
     }
 
     [Fact]
     public async Task GetItemsSitemap_ReturnsWellFormedXml()
     {
-        var response = await _client.GetAsync("/api/sitemap/items");
+        var response = await _client.GetAsync("/api/v1/sitemap/items");
         var content = await response.Content.ReadAsStringAsync();
 
         content.Should().Contain("<?xml");
@@ -40,7 +40,7 @@ public class SitemapEndpointTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetItemsSitemap_ContainsUrlsetElement()
     {
-        var response = await _client.GetAsync("/api/sitemap/items");
+        var response = await _client.GetAsync("/api/v1/sitemap/items");
         var content = await response.Content.ReadAsStringAsync();
 
         // Verify the response is a proper sitemap XML with a urlset root element

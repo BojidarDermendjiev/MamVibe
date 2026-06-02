@@ -23,28 +23,28 @@ public class AdminForbiddenTests : IClassFixture<AuthenticatedWebApplicationFact
     [Fact]
     public async Task GetDashboard_WithoutAdminRole_Returns403()
     {
-        var response = await _client.GetAsync("/api/admin/dashboard");
+        var response = await _client.GetAsync("/api/v1/admin/dashboard");
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task GetUsers_WithoutAdminRole_Returns403()
     {
-        var response = await _client.GetAsync("/api/admin/users");
+        var response = await _client.GetAsync("/api/v1/admin/users");
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task GetPendingItems_WithoutAdminRole_Returns403()
     {
-        var response = await _client.GetAsync("/api/admin/items/pending");
+        var response = await _client.GetAsync("/api/v1/admin/items/pending");
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task BlockUser_WithoutAdminRole_Returns403()
     {
-        var response = await _client.PostAsync($"/api/admin/users/{Guid.NewGuid()}/block", null);
+        var response = await _client.PostAsync($"/api/v1/admin/users/{Guid.NewGuid()}/block", null);
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 }
@@ -64,14 +64,14 @@ public class AdminUnauthTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetDashboard_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/admin/dashboard");
+        var response = await _client.GetAsync("/api/v1/admin/dashboard");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task GetUsers_WithoutAuth_Returns401()
     {
-        var response = await _client.GetAsync("/api/admin/users");
+        var response = await _client.GetAsync("/api/v1/admin/users");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
@@ -91,7 +91,7 @@ public class AdminAuthorizedTests : IClassFixture<AdminWebApplicationFactory>
     [Fact]
     public async Task GetDashboard_ReturnsOkWithStats()
     {
-        var response = await _client.GetAsync("/api/admin/dashboard");
+        var response = await _client.GetAsync("/api/v1/admin/dashboard");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var stats = await response.Content.ReadFromJsonAsync<DashboardStatsDto>();
@@ -103,7 +103,7 @@ public class AdminAuthorizedTests : IClassFixture<AdminWebApplicationFactory>
     [Fact]
     public async Task GetUsers_ReturnsOkWithPagedResult()
     {
-        var response = await _client.GetAsync("/api/admin/users?page=1&pageSize=10");
+        var response = await _client.GetAsync("/api/v1/admin/users?page=1&pageSize=10");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PagedResult<AdminUserDto>>();
@@ -114,14 +114,14 @@ public class AdminAuthorizedTests : IClassFixture<AdminWebApplicationFactory>
     [Fact]
     public async Task GetUsers_WithSearch_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/admin/users?search=test&page=1&pageSize=5");
+        var response = await _client.GetAsync("/api/v1/admin/users?search=test&page=1&pageSize=5");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetPendingItems_ReturnsOkWithList()
     {
-        var response = await _client.GetAsync("/api/admin/items/pending?page=1&pageSize=20");
+        var response = await _client.GetAsync("/api/v1/admin/items/pending?page=1&pageSize=20");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var items = await response.Content.ReadFromJsonAsync<List<ItemDto>>();
@@ -131,35 +131,35 @@ public class AdminAuthorizedTests : IClassFixture<AdminWebApplicationFactory>
     [Fact]
     public async Task ApproveItem_NonExistentItem_Returns404()
     {
-        var response = await _client.PostAsync($"/api/admin/items/{Guid.NewGuid()}/approve", null);
+        var response = await _client.PostAsync($"/api/v1/admin/items/{Guid.NewGuid()}/approve", null);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task AdminDeleteItem_NonExistentItem_Returns404()
     {
-        var response = await _client.DeleteAsync($"/api/admin/items/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/admin/items/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task BlockUser_NonExistentUser_Returns404()
     {
-        var response = await _client.PostAsync($"/api/admin/users/{Guid.NewGuid()}/block", null);
+        var response = await _client.PostAsync($"/api/v1/admin/users/{Guid.NewGuid()}/block", null);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task UnblockUser_NonExistentUser_Returns404()
     {
-        var response = await _client.PostAsync($"/api/admin/users/{Guid.NewGuid()}/unblock", null);
+        var response = await _client.PostAsync($"/api/v1/admin/users/{Guid.NewGuid()}/unblock", null);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task GetModerationHistory_NonExistentItem_ReturnsOkWithEmptyList()
     {
-        var response = await _client.GetAsync($"/api/admin/items/{Guid.NewGuid()}/moderation-history");
+        var response = await _client.GetAsync($"/api/v1/admin/items/{Guid.NewGuid()}/moderation-history");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var history = await response.Content.ReadFromJsonAsync<List<ModerationLogEntryDto>>();
@@ -170,8 +170,8 @@ public class AdminAuthorizedTests : IClassFixture<AdminWebApplicationFactory>
     [Fact]
     public async Task GetDashboard_ReturnsCachedResult_OnSecondCall()
     {
-        var first = await _client.GetAsync("/api/admin/dashboard");
-        var second = await _client.GetAsync("/api/admin/dashboard");
+        var first = await _client.GetAsync("/api/v1/admin/dashboard");
+        var second = await _client.GetAsync("/api/v1/admin/dashboard");
 
         first.StatusCode.Should().Be(HttpStatusCode.OK);
         second.StatusCode.Should().Be(HttpStatusCode.OK);

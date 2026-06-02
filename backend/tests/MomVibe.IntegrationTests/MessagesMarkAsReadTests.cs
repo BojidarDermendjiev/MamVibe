@@ -62,7 +62,7 @@ public class MessagesMarkAsReadTests : IClassFixture<MessagesMarkAsReadWebApplic
     [Fact]
     public async Task MarkAsRead_Returns204()
     {
-        var response = await _client.PutAsJsonAsync("/api/messages/some-sender/read", new { });
+        var response = await _client.PutAsJsonAsync("/api/v1/messages/some-sender/read", new { });
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

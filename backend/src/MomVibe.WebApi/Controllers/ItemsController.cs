@@ -19,7 +19,8 @@ using Application.Interfaces;
 /// </summary>
 
 [ApiController]
-[Route("api/[controller]")]
+[Asp.Versioning.ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ItemsController : ControllerBase
 {
     private readonly IItemService _itemService;
