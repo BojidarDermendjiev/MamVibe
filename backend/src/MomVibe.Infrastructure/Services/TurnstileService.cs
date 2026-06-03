@@ -37,7 +37,7 @@ public class TurnstileService : ITurnstileService
             new KeyValuePair<string,string>("remoteip", ip ?? "")
         });
 
-        var resp = await this._httpClient.PostAsync("turnstile/v0/siteverify", form);
+        var resp = await this._httpClient.PostAsync("https://challenges.cloudflare.com/turnstile/v0/siteverify", form);
         resp.EnsureSuccessStatusCode();
         var json = await resp.Content.ReadFromJsonAsync<TurnstileVerifyResponse>();
         return json?.Success == true;

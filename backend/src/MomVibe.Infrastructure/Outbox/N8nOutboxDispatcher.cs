@@ -16,6 +16,11 @@ using Infrastructure.Configuration;
 /// </summary>
 public sealed class N8nOutboxDispatcher : IOutboxMessageDispatcher
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly N8nSettings _settings;
 
@@ -29,7 +34,7 @@ public sealed class N8nOutboxDispatcher : IOutboxMessageDispatcher
 
     public async Task DispatchAsync(OutboxMessage message, CancellationToken cancellationToken)
     {
-        var payload = JsonSerializer.Deserialize<N8nWebhookOutboxPayload>(message.Payload)
+        var payload = JsonSerializer.Deserialize<N8nWebhookOutboxPayload>(message.Payload, JsonOptions)
             ?? throw new InvalidOperationException("Outbox payload could not be deserialized as N8nWebhookOutboxPayload.");
 
         // Honour the global Enabled toggle: when n8n is disabled in config we still
