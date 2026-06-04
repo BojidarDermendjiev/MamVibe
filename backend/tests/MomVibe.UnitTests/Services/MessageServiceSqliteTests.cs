@@ -54,6 +54,7 @@ public class MessageServiceSqliteTests : IAsyncLifetime
             Options.Create(new N8nSettings()),
             new UserPresenceTracker(),
             new Mock<IAiService>().Object,
+            new Mock<IKnowledgeService>().Object,
             NullLogger<MessageService>.Instance);
     }
 

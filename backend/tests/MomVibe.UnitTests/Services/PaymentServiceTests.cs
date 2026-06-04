@@ -61,7 +61,6 @@ public class PaymentServiceTests
 
     private static PaymentService CreateService(
         ApplicationDbContext db,
-        IConfiguration? config = null,
         Mock<IShippingService>? shippingMock = null,
         Mock<IPublisher>? publisherMock = null)
     {
@@ -71,10 +70,26 @@ public class PaymentServiceTests
         return new PaymentService(
             db,
             CreateMapper(),
-            config ?? CreateConfig(),
             shippingMock.Object,
             publisherMock.Object,
             NullLogger<PaymentService>.Instance);
+    }
+
+    private static StripePaymentService CreateStripeService(
+        ApplicationDbContext db,
+        IConfiguration? config = null,
+        Mock<IShippingService>? shippingMock = null,
+        Mock<IPublisher>? publisherMock = null)
+    {
+        shippingMock ??= new Mock<IShippingService>();
+        publisherMock ??= new Mock<IPublisher>();
+
+        return new StripePaymentService(
+            db,
+            config ?? CreateConfig(),
+            shippingMock.Object,
+            publisherMock.Object,
+            NullLogger<StripePaymentService>.Instance);
     }
 
     /// <summary>Seeds a seller, buyer, and sellable item; returns the item.</summary>
@@ -232,7 +247,7 @@ public class PaymentServiceTests
         await using var db = CreateDb();
         var item = await SeedSellItemAsync(db, price: 45m);
 
-        var svc = CreateService(db, CreateConfig(stripeKey: ""));
+        var svc = CreateStripeService(db, CreateConfig(stripeKey: ""));
         var result = await svc.CreateCheckoutSessionAsync(
             item.Id, "buyer-1",
             "https://app/success", "https://app/cancel");
@@ -250,7 +265,7 @@ public class PaymentServiceTests
     public async Task CreateCheckoutSessionAsync_Throws_KeyNotFound_For_Missing_Item()
     {
         await using var db = CreateDb();
-        var svc = CreateService(db);
+        var svc = CreateStripeService(db);
 
         var act = async () => await svc.CreateCheckoutSessionAsync(
             Guid.NewGuid(), "buyer-1",
@@ -266,7 +281,7 @@ public class PaymentServiceTests
         await using var db = CreateDb();
         var item = await SeedDonateItemAsync(db);
 
-        var svc = CreateService(db);
+        var svc = CreateStripeService(db);
         var act = async () => await svc.CreateCheckoutSessionAsync(
             item.Id, "buyer-1",
             "https://app/success", "https://app/cancel");
@@ -369,7 +384,7 @@ public class PaymentServiceTests
         var item = await SeedSellItemAsync(db);
 
         var publisher = new Mock<MediatR.IPublisher>();
-        var svc = CreateService(db, CreateConfig(stripeKey: ""), publisherMock: publisher);
+        var svc = CreateStripeService(db, CreateConfig(stripeKey: ""), publisherMock: publisher);
         await svc.CreateCheckoutSessionAsync(item.Id, "buyer-1", "https://app/success", "https://app/cancel");
 
         publisher.Verify(p => p.Publish(

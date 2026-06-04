@@ -1,5 +1,6 @@
 namespace MomVibe.WebApi.Controllers;
 
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -18,12 +19,26 @@ using Application.DTOs.Assistant;
 public class AssistantController : ControllerBase
 {
     private readonly IAiService _aiService;
+    private readonly IKnowledgeService _knowledge;
 
-    /// <summary>Initializes <see cref="AssistantController"/>.</summary>
-    public AssistantController(IAiService aiService)
+    public AssistantController(IAiService aiService, IKnowledgeService knowledge)
     {
         _aiService = aiService;
+        _knowledge = knowledge;
     }
+
+    // Catches clearly off-topic requests before an LLM call is made.
+    private static readonly Regex[] OffTopicGuards =
+    [
+        new(@"write\s+(me\s+)?(a\s+)?(poem|story|essay|song|rap|code|letter)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"tell\s+(me\s+)?a\s+joke\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\bweather\s+(in|for|today|tomorrow)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\brecipe\s+for\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\bwho\s+is\s+the\s+(president|prime\s+minister|king|queen)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\bcapital\s+of\s+\w+", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\blatest\s+news\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new(@"\bexplain\s+quantum\b", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+    ];
 
     private const string SystemPrompt = """
         You are MamVibe Assistant — a friendly, concise AI guide EXCLUSIVELY for the MamVibe platform.
@@ -175,10 +190,26 @@ public class AssistantController : ControllerBase
             return BadRequest(new { error = "Message is too long (max 600 characters)." });
 
         var lang = request.Language == "bg" ? "bg" : "en";
+
+        // Reject clearly off-topic requests without burning an LLM token.
+        if (OffTopicGuards.Any(r => r.IsMatch(request.Message)))
+        {
+            var rejection = lang == "bg"
+                ? "Мога да помагам само с въпроси свързани с MamVibe платформата."
+                : "I can only help with questions about the MamVibe platform.";
+            return Ok(new { reply = rejection });
+        }
+
+        // Retrieve relevant knowledge base articles and inject them as grounding context.
+        var articles = await _knowledge.SearchAsync(request.Message, lang);
+        var contextBlock = articles.Count > 0
+            ? "<context>\n" + string.Join("\n---\n", articles.Select(a => $"{a.Title}\n{a.Content}")) + "\n</context>\n\n"
+            : string.Empty;
+
         var langInstruction = lang == "bg"
             ? "ВАЖНО: Отговаряй САМО на БЪЛГАРСКИ език, независимо от езика на въпроса."
             : "IMPORTANT: Reply in English.";
-        var finalPrompt = langInstruction + "\n\n" + SystemPrompt;
+        var finalPrompt = langInstruction + "\n\n" + contextBlock + SystemPrompt;
 
         var history = (request.History ?? [])
             .TakeLast(10)
@@ -186,7 +217,6 @@ public class AssistantController : ControllerBase
             .ToList<(string role, string content)>();
 
         // Wrap the user message in XML delimiters to limit prompt-injection attack surface.
-        // The system prompt instructs the model to treat content inside these tags as user input only.
         history.Add(("user", $"<user_message>{request.Message}</user_message>"));
 
         var reply = await _aiService.ChatAsync(finalPrompt, history);

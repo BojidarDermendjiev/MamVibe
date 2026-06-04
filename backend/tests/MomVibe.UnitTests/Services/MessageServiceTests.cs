@@ -62,6 +62,7 @@ public class MessageServiceTests
             n8nOptions,
             presenceTracker,
             aiMock.Object,
+            new Mock<IKnowledgeService>().Object,
             NullLogger<MessageService>.Instance);
     }
 

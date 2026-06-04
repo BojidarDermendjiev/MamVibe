@@ -48,11 +48,13 @@ public class ItemServiceTests
 
     private static ItemService CreateService(
         ApplicationDbContext db,
-        Mock<IAiService>? aiMock = null,
+        Mock<IAiModerationService>? aiModerationMock = null,
+        Mock<IAiListingService>? aiListingMock = null,
         Mock<INekorektenService>? nekorektenMock = null,
         Mock<MediatR.IPublisher>? publisherMock = null)
     {
-        aiMock ??= new Mock<IAiService>();
+        aiModerationMock ??= new Mock<IAiModerationService>();
+        aiListingMock ??= new Mock<IAiListingService>();
         nekorektenMock ??= new Mock<INekorektenService>();
         publisherMock ??= new Mock<MediatR.IPublisher>();
 
@@ -64,7 +66,8 @@ public class ItemServiceTests
         return new ItemService(
             db,
             CreateMapper(),
-            aiMock.Object,
+            aiModerationMock.Object,
+            aiListingMock.Object,
             nekorektenMock.Object,
             cacheMock.Object,
             publisherMock.Object,
@@ -247,8 +250,8 @@ public class ItemServiceTests
         db.Categories.Add(new Category { Id = catId, Name = "Toys", Slug = $"toys-{catId}" });
         await db.SaveChangesAsync();
 
-        var aiMock = new Mock<IAiService>();
-        aiMock.Setup(a => a.ModerateItemAsync(
+        var aiModerationMock = new Mock<IAiModerationService>();
+        aiModerationMock.Setup(a => a.ModerateItemAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<ListingType>(), It.IsAny<decimal?>(), It.IsAny<string?>()))
             .ReturnsAsync(new AiModerationResultDto
@@ -258,7 +261,7 @@ public class ItemServiceTests
                 Reason = "Appropriate content"
             });
 
-        var svc = CreateService(db, aiMock);
+        var svc = CreateService(db, aiModerationMock);
         var dto = new CreateItemDto
         {
             Title = "Toy Car",
@@ -303,8 +306,8 @@ public class ItemServiceTests
         }
         await db.SaveChangesAsync();
 
-        var aiMock = new Mock<IAiService>();
-        aiMock.Setup(a => a.ModerateItemAsync(
+        var aiModerationMock = new Mock<IAiModerationService>();
+        aiModerationMock.Setup(a => a.ModerateItemAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<ListingType>(), It.IsAny<decimal?>(), It.IsAny<string?>()))
             .ReturnsAsync(new AiModerationResultDto
@@ -314,7 +317,7 @@ public class ItemServiceTests
                 Reason = "Looks good"
             });
 
-        var svc = CreateService(db, aiMock);
+        var svc = CreateService(db, aiModerationMock);
         var dto = new CreateItemDto
         {
             Title = "Baby Jacket",
@@ -341,13 +344,13 @@ public class ItemServiceTests
         db.Categories.Add(new Category { Id = catId, Name = "Cat", Slug = $"cat-{catId}" });
         await db.SaveChangesAsync();
 
-        var aiMock = new Mock<IAiService>();
-        aiMock.Setup(a => a.ModerateItemAsync(
+        var aiModerationMock = new Mock<IAiModerationService>();
+        aiModerationMock.Setup(a => a.ModerateItemAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<ListingType>(), It.IsAny<decimal?>(), It.IsAny<string?>()))
             .ThrowsAsync(new Exception("AI service down"));
 
-        var svc = CreateService(db, aiMock);
+        var svc = CreateService(db, aiModerationMock);
         var act = async () => await svc.CreateAsync(new CreateItemDto
         {
             Title = "Resilient Item",

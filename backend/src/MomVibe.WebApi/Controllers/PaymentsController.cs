@@ -20,18 +20,18 @@ using Application.DTOs.Payments;
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
+    private readonly IStripePaymentService _stripePaymentService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IConfiguration _configuration;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PaymentsController"/>.
-    /// </summary>
-    /// <param name="paymentService">Service handling payment logic.</param>
-    /// <param name="currentUserService">Service providing current user context.</param>
-    /// <param name="configuration">Application configuration for frontend URLs.</param>
-    public PaymentsController(IPaymentService paymentService, ICurrentUserService currentUserService, IConfiguration configuration)
+    public PaymentsController(
+        IPaymentService paymentService,
+        IStripePaymentService stripePaymentService,
+        ICurrentUserService currentUserService,
+        IConfiguration configuration)
     {
         this._paymentService = paymentService;
+        this._stripePaymentService = stripePaymentService;
         this._currentUserService = currentUserService;
         this._configuration = configuration;
     }
@@ -71,7 +71,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
-            var sessionUrl = await this._paymentService.CreateCheckoutSessionAsync(
+            var sessionUrl = await this._stripePaymentService.CreateCheckoutSessionAsync(
                 itemId, userId,
                 $"{frontendUrl}/payment/success?itemId={itemId}",
                 $"{frontendUrl}/payment/cancel",
@@ -194,7 +194,7 @@ public class PaymentsController : ControllerBase
         if (userId == null) return Unauthorized();
         try
         {
-            var clientSecret = await this._paymentService.CreatePaymentIntentAsync(itemId, userId, this.IdempotencyKey());
+            var clientSecret = await this._stripePaymentService.CreatePaymentIntentAsync(itemId, userId, this.IdempotencyKey());
             return Ok(new { clientSecret });
         }
         catch (KeyNotFoundException ex)
@@ -237,7 +237,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
-            var sessionUrl = await this._paymentService.CreateBulkCheckoutSessionAsync(
+            var sessionUrl = await this._stripePaymentService.CreateBulkCheckoutSessionAsync(
                 itemIds, userId,
                 $"{frontendUrl}/payment/success",
                 $"{frontendUrl}/payment/cancel",
@@ -334,7 +334,7 @@ public class PaymentsController : ControllerBase
     {
         try
         {
-            var clientSecret = await this._paymentService.CreateDonationIntentAsync(request.Amount, this.IdempotencyKey());
+            var clientSecret = await this._stripePaymentService.CreateDonationIntentAsync(request.Amount, this.IdempotencyKey());
             return Ok(new { clientSecret });
         }
         catch (InvalidOperationException ex)
@@ -362,7 +362,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var frontendUrl = this._configuration["FrontendUrl"] ?? "https://localhost:5173";
-            var sessionUrl = await this._paymentService.CreateDonationCheckoutAsync(
+            var sessionUrl = await this._stripePaymentService.CreateDonationCheckoutAsync(
                 request.Amount,
                 $"{frontendUrl}/payment/success",
                 $"{frontendUrl}/donate",
@@ -396,7 +396,7 @@ public class PaymentsController : ControllerBase
         var signature = this.Request.Headers["Stripe-Signature"].FirstOrDefault() ?? "";
         try
         {
-            await this._paymentService.HandleWebhookAsync(json, signature);
+            await this._stripePaymentService.HandleWebhookAsync(json, signature);
             return Ok();
         }
         catch (Stripe.StripeException)

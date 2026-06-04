@@ -147,6 +147,18 @@ $RECYCLE.BIN/
 *.orig
 
 # ──────────────────────────────────────────────────────────────
+# Claude Code — runtime directories (not for version control)
+# ──────────────────────────────────────────────────────────────
+.claude/worktrees/
+.claude/agent-memory/
+
+# ──────────────────────────────────────────────────────────────
+# Playwright / E2E test output
+# ──────────────────────────────────────────────────────────────
+frontend/test-results/
+frontend/playwright-report/
+
+# ──────────────────────────────────────────────────────────────
 # Internal docs — kept local only
 # ──────────────────────────────────────────────────────────────
 CLAUDE.md

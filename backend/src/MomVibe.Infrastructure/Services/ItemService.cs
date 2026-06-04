@@ -24,7 +24,8 @@ public class ItemService : IItemService
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
-    private readonly IAiService _aiService;
+    private readonly IAiModerationService _aiModeration;
+    private readonly IAiListingService _aiListing;
     private readonly INekorektenService _nekorekten;
     private readonly IMemoryCache _cache;
     private readonly IPublisher _publisher;
@@ -39,7 +40,8 @@ public class ItemService : IItemService
     public ItemService(
         IApplicationDbContext context,
         IMapper mapper,
-        IAiService aiService,
+        IAiModerationService aiModeration,
+        IAiListingService aiListing,
         INekorektenService nekorekten,
         IMemoryCache cache,
         IPublisher publisher,
@@ -47,7 +49,8 @@ public class ItemService : IItemService
     {
         this._context = context;
         this._mapper = mapper;
-        this._aiService = aiService;
+        this._aiModeration = aiModeration;
+        this._aiListing = aiListing;
         this._nekorekten = nekorekten;
         this._cache = cache;
         this._publisher = publisher;
@@ -219,7 +222,7 @@ public class ItemService : IItemService
 
             var firstPhotoUrl = dto.PhotoUrls.Count > 0 ? dto.PhotoUrls[0] : null;
 
-            var modResult = await this._aiService.ModerateItemAsync(
+            var modResult = await this._aiModeration.ModerateItemAsync(
                 dto.Title,
                 dto.Description,
                 createdItem?.Category?.Name ?? string.Empty,
@@ -427,7 +430,7 @@ public class ItemService : IItemService
             .Select(i => i.Price!.Value)
             .ToListAsync();
 
-        return await this._aiService.SuggestPriceAsync(
+        return await this._aiListing.SuggestPriceAsync(
             dto.Title,
             dto.Description,
             category?.Name ?? string.Empty,

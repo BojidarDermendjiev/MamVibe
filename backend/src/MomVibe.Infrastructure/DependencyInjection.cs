@@ -61,6 +61,7 @@ public static class DependencyInjection
         else
             services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IStripePaymentService, StripePaymentService>();
         services.AddScoped<IEBillService, EBillService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
@@ -154,6 +155,9 @@ public static class DependencyInjection
         services.AddKeyedScoped<ILlmChatProvider, GroqChatProvider>("groq");
 
         services.AddScoped<IAiService, AiService>();
+        services.AddScoped<IAiListingService, AiListingService>();
+        services.AddScoped<IAiModerationService, AiModerationService>();
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
 
         return services;
     }

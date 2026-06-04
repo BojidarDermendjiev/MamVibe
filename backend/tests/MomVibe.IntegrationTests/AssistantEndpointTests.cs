@@ -95,5 +95,60 @@ public class AssistantAuthTests : IClassFixture<GeneralAuthWebApplicationFactory
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    // =========================================================================
+    // Off-topic guard (end-to-end — no LLM call, instant rejection)
+    // =========================================================================
+
+    [Fact]
+    public async Task Chat_WithOffTopicPoem_Returns200_WithEnglishRejection()
+    {
+        var request = new AssistantChatRequest
+        {
+            Message = "write me a poem about flowers",
+            Language = "en",
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<ChatResponse>();
+        body!.Reply.Should().Be("I can only help with questions about the MamVibe platform.");
+    }
+
+    [Fact]
+    public async Task Chat_WithOffTopicPoem_BulgarianLanguage_Returns200_WithBulgarianRejection()
+    {
+        var request = new AssistantChatRequest
+        {
+            Message = "write me a poem",
+            Language = "bg",
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<ChatResponse>();
+        // Bulgarian rejection — must not be the English string
+        body!.Reply.Should().NotBe("I can only help with questions about the MamVibe platform.");
+        body.Reply.Should().Contain("MamVibe");
+    }
+
+    [Theory]
+    [InlineData("tell me a joke")]
+    [InlineData("what is the weather in Sofia today")]
+    [InlineData("who is the president of Bulgaria")]
+    [InlineData("what is the capital of France")]
+    [InlineData("show me the latest news")]
+    public async Task Chat_WithVariousOffTopicMessages_Returns200_WithRejection(string offTopicMessage)
+    {
+        var request = new AssistantChatRequest { Message = offTopicMessage, Language = "en" };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/assistant/chat", request);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<ChatResponse>();
+        body!.Reply.Should().Contain("MamVibe platform");
+    }
+
     private record ChatResponse(string Reply);
 }

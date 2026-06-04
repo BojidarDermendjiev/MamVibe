@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using NpgsqlTypes;
 
 using Domain.Entities;
 using Application.Interfaces;
@@ -88,10 +89,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     /// <inheritdoc/>
+    public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        Seed.KnowledgeArticleSeed.Seed(builder);
+
+        // Postgres-only: stored generated tsvector column + GIN index for full-text search.
+        // 'simple' config lowercases without stemming, which works for both EN and BG.
+        // Skipped on InMemory/SQLite providers so unit tests build the model without errors.
+        if (Database.IsNpgsql())
+        {
+            builder.Entity<KnowledgeArticle>()
+                .Property<NpgsqlTsVector>("SearchVector")
+                .HasComputedColumnSql(
+                    "to_tsvector('simple', coalesce(\"Title\",'') || ' ' || coalesce(\"Content\",''))",
+                    stored: true);
+
+            builder.Entity<KnowledgeArticle>()
+                .HasIndex("SearchVector")
+                .HasMethod("GIN");
+        }
     }
 
     /// <summary>

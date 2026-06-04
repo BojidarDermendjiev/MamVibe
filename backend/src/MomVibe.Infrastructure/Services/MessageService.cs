@@ -24,6 +24,7 @@ public class MessageService : IMessageService
     private readonly N8nSettings _n8nSettings;
     private readonly UserPresenceTracker _presenceTracker;
     private readonly IAiService _aiService;
+    private readonly IKnowledgeService _knowledge;
     private readonly ILogger<MessageService> _logger;
 
     public MessageService(
@@ -33,6 +34,7 @@ public class MessageService : IMessageService
         IOptions<N8nSettings> n8nSettings,
         UserPresenceTracker presenceTracker,
         IAiService aiService,
+        IKnowledgeService knowledge,
         ILogger<MessageService> logger)
     {
         this._context = context;
@@ -41,6 +43,7 @@ public class MessageService : IMessageService
         this._n8nSettings = n8nSettings.Value;
         this._presenceTracker = presenceTracker;
         this._aiService = aiService;
+        this._knowledge = knowledge;
         this._logger = logger;
     }
 
@@ -228,7 +231,7 @@ public class MessageService : IMessageService
             ))
             .ToList<(string role, string content)>();
 
-        const string systemPrompt = """
+        const string baseSystemPrompt = """
             You are MamVibe Assistant, a helpful AI for the MamVibe marketplace — a Bulgarian platform
             for buying and selling second-hand baby and children's items.
 
@@ -245,6 +248,12 @@ public class MessageService : IMessageService
             Never guarantee the safety of any item or fabricate specific product facts.
             Do NOT use markdown formatting (no asterisks, no bold, no bullet dashes) — plain text only.
             """;
+
+        var articles = await this._knowledge.SearchAsync(userMessage, "en");
+        var contextBlock = articles.Count > 0
+            ? "<context>\n" + string.Join("\n---\n", articles.Select(a => $"{a.Title}\n{a.Content}")) + "\n</context>\n\n"
+            : string.Empty;
+        var systemPrompt = contextBlock + baseSystemPrompt;
 
         string responseText;
         try

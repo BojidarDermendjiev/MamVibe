@@ -27,7 +27,7 @@ public class ItemsController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
-    private readonly IAiService _aiService;
+    private readonly IAiListingService _aiListingService;
     private readonly IOutputCacheStore _cacheStore;
 
     public ItemsController(
@@ -35,14 +35,14 @@ public class ItemsController : ControllerBase
         ICurrentUserService currentUserService,
         IValidator<CreateItemDto> createItemValidator,
         IValidator<UpdateItemDto> updateItemValidator,
-        IAiService aiService,
+        IAiListingService aiListingService,
         IOutputCacheStore cacheStore)
     {
         this._itemService = itemService;
         this._currentUserService = currentUserService;
         this._createItemValidator = createItemValidator;
         this._updateItemValidator = updateItemValidator;
-        this._aiService = aiService;
+        this._aiListingService = aiListingService;
         this._cacheStore = cacheStore;
     }
 
@@ -140,7 +140,7 @@ public class ItemsController : ControllerBase
 
         try
         {
-            var suggestion = await this._aiService.SuggestListingAsync(photo);
+            var suggestion = await this._aiListingService.SuggestListingAsync(photo);
             return Ok(suggestion);
         }
         catch (InvalidOperationException ex)
