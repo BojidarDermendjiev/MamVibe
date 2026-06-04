@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import {
   mockCategories,
-  mockEmptyItemsPage,
+  mockEmptyItemsPage as _mockEmptyItemsPage,
   mockItemsPage,
   mockLoginResponse,
   mockSellItem,
@@ -97,7 +97,7 @@ export async function mockDashboardApis(page: Page) {
 export async function mockTurnstile(page: Page) {
   await page.route('**challenges.cloudflare.com**', (route) => route.abort());
   await page.addInitScript(() => {
-    (window as any).turnstile = {
+    (window as Window & { turnstile?: unknown }).turnstile = {
       render: (_container: unknown, options: Record<string, unknown>) => {
         // Call the success callback asynchronously so React state has time to update
         setTimeout(() => {
