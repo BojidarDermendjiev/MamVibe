@@ -1,11 +1,12 @@
 namespace MomVibe.Infrastructure.Services;
 
-using System.Text;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Application.DTOs.Items;
@@ -13,29 +14,25 @@ using Application.Interfaces;
 using Infrastructure.Configuration;
 using Domain.Enums;
 
-/// <summary>
-/// Runs AI-powered content moderation on new listings using the Anthropic Claude API.
-/// Supports both text-only and multimodal (photo + text) moderation.
-/// </summary>
 public class AiModerationService : IAiModerationService
 {
     private readonly AnthropicSettings _settings;
     private readonly IApplicationDbContext _context;
-    private readonly HttpClient _httpClient;
+    private readonly IChatClient _chatClient;
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _configuration;
 
     public AiModerationService(
         IOptions<AnthropicSettings> settings,
         IApplicationDbContext context,
-        IHttpClientFactory httpClientFactory,
+        [FromKeyedServices("anthropic-cached")] IChatClient chatClient,
         IWebHostEnvironment env,
         IConfiguration configuration)
     {
-        _settings     = settings.Value;
-        _context      = context;
-        _httpClient   = httpClientFactory.CreateClient("Anthropic");
-        _env          = env;
+        _settings      = settings.Value;
+        _context       = context;
+        _chatClient    = chatClient;
+        _env           = env;
         _configuration = configuration;
     }
 
@@ -94,48 +91,23 @@ public class AiModerationService : IAiModerationService
             - "spam" — duplicate listing or keyword stuffing
             """;
 
-        object messageContent;
+        var model   = await GetModelAsync();
+        var options = new ChatOptions { ModelId = model, MaxOutputTokens = 300 };
+
+        List<AIContent> parts = [];
         if (!string.IsNullOrEmpty(firstPhotoUrl))
         {
-            var photoBase64 = await FetchPhotoAsBase64Async(firstPhotoUrl);
-            if (photoBase64 != null)
-                messageContent = new object[]
-                {
-                    new { type = "image", source = new { type = "base64", media_type = "image/jpeg", data = photoBase64 } },
-                    new { type = "text", text = prompt }
-                };
-            else
-                messageContent = prompt;
+            var base64 = await FetchPhotoAsBase64Async(firstPhotoUrl);
+            if (base64 != null)
+                parts.Add(new DataContent(Convert.FromBase64String(base64), "image/jpeg"));
         }
-        else
-        {
-            messageContent = prompt;
-        }
+        parts.Add(new TextContent(prompt));
 
-        var requestBody = new
-        {
-            model      = await GetModelAsync(),
-            max_tokens = 300,
-            messages   = new[] { new { role = "user", content = messageContent } }
-        };
+        var result = await _chatClient.GetResponseAsync(
+            [new ChatMessage(ChatRole.User, parts)],
+            options);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
-        request.Headers.Add("x-api-key", _settings.ApiKey);
-        request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Content = new StringContent(
-            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
-        using var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        var text = doc.RootElement
-            .GetProperty("content")[0]
-            .GetProperty("text")
-            .GetString() ?? "{}";
-
-        return ParseModerationResult(ExtractJson(text));
+        return ParseModerationResult(ExtractJson(result.Text ?? "{}"));
     }
 
     private async Task<string?> FetchPhotoAsBase64Async(string url)

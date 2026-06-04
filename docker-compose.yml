@@ -6,8 +6,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-MamVibeDb}
       POSTGRES_USER: ${POSTGRES_USER:-mamvibe}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--set=password_encryption=md5"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mamvibe} -d ${POSTGRES_DB:-MamVibeDb}"]
       interval: 5s
@@ -145,18 +147,19 @@ services:
           memory: 300M
 
   pgbouncer:
-    image: bitnami/pgbouncer:latest
+    image: edoburu/pgbouncer:latest
     restart: unless-stopped
     environment:
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_DATABASE: ${POSTGRES_DB:-MamVibeDb}
-      POSTGRESQL_USERNAME: ${POSTGRES_USER:-mamvibe}
-      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      PGBOUNCER_PORT: 6432
-      PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_MAX_CLIENT_CONN: 500
-      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-MamVibeDb}
+      DB_USER: ${POSTGRES_USER:-mamvibe}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      LISTEN_PORT: 6432
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 500
+      DEFAULT_POOL_SIZE: 20
+      AUTH_TYPE: md5
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,10 +1,11 @@
 namespace MomVibe.Infrastructure.Services;
 
-using System.Text;
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Application.DTOs.Items;
@@ -12,15 +13,11 @@ using Application.Interfaces;
 using Infrastructure.Configuration;
 using Domain.Enums;
 
-/// <summary>
-/// Provides AI-assisted listing creation (photo-based suggestions) and price recommendations
-/// by calling the Anthropic Claude API.
-/// </summary>
 public class AiListingService : IAiListingService
 {
     private readonly AnthropicSettings _settings;
     private readonly IApplicationDbContext _context;
-    private readonly HttpClient _httpClient;
+    private readonly IChatClient _chatClient;
 
     private static readonly string[] AllowedContentTypes =
         ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -28,11 +25,11 @@ public class AiListingService : IAiListingService
     public AiListingService(
         IOptions<AnthropicSettings> settings,
         IApplicationDbContext context,
-        IHttpClientFactory httpClientFactory)
+        [FromKeyedServices("anthropic")] IChatClient chatClient)
     {
-        _settings = settings.Value;
-        _context  = context;
-        _httpClient = httpClientFactory.CreateClient("Anthropic");
+        _settings   = settings.Value;
+        _context    = context;
+        _chatClient = chatClient;
     }
 
     private async Task<string> GetModelAsync()
@@ -73,44 +70,18 @@ public class AiListingService : IAiListingService
 
         using var ms = new MemoryStream();
         await photo.CopyToAsync(ms);
-        var base64    = Convert.ToBase64String(ms.ToArray());
-        var mediaType = ResolveMediaType(photo.ContentType);
+        var imageBytes = ms.ToArray();
+        var mediaType  = ResolveMediaType(photo.ContentType);
 
-        var requestBody = new
-        {
-            model      = await GetModelAsync(),
-            max_tokens = 500,
-            messages   = new[]
-            {
-                new
-                {
-                    role    = "user",
-                    content = new object[]
-                    {
-                        new { type = "image", source = new { type = "base64", media_type = mediaType, data = base64 } },
-                        new { type = "text",  text   = BuildSuggestPrompt(categorySlugs) }
-                    }
-                }
-            }
-        };
+        var model   = await GetModelAsync();
+        var options = new ChatOptions { ModelId = model, MaxOutputTokens = 500 };
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
-        request.Headers.Add("x-api-key", _settings.ApiKey);
-        request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Content = new StringContent(
-            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var result = await _chatClient.GetResponseAsync(
+            [new ChatMessage(ChatRole.User,
+                [new DataContent(imageBytes, mediaType), new TextContent(BuildSuggestPrompt(categorySlugs))])],
+            options);
 
-        using var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        var text = doc.RootElement
-            .GetProperty("content")[0]
-            .GetProperty("text")
-            .GetString() ?? "{}";
-
-        return ParseSuggestion(ExtractJson(text));
+        return ParseSuggestion(ExtractJson(result.Text ?? "{}"));
     }
 
     private static string BuildSuggestPrompt(IEnumerable<string> categorySlugs)
@@ -215,30 +186,14 @@ public class AiListingService : IAiListingService
             - reason: 1-2 sentences explaining the price, referencing comparable listings if available
             """;
 
-        var requestBody = new
-        {
-            model      = await GetModelAsync(),
-            max_tokens = 200,
-            messages   = new[] { new { role = "user", content = prompt } }
-        };
+        var model   = await GetModelAsync();
+        var options = new ChatOptions { ModelId = model, MaxOutputTokens = 200 };
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
-        request.Headers.Add("x-api-key", _settings.ApiKey);
-        request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Content = new StringContent(
-            JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var result = await _chatClient.GetResponseAsync(
+            [new ChatMessage(ChatRole.User, prompt)],
+            options);
 
-        using var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        var text = doc.RootElement
-            .GetProperty("content")[0]
-            .GetProperty("text")
-            .GetString() ?? "{}";
-
-        return ParsePriceSuggestion(ExtractJson(text), comparablePrices.Count);
+        return ParsePriceSuggestion(ExtractJson(result.Text ?? "{}"), comparablePrices.Count);
     }
 
     private static PriceSuggestionResultDto ParsePriceSuggestion(string json, int comparableCount)

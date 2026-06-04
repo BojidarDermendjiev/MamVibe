@@ -1,6 +1,7 @@
 namespace MomVibe.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -8,12 +9,6 @@ using Microsoft.Extensions.Options;
 using Application.Interfaces;
 using Infrastructure.Configuration;
 
-/// <summary>
-/// AI assistant chat service — delegates to the active ILlmChatProvider (Anthropic or Groq)
-/// selected via the AI:ChatProvider configuration key.
-/// Listing assistance and moderation live in <see cref="AiListingService"/> and
-/// <see cref="AiModerationService"/> respectively.
-/// </summary>
 public class AiService : IAiService
 {
     private readonly AnthropicSettings _settings;
@@ -59,7 +54,19 @@ public class AiService : IAiService
             ? (await GetSettingAsync("AI:GroqModel") ?? _groqSettings.Model)
             : await GetModelAsync();
 
-        var provider = _serviceProvider.GetRequiredKeyedService<ILlmChatProvider>(providerKey);
-        return await provider.ChatAsync(systemPrompt, history, model);
+        var client = _serviceProvider.GetRequiredKeyedService<IChatClient>(providerKey);
+
+        var messages = new List<ChatMessage>(history.Count + 1)
+        {
+            new ChatMessage(ChatRole.System, systemPrompt)
+        };
+        foreach (var (role, content) in history)
+        {
+            var chatRole = role == "assistant" ? ChatRole.Assistant : ChatRole.User;
+            messages.Add(new ChatMessage(chatRole, content));
+        }
+
+        var result = await client.GetResponseAsync(messages, new ChatOptions { ModelId = model });
+        return result.Text ?? string.Empty;
     }
 }

@@ -1,13 +1,19 @@
 namespace MomVibe.Infrastructure;
 
+using Anthropic.SDK;
+
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+
+using System.ClientModel;
 
 using Application.Interfaces;
 using Infrastructure.Services;
-using Infrastructure.Services.Chat;
 using Infrastructure.Persistence;
 using Infrastructure.Configuration;
 using Infrastructure.Services.Shipping;
@@ -147,12 +153,43 @@ public static class DependencyInjection
         services.Configure<AnthropicSettings>(configuration.GetSection("Anthropic"));
         services.Configure<GroqSettings>(configuration.GetSection("Groq"));
 
-        services.AddHttpClient("Anthropic");
-        services.AddHttpClient("Groq");
+        // Anthropic IChatClient — used by AiService + AiListingService
+        services.AddKeyedSingleton<IChatClient>("anthropic", (sp, _) =>
+        {
+            var s = sp.GetRequiredService<IOptions<AnthropicSettings>>().Value;
+            return new AnthropicClient(apiKeys: new APIAuthentication(s.ApiKey))
+                .Messages
+                .AsBuilder()
+                .UseOpenTelemetry(configure: b => b.EnableSensitiveData = false)
+                .Build();
+        });
 
-        // Keyed chat providers — select active one via AI:ChatProvider config key (default: "anthropic")
-        services.AddKeyedScoped<ILlmChatProvider, AnthropicChatProvider>("anthropic");
-        services.AddKeyedScoped<ILlmChatProvider, GroqChatProvider>("groq");
+        // Anthropic + Redis cache — used by AiModerationService
+        services.AddKeyedSingleton<IChatClient>("anthropic-cached", (sp, _) =>
+        {
+            var s     = sp.GetRequiredService<IOptions<AnthropicSettings>>().Value;
+            var cache = sp.GetRequiredService<IDistributedCache>();
+            return new AnthropicClient(apiKeys: new APIAuthentication(s.ApiKey))
+                .Messages
+                .AsBuilder()
+                .UseDistributedCache(cache)
+                .UseOpenTelemetry(configure: b => b.EnableSensitiveData = false)
+                .Build();
+        });
+
+        // Groq IChatClient — OpenAI-compatible endpoint
+        services.AddKeyedSingleton<IChatClient>("groq", (sp, _) =>
+        {
+            var s = sp.GetRequiredService<IOptions<GroqSettings>>().Value;
+            return new OpenAI.Chat.ChatClient(
+                    s.Model,
+                    new ApiKeyCredential(s.ApiKey),
+                    new OpenAI.OpenAIClientOptions { Endpoint = new Uri("https://api.groq.com/openai/v1") })
+                .AsIChatClient()
+                .AsBuilder()
+                .UseOpenTelemetry(configure: b => b.EnableSensitiveData = false)
+                .Build();
+        });
 
         services.AddScoped<IAiService, AiService>();
         services.AddScoped<IAiListingService, AiListingService>();
