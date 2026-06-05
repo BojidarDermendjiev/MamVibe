@@ -552,6 +552,72 @@ public class AuthServiceTests
             .WithMessage("Invalid reset request.");
     }
 
+    [Fact]
+    public async Task ResetPasswordAsync_Revokes_All_Sessions_On_Success()
+    {
+        await using var db = CreateDb();
+        var umMock = CreateUserManagerMock();
+        var user = new ApplicationUser
+        {
+            Id = "user-reset",
+            Email = "reset@test.com",
+            UserName = "reset@test.com",
+            DisplayName = "Reset User"
+        };
+
+        umMock.Setup(u => u.FindByEmailAsync("reset@test.com")).ReturnsAsync(user);
+        umMock.Setup(u => u.ResetPasswordAsync(user, "valid-token", "NewPass123!"))
+              .ReturnsAsync(IdentityResult.Success);
+
+        db.RefreshTokens.AddRange(
+            new RefreshToken { Token = "session-1", UserId = "user-reset", ExpiresAt = DateTime.UtcNow.AddDays(7) },
+            new RefreshToken { Token = "session-2", UserId = "user-reset", ExpiresAt = DateTime.UtcNow.AddDays(7) }
+        );
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db, umMock);
+        await svc.ResetPasswordAsync(new ResetPasswordDto
+        {
+            Email = "reset@test.com",
+            Token = "valid-token",
+            NewPassword = "NewPass123!",
+            ConfirmNewPassword = "NewPass123!"
+        });
+
+        var tokens = await db.RefreshTokens.Where(t => t.UserId == "user-reset").ToListAsync();
+        tokens.Should().AllSatisfy(t => t.RevokedAt.Should().NotBeNull(),
+            "all sessions must be invalidated after a password reset");
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_Email_Contains_Security_Alert_And_Expiry_Notice()
+    {
+        await using var db = CreateDb();
+        var umMock = CreateUserManagerMock();
+        var emailMock = new Mock<IEmailService>();
+        var user = new ApplicationUser
+        {
+            Id = "user-alert",
+            Email = "alert@test.com",
+            UserName = "alert@test.com",
+            DisplayName = "Alert User"
+        };
+
+        umMock.Setup(u => u.FindByEmailAsync("alert@test.com")).ReturnsAsync(user);
+        umMock.Setup(u => u.GeneratePasswordResetTokenAsync(user)).ReturnsAsync("alert-token");
+
+        var svc = CreateService(db, umMock, emailMock);
+        await svc.ForgotPasswordAsync("alert@test.com");
+
+        emailMock.Verify(e => e.SendEmailAsync(
+            "alert@test.com",
+            It.IsAny<string>(),
+            It.Is<string>(body =>
+                body.Contains("30 minutes") &&
+                body.Contains("did not request"))),
+            Times.Once);
+    }
+
     // =========================================================================
     // GetCurrentUserAsync
     // =========================================================================
