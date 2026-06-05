@@ -1,6 +1,5 @@
 namespace MomVibe.Domain.Entities;
 
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 using Common;
@@ -12,10 +11,8 @@ using Constants;
 /// <remarks>
 /// - Inherits <see cref="BaseEntity"/> for identity and audit fields.
 /// - Validates URL and enforces non-negative display order.
-/// - Composite unique index on <c>(ItemId, DisplayOrder)</c> prevents duplicate positions per item.
+/// - Indexes and column comments are defined in the Infrastructure configuration class.
 /// </remarks>
-[Index(nameof(ItemId))]
-[Index(nameof(ItemId), nameof(DisplayOrder), IsUnique = true)]
 public class ItemPhoto : BaseEntity
 {
     /// <summary>
@@ -23,20 +20,17 @@ public class ItemPhoto : BaseEntity
     /// </summary>
     [Required]
     [MaxLength(ItemPhotoConstants.Lengths.UrlMax)]
-    [Comment(ItemPhotoConstants.Comments.Url)]
     public required string Url { get; set; }
 
     /// <summary>
     /// Foreign key referencing the owning item.
     /// </summary>
-    [Comment(ItemPhotoConstants.Comments.ItemId)]
     public Guid ItemId { get; set; }
 
     /// <summary>
     /// Zero-based display order among the item's photos.
     /// </summary>
     [Range(ItemPhotoConstants.Range.DisplayOrderMin, int.MaxValue)]
-    [Comment(ItemPhotoConstants.Comments.DisplayOrder)]
     public int DisplayOrder { get; set; } = ItemPhotoConstants.Defaults.DisplayOrder;
 
     /// <summary>

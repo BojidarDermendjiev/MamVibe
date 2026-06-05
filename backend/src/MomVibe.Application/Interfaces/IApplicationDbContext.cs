@@ -12,6 +12,9 @@ using Domain.Entities;
 /// </summary>
 public interface IApplicationDbContext
 {
+    /// <summary>Gets the set of registered application users.</summary>
+    DbSet<ApplicationUser> Users { get; }
+
     /// <summary>Gets the set of marketplace items.</summary>
     DbSet<Item> Items { get; }
 

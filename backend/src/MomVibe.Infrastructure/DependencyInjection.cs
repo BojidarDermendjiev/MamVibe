@@ -88,7 +88,7 @@ public static class DependencyInjection
 
         // Take a NAP: Digital receipts
         services.Configure<TakeANapSettings>(configuration.GetSection("TakeANap"));
-        services.AddHttpClient("TakeANap");
+        services.AddHttpClient("TakeANap").AddStandardResilienceHandler();
         services.AddScoped<ITakeANapService, TakeANapService>();
 
         // Shipping: Econt + Speedy + BoxNow + PigeonExpress courier integrations
@@ -98,10 +98,10 @@ public static class DependencyInjection
         services.Configure<BoxNowSettings>(configuration.GetSection("BoxNow"));
         services.Configure<PigeonExpressSettings>(configuration.GetSection("PigeonExpress"));
 
-        services.AddHttpClient("Econt");
-        services.AddHttpClient("Speedy");
-        services.AddHttpClient("BoxNow");
-        services.AddHttpClient("PigeonExpress");
+        services.AddHttpClient("Econt").AddStandardResilienceHandler();
+        services.AddHttpClient("Speedy").AddStandardResilienceHandler();
+        services.AddHttpClient("BoxNow").AddStandardResilienceHandler();
+        services.AddHttpClient("PigeonExpress").AddStandardResilienceHandler();
 
         services.AddScoped<ICourierProvider, EcontCourierProvider>();
         services.AddScoped<ICourierProvider, SpeedyCourierProvider>();
@@ -115,7 +115,7 @@ public static class DependencyInjection
         services.AddHttpClient("Nekorekten", client =>
         {
             client.Timeout = TimeSpan.FromSeconds(5);
-        });
+        }).AddStandardResilienceHandler();
         services.AddScoped<INekorektenService, NekorektenService>();
 
         // n8n Webhook integration

@@ -16,6 +16,7 @@ public class ItemPhotoConfiguration : IEntityTypeConfiguration<ItemPhoto>
         builder.Property(p => p.Url).HasMaxLength(500).IsRequired();
 
         builder.HasIndex(p => p.ItemId);
+        builder.HasIndex(p => new { p.ItemId, p.DisplayOrder }).IsUnique();
 
         builder.HasOne(p => p.Item)
             .WithMany(i => i.Photos)

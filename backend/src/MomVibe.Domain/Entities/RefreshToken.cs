@@ -1,6 +1,5 @@
 namespace MomVibe.Domain.Entities;
 
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,14 +13,9 @@ using Constants;
 /// <remarks>
 /// - Inherits <see cref="BaseEntity"/> for identity and audit fields.
 /// - Validation attributes use centralized constants for consistency.
-/// - EF Core <see cref="CommentAttribute"/> provides descriptive database column comments.
-/// - Indexes support common query patterns (by user, expiry, revocation).
 /// - Computed properties (<c>IsExpired</c>, <c>IsRevoked</c>, <c>IsActive</c>) are not mapped to the database.
+/// - Indexes and column comments are defined in the Infrastructure configuration class.
 /// </remarks>
-[Index(nameof(UserId))]
-[Index(nameof(ExpiresAt))]
-[Index(nameof(RevokedAt))]
-[Index(nameof(Token), IsUnique = true)]
 public class RefreshToken : BaseEntity
 {
     /// <summary>
@@ -29,33 +23,28 @@ public class RefreshToken : BaseEntity
     /// </summary>
     [Required]
     [MaxLength(RefreshTokenConstants.Lengths.TokenMax)]
-    [Comment(RefreshTokenConstants.Comments.Token)]
     public required string Token { get; set; }
 
     /// <summary>
     /// Identifier of the user to whom the token belongs (FK to ApplicationUser.Id).
     /// </summary>
     [Required]
-    [Comment(RefreshTokenConstants.Comments.UserId)]
     public required string UserId { get; set; }
 
     /// <summary>
     /// UTC timestamp when the token expires.
     /// </summary>
-    [Comment(RefreshTokenConstants.Comments.ExpiresAt)]
     public DateTime ExpiresAt { get; set; }
 
     /// <summary>
     /// UTC timestamp when the token was revoked; null if still valid.
     /// </summary>
-    [Comment(RefreshTokenConstants.Comments.RevokedAt)]
     public DateTime? RevokedAt { get; set; }
 
     /// <summary>
     /// Token that replaced this one in a rotation flow; null if not replaced.
     /// </summary>
     [MaxLength(RefreshTokenConstants.Lengths.ReplacedByTokenMax)]
-    [Comment(RefreshTokenConstants.Comments.ReplacedByToken)]
     public string? ReplacedByToken { get; set; }
 
     /// <summary>

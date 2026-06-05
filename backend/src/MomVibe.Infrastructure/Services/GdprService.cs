@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Application.Interfaces;
-using Infrastructure.Persistence;
 
 /// <summary>
 /// Implements GDPR Article 17 (erasure) and Article 20 (data portability) obligations.
@@ -13,11 +12,11 @@ using Infrastructure.Persistence;
 /// </summary>
 public class GdprService : IGdprService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IApplicationDbContext _db;
     private readonly IPhotoService _photoService;
     private readonly ILogger<GdprService> _logger;
 
-    public GdprService(ApplicationDbContext db, IPhotoService photoService, ILogger<GdprService> logger)
+    public GdprService(IApplicationDbContext db, IPhotoService photoService, ILogger<GdprService> logger)
     {
         _db = db;
         _photoService = photoService;

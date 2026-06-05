@@ -22,6 +22,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasIndex(p => p.SellerId);
         builder.HasIndex(p => p.Status);
         builder.HasIndex(p => p.CreatedAt);
+        builder.HasIndex(p => p.IdempotencyKey).IsUnique().HasFilter(@"""IdempotencyKey"" IS NOT NULL");
         builder.HasIndex(p => new { p.BuyerId, p.Status });
         builder.HasIndex(p => new { p.SellerId, p.Status });
 

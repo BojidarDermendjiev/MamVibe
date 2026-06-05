@@ -81,20 +81,27 @@ public sealed class OutboxProcessor : BackgroundService
             .GetServices<IOutboxMessageDispatcher>()
             .ToDictionary(d => d.MessageType, StringComparer.Ordinal);
 
+        // Use an explicit transaction so the FOR UPDATE SKIP LOCKED row lock is held
+        // for the entire fetch-process-save unit of work. Concurrent pods will skip
+        // locked rows instead of racing to pick up the same messages.
+        await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+
         var now = DateTime.UtcNow;
         var pending = await context.OutboxMessages
-            .Where(m => m.ProcessedAt == null
-                     && m.NextAttemptAt <= now
-                     && m.AttemptCount < MaxAttempts)
-            .OrderBy(m => m.NextAttemptAt)
-            .Take(BatchSize)
+            .FromSqlRaw(
+                @"SELECT * FROM ""OutboxMessages"" WHERE ""ProcessedAt"" IS NULL AND ""NextAttemptAt"" <= {0} AND ""AttemptCount"" < {1} ORDER BY ""NextAttemptAt"" LIMIT 50 FOR UPDATE SKIP LOCKED",
+                now, MaxAttempts)
             .ToListAsync(stoppingToken);
 
-        if (pending.Count == 0) return;
+        if (pending.Count == 0)
+        {
+            await transaction.RollbackAsync(stoppingToken);
+            return;
+        }
 
         foreach (var message in pending)
         {
-            if (stoppingToken.IsCancellationRequested) return;
+            if (stoppingToken.IsCancellationRequested) break;
 
             if (!dispatchers.TryGetValue(message.MessageType, out var dispatcher))
             {
@@ -123,6 +130,7 @@ public sealed class OutboxProcessor : BackgroundService
         }
 
         await context.SaveChangesAsync(stoppingToken);
+        await transaction.CommitAsync(stoppingToken);
     }
 
     private static string Truncate(string s, int max) => s.Length <= max ? s : s[..max];

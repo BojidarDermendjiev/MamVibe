@@ -1,7 +1,6 @@
 namespace MomVibe.Domain.Entities;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 using Enums;
@@ -17,41 +16,41 @@ public class ApplicationUser : IdentityUser
     [Required]
     [MinLength(ApplicationUserConstants.Lengths.DisplayNameMin)]
     [MaxLength(ApplicationUserConstants.Lengths.DisplayNameMax)]
-    [Comment(ApplicationUserConstants.Comments.DisplayName)]
+
     public required string DisplayName { get; set; }
 
     /// <summary>Gets or sets the profile type that describes the user's primary role (e.g., parent, professional).</summary>
-    [Comment(ApplicationUserConstants.Comments.ProfileType)]
+
     public ProfileType ProfileType { get; set; }
 
     /// <summary>Gets or sets the URL of the user's profile avatar image.</summary>
     [Url]
     [MaxLength(ApplicationUserConstants.Lengths.AvatarUrlMax)]
-    [Comment(ApplicationUserConstants.Comments.AvatarUrl)]
+
     public string? AvatarUrl { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the user has been blocked by an administrator.</summary>
-    [Comment(ApplicationUserConstants.Comments.IsBlocked)]
+
     public bool IsBlocked { get; set; }
 
     /// <summary>Gets or sets a short biography or description written by the user.</summary>
     [MaxLength(ApplicationUserConstants.Lengths.BioMax)]
-    [Comment(ApplicationUserConstants.Comments.Bio)]
+
     public string? Bio { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the BCP-47 language code representing the user's preferred UI language (e.g., "en", "bg").</summary>
     [Required]
     [MaxLength(ApplicationUserConstants.Lengths.LanguageCodeMax)]
-    [Comment(ApplicationUserConstants.Comments.LanguagePreference)]
+
     public string LanguagePreference { get; set; } = "en";
 
     /// <summary>Gets or sets the UTC date and time when the user account was created.</summary>
-    [Comment(ApplicationUserConstants.Comments.CreatedAt)]
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>Gets or sets the user's Revolut payment tag used for peer-to-peer payments.</summary>
     [MaxLength(ApplicationUserConstants.Lengths.RevolutTagMax)]
-    [Comment(ApplicationUserConstants.Comments.RevolutTag)]
+
     public string? RevolutTag { get; set; }
 
     /// <summary>Gets or sets the Expo push notification token for sending mobile push notifications.</summary>

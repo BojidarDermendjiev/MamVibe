@@ -20,6 +20,8 @@ public class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
 
         builder.HasIndex(s => s.PaymentId);
         builder.HasIndex(s => s.Status);
+        builder.HasIndex(s => s.CourierProvider);
+        builder.HasIndex(s => s.TrackingNumber);
         builder.HasIndex(s => s.CreatedAt);
 
         builder.HasOne(s => s.Payment)

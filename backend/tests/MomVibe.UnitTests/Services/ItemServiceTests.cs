@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
@@ -24,6 +25,9 @@ namespace MomVibe.UnitTests.Services;
 /// Follows the known bug pattern: always seed ApplicationUser before Items that reference it.
 /// TransactionIgnoredWarning is suppressed because InMemory does not support real transactions
 /// but the service code uses BeginTransactionAsync inside ToggleLikeAsync.
+///
+/// Tests that require ExecuteUpdateAsync (which is not supported by InMemory) use
+/// CreateSqliteDb() instead.
 /// </summary>
 public class ItemServiceTests
 {
@@ -38,6 +42,102 @@ public class ItemServiceTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         return new ApplicationDbContext(options);
+    }
+
+    /// <summary>
+    /// Creates a SQLite in-memory database for tests that require relational SQL features
+    /// (e.g. ExecuteUpdateAsync). The connection is kept open for the lifetime of the context.
+    /// Schema is created via raw DDL to avoid PostgreSQL-specific SQL in entity configurations.
+    /// </summary>
+    private static ApplicationDbContext CreateSqliteDb()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        var db = new ApplicationDbContext(options);
+
+        // Use ExecuteSqlRaw to create only the tables needed by IncrementViewCountAsync tests
+        // rather than calling EnsureCreated(), which fails on PostgreSQL-specific SQL in the schema
+        // (e.g. HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'")).
+        db.Database.ExecuteSqlRaw(@"
+            CREATE TABLE IF NOT EXISTS ""Categories"" (
+                ""Id"" TEXT NOT NULL PRIMARY KEY,
+                ""Name"" TEXT NOT NULL,
+                ""Slug"" TEXT NOT NULL,
+                ""Description"" TEXT NULL,
+                ""CreatedAt"" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" TEXT NULL
+            );
+            CREATE TABLE IF NOT EXISTS ""AspNetUsers"" (
+                ""Id"" TEXT NOT NULL PRIMARY KEY,
+                ""UserName"" TEXT NULL,
+                ""NormalizedUserName"" TEXT NULL,
+                ""Email"" TEXT NULL,
+                ""NormalizedEmail"" TEXT NULL,
+                ""EmailConfirmed"" INTEGER NOT NULL DEFAULT 0,
+                ""PasswordHash"" TEXT NULL,
+                ""SecurityStamp"" TEXT NULL,
+                ""ConcurrencyStamp"" TEXT NULL,
+                ""PhoneNumber"" TEXT NULL,
+                ""PhoneNumberConfirmed"" INTEGER NOT NULL DEFAULT 0,
+                ""TwoFactorEnabled"" INTEGER NOT NULL DEFAULT 0,
+                ""LockoutEnd"" TEXT NULL,
+                ""LockoutEnabled"" INTEGER NOT NULL DEFAULT 0,
+                ""AccessFailedCount"" INTEGER NOT NULL DEFAULT 0,
+                ""DisplayName"" TEXT NOT NULL DEFAULT '',
+                ""ProfileType"" INTEGER NOT NULL DEFAULT 0,
+                ""AvatarUrl"" TEXT NULL,
+                ""IsBlocked"" INTEGER NOT NULL DEFAULT 0,
+                ""Bio"" TEXT NULL DEFAULT '',
+                ""LanguagePreference"" TEXT NOT NULL DEFAULT 'en',
+                ""CreatedAt"" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" TEXT NULL,
+                ""RevolutTag"" TEXT NULL,
+                ""ExpoPushToken"" TEXT NULL,
+                ""IsOnHoliday"" INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS ""Items"" (
+                ""Id"" TEXT NOT NULL PRIMARY KEY,
+                ""Title"" TEXT NOT NULL,
+                ""Description"" TEXT NOT NULL,
+                ""CategoryId"" TEXT NOT NULL,
+                ""ListingType"" INTEGER NOT NULL DEFAULT 0,
+                ""AgeGroup"" INTEGER NULL,
+                ""ShoeSize"" INTEGER NULL,
+                ""ClothingSize"" INTEGER NULL,
+                ""Price"" NUMERIC NULL,
+                ""UserId"" TEXT NOT NULL,
+                ""IsActive"" INTEGER NOT NULL DEFAULT 1,
+                ""IsReserved"" INTEGER NOT NULL DEFAULT 0,
+                ""ViewCount"" INTEGER NOT NULL DEFAULT 0,
+                ""LikeCount"" INTEGER NOT NULL DEFAULT 0,
+                ""IsSold"" INTEGER NOT NULL DEFAULT 0,
+                ""BumpedAt"" TEXT NULL,
+                ""Condition"" INTEGER NOT NULL DEFAULT 0,
+                ""AiModerationStatus"" INTEGER NOT NULL DEFAULT 0,
+                ""AiModerationNotes"" TEXT NULL,
+                ""AiModerationScore"" REAL NULL,
+                ""CreatedAt"" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" TEXT NULL,
+                FOREIGN KEY (""UserId"") REFERENCES ""AspNetUsers""(""Id""),
+                FOREIGN KEY (""CategoryId"") REFERENCES ""Categories""(""Id"")
+            );
+            CREATE TABLE IF NOT EXISTS ""ItemPhotos"" (
+                ""Id"" TEXT NOT NULL PRIMARY KEY,
+                ""Url"" TEXT NOT NULL,
+                ""ItemId"" TEXT NOT NULL,
+                ""DisplayOrder"" INTEGER NOT NULL DEFAULT 0,
+                ""CreatedAt"" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" TEXT NULL,
+                FOREIGN KEY (""ItemId"") REFERENCES ""Items""(""Id"")
+            );
+        ");
+
+        return db;
     }
 
     private static IMapper CreateMapper()
@@ -492,21 +592,24 @@ public class ItemServiceTests
     [Fact]
     public async Task IncrementViewCountAsync_Increments_Counter_By_One()
     {
-        await using var db = CreateDb();
+        // ExecuteUpdateAsync requires a relational provider — use SQLite instead of InMemory.
+        await using var db = CreateSqliteDb();
         var item = await SeedItemAsync(db, userId: "seller-1");
         var initialCount = item.ViewCount;
 
         var svc = CreateService(db);
         await svc.IncrementViewCountAsync(item.Id);
 
-        var updated = await db.Items.FindAsync(item.Id);
+        // ExecuteUpdateAsync bypasses the change tracker; reload from DB.
+        var updated = await db.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == item.Id);
         updated!.ViewCount.Should().Be(initialCount + 1);
     }
 
     [Fact]
     public async Task IncrementViewCountAsync_Does_Not_Throw_For_Missing_Item()
     {
-        await using var db = CreateDb();
+        // ExecuteUpdateAsync on a non-existent row is a no-op — must not throw.
+        await using var db = CreateSqliteDb();
         var svc = CreateService(db);
 
         var act = async () => await svc.IncrementViewCountAsync(Guid.NewGuid());

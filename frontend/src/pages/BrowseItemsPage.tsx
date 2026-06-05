@@ -67,7 +67,7 @@ export default function BrowseItemsPage() {
   const { isAuthenticated } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const { items, totalPages, loading, filter, setFilter, searchTerm, setSearchTerm } = useItems({
+  const { items, totalPages, loading, error, filter, setFilter, searchTerm, setSearchTerm, refetch } = useItems({
     initialFilter: {
       categoryId: searchParams.get('category') || undefined,
       ageGroup: AGE_QUERY_MAP[searchParams.get('age') ?? ''],
@@ -156,7 +156,12 @@ export default function BrowseItemsPage() {
           </aside>
 
           <div className="flex-1">
-            {loading ? (
+            {error ? (
+              <div className="text-center py-16">
+                <p className="text-red-500 mb-4">{t('common.error_loading')}</p>
+                <button onClick={() => refetch()} className="text-primary underline">{t('common.retry')}</button>
+              </div>
+            ) : loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <SkeletonItemCard key={i} />

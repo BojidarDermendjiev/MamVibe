@@ -1,15 +1,11 @@
 namespace MomVibe.Domain.Entities;
 
-using Microsoft.EntityFrameworkCore;
-
 using Common;
 
 /// <summary>
 /// Join entity that links an individual <see cref="Item"/> to a <see cref="Bundle"/>.
 /// Each row represents one item slot within a bundle.
 /// </summary>
-[Index(nameof(BundleId))]
-[Index(nameof(ItemId))]
 public class BundleItem : BaseEntity
 {
     /// <summary>Foreign key referencing the owning bundle.</summary>

@@ -1,7 +1,6 @@
 namespace MomVibe.Domain.Entities;
 
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 
 using Common;
 
@@ -14,9 +13,9 @@ using Common;
 /// <remarks>
 /// Persisted in the same EF Core <c>SaveChangesAsync</c> as the originating state change,
 /// then drained by <c>OutboxProcessor</c> with retry + exponential backoff.
-/// The composite index on <c>(ProcessedAt, NextAttemptAt)</c> keeps the queue query cheap.
+/// The composite index on <c>(ProcessedAt, NextAttemptAt)</c> is defined in the
+/// Infrastructure configuration class.
 /// </remarks>
-[Index(nameof(ProcessedAt), nameof(NextAttemptAt))]
 public class OutboxMessage : BaseEntity
 {
     /// <summary>

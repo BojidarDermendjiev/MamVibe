@@ -25,6 +25,8 @@ public class LikeConfiguration : IEntityTypeConfiguration<Like>
     /// <param name="builder">The entity type builder for <see cref="Like"/>.</param>
     public void Configure(EntityTypeBuilder<Like> builder)
     {
+        builder.HasIndex(l => l.UserId);
+        builder.HasIndex(l => l.ItemId);
         builder.HasIndex(l => new { l.UserId, l.ItemId }).IsUnique();
 
         builder.HasOne(l => l.User)

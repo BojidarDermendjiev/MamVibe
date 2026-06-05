@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
 import { useSignalR } from './SignalRContext';
 import { useAuthStore } from '../store/authStore';
@@ -24,6 +25,7 @@ const NotificationContext = createContext<NotificationContextValue>({
 });
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
+  const { t: translate } = useTranslation();
   const { isAuthenticated, isLoading, user } = useAuthStore();
   const { onMessage, onPurchaseRequest, onSellerShipmentReady, onShipmentStatusChanged, onPriceDrop } = useSignalR();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -99,7 +101,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       toast(
         (t) => (
           <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-[#945c67] min-w-[280px] max-w-[380px]">
-            <p className="font-semibold text-primary">🖨️ Waybill ready to print!</p>
+            <p className="font-semibold text-primary">🖨️ {translate('notifications.waybill_ready')}</p>
             <p className="text-sm text-gray-600">
               {shipment.itemTitle && <span>"{shipment.itemTitle}" via {courier}</span>}
               {shipment.trackingNumber && <span> · #{shipment.trackingNumber}</span>}
@@ -132,7 +134,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       toast(
         (t) => (
           <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-emerald-400 min-w-[280px] max-w-[380px]">
-            <p className="font-semibold text-primary">🚚 Your order is on its way!</p>
+            <p className="font-semibold text-primary">🚚 {translate('notifications.order_shipped')}</p>
             <p className="text-sm text-gray-600">
               {shipment.itemTitle && <span>"{shipment.itemTitle}" </span>}
               is being shipped via {courier}.
@@ -162,7 +164,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       toast(
         (t) => (
           <div className="flex flex-col gap-1 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3.5 shadow-xl border border-gray-100 dark:border-white/10 border-l-4 border-l-rose-400 min-w-[280px] max-w-[380px]">
-            <p className="font-semibold text-primary">Price dropped!</p>
+            <p className="font-semibold text-primary">{translate('notifications.price_dropped')}</p>
             <p className="text-sm text-gray-600">
               <span className="font-medium">"{notification.itemTitle}"</span>
               {' '}dropped from{' '}

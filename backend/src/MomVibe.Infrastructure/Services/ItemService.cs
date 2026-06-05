@@ -334,12 +334,9 @@ public class ItemService : IItemService
 
     public async Task IncrementViewCountAsync(Guid id)
     {
-        var item = await this._context.Items.FindAsync(id);
-        if (item != null)
-        {
-            item.ViewCount++;
-            await this._context.SaveChangesAsync();
-        }
+        await this._context.Items
+            .Where(i => i.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.ViewCount, i => i.ViewCount + 1));
     }
 
     public async Task<bool> ToggleLikeAsync(Guid itemId, string userId)

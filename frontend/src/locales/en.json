@@ -495,7 +495,9 @@
     "male": "Dad",
     "female": "Mom",
     "family": "Family",
-    "sending": "Sending…"
+    "sending": "Sending…",
+    "error_loading": "Something went wrong. Please try again.",
+    "retry": "Retry"
   },
   "feedback": {
     "title": "Platform Feedback",
@@ -814,6 +816,11 @@
     "together_item2": "Share baby items",
     "together_item3": "Build a kinder community",
     "together_note": "Every little bit creates a big change! 🤍"
+  },
+  "notifications": {
+    "waybill_ready": "Waybill ready to print!",
+    "order_shipped": "Your order is on its way!",
+    "price_dropped": "Price dropped!"
   },
   "rating": {
     "rate_seller": "Rate Seller",

@@ -65,7 +65,10 @@ public class AiServiceTests
             .AddInMemoryCollection(new Dictionary<string, string?> { { "R2:PublicUrl", "https://r2.example.com" } })
             .Build();
 
-        return (new AiModerationService(settings, db, clientMock.Object, envMock.Object, config), clientMock);
+        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
+        httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+
+        return (new AiModerationService(settings, db, clientMock.Object, envMock.Object, config, httpClientFactoryMock.Object), clientMock);
     }
 
     private static AiService CreateService(string replyText, ApplicationDbContext? db = null)

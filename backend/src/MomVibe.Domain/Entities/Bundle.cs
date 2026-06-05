@@ -3,15 +3,12 @@ namespace MomVibe.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Microsoft.EntityFrameworkCore;
-
 using Common;
 
 /// <summary>
 /// Represents a seller-curated group of 2–10 active items offered together at a discounted bundle price.
 /// Buyers can send a purchase request for the bundle; when payment completes all member items are marked sold.
 /// </summary>
-[Index(nameof(SellerId))]
 public class Bundle : BaseEntity
 {
     /// <summary>Human-readable bundle title shown to buyers.</summary>
@@ -23,7 +20,6 @@ public class Bundle : BaseEntity
     public string? Description { get; set; }
 
     /// <summary>Discounted price for the entire bundle in the platform currency.</summary>
-    [Precision(18, 2)]
     public decimal Price { get; set; }
 
     /// <summary>Identity of the seller who created this bundle (FK to ApplicationUser).</summary>

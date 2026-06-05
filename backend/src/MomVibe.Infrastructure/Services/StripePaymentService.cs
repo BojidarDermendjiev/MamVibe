@@ -89,6 +89,8 @@ public class StripePaymentService : IStripePaymentService
         if (item == null) throw new KeyNotFoundException("Item not found.");
         if (item.ListingType != ListingType.Sell)
             throw new InvalidOperationException("This item is not for sale.");
+        if (item.UserId == buyerId)
+            throw new InvalidOperationException("You cannot purchase your own item.");
 
         if (!IsStripeConfigured())
         {
@@ -472,12 +474,14 @@ public class StripePaymentService : IStripePaymentService
 
     public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, string? idempotencyKey = null)
     {
-        if (!IsStripeConfigured()) return "test_simulated_client_secret";
-
         var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
         if (item.ListingType != ListingType.Sell)
             throw new InvalidOperationException("This item is not for sale.");
+        if (item.UserId == buyerId)
+            throw new InvalidOperationException("You cannot purchase your own item.");
+
+        if (!IsStripeConfigured()) return "test_simulated_client_secret";
 
         var options = new PaymentIntentCreateOptions
         {

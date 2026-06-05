@@ -14,6 +14,7 @@ public class BundleConfiguration : IEntityTypeConfiguration<Bundle>
     public void Configure(EntityTypeBuilder<Bundle> builder)
     {
         builder.Property(b => b.Price).HasColumnType("numeric(18,2)");
+        builder.HasIndex(b => b.SellerId);
 
         builder.HasOne(b => b.Seller)
             .WithMany(u => u.Bundles)

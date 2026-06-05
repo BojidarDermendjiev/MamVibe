@@ -9,6 +9,8 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
     public void Configure(EntityTypeBuilder<Feedback> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => x.Category);
         builder.HasIndex(x => x.CreatedAt);
         builder.HasOne(x => x.User)
             .WithMany()

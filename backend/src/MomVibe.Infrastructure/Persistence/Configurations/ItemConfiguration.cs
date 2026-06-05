@@ -23,6 +23,8 @@ public class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.HasIndex(i => i.UserId);
         builder.HasIndex(i => i.CategoryId);
         builder.HasIndex(i => i.IsActive);
+        builder.HasIndex(i => i.IsReserved);
+        builder.HasIndex(i => i.ListingType);
         builder.HasIndex(i => i.CreatedAt);
         builder.HasIndex(i => new { i.IsActive, i.CreatedAt });
 

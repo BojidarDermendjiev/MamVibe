@@ -119,7 +119,6 @@ export default function ItemDetailPage() {
   // SEO: build Product + BreadcrumbList structured data from the loaded item.
   // Product schema enables Google rich results (price, availability) in SERPs.
   // BreadcrumbList enables the breadcrumb trail displayed under the title in SERPs.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const productSchema = useMemo(() => {
     if (!item) return undefined;
     const itemUrl = `https://mamvibe.com/items/${item.id}`;
@@ -205,16 +204,16 @@ export default function ItemDetailPage() {
     return [product, breadcrumb];
   }, [item, sellerRating]);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   usePageSEO({
-    title: item ? `${item.title} — ${item.categoryName}` : "Item Detail",
+    title: item?.title ? `${item.title} — ${item.categoryName}` : 'Loading...',
     description: item
       ? `${item.title} for ${item.price ? formatEur(item.price) : "free"} on MamVibe. ${item.description?.slice(0, 100) ?? ""}`
-      : "View this item on MamVibe.",
+      : '',
     canonical: item ? `https://mamvibe.com/items/${item.id}` : undefined,
     image: item?.photos?.[0]?.url,
     ogType: "product",
     structuredData: productSchema,
+    index: true,
   });
 
   if (loading) return <LoadingSpinner size="lg" className="py-20" />;

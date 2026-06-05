@@ -21,19 +21,22 @@ public class AiModerationService : IAiModerationService
     private readonly IChatClient _chatClient;
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AiModerationService(
         IOptions<AnthropicSettings> settings,
         IApplicationDbContext context,
         [FromKeyedServices("anthropic-cached")] IChatClient chatClient,
         IWebHostEnvironment env,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
-        _settings      = settings.Value;
-        _context       = context;
-        _chatClient    = chatClient;
-        _env           = env;
-        _configuration = configuration;
+        _settings          = settings.Value;
+        _context           = context;
+        _chatClient        = chatClient;
+        _env               = env;
+        _configuration     = configuration;
+        _httpClientFactory = httpClientFactory;
     }
 
     private async Task<string> GetModelAsync()
@@ -140,7 +143,8 @@ public class AiModerationService : IAiModerationService
                 if (!url.StartsWith(r2PublicUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
                     return null;
 
-                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                using var httpClient = _httpClientFactory.CreateClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(10);
                 var resp = await httpClient.GetAsync(url);
                 if (!resp.IsSuccessStatusCode) return null;
 

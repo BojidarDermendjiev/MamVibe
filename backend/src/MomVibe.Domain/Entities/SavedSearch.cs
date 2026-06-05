@@ -1,12 +1,10 @@
 namespace MomVibe.Domain.Entities;
 
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 
 using Common;
 using Enums;
 
-[Index(nameof(UserId))]
 public class SavedSearch : BaseEntity
 {
     [Required]

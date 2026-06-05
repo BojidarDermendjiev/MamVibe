@@ -10,6 +10,7 @@ public class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
     public void Configure(EntityTypeBuilder<SavedSearch> builder)
     {
         builder.Property(s => s.MaxPrice).HasColumnType("numeric(18,2)");
+        builder.HasIndex(s => s.UserId);
 
         builder.HasOne(s => s.User)
             .WithMany(u => u.SavedSearches)

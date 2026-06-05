@@ -18,6 +18,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.HasIndex(m => m.SenderId);
         builder.HasIndex(m => m.ReceiverId);
+        builder.HasIndex(m => m.IsRead);
         builder.HasIndex(m => m.CreatedAt);
         builder.HasIndex(m => new { m.SenderId, m.ReceiverId, m.CreatedAt });
         builder.HasIndex(m => new { m.ReceiverId, m.IsRead });

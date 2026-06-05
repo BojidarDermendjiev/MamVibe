@@ -249,10 +249,14 @@ export default function DashboardPage() {
 
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">{t('dashboard.title')}</h1>
 
-      <div className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit mx-auto">
+      <div role="tablist" className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit mx-auto">
         {tabs.map((t) => (
           <button
             key={t.key}
+            role="tab"
+            id={`tab-${t.key}`}
+            aria-selected={tab === t.key}
+            aria-controls={`panel-${t.key}`}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
               tab === t.key ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-lavender/20'
@@ -268,57 +272,64 @@ export default function DashboardPage() {
       ) : (
         <>
           {tab === 'listings' && (
-            myItems.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_listings')}</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {myItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleListingLikeToggle} onBump={handleBump} showStatus />)}
-              </div>
-            )
+            <div role="tabpanel" id="panel-listings" aria-labelledby="tab-listings">
+              {myItems.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_listings')}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {myItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleListingLikeToggle} onBump={handleBump} showStatus />)}
+                </div>
+              )}
+            </div>
           )}
           {tab === 'liked' && (
-            likedItems.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_liked')}</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {likedItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleLikedTabToggle} />)}
-              </div>
-            )
+            <div role="tabpanel" id="panel-liked" aria-labelledby="tab-liked">
+              {likedItems.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_liked')}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {likedItems.map((item) => <ItemCard key={item.id} item={item} onLikeToggle={handleLikedTabToggle} />)}
+                </div>
+              )}
+            </div>
           )}
           {tab === 'purchases' && (
-            payments.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_purchases')}</p>
-            ) : (
-              <div className="space-y-3">
-                {payments.map((p) => (
-                  <div key={p.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center justify-between hover:shadow-md transition-shadow duration-300">
-                    <div>
-                      <p className="font-medium text-primary">{p.itemTitle}</p>
-                      <p className="text-sm text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="font-bold text-mauve">{formatPrice(p.amount)}</p>
-                        <p className="text-xs text-gray-400 capitalize">
-                          {p.paymentMethod === PaymentMethod.Card ? 'Card'
-                            : p.paymentMethod === PaymentMethod.Booking ? 'Free'
-                            : 'On Spot'}
-                        </p>
+            <div role="tabpanel" id="panel-purchases" aria-labelledby="tab-purchases">
+              {payments.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_purchases')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {payments.map((p) => (
+                    <div key={p.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center justify-between hover:shadow-md transition-shadow duration-300">
+                      <div>
+                        <p className="font-medium text-primary">{p.itemTitle}</p>
+                        <p className="text-sm text-gray-400">{new Date(p.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="font-bold text-mauve">{formatPrice(p.amount)}</p>
+                          <p className="text-xs text-gray-400 capitalize">
+                            {p.paymentMethod === PaymentMethod.Card ? 'Card'
+                              : p.paymentMethod === PaymentMethod.Booking ? 'Free'
+                              : 'On Spot'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Incoming Requests (seller view) ── */}
           {tab === 'incoming-requests' && (
-            incomingRequests.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_incoming_requests')}</p>
-            ) : (
-              <div className="space-y-3">
-                {incomingRequests.map((r) => {
+            <div role="tabpanel" id="panel-incoming-requests" aria-labelledby="tab-incoming-requests">
+              {incomingRequests.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_incoming_requests')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {incomingRequests.map((r) => {
                   const { text, cls } = statusLabel(r.status);
                   return (
                     <div key={r.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
@@ -366,17 +377,19 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-              </div>
-            )
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Received Offers (seller view) ── */}
           {tab === 'received-offers' && (
-            receivedOffers.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_received_offers')}</p>
-            ) : (
-              <div className="space-y-3">
-                {receivedOffers.map((offer: Offer) => {
+            <div role="tabpanel" id="panel-received-offers" aria-labelledby="tab-received-offers">
+              {receivedOffers.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_received_offers')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {receivedOffers.map((offer: Offer) => {
                   const { text, cls } = offerStatusLabel(offer.status);
                   return (
                     <div key={offer.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
@@ -422,17 +435,19 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-              </div>
-            )
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Sent Offers (buyer view) ── */}
           {tab === 'sent-offers' && (
-            sentOffers.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_sent_offers')}</p>
-            ) : (
-              <div className="space-y-3">
-                {sentOffers.map((offer: Offer) => {
+            <div role="tabpanel" id="panel-sent-offers" aria-labelledby="tab-sent-offers">
+              {sentOffers.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_sent_offers')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {sentOffers.map((offer: Offer) => {
                   const { text, cls } = offerStatusLabel(offer.status);
                   return (
                     <div key={offer.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
@@ -466,152 +481,167 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-              </div>
-            )
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── My Shipments ── */}
-          {tab === 'shipments' && (() => {
-            const toSend = shipments.filter(s => s.isCurrentUserSeller);
-            const incoming = shipments.filter(s => !s.isCurrentUserSeller);
-            if (shipments.length === 0) {
-              return <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>;
-            }
-            return (
-              <div className="space-y-8">
-                {toSend.length > 0 && (
-                  <section>
-                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.to_send_section')}</h2>
-                    <div className="space-y-3">
-                      {toSend.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
-                    </div>
-                  </section>
-                )}
-                {incoming.length > 0 && (
-                  <section>
-                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.incoming_section')}</h2>
-                    <div className="space-y-3">
-                      {incoming.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
-                    </div>
-                  </section>
-                )}
-              </div>
-            );
-          })()}
+          {tab === 'shipments' && (
+            <div role="tabpanel" id="panel-shipments" aria-labelledby="tab-shipments">
+              {(() => {
+                const toSend = shipments.filter(s => s.isCurrentUserSeller);
+                const incoming = shipments.filter(s => !s.isCurrentUserSeller);
+                if (shipments.length === 0) {
+                  return <p className="text-center py-20 text-gray-400">{t('dashboard.no_shipments')}</p>;
+                }
+                return (
+                  <div className="space-y-8">
+                    {toSend.length > 0 && (
+                      <section>
+                        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.to_send_section')}</h2>
+                        <div className="space-y-3">
+                          {toSend.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
+                        </div>
+                      </section>
+                    )}
+                    {incoming.length > 0 && (
+                      <section>
+                        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('shipping.incoming_section')}</h2>
+                        <div className="space-y-3">
+                          {incoming.map((s) => <ShipmentCard key={s.id} shipment={s} />)}
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
 
           {/* ── E-Bills ── */}
           {tab === 'ebills' && (
-            ebills.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-400">{t('ebill.empty')}</p>
-                <p className="text-sm text-gray-300 mt-1">{t('ebill.empty_hint')}</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {ebills.map((bill) => <EBillCard key={bill.id} bill={bill} />)}
-              </div>
-            )
+            <div role="tabpanel" id="panel-ebills" aria-labelledby="tab-ebills">
+              {ebills.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-gray-400">{t('ebill.empty')}</p>
+                  <p className="text-sm text-gray-300 mt-1">{t('ebill.empty_hint')}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {ebills.map((bill) => <EBillCard key={bill.id} bill={bill} />)}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Following Feed ── */}
           {tab === 'following-feed' && (
-            followingFeed.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-gray-400">{t('dashboard.following_feed_empty')}</p>
-                <p className="text-sm text-gray-300 mt-1">{t('dashboard.following_feed_empty_hint')}</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {followingFeed.map((item) => (
-                  <ItemCard key={item.id} item={item} />
-                ))}
-              </div>
-            )
+            <div role="tabpanel" id="panel-following-feed" aria-labelledby="tab-following-feed">
+              {followingFeed.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-gray-400">{t('dashboard.following_feed_empty')}</p>
+                  <p className="text-sm text-gray-300 mt-1">{t('dashboard.following_feed_empty_hint')}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {followingFeed.map((item) => (
+                    <ItemCard key={item.id} item={item} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Following ── */}
           {tab === 'following' && (
-            following.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.following_empty')}</p>
-            ) : (
-              <div className="space-y-3">
-                {following.map((u) => (
-                  <div key={u.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
-                    <Avatar src={u.avatarUrl} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-primary">{u.displayName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {t('follow.follower_count', { count: u.followerCount })} · {t('follow.item_count', { count: u.itemCount })}
-                      </p>
+            <div role="tabpanel" id="panel-following" aria-labelledby="tab-following">
+              {following.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.following_empty')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {following.map((u) => (
+                    <div key={u.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
+                      <Avatar src={u.avatarUrl} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary">{u.displayName}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {t('follow.follower_count', { count: u.followerCount })} · {t('follow.item_count', { count: u.itemCount })}
+                        </p>
+                      </div>
+                      <Link
+                        to={`/profile/${u.id}`}
+                        className="text-xs text-mauve hover:underline flex-shrink-0"
+                      >
+                        {t('follow.view_profile')}
+                      </Link>
                     </div>
-                    <Link
-                      to={`/profile/${u.id}`}
-                      className="text-xs text-mauve hover:underline flex-shrink-0"
-                    >
-                      {t('follow.view_profile')}
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Followers ── */}
           {tab === 'followers' && (
-            followers.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.followers_empty')}</p>
-            ) : (
-              <div className="space-y-3">
-                {followers.map((u) => (
-                  <div key={u.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
-                    <Avatar src={u.avatarUrl} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-primary">{u.displayName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {t('follow.follower_count', { count: u.followerCount })} · {t('follow.item_count', { count: u.itemCount })}
-                      </p>
+            <div role="tabpanel" id="panel-followers" aria-labelledby="tab-followers">
+              {followers.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.followers_empty')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {followers.map((u) => (
+                    <div key={u.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
+                      <Avatar src={u.avatarUrl} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary">{u.displayName}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {t('follow.follower_count', { count: u.followerCount })} · {t('follow.item_count', { count: u.itemCount })}
+                        </p>
+                      </div>
+                      <Link
+                        to={`/profile/${u.id}`}
+                        className="text-xs text-mauve hover:underline flex-shrink-0"
+                      >
+                        {t('follow.view_profile')}
+                      </Link>
                     </div>
-                    <Link
-                      to={`/profile/${u.id}`}
-                      className="text-xs text-mauve hover:underline flex-shrink-0"
-                    >
-                      {t('follow.view_profile')}
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── Saved Searches ── */}
           {tab === 'saved-searches' && (
-            savedSearches.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.saved_searches_empty')}</p>
-            ) : (
-              <div className="space-y-3">
-                {savedSearches.map((s) => (
-                  <div key={s.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-primary">{s.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {[s.categoryName, s.searchTerm, s.maxPrice != null ? `≤ ${formatPrice(s.maxPrice)}` : null].filter(Boolean).join(' · ')}
-                      </p>
+            <div role="tabpanel" id="panel-saved-searches" aria-labelledby="tab-saved-searches">
+              {savedSearches.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.saved_searches_empty')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {savedSearches.map((s) => (
+                    <div key={s.id} className="bg-white dark:bg-[#2d2a42] rounded-xl p-4 border border-lavender/30 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-primary">{s.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {[s.categoryName, s.searchTerm, s.maxPrice != null ? `≤ ${formatPrice(s.maxPrice)}` : null].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteSavedSearch(s.id)}
+                        className="text-xs text-red-400 hover:text-red-600 flex-shrink-0 transition-colors"
+                      >
+                        {t('common.delete')}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleDeleteSavedSearch(s.id)}
-                      className="text-xs text-red-400 hover:text-red-600 flex-shrink-0 transition-colors"
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* ── My Bundles ── */}
           {tab === 'bundles' && (
-            <>
+            <div role="tabpanel" id="panel-bundles" aria-labelledby="tab-bundles">
               <div className="flex justify-end mb-4">
                 <button
                   onClick={() => setShowCreateBundle(true)}
@@ -654,66 +684,68 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* ── My Requests (buyer view) ── */}
           {tab === 'my-requests' && (
-            myRequests.length === 0 ? (
-              <p className="text-center py-20 text-gray-400">{t('dashboard.no_my_requests')}</p>
-            ) : (
-              <div className="space-y-3">
-                {myRequests.map((r) => {
-                  const { text, cls } = statusLabel(r.status);
-                  return (
-                    <div key={r.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                      {(r.itemPhotoUrl || r.bundlePhotoUrl) ? (
-                        <img src={r.itemPhotoUrl ?? r.bundlePhotoUrl ?? ''} alt={r.bundleTitle ?? r.itemTitle ?? ''} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-                      ) : (
-                        <div className="w-14 h-14 rounded-lg bg-lavender/20 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-primary truncate">{r.bundleTitle ?? r.itemTitle}</p>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                          {r.price != null && r.price > 0 ? formatPrice(r.price) : 'Free'}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{text}</span>
-                        {r.status === PurchaseRequestStatus.Accepted && (
-                          <Link
-                            to={r.bundleId ? `/payment/bundle/${r.bundleId}` : `/payment/${r.itemId}`}
-                            className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
-                          >
-                            {r.listingType === ListingType.Donate
-                              ? t('dashboard.req_complete_booking')
-                              : t('dashboard.req_complete_purchase')}
-                          </Link>
+            <div role="tabpanel" id="panel-my-requests" aria-labelledby="tab-my-requests">
+              {myRequests.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">{t('dashboard.no_my_requests')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {myRequests.map((r) => {
+                    const { text, cls } = statusLabel(r.status);
+                    return (
+                      <div key={r.id} className="bg-white rounded-xl p-4 border border-lavender/30 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
+                        {(r.itemPhotoUrl || r.bundlePhotoUrl) ? (
+                          <img src={r.itemPhotoUrl ?? r.bundlePhotoUrl ?? ''} alt={r.bundleTitle ?? r.itemTitle ?? ''} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-lg bg-lavender/20 flex-shrink-0" />
                         )}
-                        {r.status === PurchaseRequestStatus.Completed && (
-                          ratedRequestIds.has(r.id) ? (
-                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
-                              ⭐ {t('rating.rated')}
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => setRateModal({ requestId: r.id, sellerName: null })}
-                              className="px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors whitespace-nowrap"
-                              style={{ backgroundColor: '#945c67' }}
-                              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#7d4e58')}
-                              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#945c67')}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-primary truncate">{r.bundleTitle ?? r.itemTitle}</p>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            {r.price != null && r.price > 0 ? formatPrice(r.price) : 'Free'}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{text}</span>
+                          {r.status === PurchaseRequestStatus.Accepted && (
+                            <Link
+                              to={r.bundleId ? `/payment/bundle/${r.bundleId}` : `/payment/${r.itemId}`}
+                              className="px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors whitespace-nowrap"
                             >
-                              ⭐ {t('rating.rate_seller')}
-                            </button>
-                          )
-                        )}
+                              {r.listingType === ListingType.Donate
+                                ? t('dashboard.req_complete_booking')
+                                : t('dashboard.req_complete_purchase')}
+                            </Link>
+                          )}
+                          {r.status === PurchaseRequestStatus.Completed && (
+                            ratedRequestIds.has(r.id) ? (
+                              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg">
+                                ⭐ {t('rating.rated')}
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => setRateModal({ requestId: r.id, sellerName: null })}
+                                className="px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors whitespace-nowrap"
+                                style={{ backgroundColor: '#945c67' }}
+                                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#7d4e58')}
+                                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#945c67')}
+                              >
+                                ⭐ {t('rating.rate_seller')}
+                              </button>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
