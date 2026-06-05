@@ -25,6 +25,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           "error-callback"?: () => void;
+          "expired-callback"?: () => void;
           theme?: "light" | "dark" | "auto";
         },
       ) => string;

@@ -105,6 +105,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Password-reset tokens expire in 30 minutes — industry standard.
+// The default is 1 day, which leaves a long window for email interception.
+builder.Services.Configure<DataProtectionTokenProviderOptions>(o =>
+    o.TokenLifespan = TimeSpan.FromMinutes(30));
+
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
 {

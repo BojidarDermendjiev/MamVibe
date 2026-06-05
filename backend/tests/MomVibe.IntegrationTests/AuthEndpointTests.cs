@@ -29,7 +29,8 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             Password = "Password123!",
             ConfirmPassword = "Password123!",
             DisplayName = "Test User",
-            ProfileType = ProfileType.Female
+            ProfileType = ProfileType.Female,
+            TurnstileToken = "test-token"
         };
 
         var response = await _client.PostAsJsonAsync("/api/v1/auth/register", request);
@@ -52,7 +53,8 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             Password = "Password123!",
             ConfirmPassword = "Password123!",
             DisplayName = "Test User",
-            ProfileType = ProfileType.Male
+            ProfileType = ProfileType.Male,
+            TurnstileToken = "test-token"
         };
 
         await _client.PostAsJsonAsync("/api/v1/auth/register", request);
@@ -71,14 +73,16 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             Password = "Password123!",
             ConfirmPassword = "Password123!",
             DisplayName = "Login Test",
-            ProfileType = ProfileType.Family
+            ProfileType = ProfileType.Family,
+            TurnstileToken = "test-token"
         };
         await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
 
         var loginRequest = new LoginRequestDto
         {
             Email = email,
-            Password = "Password123!"
+            Password = "Password123!",
+            TurnstileToken = "test-token"
         };
         var response = await _client.PostAsJsonAsync("/api/v1/auth/login", loginRequest);
 
@@ -93,7 +97,8 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
         var request = new LoginRequestDto
         {
             Email = "nonexistent@example.com",
-            Password = "WrongPassword123!"
+            Password = "WrongPassword123!",
+            TurnstileToken = "test-token"
         };
 
         var response = await _client.PostAsJsonAsync("/api/v1/auth/login", request);
@@ -119,7 +124,8 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
             Password = "Password123!",
             ConfirmPassword = "Password123!",
             DisplayName = "Me Test",
-            ProfileType = ProfileType.Female
+            ProfileType = ProfileType.Female,
+            TurnstileToken = "test-token"
         };
         var registerResponse = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
         var authResult = await registerResponse.Content.ReadFromJsonAsync<WebAuthResponse>();

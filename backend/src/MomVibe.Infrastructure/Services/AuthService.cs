@@ -259,11 +259,12 @@ public class AuthService : IAuthService
         var resetLink = $"{frontendUrl}/reset-password?email={encodedEmail}&token={encodedToken}";
 
         var htmlBody = $@"
-            <h2>Password Reset</h2>
-            <p>You requested a password reset for your MomVibe account.</p>
-            <p>Click the link below to reset your password:</p>
-            <p><a href=""{resetLink}"">Reset Password</a></p>
-            <p>If you didn't request this, please ignore this email.</p>";
+            <h2>Password Reset Request</h2>
+            <p>Someone requested a password reset for your MamVibe account.</p>
+            <p><a href=""{resetLink}"">Click here to reset your password</a> — this link expires in <strong>30 minutes</strong>.</p>
+            <p><strong>If you did not request this reset, do not click the link.</strong>
+            It will expire automatically. As a precaution, consider changing your password
+            after logging in, and check whether anyone else has access to your email account.</p>";
 
         await this._emailService.SendEmailAsync(email, "MomVibe - Password Reset", htmlBody);
     }
@@ -279,6 +280,10 @@ public class AuthService : IAuthService
         var result = await this._userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
         if (!result.Succeeded)
             throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        // Invalidate all existing sessions so an attacker who triggered the reset
+        // cannot keep a previously stolen session alive after the owner resets.
+        await RevokeTokenAsync(user.Id);
     }
 
     /// <summary>

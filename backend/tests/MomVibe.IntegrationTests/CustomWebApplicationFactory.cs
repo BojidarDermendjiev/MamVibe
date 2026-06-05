@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using MomVibe.Application.Interfaces;
 using MomVibe.IntegrationTests.Infrastructure;
 using MomVibe.Infrastructure.Persistence;
 
@@ -59,5 +60,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<StartUp>
         });
 
         builder.UseEnvironment("Development");
+
+        builder.ConfigureServices(services =>
+        {
+            var existing = services.SingleOrDefault(d => d.ServiceType == typeof(ITurnstileService));
+            if (existing != null) services.Remove(existing);
+            services.AddSingleton<ITurnstileService, AlwaysValidTurnstileService>();
+        });
+    }
+
+    private sealed class AlwaysValidTurnstileService : ITurnstileService
+    {
+        public Task<bool> VerifyAsync(string token, string ip) => Task.FromResult(true);
+        public Task<bool> VerifyTokenAsync(string token) => Task.FromResult(true);
     }
 }

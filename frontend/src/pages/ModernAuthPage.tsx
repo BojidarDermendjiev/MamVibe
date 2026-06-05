@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
@@ -9,6 +9,7 @@ import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
+import TurnstileWidget from "../components/common/TurnstileWidget";
 
 export default function ModernAuthPage() {
   const { t } = useTranslation();
@@ -30,6 +31,8 @@ export default function ModernAuthPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [loginToken, setLoginToken] = useState<string | null>(null);
+  const clearLoginToken = useCallback(() => setLoginToken(null), []);
 
   const [regForm, setRegForm] = useState({
     email: "",
@@ -40,6 +43,8 @@ export default function ModernAuthPage() {
   });
   const [regLoading, setRegLoading] = useState(false);
   const [regErrors, setRegErrors] = useState<Record<string, string>>({});
+  const [regToken, setRegToken] = useState<string | null>(null);
+  const clearRegToken = useCallback(() => setRegToken(null), []);
 
   const toggleToSignUp = () => {
     setIsSignUp(true);
@@ -55,13 +60,14 @@ export default function ModernAuthPage() {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const { data } = await authApi.login({ email: loginEmail, password: loginPassword });
+      const { data } = await authApi.login({ email: loginEmail, password: loginPassword, turnstileToken: loginToken ?? undefined });
       setAuth(data.user, data.accessToken);
       toast.success("Welcome back!");
       navigate("/");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
+      clearLoginToken();
     } finally {
       setLoginLoading(false);
     }
@@ -120,13 +126,14 @@ export default function ModernAuthPage() {
     if (!validate()) return;
     setRegLoading(true);
     try {
-      const { data } = await authApi.register(regForm);
+      const { data } = await authApi.register({ ...regForm, turnstileToken: regToken ?? undefined });
       setAuth(data.user, data.accessToken);
       toast.success("Account created!");
       navigate("/");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
+      clearRegToken();
     } finally {
       setRegLoading(false);
     }
@@ -184,7 +191,11 @@ export default function ModernAuthPage() {
               {t("auth.forgot_password")}
             </Link>
 
-            <button type="submit" disabled={loginLoading} className="auth-btn-fill">
+            <div className="flex justify-center my-2">
+              <TurnstileWidget onToken={setLoginToken} onExpire={clearLoginToken} />
+            </div>
+
+            <button type="submit" disabled={loginLoading || !loginToken} className="auth-btn-fill">
               {loginLoading ? t("common.loading") : t("auth.login_btn")}
             </button>
 
@@ -270,7 +281,11 @@ export default function ModernAuthPage() {
               />
             </div>
 
-            <button type="submit" disabled={regLoading} className="auth-btn-fill">
+            <div className="flex justify-center my-2">
+              <TurnstileWidget onToken={setRegToken} onExpire={clearRegToken} />
+            </div>
+
+            <button type="submit" disabled={regLoading || !regToken} className="auth-btn-fill">
               {regLoading ? t("common.loading") : t("auth.register_btn")}
             </button>
 

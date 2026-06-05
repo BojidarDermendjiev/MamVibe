@@ -23,7 +23,7 @@ export const authApi = {
   changePassword: (data: { currentPassword: string; newPassword: string; confirmNewPassword: string }) =>
     axiosClient.post('/auth/change-password', data),
 
-  forgotPassword: (data: { email: string }) =>
+  forgotPassword: (data: { email: string; turnstileToken?: string }) =>
     axiosClient.post('/auth/forgot-password', data),
 
   resetPassword: (data: { email: string; token: string; newPassword: string; confirmNewPassword: string }) =>

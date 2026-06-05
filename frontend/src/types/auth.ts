@@ -23,6 +23,7 @@ export interface User {
 export interface LoginRequest {
   email: string;
   password: string;
+  turnstileToken?: string;
 }
 
 export interface RegisterRequest {
@@ -31,6 +32,7 @@ export interface RegisterRequest {
   confirmPassword: string;
   displayName: string;
   profileType: ProfileType;
+  turnstileToken?: string;
 }
 
 export interface AuthResponse {
