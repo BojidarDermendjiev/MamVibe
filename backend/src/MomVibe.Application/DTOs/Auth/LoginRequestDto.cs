@@ -11,4 +11,7 @@ public class LoginRequestDto
 
     /// <summary>Gets or sets the user's password.</summary>
     public required string Password { get; set; }
+
+    /// <summary>Gets or sets the Cloudflare Turnstile response token for bot protection.</summary>
+    public string? TurnstileToken { get; set; }
 }

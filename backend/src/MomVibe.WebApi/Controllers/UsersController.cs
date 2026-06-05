@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
+using FluentValidation;
+
 using Domain.Entities;
 using Application.DTOs.Users;
 using Application.Interfaces;
@@ -26,19 +28,22 @@ public class UsersController : ControllerBase
     private readonly IItemService _itemService;
     private readonly IUserRatingService _ratingService;
     private readonly IGdprService _gdprService;
+    private readonly IValidator<UpdateProfileDto> _profileValidator;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         ICurrentUserService currentUserService,
         IItemService itemService,
         IUserRatingService ratingService,
-        IGdprService gdprService)
+        IGdprService gdprService,
+        IValidator<UpdateProfileDto> profileValidator)
     {
         this._userManager = userManager;
         this._currentUserService = currentUserService;
         this._itemService = itemService;
         this._ratingService = ratingService;
         this._gdprService = gdprService;
+        this._profileValidator = profileValidator;
     }
 
     /// <summary>
@@ -90,6 +95,10 @@ public class UsersController : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
+        var validation = await this._profileValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         var user = await this._userManager.FindByIdAsync(userId);

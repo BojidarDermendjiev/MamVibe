@@ -27,4 +27,7 @@ public class RegisterRequestDto
 
     /// <summary>Gets or sets the profile type selected by the user during registration.</summary>
     public ProfileType ProfileType { get; set; }
+
+    /// <summary>Gets or sets the Cloudflare Turnstile response token for bot protection.</summary>
+    public string? TurnstileToken { get; set; }
 }

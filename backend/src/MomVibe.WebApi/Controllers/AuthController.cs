@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 
+using FluentValidation;
+
 using Application.DTOs.Auth;
 using Application.Interfaces;
 
@@ -28,17 +30,35 @@ public class AuthController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _configuration;
+    private readonly ITurnstileService _turnstileService;
+    private readonly IValidator<RegisterRequestDto> _registerValidator;
 
     public AuthController(
         IAuthService authService,
         ICurrentUserService currentUserService,
         IWebHostEnvironment env,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ITurnstileService turnstileService,
+        IValidator<RegisterRequestDto> registerValidator)
     {
         this._authService = authService;
         this._currentUserService = currentUserService;
         this._env = env;
         this._configuration = configuration;
+        this._turnstileService = turnstileService;
+        this._registerValidator = registerValidator;
+    }
+
+    private string? ClientIp =>
+        this.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+    private async Task<bool> VerifyTurnstileAsync(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        var ip = this.ClientIp ?? string.Empty;
+        return string.IsNullOrEmpty(ip)
+            ? await this._turnstileService.VerifyTokenAsync(token)
+            : await this._turnstileService.VerifyAsync(token, ip);
     }
 
     // Simple body model for mobile clients that cannot use httpOnly cookies.
@@ -95,6 +115,13 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
+        if (!await this.VerifyTurnstileAsync(request.TurnstileToken))
+            return BadRequest(new { message = "Bot verification failed. Please try again." });
+
+        var validation = await this._registerValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+            return BadRequest(new { errors = validation.Errors.Select(e => e.ErrorMessage) });
+
         try
         {
             var result = await this._authService.RegisterAsync(request);
@@ -118,6 +145,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
+        if (!await this.VerifyTurnstileAsync(request.TurnstileToken))
+            return BadRequest(new { message = "Bot verification failed. Please try again." });
+
         try
         {
             var result = await this._authService.LoginAsync(request);
@@ -255,6 +285,9 @@ public class AuthController : ControllerBase
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
+        if (!await this.VerifyTurnstileAsync(dto.TurnstileToken))
+            return BadRequest(new { message = "Bot verification failed. Please try again." });
+
         try
         {
             await this._authService.ForgotPasswordAsync(dto.Email);
