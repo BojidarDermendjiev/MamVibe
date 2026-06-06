@@ -277,6 +277,19 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
+
+    // Donation: 5 attempts per hour per IP.
+    // Both donation endpoints call the Stripe API directly; without a limit an automated
+    // script can exhaust the Stripe API quota or trigger fraud-detection flags.
+    options.AddPolicy(RateLimitPolicies.Donation, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromHours(1),
+                QueueLimit = 0
+            }));
 });
 
 // Request body size limit (10MB max)

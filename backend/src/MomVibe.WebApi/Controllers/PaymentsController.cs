@@ -2,6 +2,7 @@ namespace MomVibe.WebApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Application.Interfaces;
 using Application.DTOs.Payments;
@@ -330,6 +331,7 @@ public class PaymentsController : ControllerBase
     /// 200 OK with the client secret for Stripe PaymentSheet on success.
     /// </returns>
     [HttpPost("donation/intent")]
+    [EnableRateLimiting(RateLimitPolicies.Donation)]
     public async Task<IActionResult> CreateDonationIntent([FromBody] DonationCheckoutRequest request)
     {
         try
@@ -357,6 +359,7 @@ public class PaymentsController : ControllerBase
     /// 200 OK with a session URL for redirection to the Stripe-hosted checkout page.
     /// </returns>
     [HttpPost("donation/checkout")]
+    [EnableRateLimiting(RateLimitPolicies.Donation)]
     public async Task<IActionResult> CreateDonationCheckout([FromBody] DonationCheckoutRequest request)
     {
         try
