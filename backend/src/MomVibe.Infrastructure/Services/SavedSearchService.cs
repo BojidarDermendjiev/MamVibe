@@ -90,52 +90,71 @@ public class SavedSearchService : ISavedSearchService
 
     public async Task NotifyMatchingSearchesAsync(ItemDto item)
     {
-        // DB-side filter on all structured attributes
-        var candidates = await this._context.SavedSearches
+        var title       = item.Title       ?? "";
+        var description = item.Description ?? "";
+
+        // All filtering — including keyword — happens in the DB so we only load actual matches.
+        // ILike is case-insensitive and index-aware on PostgreSQL (unlike ToLower().Contains()).
+        // Cap at 200: beyond that we are almost certainly in a mass-broadcast scenario and
+        // sequential SignalR pushes would stall the calling thread for seconds.
+        var matches = await this._context.SavedSearches
             .AsNoTracking()
             .Where(s => s.UserId != item.UserId)
-            .Where(s => s.CategoryId == null || s.CategoryId == item.CategoryId)
+            .Where(s => s.CategoryId  == null || s.CategoryId  == item.CategoryId)
             .Where(s => s.ListingType == null || s.ListingType == item.ListingType)
-            .Where(s => s.AgeGroup == null || s.AgeGroup == item.AgeGroup)
-            .Where(s => s.ShoeSize == null || s.ShoeSize == item.ShoeSize)
+            .Where(s => s.AgeGroup    == null || s.AgeGroup    == item.AgeGroup)
+            .Where(s => s.ShoeSize    == null || s.ShoeSize    == item.ShoeSize)
             .Where(s => s.ClothingSize == null || s.ClothingSize == item.ClothingSize)
-            .Where(s => s.Condition == null || s.Condition == item.Condition)
-            .Where(s => s.MaxPrice == null || item.Price == null || s.MaxPrice >= item.Price)
-            .Take(500)
+            .Where(s => s.Condition   == null || s.Condition   == item.Condition)
+            .Where(s => s.MaxPrice    == null || item.Price    == null || s.MaxPrice >= item.Price)
+            .Where(s => s.SearchTerm  == null
+                     || EF.Functions.ILike(title,       $"%{s.SearchTerm}%")
+                     || EF.Functions.ILike(description, $"%{s.SearchTerm}%"))
+            .Take(200)
             .ToListAsync();
 
-        // In-memory filter for keyword match
-        var matches = candidates.Where(s =>
-            s.SearchTerm == null ||
-            item.Title.Contains(s.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-            item.Description.Contains(s.SearchTerm, StringComparison.OrdinalIgnoreCase));
+        if (matches.Count == 0) return;
 
-        foreach (var match in matches)
+        // Build the item slice once — it is the same for every notification.
+        var itemDto = new Application.DTOs.SavedSearches.SavedSearchMatchItemDto
         {
+            Id            = item.Id,
+            Title         = item.Title,
+            CategoryName  = item.CategoryName,
+            ListingType   = item.ListingType,
+            Price         = item.Price,
+            FirstPhotoUrl = item.Photos?.OrderBy(p => p.DisplayOrder).Select(p => p.Url).FirstOrDefault(),
+            AgeGroup      = item.AgeGroup,
+            Condition     = item.Condition
+        };
+
+        // Fan-out in parallel, capped at 10 concurrent SignalR pushes to avoid overwhelming
+        // the hub connection pool while still being much faster than sequential awaits.
+        var semaphore = new SemaphoreSlim(10, 10);
+        var tasks = matches.Select(async match =>
+        {
+            await semaphore.WaitAsync();
             try
             {
                 await this._notifier.NotifyAsync(match.UserId, new SavedSearchMatchNotification
                 {
-                    SavedSearchId = match.Id,
+                    SavedSearchId   = match.Id,
                     SavedSearchName = match.Name,
-                    Item = new Application.DTOs.SavedSearches.SavedSearchMatchItemDto
-                    {
-                        Id         = item.Id,
-                        Title      = item.Title,
-                        CategoryName = item.CategoryName,
-                        ListingType  = item.ListingType,
-                        Price        = item.Price,
-                        FirstPhotoUrl = item.Photos?.OrderBy(p => p.DisplayOrder).Select(p => p.Url).FirstOrDefault(),
-                        AgeGroup   = item.AgeGroup,
-                        Condition  = item.Condition
-                    }
+                    Item            = itemDto
                 });
             }
             catch (Exception ex)
             {
-                this._logger.LogWarning(ex, "Saved-search match SignalR notification failed for item {ItemId}", item.Id);
+                this._logger.LogWarning(ex, "Saved-search notification failed for item {ItemId}, search {SearchId}",
+                    item.Id, match.Id);
             }
-        }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
     }
 
     private static SavedSearchDto MapToDto(SavedSearch s, string? categoryName) => new()
