@@ -180,7 +180,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
     ports:
-      - "5678:5678"
+      - "127.0.0.1:5678:5678"
     networks:
       - mamvibe-net
 
@@ -199,7 +199,7 @@ services:
     networks:
       - mamvibe-net
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
 
   loki:
     image: grafana/loki:3.0.0
@@ -225,7 +225,7 @@ services:
       - prometheus
       - loki
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - mamvibe-net
 
