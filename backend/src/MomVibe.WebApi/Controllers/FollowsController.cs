@@ -112,7 +112,7 @@ public class FollowsController : ControllerBase
     /// Results are ordered by listing date descending (newest first).
     /// </summary>
     /// <param name="page">1-based page number. Values below 1 are clamped to 1.</param>
-    /// <param name="pageSize">Items per page (1–50). Values outside this range default to 12.</param>
+    /// <param name="pageSize">Items per page (1–50, default 12). Out-of-range values are clamped.</param>
     /// <returns>
     /// 200 OK with a paginated list of items from followed sellers.<br/>
     /// 401 Unauthorized if the caller is not authenticated.
@@ -121,8 +121,8 @@ public class FollowsController : ControllerBase
     [HttpGet("feed")]
     public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 50) pageSize = 12;
+        page     = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         var result = await this._followService.GetFollowingFeedAsync(userId, page, pageSize);

@@ -127,6 +127,9 @@ public class FollowService : IFollowService
 
     public async Task<PagedResult<ItemDto>> GetFollowingFeedAsync(string userId, int page, int pageSize)
     {
+        page     = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 50);
+
         var followedIds = await this._context.Follows
             .AsNoTracking()
             .Where(f => f.FollowerId == userId)
