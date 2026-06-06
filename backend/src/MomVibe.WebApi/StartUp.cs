@@ -63,6 +63,7 @@ builder.Services.AddOpenTelemetry()
         });
         t.AddHttpClientInstrumentation();
         t.AddEntityFrameworkCoreInstrumentation();
+        t.AddSource("Microsoft.Extensions.AI");
         if (!string.IsNullOrWhiteSpace(otlpEndpoint))
             t.AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint));
     });
