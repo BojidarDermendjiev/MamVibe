@@ -34,6 +34,10 @@ public static class DataSeeder
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             return;
 
+        if (password.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase) || password.Length < 12)
+            throw new InvalidOperationException(
+                "AdminSeed:Password is a placeholder or too short. Set a real password (≥12 chars) before enabling AdminSeed.");
+
         var admin = await userManager.FindByEmailAsync(email);
 
         if (admin is null)
