@@ -64,8 +64,8 @@ public class AdminService : IAdminService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var term = search.ToLower();
-            query = query.Where(u => u.DisplayName.ToLower().Contains(term) || u.Email!.ToLower().Contains(term));
+            var pattern = $"%{search}%";
+            query = query.Where(u => EF.Functions.ILike(u.DisplayName, pattern) || EF.Functions.ILike(u.Email!, pattern));
         }
 
         var totalCount = await query.CountAsync();
@@ -155,18 +155,41 @@ public class AdminService : IAdminService
         if (this._cache.TryGetValue(cacheKey, out DashboardStatsDto? cached))
             return cached!;
 
+        // Single EF Core query: all item/payment/message aggregates in one round-trip.
+        // EF Core translates each correlated Count/Sum into a scalar subquery so the
+        // database executes a single SELECT statement.
+        var aggregatesTask = this._context.Items
+            .GroupBy(_ => 1)
+            .Select(_ => new
+            {
+                TotalItems    = this._context.Items.Count(),
+                ActiveItems   = this._context.Items.Count(i => i.IsActive),
+                TotalDonations = this._context.Items.Count(i => i.ListingType == ListingType.Donate),
+                TotalSales    = this._context.Payments.Count(p => p.Status == PaymentStatus.Completed),
+                TotalRevenue  = (decimal?)this._context.Payments
+                                    .Where(p => p.Status == PaymentStatus.Completed)
+                                    .Sum(p => p.Amount),
+                TotalMessages = this._context.Messages.Count(),
+            })
+            .FirstOrDefaultAsync();
+
+        // UserManager counts run in parallel against the same underlying store.
+        var totalUsersTask  = this._userManager.Users.CountAsync();
+        var blockedUsersTask = this._userManager.Users.CountAsync(u => u.IsBlocked);
+
+        await Task.WhenAll(aggregatesTask, totalUsersTask, blockedUsersTask);
+
+        var agg = aggregatesTask.Result;
         var stats = new DashboardStatsDto
         {
-            TotalUsers = await this._userManager.Users.CountAsync(),
-            TotalItems = await this._context.Items.CountAsync(),
-            ActiveItems = await this._context.Items.CountAsync(i => i.IsActive),
-            TotalDonations = await this._context.Items.CountAsync(i => i.ListingType == ListingType.Donate),
-            TotalSales = await this._context.Payments.CountAsync(p => p.Status == PaymentStatus.Completed),
-            TotalRevenue = await this._context.Payments
-                .Where(p => p.Status == PaymentStatus.Completed)
-                .SumAsync(p => p.Amount),
-            TotalMessages = await this._context.Messages.CountAsync(),
-            BlockedUsers = await this._userManager.Users.CountAsync(u => u.IsBlocked)
+            TotalUsers    = totalUsersTask.Result,
+            BlockedUsers  = blockedUsersTask.Result,
+            TotalItems    = agg?.TotalItems    ?? 0,
+            ActiveItems   = agg?.ActiveItems   ?? 0,
+            TotalDonations = agg?.TotalDonations ?? 0,
+            TotalSales    = agg?.TotalSales    ?? 0,
+            TotalRevenue  = agg?.TotalRevenue  ?? 0m,
+            TotalMessages = agg?.TotalMessages ?? 0,
         };
 
         this._cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiCheckCircle } from 'react-icons/hi';
+import { CheckCircle } from 'lucide-react';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
 import { PurchaseRequestStatus } from '../types/purchaseRequest';
 import Button from '../components/common/Button';
@@ -38,7 +38,7 @@ export default function PaymentSuccessPage() {
           ⚠️ Test mode — no real payment was processed.
         </div>
       )}
-      <HiCheckCircle className="h-20 w-20 text-green-500 mb-4" />
+      <CheckCircle className="h-20 w-20 text-green-500 mb-4" />
       <h1 className="text-3xl font-bold text-primary mb-2">{t('payment.success_title')}</h1>
       <p className="text-gray-500 mb-8 max-w-md">{t('payment.success_msg')}</p>
 

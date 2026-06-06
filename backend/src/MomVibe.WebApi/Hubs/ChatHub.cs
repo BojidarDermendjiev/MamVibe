@@ -105,7 +105,7 @@ public class ChatHub : Hub<IChatClient>
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
-        this._presenceTracker.AddConnection(userId, Context.ConnectionId);
+        await this._presenceTracker.AddConnectionAsync(userId, Context.ConnectionId);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
         await Clients.Others.UserOnline(userId);
@@ -118,7 +118,7 @@ public class ChatHub : Hub<IChatClient>
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
-        var wentOffline = this._presenceTracker.RemoveConnection(userId, Context.ConnectionId);
+        var wentOffline = await this._presenceTracker.RemoveConnectionAsync(userId, Context.ConnectionId);
         if (wentOffline)
         {
             await Clients.Others.UserOffline(userId);

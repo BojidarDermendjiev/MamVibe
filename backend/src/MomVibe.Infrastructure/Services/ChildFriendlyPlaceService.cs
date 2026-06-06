@@ -33,7 +33,7 @@ public class ChildFriendlyPlaceService : IChildFriendlyPlaceService
             .Where(p => p.IsApproved)
             .AsQueryable();
         if (!string.IsNullOrWhiteSpace(city))
-            query = query.Where(p => p.City.ToLower().Contains(city.ToLower()));
+            query = query.Where(p => EF.Functions.ILike(p.City, $"%{city}%"));
         if (placeType.HasValue)
             query = query.Where(p => p.PlaceType == placeType.Value);
         if (maxAgeMonths.HasValue)

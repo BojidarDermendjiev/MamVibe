@@ -1,12 +1,6 @@
 import _toast, { type Toast, type ToastOptions } from 'react-hot-toast';
 import { clsx } from 'clsx';
-import {
-  HiCheckCircle,
-  HiXCircle,
-  HiExclamation,
-  HiInformationCircle,
-  HiX,
-} from 'react-icons/hi';
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
@@ -50,10 +44,10 @@ function ToastCard({
           },
         )}
       >
-        {variant === 'success' && <HiCheckCircle className="w-5 h-5 text-emerald-500" />}
-        {variant === 'error' && <HiXCircle className="w-5 h-5 text-red-500" />}
-        {variant === 'warning' && <HiExclamation className="w-5 h-5 text-amber-500" />}
-        {variant === 'info' && <HiInformationCircle className="w-5 h-5 text-[#945c67]" />}
+        {variant === 'success' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
+        {variant === 'error' && <XCircle className="w-5 h-5 text-red-500" />}
+        {variant === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
+        {variant === 'info' && <Info className="w-5 h-5 text-[#945c67]" />}
       </div>
 
       {/* Text */}
@@ -81,7 +75,7 @@ function ToastCard({
         aria-label="Dismiss"
         className="flex-shrink-0 ml-1 p-0.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
       >
-        <HiX className="w-4 h-4" />
+        <X className="w-4 h-4" />
       </button>
 
       {/* Progress bar */}

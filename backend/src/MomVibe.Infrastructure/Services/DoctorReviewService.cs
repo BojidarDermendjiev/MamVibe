@@ -35,9 +35,9 @@ public class DoctorReviewService : IDoctorReviewService
 
         var query = _db.DoctorReviews.Include(r => r.User).Where(r => r.IsApproved).AsQueryable();
         if (!string.IsNullOrWhiteSpace(city))
-            query = query.Where(r => r.City.ToLower().Contains(city.ToLower()));
+            query = query.Where(r => EF.Functions.ILike(r.City, $"%{city}%"));
         if (!string.IsNullOrWhiteSpace(specialization))
-            query = query.Where(r => r.Specialization.ToLower().Contains(specialization.ToLower()));
+            query = query.Where(r => EF.Functions.ILike(r.Specialization, $"%{specialization}%"));
 
         var reviews = await query
             .OrderByDescending(r => r.CreatedAt)

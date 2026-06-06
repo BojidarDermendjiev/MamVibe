@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { HiPhotograph, HiX } from 'react-icons/hi';
+import { Image, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PhotoUploaderProps {
@@ -54,7 +54,7 @@ export default function PhotoUploader({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
       >
-        <HiPhotograph className="mx-auto h-10 w-10 text-lavender mb-2" />
+        <Image className="mx-auto h-10 w-10 text-lavender mb-2" />
         <p className="text-sm text-gray-500">{t('items.drag_drop')}</p>
         <p className="text-xs text-gray-400 mt-1">{t('items.max_photos')} ({totalPhotos}/{maxPhotos})</p>
         <input
@@ -77,7 +77,7 @@ export default function PhotoUploader({
                   onClick={() => onRemoveExisting(photo.id)}
                   className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5"
                 >
-                  <HiX className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
               )}
             </div>
@@ -90,7 +90,7 @@ export default function PhotoUploader({
                 onClick={() => removePhoto(index)}
                 className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5"
               >
-                <HiX className="h-3 w-3" />
+                <X className="h-3 w-3" />
               </button>
             </div>
           ))}

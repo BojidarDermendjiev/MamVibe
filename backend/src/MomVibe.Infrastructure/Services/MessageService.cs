@@ -79,30 +79,27 @@ public class MessageService : IMessageService
             return new List<ConversationDto>();
 
         var peerIds = summaries.Select(s => s.PeerId).ToList();
-        var maxTimes = summaries.Select(s => s.LastMessageTime).Distinct().ToList();
 
-        // Query 2: Load the last message for each conversation (with navigation properties)
-        // using the known max timestamps — bounded to 50 peer conversations.
+        // Query 2: Load the last message for each conversation (with navigation properties).
+        // We fetch the single most-recent message per peer using stable tie-breaking on Id
+        // (descending), which eliminates the timestamp-equality bug that caused wrong messages
+        // to be returned when two messages in the same conversation share an identical CreatedAt.
         var latestMessages = await this._context.Messages
             .AsNoTracking()
             .Include(m => m.Sender)
             .Include(m => m.Receiver)
             .Where(m => (m.SenderId == userId || m.ReceiverId == userId)
-                     && maxTimes.Contains(m.CreatedAt))
+                     && peerIds.Contains(m.SenderId == userId ? m.ReceiverId : m.SenderId))
             .ToListAsync();
 
-        // Match each peer to its most recent message (ordered by time to handle ties)
-        var lastMessageByPeer = new Dictionary<string, Message>();
-        foreach (var s in summaries)
-        {
-            var msg = latestMessages
-                .Where(m => m.CreatedAt == s.LastMessageTime
-                         && (m.SenderId == s.PeerId || m.ReceiverId == s.PeerId))
-                .OrderByDescending(m => m.CreatedAt)
-                .FirstOrDefault();
-            if (msg != null)
-                lastMessageByPeer[s.PeerId] = msg;
-        }
+        // Group in-memory and take the newest per peer using stable ordering (time DESC, Id DESC).
+        var lastMessageByPeer = latestMessages
+            .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderByDescending(m => m.CreatedAt)
+                       .ThenByDescending(m => m.Id)
+                       .First());
 
         return summaries
             .Where(s => lastMessageByPeer.ContainsKey(s.PeerId))

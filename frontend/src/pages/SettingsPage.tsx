@@ -2,14 +2,7 @@ import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import toast from "@/utils/toast";
 import { usePageSEO } from "@/hooks/useSEO";
-import {
-  HiCamera,
-  HiUser,
-  HiLockClosed,
-  HiGlobeAlt,
-  HiCreditCard,
-  HiSun,
-} from "react-icons/hi2";
+import { Camera, User, Lock, Globe, CreditCard, Sun } from "lucide-react";
 import axiosClient from "../api/axiosClient";
 import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
@@ -143,27 +136,27 @@ export default function SettingsPage() {
   const nav: { id: Section; icon: React.ReactNode; label: string }[] = [
     {
       id: "profile",
-      icon: <HiUser className="h-4 w-4" />,
+      icon: <User className="h-4 w-4" />,
       label: t("settings.profile"),
     },
     {
       id: "security",
-      icon: <HiLockClosed className="h-4 w-4" />,
+      icon: <Lock className="h-4 w-4" />,
       label: t("settings.security"),
     },
     {
       id: "language",
-      icon: <HiGlobeAlt className="h-4 w-4" />,
+      icon: <Globe className="h-4 w-4" />,
       label: t("settings.language"),
     },
     {
       id: "payment",
-      icon: <HiCreditCard className="h-4 w-4" />,
+      icon: <CreditCard className="h-4 w-4" />,
       label: t("settings.payment"),
     },
     {
       id: "seller",
-      icon: <HiSun className="h-4 w-4" />,
+      icon: <Sun className="h-4 w-4" />,
       label: t("settings.seller"),
     },
   ];
@@ -256,7 +249,7 @@ export default function SettingsPage() {
                       className="absolute -bottom-1 -right-1 bg-gradient-to-br from-[#945c67] to-[#3f4b7f] text-white rounded-full p-1.5 shadow-md hover:brightness-110 transition disabled:opacity-50"
                       title={t("profile.change_avatar")}
                     >
-                      <HiCamera className="h-3.5 w-3.5" />
+                      <Camera className="h-3.5 w-3.5" />
                     </button>
                     <input
                       ref={fileInputRef}

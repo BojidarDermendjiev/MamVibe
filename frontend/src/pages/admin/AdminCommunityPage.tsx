@@ -6,6 +6,7 @@ import { childFriendlyPlacesApi } from '../../api/childFriendlyPlacesApi';
 import type { DoctorReviewDto } from '../../types/doctorReview';
 import type { ChildFriendlyPlaceDto } from '../../types/childFriendlyPlace';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 function StarRow({ rating }: { rating: number }) {
   return (
@@ -27,6 +28,7 @@ export default function AdminCommunityPage() {
   const [places, setPlaces] = useState<ChildFriendlyPlaceDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{ open: boolean; onConfirm: () => void }>({ open: false, onConfirm: () => {} });
 
   useEffect(() => {
     Promise.all([
@@ -49,15 +51,20 @@ export default function AdminCommunityPage() {
     }
   };
 
-  const handleDeleteReview = async (id: string) => {
-    if (!confirm('Delete this review?')) return;
-    setActionLoading(id);
-    try {
-      await doctorReviewsApi.adminDelete(id);
-      setReviews((prev) => prev.filter((r) => r.id !== id));
-    } finally {
-      setActionLoading(null);
-    }
+  const handleDeleteReview = (id: string) => {
+    setConfirmState({
+      open: true,
+      onConfirm: async () => {
+        setConfirmState({ open: false, onConfirm: () => {} });
+        setActionLoading(id);
+        try {
+          await doctorReviewsApi.adminDelete(id);
+          setReviews((prev) => prev.filter((r) => r.id !== id));
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const handleApprovePlace = async (id: string) => {
@@ -70,21 +77,35 @@ export default function AdminCommunityPage() {
     }
   };
 
-  const handleDeletePlace = async (id: string) => {
-    if (!confirm('Delete this place?')) return;
-    setActionLoading(id);
-    try {
-      await childFriendlyPlacesApi.adminDelete(id);
-      setPlaces((prev) => prev.filter((p) => p.id !== id));
-    } finally {
-      setActionLoading(null);
-    }
+  const handleDeletePlace = (id: string) => {
+    setConfirmState({
+      open: true,
+      onConfirm: async () => {
+        setConfirmState({ open: false, onConfirm: () => {} });
+        setActionLoading(id);
+        try {
+          await childFriendlyPlacesApi.adminDelete(id);
+          setPlaces((prev) => prev.filter((p) => p.id !== id));
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   if (loading) return <LoadingSpinner size="lg" className="py-20" />;
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={confirmState.open}
+        title={t('admin.delete_confirm_title') || 'Confirm Delete'}
+        message={t('admin.delete_confirm_message') || 'Are you sure you want to delete this item? This action cannot be undone.'}
+        confirmLabel={t('common.delete')}
+        onConfirm={confirmState.onConfirm}
+        onCancel={() => setConfirmState({ open: false, onConfirm: () => {} })}
+        variant="danger"
+      />
       <h1 className="text-3xl font-bold text-[#364153] dark:text-[#bdb9bc] mb-6">
         {t('admin.community')}
       </h1>

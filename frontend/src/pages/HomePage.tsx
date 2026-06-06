@@ -3,11 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { usePageSEO } from "@/hooks/useSEO";
-import { MoveRight, ShoppingBag, Heart } from "lucide-react";
-import { HiCamera, HiTag, HiTruck, HiHeart } from "react-icons/hi";
-import { FaBaby, FaSmile, FaTshirt, FaChild } from "react-icons/fa";
-import { GiFootprint } from "react-icons/gi";
-import { MapPin, ChevronRight } from "lucide-react";
+import { MoveRight, ShoppingBag, Heart, MapPin, ChevronRight, Camera, Tag, Truck, Baby, Smile, Shirt, User, Footprints } from "lucide-react";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
 import { statsApi, type PublicStats } from "../api/statsApi";
@@ -132,7 +128,7 @@ const AGE_GROUPS = [
   {
     labelKey: "home.age_newborn",
     rangeKey: "home.age_newborn_range",
-    icon: FaBaby,
+    icon: Baby,
     bg: "#FDDDD6",
     color: "#D96B58",
     query: "newborn",
@@ -140,7 +136,7 @@ const AGE_GROUPS = [
   {
     labelKey: "home.age_infant",
     rangeKey: "home.age_infant_range",
-    icon: FaSmile,
+    icon: Smile,
     bg: "#D4EDE8",
     color: "#5AAFA0",
     query: "infant",
@@ -148,7 +144,7 @@ const AGE_GROUPS = [
   {
     labelKey: "home.age_toddler",
     rangeKey: "home.age_toddler_range",
-    icon: GiFootprint,
+    icon: Footprints,
     bg: "#F5E6C0",
     color: "#B8922E",
     query: "toddler",
@@ -156,7 +152,7 @@ const AGE_GROUPS = [
   {
     labelKey: "home.age_preschool",
     rangeKey: "home.age_preschool_range",
-    icon: FaTshirt,
+    icon: Shirt,
     bg: "#FDDDE0",
     color: "#D96B7B",
     query: "preschool",
@@ -164,7 +160,7 @@ const AGE_GROUPS = [
   {
     labelKey: "home.age_kids",
     rangeKey: "home.age_kids_range",
-    icon: FaChild,
+    icon: User,
     bg: "#D4E8E8",
     color: "#5AAFAF",
     query: "kids",
@@ -266,7 +262,7 @@ export default function HomePage() {
 
   const steps = [
     {
-      icon: HiCamera,
+      icon: Camera,
       titleKey: "home.step1_title",
       descKey: "home.step1_desc",
       bg: "#FDDDD6",
@@ -274,7 +270,7 @@ export default function HomePage() {
       badge: "1",
     },
     {
-      icon: HiTag,
+      icon: Tag,
       titleKey: "home.step2_title",
       descKey: "home.step2_desc",
       bg: "#D4EDE8",
@@ -282,7 +278,7 @@ export default function HomePage() {
       badge: "2",
     },
     {
-      icon: HiTruck,
+      icon: Truck,
       titleKey: "home.step3_title",
       descKey: "home.step3_desc",
       bg: "#F5E6C0",
@@ -290,7 +286,7 @@ export default function HomePage() {
       badge: "3",
     },
     {
-      icon: HiHeart,
+      icon: Heart,
       titleKey: "home.step4_title",
       descKey: "home.step4_desc",
       bg: "#FDDDE0",

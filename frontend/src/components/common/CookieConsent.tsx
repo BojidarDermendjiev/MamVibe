@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HiX, HiPlus, HiMinus } from 'react-icons/hi';
+import { X, Plus, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // ─── Cookie character SVG (same kawaii cookie as before) ─────────────────────
@@ -88,7 +88,7 @@ function AccordionRow({ label, description, control, expanded, onToggleExpand }:
       >
         <div className="flex items-center gap-2">
           <span className="text-[#945c67] dark:text-[#c1c4e3]">
-            {expanded ? <HiMinus className="w-4 h-4" /> : <HiPlus className="w-4 h-4" />}
+            {expanded ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           </span>
           <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{label}</span>
         </div>
@@ -191,7 +191,7 @@ export default function CookieConsent() {
                   className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-[#f0d0c7]/60 dark:hover:bg-white/10 transition-colors shrink-0"
                   aria-label="Close"
                 >
-                  <HiX className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 

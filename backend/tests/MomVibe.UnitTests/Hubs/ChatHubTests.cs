@@ -1,7 +1,10 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 using MomVibe.Application.DTOs.Messages;
@@ -14,6 +17,7 @@ namespace MomVibe.UnitTests.Hubs;
 /// <summary>
 /// Unit tests for ChatHub methods using mocked SignalR infrastructure.
 /// Tests hub method validation, service delegation, and group routing.
+/// UserPresenceTracker is backed by MemoryDistributedCache — no Redis needed.
 /// </summary>
 public class ChatHubTests
 {
@@ -27,7 +31,11 @@ public class ChatHubTests
     private readonly Mock<IChatClient> _groupClient = new();
     private readonly Mock<IGroupManager> _groups = new();
     private readonly Mock<HubCallerContext> _context = new();
-    private readonly UserPresenceTracker _presenceTracker = new();
+
+    private static IDistributedCache CreateCache() =>
+        new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+    private readonly UserPresenceTracker _presenceTracker = new(CreateCache());
 
     private ChatHub BuildHub()
     {
@@ -176,7 +184,7 @@ public class ChatHubTests
         var hub = BuildHub();
         await hub.OnConnectedAsync();
 
-        _presenceTracker.IsOnline(SenderId).Should().BeTrue();
+        (await _presenceTracker.IsOnlineAsync(SenderId)).Should().BeTrue();
     }
 
     [Fact]
@@ -195,6 +203,6 @@ public class ChatHubTests
         await hub.OnConnectedAsync();
         await hub.OnDisconnectedAsync(null);
 
-        _presenceTracker.IsOnline(SenderId).Should().BeFalse();
+        (await _presenceTracker.IsOnlineAsync(SenderId)).Should().BeFalse();
     }
 }

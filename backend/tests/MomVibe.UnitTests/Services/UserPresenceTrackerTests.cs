@@ -1,72 +1,83 @@
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 using MomVibe.Infrastructure.Services;
 
 namespace MomVibe.UnitTests.Services;
 
 /// <summary>
-/// Unit tests for UserPresenceTracker — an in-memory, thread-safe SignalR connection registry.
-/// No database or mocks required.
+/// Unit tests for UserPresenceTracker — a Redis-backed, thread-safe SignalR connection registry.
+/// Uses MemoryDistributedCache (the in-memory IDistributedCache implementation) so no real
+/// Redis instance is needed in the test environment.
 /// </summary>
 public class UserPresenceTrackerTests
 {
+    /// <summary>Creates a fresh in-memory IDistributedCache for each test.</summary>
+    private static IDistributedCache CreateCache() =>
+        new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+    private static UserPresenceTracker CreateTracker() =>
+        new UserPresenceTracker(CreateCache());
+
     // =========================================================================
-    // AddConnection / IsOnline
+    // AddConnectionAsync / IsOnlineAsync
     // =========================================================================
 
     [Fact]
-    public void AddConnection_Makes_User_Online()
+    public async Task AddConnection_Makes_User_Online()
     {
-        var tracker = new UserPresenceTracker();
+        var tracker = CreateTracker();
 
-        tracker.AddConnection("user-1", "conn-a");
+        await tracker.AddConnectionAsync("user-1", "conn-a");
 
-        tracker.IsOnline("user-1").Should().BeTrue();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeTrue();
     }
 
     [Fact]
-    public void IsOnline_Returns_False_For_Unknown_User()
+    public async Task IsOnline_Returns_False_For_Unknown_User()
     {
-        var tracker = new UserPresenceTracker();
+        var tracker = CreateTracker();
 
-        tracker.IsOnline("ghost-user").Should().BeFalse();
+        (await tracker.IsOnlineAsync("ghost-user")).Should().BeFalse();
     }
 
     // =========================================================================
-    // RemoveConnection
+    // RemoveConnectionAsync
     // =========================================================================
 
     [Fact]
-    public void RemoveConnection_Makes_User_Offline_After_Last_Connection_Removed()
+    public async Task RemoveConnection_Makes_User_Offline_After_Last_Connection_Removed()
     {
-        var tracker = new UserPresenceTracker();
-        tracker.AddConnection("user-1", "conn-a");
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
 
-        var wentOffline = tracker.RemoveConnection("user-1", "conn-a");
+        var wentOffline = await tracker.RemoveConnectionAsync("user-1", "conn-a");
 
         wentOffline.Should().BeTrue();
-        tracker.IsOnline("user-1").Should().BeFalse();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeFalse();
     }
 
     [Fact]
-    public void RemoveConnection_Returns_False_When_User_Still_Has_Other_Connections()
+    public async Task RemoveConnection_Returns_False_When_User_Still_Has_Other_Connections()
     {
-        var tracker = new UserPresenceTracker();
-        tracker.AddConnection("user-1", "conn-a");
-        tracker.AddConnection("user-1", "conn-b");
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
+        await tracker.AddConnectionAsync("user-1", "conn-b");
 
-        var wentOffline = tracker.RemoveConnection("user-1", "conn-a");
+        var wentOffline = await tracker.RemoveConnectionAsync("user-1", "conn-a");
 
         wentOffline.Should().BeFalse();
-        tracker.IsOnline("user-1").Should().BeTrue();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeTrue();
     }
 
     [Fact]
-    public void RemoveConnection_Returns_False_For_Completely_Unknown_User()
+    public async Task RemoveConnection_Returns_False_For_Completely_Unknown_User()
     {
-        var tracker = new UserPresenceTracker();
+        var tracker = CreateTracker();
 
-        var result = tracker.RemoveConnection("never-connected", "conn-x");
+        var result = await tracker.RemoveConnectionAsync("never-connected", "conn-x");
 
         result.Should().BeFalse();
     }
@@ -76,35 +87,42 @@ public class UserPresenceTrackerTests
     // =========================================================================
 
     [Fact]
-    public void User_Remains_Online_Until_All_Connections_Removed()
+    public async Task User_Remains_Online_Until_All_Connections_Removed()
     {
-        var tracker = new UserPresenceTracker();
-        tracker.AddConnection("user-1", "conn-a");
-        tracker.AddConnection("user-1", "conn-b");
-        tracker.AddConnection("user-1", "conn-c");
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
+        await tracker.AddConnectionAsync("user-1", "conn-b");
+        await tracker.AddConnectionAsync("user-1", "conn-c");
 
-        tracker.RemoveConnection("user-1", "conn-a");
-        tracker.IsOnline("user-1").Should().BeTrue();
+        await tracker.RemoveConnectionAsync("user-1", "conn-a");
+        (await tracker.IsOnlineAsync("user-1")).Should().BeTrue();
 
-        tracker.RemoveConnection("user-1", "conn-b");
-        tracker.IsOnline("user-1").Should().BeTrue();
+        await tracker.RemoveConnectionAsync("user-1", "conn-b");
+        (await tracker.IsOnlineAsync("user-1")).Should().BeTrue();
 
-        var wentOffline = tracker.RemoveConnection("user-1", "conn-c");
+        var wentOffline = await tracker.RemoveConnectionAsync("user-1", "conn-c");
         wentOffline.Should().BeTrue();
-        tracker.IsOnline("user-1").Should().BeFalse();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeFalse();
     }
 
     [Fact]
-    public void AddConnection_Duplicate_ConnectionId_Does_Not_Create_Extra_Entry()
+    public async Task AddConnection_Duplicate_ConnectionId_Increments_Counter()
     {
-        var tracker = new UserPresenceTracker();
-        tracker.AddConnection("user-1", "conn-a");
-        tracker.AddConnection("user-1", "conn-a"); // same connection added twice
+        // The counter-based approach counts each Add regardless of connection ID uniqueness.
+        // Two Adds require two Removes to go offline.
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
+        await tracker.AddConnectionAsync("user-1", "conn-a"); // same connection added twice
 
-        // Removing once should take the user offline because the set de-duplicates
-        var wentOffline = tracker.RemoveConnection("user-1", "conn-a");
-        wentOffline.Should().BeTrue();
-        tracker.IsOnline("user-1").Should().BeFalse();
+        // First remove: still online (counter was 2, now 1)
+        var firstRemove = await tracker.RemoveConnectionAsync("user-1", "conn-a");
+        firstRemove.Should().BeFalse();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeTrue();
+
+        // Second remove: now offline (counter was 1, now 0)
+        var secondRemove = await tracker.RemoveConnectionAsync("user-1", "conn-a");
+        secondRemove.Should().BeTrue();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeFalse();
     }
 
     // =========================================================================
@@ -112,15 +130,29 @@ public class UserPresenceTrackerTests
     // =========================================================================
 
     [Fact]
-    public void Multiple_Users_Are_Tracked_Independently()
+    public async Task Multiple_Users_Are_Tracked_Independently()
     {
-        var tracker = new UserPresenceTracker();
-        tracker.AddConnection("user-1", "conn-a");
-        tracker.AddConnection("user-2", "conn-b");
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
+        await tracker.AddConnectionAsync("user-2", "conn-b");
 
-        tracker.RemoveConnection("user-1", "conn-a");
+        await tracker.RemoveConnectionAsync("user-1", "conn-a");
 
-        tracker.IsOnline("user-1").Should().BeFalse();
-        tracker.IsOnline("user-2").Should().BeTrue();
+        (await tracker.IsOnlineAsync("user-1")).Should().BeFalse();
+        (await tracker.IsOnlineAsync("user-2")).Should().BeTrue();
+    }
+
+    // =========================================================================
+    // Synchronous shim
+    // =========================================================================
+
+    [Fact]
+    public async Task IsOnline_Sync_Shim_Returns_Correct_Value()
+    {
+        var tracker = CreateTracker();
+        await tracker.AddConnectionAsync("user-1", "conn-a");
+
+        tracker.IsOnline("user-1").Should().BeTrue();
+        tracker.IsOnline("ghost").Should().BeFalse();
     }
 }

@@ -6,13 +6,17 @@ import _toast from 'react-hot-toast'
 import type { Toast } from 'react-hot-toast'
 import toast, { toastSuccess, toastError, toastWarning, toastInfo } from './toast'
 
-vi.mock('react-icons/hi', () => ({
-  HiCheckCircle: () => React.createElement('svg', { 'data-testid': 'icon-success' }),
-  HiXCircle: () => React.createElement('svg', { 'data-testid': 'icon-error' }),
-  HiExclamation: () => React.createElement('svg', { 'data-testid': 'icon-warning' }),
-  HiInformationCircle: () => React.createElement('svg', { 'data-testid': 'icon-info' }),
-  HiX: () => React.createElement('svg', { 'data-testid': 'icon-x' }),
-}))
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+    CheckCircle: () => React.createElement('svg', { 'data-testid': 'icon-success' }),
+    XCircle: () => React.createElement('svg', { 'data-testid': 'icon-error' }),
+    AlertTriangle: () => React.createElement('svg', { 'data-testid': 'icon-warning' }),
+    Info: () => React.createElement('svg', { 'data-testid': 'icon-info' }),
+    X: () => React.createElement('svg', { 'data-testid': 'icon-x' }),
+  };
+})
 
 let lastRenderFn: ((t: Toast) => React.ReactElement) | null = null
 

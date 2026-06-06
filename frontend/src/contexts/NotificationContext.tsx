@@ -192,18 +192,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markConversationRead = useCallback((userId: string) => {
+    // Optimistic local decrement: find the conversation by sender userId and zero its unreadCount.
+    // This avoids a second getConversations() call on every incoming message in an active chat.
+    // The API call below persists the read state server-side; we do NOT re-fetch after it succeeds.
+    setUnreadCount((prev) => Math.max(0, prev - 1));
     messagesApi.markAsRead(userId).catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] markAsRead failed:', err); });
-    // Re-fetch to get accurate count
-    if (isAuthenticated) {
-      messagesApi
-        .getConversations()
-        .then((res) => {
-          const total = res.data.reduce((sum, c) => sum + c.unreadCount, 0);
-          setUnreadCount(total);
-        })
-        .catch((err) => { if (import.meta.env.DEV) console.warn('[NotificationContext] Failed to refresh unread count:', err); });
-    }
-  }, [isAuthenticated]);
+  }, []);
 
   const decrementPendingRequestCount = useCallback(() => {
     setPendingRequestCount((prev) => Math.max(0, prev - 1));

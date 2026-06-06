@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiArrowLeft } from 'react-icons/hi';
+import { ArrowLeft } from 'lucide-react';
 import { Heart } from 'lucide-react';
 import toast from '@/utils/toast';
 import { paymentsApi } from '../api/paymentsApi';
@@ -40,7 +40,7 @@ export default function DonationCardPage() {
         onClick={() => navigate('/donate')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary mb-6 transition-colors"
       >
-        <HiArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" />
         {t('common.back')}
       </button>
 

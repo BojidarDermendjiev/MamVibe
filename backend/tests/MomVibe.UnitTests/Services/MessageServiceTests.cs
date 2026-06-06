@@ -2,6 +2,8 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -44,6 +46,9 @@ public class MessageServiceTests
         return cfg.CreateMapper();
     }
 
+    private static IDistributedCache CreateCache() =>
+        new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
     private static MessageService CreateService(
         ApplicationDbContext db,
         Mock<IOutboxWriter>? outboxMock = null,
@@ -52,7 +57,7 @@ public class MessageServiceTests
     {
         outboxMock ??= new Mock<IOutboxWriter>();
         aiMock ??= new Mock<IAiService>();
-        presenceTracker ??= new UserPresenceTracker();
+        presenceTracker ??= new UserPresenceTracker(CreateCache());
         var n8nOptions = Options.Create(new N8nSettings());
 
         return new MessageService(
@@ -262,7 +267,7 @@ public class MessageServiceTests
 
         var outboxMock = new Mock<IOutboxWriter>();
         // Presence tracker has no connections — bob is offline
-        var presenceTracker = new UserPresenceTracker();
+        var presenceTracker = new UserPresenceTracker(CreateCache());
 
         var svc = CreateService(db, outboxMock, presenceTracker: presenceTracker);
         await svc.SendMessageAsync("alice", "bob", "You there?");
@@ -282,8 +287,8 @@ public class MessageServiceTests
         await db.SaveChangesAsync();
 
         var outboxMock = new Mock<IOutboxWriter>();
-        var presenceTracker = new UserPresenceTracker();
-        presenceTracker.AddConnection("bob", "conn-1"); // bob is online
+        var presenceTracker = new UserPresenceTracker(CreateCache());
+        await presenceTracker.AddConnectionAsync("bob", "conn-1"); // bob is online
 
         var svc = CreateService(db, outboxMock, presenceTracker: presenceTracker);
         await svc.SendMessageAsync("alice", "bob", "You there?");

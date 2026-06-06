@@ -1,6 +1,9 @@
+using AutoMapper;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -11,7 +14,6 @@ using MomVibe.Domain.Entities;
 using MomVibe.Infrastructure.Configuration;
 using MomVibe.Infrastructure.Persistence;
 using MomVibe.Infrastructure.Services;
-using AutoMapper;
 
 namespace MomVibe.UnitTests.Services;
 
@@ -43,6 +45,9 @@ public class MessageServiceSqliteTests : IAsyncLifetime
         await _connection.DisposeAsync();
     }
 
+    private static IDistributedCache CreateCache() =>
+        new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
     private MessageService CreateService()
     {
         var cfg = new MapperConfiguration(c => c.AddProfile<MappingProfile>());
@@ -52,7 +57,7 @@ public class MessageServiceSqliteTests : IAsyncLifetime
             mapper,
             new Mock<IOutboxWriter>().Object,
             Options.Create(new N8nSettings()),
-            new UserPresenceTracker(),
+            new UserPresenceTracker(CreateCache()),
             new Mock<IAiService>().Object,
             new Mock<IKnowledgeService>().Object,
             NullLogger<MessageService>.Instance);

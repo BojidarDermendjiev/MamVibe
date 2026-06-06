@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
   currentPage: number;
@@ -26,7 +26,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         disabled={currentPage === 1}
         className="p-2 rounded-lg hover:bg-cream-dark dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
-        <HiChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-5 w-5" />
       </button>
       {pages.map((page, index) =>
         typeof page === 'string' ? (
@@ -51,7 +51,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         disabled={currentPage === totalPages}
         className="p-2 rounded-lg hover:bg-cream-dark dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
-        <HiChevronRight className="h-5 w-5" />
+        <ChevronRight className="h-5 w-5" />
       </button>
     </div>
   );

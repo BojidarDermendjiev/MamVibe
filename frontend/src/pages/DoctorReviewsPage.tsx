@@ -6,6 +6,7 @@ import { usePageSEO } from "@/hooks/useSEO";
 import { doctorReviewsApi } from "../api/doctorReviewsApi";
 import type { DoctorReviewDto, CreateDoctorReviewDto } from "../types/doctorReview";
 import { useAuthStore } from "../store/authStore";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const EMPTY_FORM: CreateDoctorReviewDto = {
   doctorName: "",
@@ -117,6 +118,7 @@ export default function DoctorReviewsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -169,18 +171,33 @@ export default function DoctorReviewsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this review?")) return;
+  const handleDelete = (id: string) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
     try {
       await doctorReviewsApi.delete(id);
       setReviews((prev) => prev.filter((r) => r.id !== id));
     } catch {
-      alert("Failed to delete review.");
+      // deletion failed silently; user can retry
     }
   };
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        title={t("doctorReviews.deleteTitle") || "Delete Review"}
+        message={t("doctorReviews.deleteConfirm") || "Are you sure you want to delete this review? This cannot be undone."}
+        confirmLabel={t("common.delete")}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+        variant="danger"
+      />
       {/* Hero */}
       <div className="bg-page py-12 px-4 mb-8">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">

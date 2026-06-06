@@ -1,15 +1,15 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiChartBar, HiUsers, HiCollection, HiArrowLeft, HiTruck, HiHeart, HiClipboardList } from 'react-icons/hi';
+import { BarChart2, Users, LayoutGrid, ArrowLeft, Truck, Heart, ClipboardList } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navItems = [
-  { path: '/admin', icon: HiChartBar, labelKey: 'admin.dashboard', exact: true },
-  { path: '/admin/users', icon: HiUsers, labelKey: 'admin.users', exact: false },
-  { path: '/admin/items', icon: HiCollection, labelKey: 'admin.items', exact: false },
-  { path: '/admin/shipping', icon: HiTruck, labelKey: 'shipping.admin_title', exact: false },
-  { path: '/admin/community', icon: HiHeart, labelKey: 'admin.community', exact: false },
-  { path: '/admin/audit-logs', icon: HiClipboardList, labelKey: 'admin.audit_log', exact: false },
+  { path: '/admin', icon: BarChart2, labelKey: 'admin.dashboard', exact: true },
+  { path: '/admin/users', icon: Users, labelKey: 'admin.users', exact: false },
+  { path: '/admin/items', icon: LayoutGrid, labelKey: 'admin.items', exact: false },
+  { path: '/admin/shipping', icon: Truck, labelKey: 'shipping.admin_title', exact: false },
+  { path: '/admin/community', icon: Heart, labelKey: 'admin.community', exact: false },
+  { path: '/admin/audit-logs', icon: ClipboardList, labelKey: 'admin.audit_log', exact: false },
 ];
 
 export default function AdminLayout() {
@@ -55,7 +55,7 @@ export default function AdminLayout() {
             to="/"
             className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm text-lavender-light hover:bg-white/10 hover:text-white transition-colors"
           >
-            <HiArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
             {t('common.back')}
           </Link>
         </div>
@@ -64,7 +64,7 @@ export default function AdminLayout() {
       {/* ── Mobile header ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-[#2d2a42] text-white p-4 z-40 flex items-center gap-4">
         <Link to="/" className="text-lavender-light hover:text-white">
-          <HiArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5" />
         </Link>
         <h2 className="font-bold">Admin Panel</h2>
         <div className="flex gap-2 ml-auto items-center">

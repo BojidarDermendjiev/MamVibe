@@ -38,6 +38,7 @@ interface UseDashboardReturn {
   savedSearches: SavedSearchDto[];
   bundles: BundleDto[];
   loading: boolean;
+  error: string | null;
   removeLikedItem: (id: string) => void;
   refreshTab: () => void;
 }
@@ -59,6 +60,7 @@ export function useDashboard(): UseDashboardReturn {
   const [savedSearches, setSavedSearches] = useState<SavedSearchDto[]>([]);
   const [bundles, setBundles] = useState<BundleDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refreshTab = useCallback(() => {
@@ -68,6 +70,7 @@ export function useDashboard(): UseDashboardReturn {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError(null);
       try {
         if (tab === 'listings') {
           const { data } = await itemsApi.getMyItems();
@@ -114,7 +117,7 @@ export function useDashboard(): UseDashboardReturn {
           setMyItems(itemsRes.data);
         }
       } catch {
-        /* ignore */
+        setError('load_failed');
       } finally {
         setLoading(false);
       }
@@ -126,5 +129,5 @@ export function useDashboard(): UseDashboardReturn {
     setLikedItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, receivedOffers, sentOffers, shipments, ebills, followingFeed, following, followers, savedSearches, bundles, loading, removeLikedItem, refreshTab };
+  return { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, receivedOffers, sentOffers, shipments, ebills, followingFeed, following, followers, savedSearches, bundles, loading, error, removeLikedItem, refreshTab };
 }

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { HiEye } from 'react-icons/hi';
+import { Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { type Item, ListingType, ItemCondition } from '../../types/item';
 import ConditionBadge from './ConditionBadge';
@@ -156,7 +156,7 @@ export default function ItemCard({ item, onLikeToggle, onRequireAuth, showStatus
           </span>
           <div className="flex items-center gap-3 text-sm text-gray-400">
             <span className="flex items-center gap-1">
-              <HiEye className="h-4 w-4" /> {item.viewCount}
+              <Eye className="h-4 w-4" /> {item.viewCount}
             </span>
             <LikeButton
               itemId={item.id}

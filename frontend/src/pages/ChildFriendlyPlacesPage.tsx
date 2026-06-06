@@ -7,6 +7,7 @@ import { childFriendlyPlacesApi } from "../api/childFriendlyPlacesApi";
 import { PlaceType } from "../types/childFriendlyPlace";
 import type { ChildFriendlyPlaceDto, CreateChildFriendlyPlaceDto } from "../types/childFriendlyPlace";
 import { useAuthStore } from "../store/authStore";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const PLACE_TYPE_COLORS: Record<PlaceType, string> = {
   [PlaceType.Walk]: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -101,6 +102,7 @@ export default function ChildFriendlyPlacesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const fetchPlaces = useCallback(async () => {
     setLoading(true);
@@ -155,18 +157,33 @@ export default function ChildFriendlyPlacesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("childFriendlyPlaces.deleteConfirm"))) return;
+  const handleDelete = (id: string) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
     try {
       await childFriendlyPlacesApi.delete(id);
       setPlaces((prev) => prev.filter((p) => p.id !== id));
     } catch {
-      // ignore
+      // deletion failed silently; user can retry
     }
   };
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        title={t("childFriendlyPlaces.deleteTitle") || "Delete Place"}
+        message={t("childFriendlyPlaces.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+        variant="danger"
+      />
       {/* Hero */}
       <div className="bg-page py-12 px-4 mb-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">

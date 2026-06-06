@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { HiOfficeBuilding, HiHome, HiCube } from 'react-icons/hi';
+import { Building2, Home, Box } from 'lucide-react';
 import { DeliveryType } from '../../types/shipping';
 
 interface DeliveryTypeSelectorProps {
@@ -12,9 +12,9 @@ export default function DeliveryTypeSelector({ value, onChange, exclude = [] }: 
   const { t } = useTranslation();
 
   const types = [
-    { id: DeliveryType.Office, label: t('shipping.to_office'), icon: HiOfficeBuilding },
-    { id: DeliveryType.Address, label: t('shipping.to_address'), icon: HiHome },
-    { id: DeliveryType.Locker, label: t('shipping.to_locker'), icon: HiCube },
+    { id: DeliveryType.Office, label: t('shipping.to_office'), icon: Building2 },
+    { id: DeliveryType.Address, label: t('shipping.to_address'), icon: Home },
+    { id: DeliveryType.Locker, label: t('shipping.to_locker'), icon: Box },
   ].filter((type) => !exclude.includes(type.id));
 
   return (

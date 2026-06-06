@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HiOutlineDocumentText, HiOutlineDownload, HiOutlineMail } from 'react-icons/hi';
+import { FileText, Download, Mail } from 'lucide-react';
 import { ebillsApi } from '../../api/ebillsApi';
 import { PaymentMethod } from '../../types/payment';
 import type { EBill } from '../../types/ebill';
@@ -38,7 +38,7 @@ export default function EBillCard({ bill }: EBillCardProps) {
 
         {/* Icon */}
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <HiOutlineDocumentText className="w-5 h-5 text-primary" />
+          <FileText className="w-5 h-5 text-primary" />
         </div>
 
         {/* Main info */}
@@ -77,7 +77,7 @@ export default function EBillCard({ bill }: EBillCardProps) {
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
                 title={t('ebill.download')}
               >
-                <HiOutlineDownload className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5" />
                 {t('ebill.download')}
               </a>
             ) : (
@@ -85,7 +85,7 @@ export default function EBillCard({ bill }: EBillCardProps) {
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
                 title={t('ebill.download')}
               >
-                <HiOutlineDownload className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5" />
                 {t('ebill.download')}
               </span>
             )}
@@ -97,7 +97,7 @@ export default function EBillCard({ bill }: EBillCardProps) {
               className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
               title={t('ebill.resend')}
             >
-              <HiOutlineMail className="w-3.5 h-3.5" />
+              <Mail className="w-3.5 h-3.5" />
               {resending ? '…' : t('ebill.resend')}
             </button>
           </div>

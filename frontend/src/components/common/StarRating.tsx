@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HiStar } from 'react-icons/hi';
+import { Star } from 'lucide-react';
 
 interface StarRatingProps {
   value: number;
@@ -26,9 +26,9 @@ export default function StarRating({ value, onChange, size = 'md', readonly = fa
           onMouseLeave={() => setHovered(0)}
           className={`transition-colors ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110 transition-transform'}`}
         >
-          <HiStar
+          <Star
             className={`${sizes[size]} ${
-              star <= active ? 'text-yellow-400' : 'text-gray-300'
+              star <= active ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
             } transition-colors`}
           />
         </button>

@@ -1,4 +1,4 @@
-import { HiExternalLink, HiExclamation } from 'react-icons/hi';
+import { ExternalLink, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 
@@ -25,7 +25,7 @@ export default function NekorektenWarningModal({
         {/* Warning icon + header */}
         <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
           <span className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-100">
-            <HiExclamation className="h-6 w-6 text-red-600" />
+            <AlertTriangle className="h-6 w-6 text-red-600" />
           </span>
           <div>
             <p className="font-semibold text-red-700 text-sm">{t('nekorekten.seller_reported')}</p>
@@ -45,7 +45,7 @@ export default function NekorektenWarningModal({
           rel="noopener noreferrer"
           className="flex items-center gap-2 w-full justify-center py-2.5 px-4 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
         >
-          <HiExternalLink className="h-4 w-4" />
+          <ExternalLink className="h-4 w-4" />
           {t('nekorekten.check_profile')}
         </a>
 

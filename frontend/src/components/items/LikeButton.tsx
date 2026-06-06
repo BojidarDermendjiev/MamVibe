@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HiHeart, HiOutlineHeart } from 'react-icons/hi';
+import { Heart } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface LikeButtonProps {
@@ -39,12 +39,15 @@ export default function LikeButton({ itemId, likeCount, isLiked, onToggle, onReq
       )}
     >
       {liked ? (
-        <HiHeart className={clsx(
-          animating && 'animate-like-bounce',
-          size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'
-        )} />
+        <Heart
+          fill="currentColor"
+          className={clsx(
+            animating && 'animate-like-bounce',
+            size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'
+          )}
+        />
       ) : (
-        <HiOutlineHeart className={size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'} />
+        <Heart className={size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'} />
       )}
       <span className={size === 'sm' ? 'text-sm' : 'text-base'}>{count}</span>
     </button>

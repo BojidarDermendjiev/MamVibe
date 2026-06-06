@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { HiX, HiChevronLeft, HiChevronRight, HiEye } from 'react-icons/hi';
+import { X, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import toast from '@/utils/toast';
 import { itemsApi } from '../../api/itemsApi';
 import { adminApi, type ModerationLogEntry } from '../../api/adminApi';
@@ -8,6 +8,7 @@ import { type Item, ListingType } from '../../types/item';
 import Button from '../../components/common/Button';
 import Avatar from '../../components/common/Avatar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { formatPrice } from '../../utils/currency';
 
 function ItemDetailModal({
@@ -51,7 +52,7 @@ function ItemDetailModal({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0"
           >
-            <HiX className="h-5 w-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -69,13 +70,13 @@ function ItemDetailModal({
                   onClick={() => setPhotoIndex((i) => (i - 1 + photos.length) % photos.length)}
                   className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1"
                 >
-                  <HiChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => setPhotoIndex((i) => (i + 1) % photos.length)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1"
                 >
-                  <HiChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-5 w-5" />
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                   {photos.map((_, i) => (
@@ -278,6 +279,7 @@ export default function AdminItemsPage() {
   const [pendingItems, setPendingItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<{ item: Item; isPending: boolean } | null>(null);
+  const [confirmState, setConfirmState] = useState<{ open: boolean; onConfirm: () => void }>({ open: false, onConfirm: () => {} });
 
   useEffect(() => {
     Promise.all([
@@ -290,16 +292,21 @@ export default function AdminItemsPage() {
     }).catch(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this item?')) return;
-    try {
-      await adminApi.deleteItem(id);
-      setItems((prev) => prev.filter((i) => i.id !== id));
-      setPendingItems((prev) => prev.filter((i) => i.id !== id));
-      toast.success('Item deleted');
-    } catch {
-      toast.error(t('common.error'));
-    }
+  const handleDelete = (id: string) => {
+    setConfirmState({
+      open: true,
+      onConfirm: async () => {
+        setConfirmState({ open: false, onConfirm: () => {} });
+        try {
+          await adminApi.deleteItem(id);
+          setItems((prev) => prev.filter((i) => i.id !== id));
+          setPendingItems((prev) => prev.filter((i) => i.id !== id));
+          toast.success('Item deleted');
+        } catch {
+          toast.error(t('common.error'));
+        }
+      },
+    });
   };
 
   const handleApprove = async (id: string) => {
@@ -316,6 +323,15 @@ export default function AdminItemsPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={confirmState.open}
+        title={t('admin.delete_confirm_title') || 'Confirm Delete'}
+        message={t('admin.delete_confirm_message') || 'Are you sure you want to delete this item? This action cannot be undone.'}
+        confirmLabel={t('common.delete')}
+        onConfirm={confirmState.onConfirm}
+        onCancel={() => setConfirmState({ open: false, onConfirm: () => {} })}
+        variant="danger"
+      />
       <h1 className="text-3xl font-bold text-[#364153] dark:text-[#bdb9bc] mb-6">{t('admin.items')}</h1>
 
       {loading ? (
@@ -405,7 +421,7 @@ export default function AdminItemsPage() {
                               className="p-1.5 text-gray-400 hover:text-primary transition-colors"
                               title="View details"
                             >
-                              <HiEye className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </button>
                             {item.aiModerationStatus !== 3 && (
                               <Button size="sm" onClick={() => handleApprove(item.id)}>
@@ -467,7 +483,7 @@ export default function AdminItemsPage() {
                           className="p-1.5 text-gray-400 hover:text-primary transition-colors"
                           title="View details"
                         >
-                          <HiEye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </button>
                         <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)}>
                           {t('admin.delete_item')}

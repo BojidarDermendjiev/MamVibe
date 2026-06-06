@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageSEO } from '@/hooks/useSEO';
-import { HiEye, HiPencil, HiTrash, HiChat } from 'react-icons/hi';
+import { Eye, Pencil, Trash2, MessageSquare } from 'lucide-react';
 import toast from '@/utils/toast';
 import { itemsApi } from '../api/itemsApi';
 import { purchaseRequestsApi } from '../api/purchaseRequestsApi';
@@ -22,6 +22,7 @@ import NekorektenWarningModal from '../components/common/NekorektenWarningModal'
 import Modal from '../components/common/Modal';
 import MakeOfferModal from '../components/items/MakeOfferModal';
 import FollowButton from '../components/users/FollowButton';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,7 @@ export default function ItemDetailPage() {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [isSellerReported, setIsSellerReported] = useState(false);
   const [sellerRating, setSellerRating] = useState<UserRatingSummary | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const nekorektenReportUrl = 'https://nekorekten.com/';
   const viewCounted = useRef(false);
 
@@ -67,8 +69,14 @@ export default function ItemDetailPage() {
     load();
   }, [id, navigate]);
 
-  const handleDelete = async () => {
-    if (!item || !confirm(t('common.confirm') + '?')) return;
+  const handleDelete = () => {
+    if (!item) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!item) return;
+    setShowDeleteConfirm(false);
     try {
       await itemsApi.delete(item.id);
       toast.success('Item deleted');
@@ -223,6 +231,15 @@ export default function ItemDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title={t('common.confirm')}
+        message={t('items.delete_confirm') || 'Are you sure you want to delete this listing? This cannot be undone.'}
+        confirmLabel={t('common.delete')}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        variant="danger"
+      />
       {/* Breadcrumb — improves navigation UX and enables BreadcrumbList rich result in SERPs */}
       <nav aria-label="Breadcrumb" className="mb-4">
         <ol className="flex items-center gap-1.5 text-sm text-gray-400 flex-wrap">
@@ -291,10 +308,10 @@ export default function ItemDetailPage() {
             {isOwner && (
               <div className="flex gap-2">
                 <Link to={`/items/${item.id}/edit`}>
-                  <Button size="sm" variant="ghost"><HiPencil className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost"><Pencil className="h-4 w-4" /></Button>
                 </Link>
                 <Button size="sm" variant="danger" onClick={handleDelete}>
-                  <HiTrash className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -308,7 +325,7 @@ export default function ItemDetailPage() {
           </div>
 
           <div className="flex items-center gap-4 mb-6 text-sm text-gray-500 flex-wrap">
-            <span className="flex items-center gap-1"><HiEye className="h-4 w-4" /> {item.viewCount} {t('items.views')}</span>
+            <span className="flex items-center gap-1"><Eye className="h-4 w-4" /> {item.viewCount} {t('items.views')}</span>
             {item.condition !== ItemCondition.Unspecified && (
               <ConditionBadge condition={item.condition} />
             )}
@@ -388,12 +405,12 @@ export default function ItemDetailPage() {
                   className="flex-1"
                 >
                   <Button fullWidth variant="secondary">
-                    <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
+                    <MessageSquare className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                   </Button>
                 </Link>
               ) : (
                 <Button fullWidth variant="secondary" onClick={() => setShowLoginModal(true)}>
-                  <HiChat className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
+                  <MessageSquare className="h-5 w-5 mr-2" /> {t('items.contact_seller')}
                 </Button>
               )}
 

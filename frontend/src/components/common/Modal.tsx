@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { HiX } from 'react-icons/hi';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -81,7 +81,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             aria-label="Close dialog"
             className="p-1 rounded-full hover:bg-cream-dark transition-colors"
           >
-            <HiX className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
         {children}

@@ -86,14 +86,14 @@ public class ItemService : IItemService
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
-            var term = filter.SearchTerm.ToLower();
-            query = query.Where(i => i.Title.ToLower().Contains(term) || i.Description.ToLower().Contains(term));
+            var pattern = $"%{filter.SearchTerm}%";
+            query = query.Where(i => EF.Functions.ILike(i.Title, pattern) || EF.Functions.ILike(i.Description, pattern));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Brand))
         {
-            var brand = filter.Brand.ToLower();
-            query = query.Where(i => i.Title.ToLower().Contains(brand) || i.Description.ToLower().Contains(brand));
+            var pattern = $"%{filter.Brand}%";
+            query = query.Where(i => EF.Functions.ILike(i.Title, pattern) || EF.Functions.ILike(i.Description, pattern));
         }
 
         if (filter.AgeGroup.HasValue)

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageSEO } from '@/hooks/useSEO';
-import { HiPaperAirplane, HiSearch, HiEye } from 'react-icons/hi';
+import { Send, Search, Eye } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { messagesApi } from '../api/messagesApi';
 import { useSignalR } from '../hooks/useSignalR';
@@ -359,7 +359,7 @@ export default function ChatPage() {
               </div>
               {isMine && msg.isRead && (
                 <span data-testid="msg-seen" className="mt-0.5 self-end flex items-center gap-0.5 text-primary/70">
-                  <HiEye className="h-3 w-3" />
+                  <Eye className="h-3 w-3" />
                 </span>
               )}
             </div>
@@ -389,7 +389,7 @@ export default function ChatPage() {
           {/* Search */}
           <div className="px-4 pb-3">
             <div className="relative">
-              <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -460,7 +460,7 @@ export default function ChatPage() {
                     className="flex items-center gap-2 px-5 py-3 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark disabled:opacity-40 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     {t('chat.send')}
-                    <HiPaperAirplane className="h-4 w-4 rotate-90" />
+                    <Send className="h-4 w-4" />
                   </button>
                 </form>
               </div>
@@ -468,7 +468,7 @@ export default function ChatPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8 text-center">
               <div className="h-16 w-16 rounded-full bg-lavender/20 flex items-center justify-center">
-                <HiPaperAirplane className="h-7 w-7 text-primary/40 rotate-90" />
+                <Send className="h-7 w-7 text-primary/40" />
               </div>
               <p className="text-sm text-gray-400">{t('chat.select_conversation')}</p>
             </div>

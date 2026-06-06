@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageSEO } from '@/hooks/useSEO';
-import { HiUsers, HiCollection, HiGift, HiCurrencyDollar, HiSparkles } from 'react-icons/hi';
+import { Users, LayoutGrid, Gift, CircleDollarSign, Sparkles } from 'lucide-react';
 import { adminApi, type DashboardStats } from '../../api/adminApi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
@@ -72,10 +72,10 @@ export default function AdminDashboardPage() {
   if (!stats)  return null;
 
   const cards = [
-    { label: t('admin.total_users'),     value: stats.totalUsers,                    icon: HiUsers,          color: 'bg-lavender/20 text-primary' },
-    { label: t('admin.total_items'),     value: stats.totalItems,                    icon: HiCollection,     color: 'bg-peach/20 text-mauve' },
-    { label: t('admin.total_donations'), value: stats.totalDonations,                icon: HiGift,           color: 'bg-green-100 text-green-600' },
-    { label: t('admin.total_sales'),     value: `$${stats.totalRevenue.toFixed(2)}`, icon: HiCurrencyDollar, color: 'bg-mauve/10 text-mauve' },
+    { label: t('admin.total_users'),     value: stats.totalUsers,                    icon: Users,              color: 'bg-lavender/20 text-primary' },
+    { label: t('admin.total_items'),     value: stats.totalItems,                    icon: LayoutGrid,         color: 'bg-peach/20 text-mauve' },
+    { label: t('admin.total_donations'), value: stats.totalDonations,                icon: Gift,               color: 'bg-green-100 text-green-600' },
+    { label: t('admin.total_sales'),     value: `$${stats.totalRevenue.toFixed(2)}`, icon: CircleDollarSign,   color: 'bg-mauve/10 text-mauve' },
   ];
 
   const chatModelMeta  = chatProvider === 'groq' ? GROQ_MODEL_META      : ANTHROPIC_MODEL_META;
@@ -108,7 +108,7 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#945c67] to-[#3f4b7f] flex items-center justify-center shrink-0">
-            <HiSparkles className="h-5 w-5 text-white" />
+            <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
             <h2 className="font-semibold text-[#364153] dark:text-[#bdb9bc]">AI Settings</h2>

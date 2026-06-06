@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { HiPencil } from 'react-icons/hi';
+import { Pencil } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
@@ -25,7 +25,7 @@ export default function ProfilePage() {
         <div className="mt-6">
           <Link to="/settings">
             <Button variant="secondary">
-              <HiPencil className="h-4 w-4 mr-2" /> {t('profile.edit')}
+              <Pencil className="h-4 w-4 mr-2" /> {t('profile.edit')}
             </Button>
           </Link>
         </div>

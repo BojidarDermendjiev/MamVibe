@@ -1,6 +1,6 @@
 import { type InputHTMLAttributes, type ReactNode, forwardRef, useState } from 'react';
 import { clsx } from 'clsx';
-import { HiEye, HiEyeOff } from 'react-icons/hi';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?: string;
@@ -47,7 +47,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               tabIndex={-1}
             >
-              {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           )}
         </div>
