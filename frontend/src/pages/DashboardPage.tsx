@@ -1,5 +1,23 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  ListChecks,
+  Heart,
+  ShoppingBag,
+  Package,
+  Receipt,
+  Layers,
+  Inbox,
+  Send,
+  Tag,
+  MessageSquare,
+  Rss,
+  UserCheck,
+  Users,
+  Bookmark,
+  Menu,
+  X,
+} from 'lucide-react';
 import { usePageSEO } from '@/hooks/useSEO';
 import toast from '@/utils/toast';
 import { useDashboard, type DashboardTab } from '../hooks/useDashboard';
@@ -28,14 +46,69 @@ import FollowingTab from '../components/dashboard/FollowingTab';
 import SavedSearchesTab from '../components/dashboard/SavedSearchesTab';
 import BundlesTab from '../components/dashboard/BundlesTab';
 
+interface NavItem {
+  key: DashboardTab;
+  labelKey: string;
+  icon: React.ElementType;
+}
+
+interface NavGroup {
+  groupKey: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    groupKey: 'dashboard.nav_group_activity',
+    items: [
+      { key: 'listings',  labelKey: 'dashboard.my_listings',  icon: ListChecks },
+      { key: 'liked',     labelKey: 'dashboard.liked_items',  icon: Heart },
+      { key: 'purchases', labelKey: 'dashboard.purchases',    icon: ShoppingBag },
+      { key: 'shipments', labelKey: 'dashboard.my_shipments', icon: Package },
+      { key: 'ebills',    labelKey: 'dashboard.my_ebills',    icon: Receipt },
+      { key: 'bundles',   labelKey: 'dashboard.my_bundles',   icon: Layers },
+    ],
+  },
+  {
+    groupKey: 'dashboard.nav_group_requests',
+    items: [
+      { key: 'incoming-requests', labelKey: 'dashboard.incoming_requests', icon: Inbox },
+      { key: 'my-requests',       labelKey: 'dashboard.my_requests',       icon: Send },
+      { key: 'received-offers',   labelKey: 'dashboard.received_offers',   icon: Tag },
+      { key: 'sent-offers',       labelKey: 'dashboard.sent_offers',       icon: MessageSquare },
+    ],
+  },
+  {
+    groupKey: 'dashboard.nav_group_community',
+    items: [
+      { key: 'following-feed',  labelKey: 'dashboard.following_feed', icon: Rss },
+      { key: 'following',       labelKey: 'dashboard.following',      icon: UserCheck },
+      { key: 'followers',       labelKey: 'dashboard.followers',      icon: Users },
+      { key: 'saved-searches',  labelKey: 'dashboard.saved_searches', icon: Bookmark },
+    ],
+  },
+];
+
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { tab, setTab, myItems, likedItems, payments, incomingRequests, myRequests, receivedOffers, sentOffers, shipments, ebills, followingFeed, following, followers, savedSearches, bundles, loading, error, removeLikedItem, refreshTab } = useDashboard();
+  const {
+    tab, setTab,
+    myItems, likedItems, payments,
+    incomingRequests, myRequests,
+    receivedOffers, sentOffers,
+    shipments, ebills,
+    followingFeed, following, followers,
+    savedSearches, bundles,
+    loading, error,
+    removeLikedItem, refreshTab,
+  } = useDashboard();
+
   const [showCreateBundle, setShowCreateBundle] = useState(false);
   const [checkingId, setCheckingId] = useState<string | null>(null);
   const [ratedRequestIds, setRatedRequestIds] = useState<Set<string>>(new Set());
   const [rateModal, setRateModal] = useState<{ requestId: string; sellerName: string | null } | null>(null);
   const [reputationModal, setReputationModal] = useState<{ request: PurchaseRequest; result: BuyerCheckResult } | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Noindex: private, user-specific page. Should never appear in search results.
   usePageSEO({ title: "My Dashboard", description: "Manage your MamVibe listings, purchases, and messages.", index: false });
@@ -143,25 +216,59 @@ export default function DashboardPage() {
     catch { toast.error(t('bundle.delete_error')); }
   };
 
-  const tabs: { key: DashboardTab; label: string }[] = [
-    { key: 'listings', label: t('dashboard.my_listings') },
-    { key: 'liked', label: t('dashboard.liked_items') },
-    { key: 'purchases', label: t('dashboard.purchases') },
-    { key: 'incoming-requests', label: t('dashboard.incoming_requests') },
-    { key: 'my-requests', label: t('dashboard.my_requests') },
-    { key: 'received-offers', label: t('dashboard.received_offers') },
-    { key: 'sent-offers', label: t('dashboard.sent_offers') },
-    { key: 'shipments', label: t('dashboard.my_shipments') },
-    { key: 'ebills', label: t('dashboard.my_ebills') },
-    { key: 'following-feed', label: t('dashboard.following_feed') },
-    { key: 'following', label: t('dashboard.following') },
-    { key: 'followers', label: t('dashboard.followers') },
-    { key: 'saved-searches', label: t('dashboard.saved_searches') },
-    { key: 'bundles', label: t('dashboard.my_bundles') },
-  ];
+  const handleNavSelect = (key: DashboardTab) => {
+    setTab(key);
+    setMobileNavOpen(false);
+  };
+
+  // ── Sidebar nav (shared between desktop sidebar and mobile drawer) ─────────
+  const SidebarContent = () => (
+    <nav
+      role="navigation"
+      aria-label={t('dashboard.title')}
+      className="flex flex-col gap-1 w-full"
+    >
+      {NAV_GROUPS.map((group) => (
+        <div key={group.groupKey} className="mb-2">
+          <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-mauve/60 dark:text-[#bdb9bc]/40 select-none">
+            {t(group.groupKey)}
+          </p>
+          {group.items.map(({ key, labelKey, icon: Icon }) => {
+            const isActive = tab === key;
+            return (
+              <button
+                key={key}
+                id={`tab-${key}`}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${key}`}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={() => handleNavSelect(key)}
+                className={[
+                  'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-left',
+                  'transition-all duration-200',
+                  isActive
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-600 dark:text-[#bdb9bc] hover:bg-lavender/20 dark:hover:bg-[#3a3655]/60 hover:text-primary dark:hover:text-white',
+                ].join(' ')}
+              >
+                <Icon
+                  size={16}
+                  className={isActive ? 'text-white' : 'text-mauve/70 dark:text-[#bdb9bc]/60'}
+                  aria-hidden="true"
+                />
+                <span>{t(labelKey)}</span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </nav>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
       {rateModal && (
         <RateSellerModal
           purchaseRequestId={rateModal.requestId}
@@ -186,99 +293,163 @@ export default function DashboardPage() {
         onCreated={() => { setShowCreateBundle(false); setTab('bundles'); refreshTab(); }}
       />
 
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center">{t('dashboard.title')}</h1>
-
-      <div role="tablist" aria-label={t('dashboard.title')} className="flex gap-1 bg-white rounded-lg p-1 border border-lavender/30 mb-8 w-fit mx-auto flex-wrap">
-        {tabs.map((tabItem) => (
-          <button
-            key={tabItem.key}
-            role="tab"
-            id={`tab-${tabItem.key}`}
-            aria-selected={tab === tabItem.key}
-            aria-controls={`panel-${tabItem.key}`}
-            onClick={() => setTab(tabItem.key)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              tab === tabItem.key ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-lavender/20'
-            }`}
-          >
-            {tabItem.label}
-          </button>
-        ))}
+      {/* ── Mobile: hamburger toggle bar ───────────────────────────────────── */}
+      <div className="md:hidden flex items-center justify-between mb-4 bg-white dark:bg-[#2d2a42] rounded-xl px-4 py-3 border border-lavender/30 dark:border-[#3a3655]">
+        <span className="text-sm font-semibold text-primary dark:text-white">
+          {t('dashboard.title')}
+        </span>
+        <button
+          onClick={() => setMobileNavOpen(v => !v)}
+          aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
+          aria-expanded={mobileNavOpen}
+          className="p-1.5 rounded-lg text-gray-600 dark:text-[#bdb9bc] hover:bg-lavender/20 dark:hover:bg-[#3a3655]/60 transition-colors"
+        >
+          {mobileNavOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+        </button>
       </div>
 
-      {loading ? (
-        <LoadingSpinner size="lg" className="py-20" />
-      ) : (
-        <>
-          {tab === 'listings' && <MyListingsTab items={myItems} error={error} onRetry={refreshTab} onLikeToggle={handleListingLikeToggle} onBump={handleBump} />}
-          {tab === 'liked' && <FavoritesTab items={likedItems} error={error} onRetry={refreshTab} onLikeToggle={handleLikedTabToggle} />}
-          {tab === 'purchases' && <PurchasesTab payments={payments} error={error} onRetry={refreshTab} />}
-          {tab === 'incoming-requests' && (
-            <IncomingRequestsTab
-              requests={incomingRequests}
-              error={error}
-              onRetry={refreshTab}
-              checkingId={checkingId}
-              onAccept={handleAccept}
-              onDecline={handleDecline}
-            />
-          )}
-          {tab === 'my-requests' && (
-            <MyRequestsTab
-              requests={myRequests}
-              error={error}
-              onRetry={refreshTab}
-              ratedRequestIds={ratedRequestIds}
-              onRateSeller={(requestId) => setRateModal({ requestId, sellerName: null })}
-            />
-          )}
-          {tab === 'received-offers' && (
-            <ActiveOffersTab
-              offers={receivedOffers}
-              error={error}
-              onRetry={refreshTab}
-              onAccept={handleAcceptOffer}
-              onDecline={handleDeclineOffer}
-              onCounter={handleCounterOffer}
-            />
-          )}
-          {tab === 'sent-offers' && (
-            <SentOffersTab
-              offers={sentOffers}
-              error={error}
-              onRetry={refreshTab}
-              onAcceptCounter={handleAcceptCounter}
-              onDeclineCounter={handleDeclineCounter}
-              onCancel={handleCancelOffer}
-            />
-          )}
-          {tab === 'shipments' && <ShipmentsTab shipments={shipments} error={error} onRetry={refreshTab} />}
-          {tab === 'ebills' && <EBillsTab ebills={ebills} error={error} onRetry={refreshTab} />}
-          {tab === 'following-feed' && <FollowingFeedTab items={followingFeed} error={error} onRetry={refreshTab} />}
-          {tab === 'following' && (
-            <FollowingTab
-              users={following}
-              error={error}
-              onRetry={refreshTab}
-              emptyKey="dashboard.following_empty"
-              panelId="panel-following"
-              tabId="tab-following"
-            />
-          )}
-          {tab === 'followers' && (
-            <FollowingTab
-              users={followers}
-              error={error}
-              onRetry={refreshTab}
-              emptyKey="dashboard.followers_empty"
-              panelId="panel-followers"
-              tabId="tab-followers"
-            />
-          )}
-          {tab === 'saved-searches' && <SavedSearchesTab savedSearches={savedSearches} error={error} onRetry={refreshTab} onDelete={handleDeleteSavedSearch} />}
-          {tab === 'bundles' && <BundlesTab bundles={bundles} error={error} onRetry={refreshTab} onDelete={handleDeleteBundle} onCreateBundle={() => setShowCreateBundle(true)} />}
-        </>
+      {/* ── Mobile: expanded drawer ────────────────────────────────────────── */}
+      {mobileNavOpen && (
+        <div className="md:hidden bg-white dark:bg-[#2d2a42] rounded-xl border border-lavender/30 dark:border-[#3a3655] p-3 mb-4">
+          <SidebarContent />
+        </div>
       )}
+
+      {/* ── Main two-column layout ─────────────────────────────────────────── */}
+      <div className="flex gap-6 items-start">
+
+        {/* ── Desktop sidebar ───────────────────────────────────────────────── */}
+        <aside className="hidden md:block w-[220px] shrink-0">
+          <div className="bg-white dark:bg-[#2d2a42] rounded-xl border border-lavender/30 dark:border-[#3a3655] p-3 sticky top-24">
+            <p className="px-3 py-2 mb-1 text-xs font-bold uppercase tracking-widest text-primary dark:text-[#bdb9bc]/70">
+              {t('dashboard.title')}
+            </p>
+            <div className="h-px bg-lavender/30 dark:bg-[#3a3655] mb-2" />
+            <SidebarContent />
+          </div>
+        </aside>
+
+        {/* ── Tab content panel ─────────────────────────────────────────────── */}
+        <main className="flex-1 min-w-0">
+          {loading ? (
+            <LoadingSpinner size="lg" className="py-20" />
+          ) : (
+            <>
+              {tab === 'listings' && (
+                <div id="panel-listings" role="tabpanel" aria-labelledby="tab-listings">
+                  <MyListingsTab items={myItems} error={error} onRetry={refreshTab} onLikeToggle={handleListingLikeToggle} onBump={handleBump} />
+                </div>
+              )}
+              {tab === 'liked' && (
+                <div id="panel-liked" role="tabpanel" aria-labelledby="tab-liked">
+                  <FavoritesTab items={likedItems} error={error} onRetry={refreshTab} onLikeToggle={handleLikedTabToggle} />
+                </div>
+              )}
+              {tab === 'purchases' && (
+                <div id="panel-purchases" role="tabpanel" aria-labelledby="tab-purchases">
+                  <PurchasesTab payments={payments} error={error} onRetry={refreshTab} />
+                </div>
+              )}
+              {tab === 'incoming-requests' && (
+                <div id="panel-incoming-requests" role="tabpanel" aria-labelledby="tab-incoming-requests">
+                  <IncomingRequestsTab
+                    requests={incomingRequests}
+                    error={error}
+                    onRetry={refreshTab}
+                    checkingId={checkingId}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                  />
+                </div>
+              )}
+              {tab === 'my-requests' && (
+                <div id="panel-my-requests" role="tabpanel" aria-labelledby="tab-my-requests">
+                  <MyRequestsTab
+                    requests={myRequests}
+                    error={error}
+                    onRetry={refreshTab}
+                    ratedRequestIds={ratedRequestIds}
+                    onRateSeller={(requestId) => setRateModal({ requestId, sellerName: null })}
+                  />
+                </div>
+              )}
+              {tab === 'received-offers' && (
+                <div id="panel-received-offers" role="tabpanel" aria-labelledby="tab-received-offers">
+                  <ActiveOffersTab
+                    offers={receivedOffers}
+                    error={error}
+                    onRetry={refreshTab}
+                    onAccept={handleAcceptOffer}
+                    onDecline={handleDeclineOffer}
+                    onCounter={handleCounterOffer}
+                  />
+                </div>
+              )}
+              {tab === 'sent-offers' && (
+                <div id="panel-sent-offers" role="tabpanel" aria-labelledby="tab-sent-offers">
+                  <SentOffersTab
+                    offers={sentOffers}
+                    error={error}
+                    onRetry={refreshTab}
+                    onAcceptCounter={handleAcceptCounter}
+                    onDeclineCounter={handleDeclineCounter}
+                    onCancel={handleCancelOffer}
+                  />
+                </div>
+              )}
+              {tab === 'shipments' && (
+                <div id="panel-shipments" role="tabpanel" aria-labelledby="tab-shipments">
+                  <ShipmentsTab shipments={shipments} error={error} onRetry={refreshTab} />
+                </div>
+              )}
+              {tab === 'ebills' && (
+                <div id="panel-ebills" role="tabpanel" aria-labelledby="tab-ebills">
+                  <EBillsTab ebills={ebills} error={error} onRetry={refreshTab} />
+                </div>
+              )}
+              {tab === 'following-feed' && (
+                <div id="panel-following-feed" role="tabpanel" aria-labelledby="tab-following-feed">
+                  <FollowingFeedTab items={followingFeed} error={error} onRetry={refreshTab} />
+                </div>
+              )}
+              {tab === 'following' && (
+                <div id="panel-following" role="tabpanel" aria-labelledby="tab-following">
+                  <FollowingTab
+                    users={following}
+                    error={error}
+                    onRetry={refreshTab}
+                    emptyKey="dashboard.following_empty"
+                    panelId="panel-following"
+                    tabId="tab-following"
+                  />
+                </div>
+              )}
+              {tab === 'followers' && (
+                <div id="panel-followers" role="tabpanel" aria-labelledby="tab-followers">
+                  <FollowingTab
+                    users={followers}
+                    error={error}
+                    onRetry={refreshTab}
+                    emptyKey="dashboard.followers_empty"
+                    panelId="panel-followers"
+                    tabId="tab-followers"
+                  />
+                </div>
+              )}
+              {tab === 'saved-searches' && (
+                <div id="panel-saved-searches" role="tabpanel" aria-labelledby="tab-saved-searches">
+                  <SavedSearchesTab savedSearches={savedSearches} error={error} onRetry={refreshTab} onDelete={handleDeleteSavedSearch} />
+                </div>
+              )}
+              {tab === 'bundles' && (
+                <div id="panel-bundles" role="tabpanel" aria-labelledby="tab-bundles">
+                  <BundlesTab bundles={bundles} error={error} onRetry={refreshTab} onDelete={handleDeleteBundle} onCreateBundle={() => setShowCreateBundle(true)} />
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

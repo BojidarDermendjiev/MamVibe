@@ -266,7 +266,10 @@
     "saved_searches": "Запазени търсения",
     "saved_searches_empty": "Все още няма запазени търсения.",
     "my_bundles": "Мои комплекти",
-    "bundles_empty": "Все още няма комплекти."
+    "bundles_empty": "Все още няма комплекти.",
+    "nav_group_activity": "Моята активност",
+    "nav_group_requests": "Заявки и оферти",
+    "nav_group_community": "Общност"
   },
   "bundle": {
     "create_title": "Създай комплект",

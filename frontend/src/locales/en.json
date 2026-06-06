@@ -266,7 +266,10 @@
     "saved_searches": "Saved Searches",
     "saved_searches_empty": "No saved searches yet.",
     "my_bundles": "My Bundles",
-    "bundles_empty": "No bundles yet."
+    "bundles_empty": "No bundles yet.",
+    "nav_group_activity": "My Activity",
+    "nav_group_requests": "Requests & Offers",
+    "nav_group_community": "Community"
   },
   "bundle": {
     "create_title": "Create Bundle",
