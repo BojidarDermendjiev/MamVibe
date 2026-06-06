@@ -368,4 +368,95 @@ public class BundleServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*sold*");
     }
+
+    // =========================================================================
+    // Checkout / payment completion — bundle sold state
+    // =========================================================================
+
+    [Fact]
+    public async Task CreateCheckoutSessionAsync_TestMode_MarksAllBundleItemsSold()
+    {
+        await using var db = CreateDb();
+        await SeedUserAsync(db, "seller-pay");
+        var item1 = await SeedItemAsync(db, "seller-pay");
+        var item2 = await SeedItemAsync(db, "seller-pay");
+
+        var bundle = new Bundle
+        {
+            Title = "Pay Bundle", Price = 30m, SellerId = "seller-pay", IsActive = true,
+            BundleItems = [new BundleItem { ItemId = item1.Id }, new BundleItem { ItemId = item2.Id }]
+        };
+        db.Bundles.Add(bundle);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+
+        var url = await svc.CreateCheckoutSessionAsync(
+            bundle.Id, buyerId: "buyer-pay",
+            successUrl: "https://app/success",
+            cancelUrl: "https://app/cancel");
+
+        url.Should().Contain("success", because: "test-mode returns the success URL immediately");
+
+        var updated1 = await db.Items.FindAsync(item1.Id);
+        var updated2 = await db.Items.FindAsync(item2.Id);
+        updated1!.IsSold.Should().BeTrue(because: "every item in the bundle must be marked sold after payment");
+        updated1.IsActive.Should().BeFalse();
+        updated2!.IsSold.Should().BeTrue();
+        updated2.IsActive.Should().BeFalse();
+
+        var updatedBundle = await db.Bundles.FindAsync(bundle.Id);
+        updatedBundle!.IsSold.Should().BeTrue(because: "the bundle itself must be marked sold");
+        updatedBundle.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CreateCheckoutSessionAsync_TestMode_CreatesPaymentRecord()
+    {
+        await using var db = CreateDb();
+        await SeedUserAsync(db, "seller-pr");
+        var item1 = await SeedItemAsync(db, "seller-pr");
+        var item2 = await SeedItemAsync(db, "seller-pr");
+
+        var bundle = new Bundle
+        {
+            Title = "PR Bundle", Price = 50m, SellerId = "seller-pr", IsActive = true,
+            BundleItems = [new BundleItem { ItemId = item1.Id }, new BundleItem { ItemId = item2.Id }]
+        };
+        db.Bundles.Add(bundle);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        await svc.CreateCheckoutSessionAsync(bundle.Id, "buyer-pr", "https://app/s", "https://app/c");
+
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.BundleId == bundle.Id);
+        payment.Should().NotBeNull();
+        payment!.BuyerId.Should().Be("buyer-pr");
+        payment.SellerId.Should().Be("seller-pr");
+        payment.Amount.Should().Be(50m);
+        payment.Status.Should().Be(PaymentStatus.Completed);
+    }
+
+    [Fact]
+    public async Task CreateCheckoutSessionAsync_ThrowsIfSellerBuysOwnBundle()
+    {
+        await using var db = CreateDb();
+        await SeedUserAsync(db, "seller-self");
+        var item1 = await SeedItemAsync(db, "seller-self");
+        var item2 = await SeedItemAsync(db, "seller-self");
+
+        var bundle = new Bundle
+        {
+            Title = "Self Bundle", Price = 20m, SellerId = "seller-self", IsActive = true,
+            BundleItems = [new BundleItem { ItemId = item1.Id }, new BundleItem { ItemId = item2.Id }]
+        };
+        db.Bundles.Add(bundle);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db);
+        var act = () => svc.CreateCheckoutSessionAsync(bundle.Id, "seller-self", "https://app/s", "https://app/c");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*cannot purchase your own bundle*");
+    }
 }

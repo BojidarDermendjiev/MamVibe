@@ -270,28 +270,27 @@ public class StripePaymentService : IStripePaymentService
         var buyerId  = session.Metadata["buyerId"];
         var sellerId = session.Metadata["sellerId"];
 
-        var bundlePayment = new PaymentEntity
-        {
-            BundleId = bundleId,
-            ItemId   = null,
-            BuyerId  = buyerId,
-            SellerId = sellerId,
-            Amount   = session.AmountTotal!.Value / 100m,
-            PaymentMethod   = Domain.Enums.PaymentMethod.Card,
-            StripeSessionId = session.Id,
-            Status   = PaymentStatus.Completed
-        };
-        _context.Payments.Add(bundlePayment);
-        await _context.SaveChangesAsync();
+        Guid paymentId;
 
-        if (session.Metadata.ContainsKey("delivery_name") && !string.IsNullOrEmpty(session.Metadata["delivery_name"]))
-        {
-            try { await CreateShipmentFromMetadataAsync(bundlePayment.Id, session.Metadata); }
-            catch (Exception ex) { _logger.LogError(ex, "Auto-shipment creation failed for bundle session {SessionId}.", session.Id); }
-        }
-
+        // Single atomic transaction: payment record + bundle completion in one commit.
+        // If either save fails the transaction rolls back, the payment row is gone,
+        // and Stripe's retry will find no existing payment and process it again.
+        await using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
+            var bundlePayment = new PaymentEntity
+            {
+                BundleId = bundleId,
+                ItemId   = null,
+                BuyerId  = buyerId,
+                SellerId = sellerId,
+                Amount   = session.AmountTotal!.Value / 100m,
+                PaymentMethod   = Domain.Enums.PaymentMethod.Card,
+                StripeSessionId = session.Id,
+                Status   = PaymentStatus.Completed
+            };
+            _context.Payments.Add(bundlePayment);
+
             var req = await _context.PurchaseRequests
                 .FirstOrDefaultAsync(r => r.BundleId == bundleId
                                        && r.BuyerId  == buyerId
@@ -314,10 +313,25 @@ public class StripePaymentService : IStripePaymentService
             if (bundle != null) { bundle.IsSold = true; bundle.IsActive = false; }
 
             await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+            paymentId = bundlePayment.Id;
         }
-        catch (Exception ex) { _logger.LogError(ex, "Failed to complete bundle purchase for bundle {BundleId}.", bundleId); }
+        catch (Exception ex)
+        {
+            await tx.RollbackAsync();
+            _logger.LogError(ex, "Bundle webhook transaction rolled back for bundle {BundleId} — Stripe will retry.", bundleId);
+            throw;
+        }
 
-        await _publisher.Publish(new PaymentCompletedEvent(bundlePayment.Id));
+        // Shipment creation and event publish are intentionally outside the transaction:
+        // they are safe side-effects that do not need to be rolled back if they fail.
+        if (session.Metadata.ContainsKey("delivery_name") && !string.IsNullOrEmpty(session.Metadata["delivery_name"]))
+        {
+            try { await CreateShipmentFromMetadataAsync(paymentId, session.Metadata); }
+            catch (Exception ex) { _logger.LogError(ex, "Auto-shipment creation failed for bundle session {SessionId}.", session.Id); }
+        }
+
+        await _publisher.Publish(new PaymentCompletedEvent(paymentId));
     }
 
     private async Task HandleBulkWebhookAsync(Session session)
