@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-import type { Item } from '../types/item';
+import type { Item, PagedResult } from '../types/item';
 import type { Payment } from '../types/payment';
 import type { Shipment, TrackingEvent } from '../types/shipping';
 
@@ -72,7 +72,7 @@ export const adminApi = {
     axiosClient.get<Shipment[]>('/admin/shipments'),
 
   getAllPayments: () =>
-    axiosClient.get<Payment[]>('/admin/payments'),
+    axiosClient.get<PagedResult<Payment>>('/admin/payments'),
 
   trackShipment: (id: string) =>
     axiosClient.get<TrackingEvent[]>(`/admin/shipments/${id}/track`),

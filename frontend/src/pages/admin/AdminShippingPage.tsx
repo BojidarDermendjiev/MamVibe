@@ -55,7 +55,7 @@ export default function AdminShippingPage() {
       adminApi.getAllShipments(),
     ])
       .then(([paymentsRes, shipmentsRes]) => {
-        setPayments(paymentsRes.data);
+        setPayments(paymentsRes.data.items);
         setShipments(shipmentsRes.data);
       })
       .catch(() => toast.error(t('common.error')))
