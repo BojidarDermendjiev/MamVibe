@@ -40,6 +40,7 @@ public class AdminWebApplicationFactory : WebApplicationFactory<StartUp>
                 ["JwtSettings:Audience"] = "MomVibeTest",
                 ["JwtSettings:ExpiryMinutes"] = "60",
                 ["ConnectionStrings:DefaultConnection"] = connectionString,
+                ["AdminSeed:Enabled"] = "false",
             });
         });
 

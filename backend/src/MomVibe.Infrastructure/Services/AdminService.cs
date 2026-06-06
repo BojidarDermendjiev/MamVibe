@@ -155,41 +155,29 @@ public class AdminService : IAdminService
         if (this._cache.TryGetValue(cacheKey, out DashboardStatsDto? cached))
             return cached!;
 
-        // Single EF Core query: all item/payment/message aggregates in one round-trip.
-        // EF Core translates each correlated Count/Sum into a scalar subquery so the
-        // database executes a single SELECT statement.
-        var aggregatesTask = this._context.Items
-            .GroupBy(_ => 1)
-            .Select(_ => new
-            {
-                TotalItems    = this._context.Items.Count(),
-                ActiveItems   = this._context.Items.Count(i => i.IsActive),
-                TotalDonations = this._context.Items.Count(i => i.ListingType == ListingType.Donate),
-                TotalSales    = this._context.Payments.Count(p => p.Status == PaymentStatus.Completed),
-                TotalRevenue  = (decimal?)this._context.Payments
-                                    .Where(p => p.Status == PaymentStatus.Completed)
-                                    .Sum(p => p.Amount),
-                TotalMessages = this._context.Messages.Count(),
-            })
-            .FirstOrDefaultAsync();
+        // EF Core DbContext is not thread-safe — run all queries sequentially on the shared
+        // scoped instance. The cache (5 min TTL) means this only executes once per cache window.
+        var totalItems     = await this._context.Items.CountAsync();
+        var activeItems    = await this._context.Items.CountAsync(i => i.IsActive);
+        var totalDonations = await this._context.Items.CountAsync(i => i.ListingType == ListingType.Donate);
+        var totalSales     = await this._context.Payments.CountAsync(p => p.Status == PaymentStatus.Completed);
+        var totalRevenue   = await this._context.Payments
+                                 .Where(p => p.Status == PaymentStatus.Completed)
+                                 .SumAsync(p => (decimal?)p.Amount);
+        var totalMessages  = await this._context.Messages.CountAsync();
+        var totalUsers     = await this._userManager.Users.CountAsync();
+        var blockedUsers   = await this._userManager.Users.CountAsync(u => u.IsBlocked);
 
-        // UserManager counts run in parallel against the same underlying store.
-        var totalUsersTask  = this._userManager.Users.CountAsync();
-        var blockedUsersTask = this._userManager.Users.CountAsync(u => u.IsBlocked);
-
-        await Task.WhenAll(aggregatesTask, totalUsersTask, blockedUsersTask);
-
-        var agg = aggregatesTask.Result;
         var stats = new DashboardStatsDto
         {
-            TotalUsers    = totalUsersTask.Result,
-            BlockedUsers  = blockedUsersTask.Result,
-            TotalItems    = agg?.TotalItems    ?? 0,
-            ActiveItems   = agg?.ActiveItems   ?? 0,
-            TotalDonations = agg?.TotalDonations ?? 0,
-            TotalSales    = agg?.TotalSales    ?? 0,
-            TotalRevenue  = agg?.TotalRevenue  ?? 0m,
-            TotalMessages = agg?.TotalMessages ?? 0,
+            TotalUsers     = totalUsers,
+            BlockedUsers   = blockedUsers,
+            TotalItems     = totalItems,
+            ActiveItems    = activeItems,
+            TotalDonations = totalDonations,
+            TotalSales     = totalSales,
+            TotalRevenue   = totalRevenue ?? 0m,
+            TotalMessages  = totalMessages,
         };
 
         this._cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));
