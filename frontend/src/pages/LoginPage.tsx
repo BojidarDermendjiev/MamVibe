@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from '@/utils/toast';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -52,17 +52,17 @@ export default function LoginPage() {
       try {
         const { data } = await authApi.googleLogin({ idToken: credential });
         setAuth(data.user, data.accessToken);
-        toast.success('Welcome!');
+        toast.success(t('auth.welcome'));
         navigate('/');
       } catch (err: unknown) {
         const msg =
           (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-        toast.error(msg || 'Google login failed. Please try again.');
+        toast.error(msg || t('auth.google_login_failed'));
       } finally {
         setGoogleLoading(false);
       }
     },
-    [setAuth, navigate],
+    [setAuth, navigate, t],
   );
 
   // ── Google Identity Services ──
@@ -122,7 +122,7 @@ export default function LoginPage() {
       const { data } = await authApi.login({ email, password });
       setAuth(data.user, data.accessToken);
 
-      toast.success('Welcome back!');
+      toast.success(t('auth.welcome_back'));
       navigate('/');
     } catch (err: unknown) {
       const raw = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">Sign in</h1>
+      <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">{t('auth.login_title')}</h1>
 
       {/* autoComplete="on" + name/id/autocomplete attributes tell Chrome
           to save and restore credentials via Windows Hello automatically */}
@@ -182,12 +182,13 @@ export default function LoginPage() {
 
         {/* Forgot */}
         <div className="flex justify-end pr-1">
-          <Link
-            to="/forgot-password"
-            className="text-xs text-gray-400 hover:text-primary transition-colors"
+          <button
+            type="button"
+            onClick={() => navigate('/forgot-password')}
+            className="text-xs text-gray-400 hover:text-primary transition-colors bg-transparent border-none p-0 cursor-pointer"
           >
             {t('auth.forgot_password')}
-          </Link>
+          </button>
         </div>
 
         {/* Submit */}
@@ -197,7 +198,7 @@ export default function LoginPage() {
           className="w-full py-3 rounded-full font-bold text-sm text-white uppercase tracking-widest transition-all duration-300 hover:opacity-90 hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: 'linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)' }}
         >
-          {loading ? 'Signing in…' : 'Login'}
+          {loading ? t('auth.signing_in') : t('auth.login_btn')}
         </button>
       </form>
 
@@ -205,7 +206,7 @@ export default function LoginPage() {
       <div className="mt-5">
         <div className="relative flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400 shrink-0">or continue with</span>
+          <span className="text-xs text-gray-400 shrink-0">{t('auth.or_continue_with')}</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
@@ -213,7 +214,7 @@ export default function LoginPage() {
           {googleLoading && (
             <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
               <span className="w-4 h-4 border-2 border-[#EA4335] border-t-transparent rounded-full animate-spin" />
-              Signing in with Google…
+              {t('auth.signing_in_google')}
             </div>
           )}
           <div

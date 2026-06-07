@@ -1,11 +1,16 @@
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Sun, Moon } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import { useTheme } from "../contexts/ThemeContext";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const SWITCH_ROUTES = ["/login", "/register"];
 
 export default function AuthLayout() {
+  const { t } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const isLogin = location.pathname === "/login";
@@ -55,7 +60,14 @@ export default function AuthLayout() {
         style={{ background: "linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)" }}
       />
 
-      <div className="w-full max-w-[820px]">
+      <div className="w-full max-w-[820px] relative">
+        <button
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? t('common.switch_to_light', 'Switch to light mode') : t('common.switch_to_dark', 'Switch to dark mode')}
+          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-200 text-gray-700 dark:text-gray-200"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
         {showSwitch ? (
           /* ═══════════════════════════════════════
              Auth-switch card
@@ -73,32 +85,31 @@ export default function AuthLayout() {
 
                 {/* Left half — "One of us?" shown when active (register mode) */}
                 <div className="auth-toggle-panel auth-toggle-panel-left">
-                  <h2 className="text-2xl font-bold mb-3">One of us?</h2>
+                  <h2 className="text-2xl font-bold mb-3">{t('auth.panel_one_of_us')}</h2>
                   <p className="text-white/80 text-sm leading-relaxed mb-7 max-w-[190px] mx-auto">
-                    Welcome back! Sign in to continue your journey with us.
+                    {t('auth.panel_one_of_us_desc')}
                   </p>
                   <button
                     type="button"
                     onClick={() => switchTo("/login", false)}
                     className="px-9 py-2.5 rounded-full border-2 border-white text-white text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-[#3f4b7f] transition-all duration-300 cursor-pointer"
                   >
-                    Sign In
+                    {t('auth.login_btn')}
                   </button>
                 </div>
 
                 {/* Right half — "New here?" shown when not active (login mode) */}
                 <div className="auth-toggle-panel auth-toggle-panel-right">
-                  <h2 className="text-2xl font-bold mb-3">New here?</h2>
+                  <h2 className="text-2xl font-bold mb-3">{t('auth.panel_new_here')}</h2>
                   <p className="text-white/80 text-sm leading-relaxed mb-7 max-w-[190px] mx-auto">
-                    Join us today and discover a world of possibilities.
-                    Create your account in seconds!
+                    {t('auth.panel_new_here_desc')}
                   </p>
                   <button
                     type="button"
                     onClick={() => switchTo("/register", true)}
                     className="px-9 py-2.5 rounded-full border-2 border-white text-white text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-[#3f4b7f] transition-all duration-300 cursor-pointer"
                   >
-                    Sign Up
+                    {t('auth.register_btn')}
                   </button>
                 </div>
 
@@ -109,24 +120,24 @@ export default function AuthLayout() {
             <div className="auth-mobile-switch md:hidden absolute bottom-3 left-0 right-0">
               {isLogin ? (
                 <p>
-                  Don't have an account?{" "}
+                  {t('auth.no_account')}{" "}
                   <button
                     type="button"
                     onClick={() => switchTo("/register", true)}
                     className="text-[#945c67] font-semibold cursor-pointer"
                   >
-                    Sign Up
+                    {t('auth.register_btn')}
                   </button>
                 </p>
               ) : (
                 <p>
-                  Already have an account?{" "}
+                  {t('auth.has_account')}{" "}
                   <button
                     type="button"
                     onClick={() => switchTo("/login", false)}
                     className="text-[#945c67] font-semibold cursor-pointer"
                   >
-                    Sign In
+                    {t('auth.login_btn')}
                   </button>
                 </p>
               )}
