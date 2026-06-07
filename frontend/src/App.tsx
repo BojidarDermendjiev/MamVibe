@@ -53,6 +53,9 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
 const BundleDetailPage = lazy(() => import("./pages/BundleDetailPage"));
 const BundlePaymentPage = lazy(() => import("./pages/BundlePaymentPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const FaqPage = lazy(() => import("./pages/FaqPage"));
+const HowItWorksPage = lazy(() => import("./pages/HowItWorksPage"));
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -128,6 +131,9 @@ function AppRoutes() {
           <Route path="/browse" element={<BrowseItemsPage />} />
           <Route path="/items/:id" element={<ItemDetailPage />} />
           <Route path="/bundles/:id" element={<BundleDetailPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/cookies" element={<CookiePolicyPage />} />

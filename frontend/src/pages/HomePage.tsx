@@ -189,6 +189,8 @@ const ORGANIZATION_SCHEMA = {
   description:
     "MamVibe is a free platform for families to buy, sell, and donate second-hand baby clothes, strollers, toys and more.",
   foundingDate: "2024",
+  areaServed: "Bulgaria",
+  serviceType: "Second-hand baby and children's marketplace",
   sameAs: [],
   contactPoint: {
     "@type": "ContactPoint",
