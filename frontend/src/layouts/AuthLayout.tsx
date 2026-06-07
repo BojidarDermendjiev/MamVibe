@@ -151,7 +151,7 @@ export default function AuthLayout() {
           /* ═══════════════════════════════════════
              Simple card (forgot / reset password)
           ═══════════════════════════════════════ */
-          <div className="auth-page" style={{ minHeight: '100dvh', position: 'fixed', inset: 0, overflow: 'auto', background: 'linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)' }}>
+          <div className="auth-page" style={{ minHeight: '100dvh', position: 'fixed', inset: 0, overflow: 'auto' }}>
             <button
               type="button"
               onClick={() => navigate("/")}
@@ -171,7 +171,7 @@ export default function AuthLayout() {
                 {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
               </button>
             </div>
-            <div style={{ background: '#1e1c2e', borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 5px 45px rgba(0,0,0,0.4)', marginTop: '4rem' }}>
+            <div className="auth-card" style={{ borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 5px 45px rgba(0,0,0,0.3)', marginTop: '4rem' }}>
               <Outlet />
             </div>
           </div>
