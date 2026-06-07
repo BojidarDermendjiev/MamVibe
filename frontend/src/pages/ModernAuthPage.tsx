@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
@@ -21,7 +21,6 @@ import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
-import TurnstileWidget from "../components/common/TurnstileWidget";
 
 export default function ModernAuthPage() {
   const { t } = useTranslation();
@@ -54,8 +53,6 @@ export default function ModernAuthPage() {
   });
   const [regLoading, setRegLoading] = useState(false);
   const [regErrors, setRegErrors] = useState<Record<string, string>>({});
-  const [regToken, setRegToken] = useState<string | null>(null);
-  const clearRegToken = useCallback(() => setRegToken(null), []);
 
   const toggleToSignUp = () => {
     setIsSignUp(true);
@@ -136,14 +133,13 @@ export default function ModernAuthPage() {
     if (!validate()) return;
     setRegLoading(true);
     try {
-      const { data } = await authApi.register({ ...regForm, turnstileToken: regToken ?? undefined });
+      const { data } = await authApi.register({ ...regForm });
       setAuth(data.user, data.accessToken);
       toast.success(t("auth.account_created"));
       navigate("/");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
-      clearRegToken();
     } finally {
       setRegLoading(false);
     }
@@ -305,11 +301,7 @@ export default function ModernAuthPage() {
               />
             </div>
 
-            <div className="flex justify-center my-2">
-              <TurnstileWidget onToken={setRegToken} onExpire={clearRegToken} />
-            </div>
-
-            <button type="submit" disabled={regLoading || !regToken} className="auth-btn-fill">
+            <button type="submit" disabled={regLoading} className="auth-btn-fill">
               {regLoading ? t("common.loading") : t("auth.register_btn")}
             </button>
 

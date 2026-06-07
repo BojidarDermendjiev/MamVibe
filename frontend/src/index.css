@@ -719,9 +719,9 @@ a:hover {
 .auth-page {
   min-height: 100dvh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 3rem 1.5rem 2rem;
   background: linear-gradient(135deg, #1a1525 0%, #0f0e1a 100%);
   position: relative;
 }
@@ -735,7 +735,7 @@ a:hover {
   overflow: hidden;
   width: 860px;
   max-width: 100%;
-  min-height: 560px;
+  min-height: 520px;
 }
 
 /* ── Form panels ── */
