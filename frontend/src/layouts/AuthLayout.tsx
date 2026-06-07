@@ -171,7 +171,7 @@ export default function AuthLayout() {
                 {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
               </button>
             </div>
-            <div className="auth-card" style={{ borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 5px 45px rgba(0,0,0,0.3)', marginTop: '4rem' }}>
+            <div className="auth-card" style={{ borderRadius: '24px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 5px 45px rgba(0,0,0,0.3)', marginTop: '4rem', minHeight: 'auto' }}>
               <Outlet />
             </div>
           </div>
