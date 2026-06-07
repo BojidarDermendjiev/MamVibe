@@ -151,7 +151,7 @@ export default function AuthLayout() {
           /* ═══════════════════════════════════════
              Simple card (forgot / reset password)
           ═══════════════════════════════════════ */
-          <div className="auth-page" style={{ minHeight: '100dvh', position: 'fixed', inset: 0, overflow: 'auto' }}>
+          <div className="auth-page" style={{ minHeight: '100dvh', position: 'fixed', inset: 0, overflow: 'auto', background: 'linear-gradient(135deg, #945c67 0%, #3f4b7f 100%)' }}>
             <button
               type="button"
               onClick={() => navigate("/")}
