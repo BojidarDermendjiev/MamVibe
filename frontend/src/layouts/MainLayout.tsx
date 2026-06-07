@@ -388,37 +388,25 @@ export default function MainLayout() {
               <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">{t("footer.links")}</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link
-                    to="/browse"
-                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
-                  >
+                  <button type="button" onClick={() => navigate("/browse")} className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors bg-transparent border-none p-0 cursor-pointer">
                     {t("nav.browse")}
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link
-                    to="/doctor-reviews"
-                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
-                  >
+                  <button type="button" onClick={() => navigate("/doctor-reviews")} className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors bg-transparent border-none p-0 cursor-pointer">
                     {t("nav.doctors")}
-                  </Link>
+                  </button>
                 </li>
                 <li>
-                  <Link
-                    to="/child-friendly-places"
-                    className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
-                  >
+                  <button type="button" onClick={() => navigate("/child-friendly-places")} className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors bg-transparent border-none p-0 cursor-pointer">
                     {t("nav.places")}
-                  </Link>
+                  </button>
                 </li>
                 {!isAuthenticated && (
                   <li>
-                    <Link
-                      to="/register"
-                      className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors"
-                    >
+                    <button type="button" onClick={() => navigate("/register")} className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors bg-transparent border-none p-0 cursor-pointer">
                       {t("nav.register")}
-                    </Link>
+                    </button>
                   </li>
                 )}
               </ul>
@@ -523,11 +511,11 @@ export default function MainLayout() {
           <div className="border-t border-gray-200 dark:border-gray-700/60 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400 dark:text-gray-500">
             <span>&copy; {new Date().getFullYear()} MamVibe. {t("footer.rights")}</span>
             <nav aria-label="Legal" className="flex items-center gap-4">
-              <Link to="/privacy" className="hover:text-primary transition-colors">{t("footer.legal_privacy")}</Link>
+              <button type="button" onClick={() => navigate("/privacy")} className="hover:text-primary transition-colors bg-transparent border-none p-0 cursor-pointer text-gray-400 dark:text-gray-500 text-sm">{t("footer.legal_privacy")}</button>
               <span aria-hidden="true">·</span>
-              <Link to="/terms" className="hover:text-primary transition-colors">{t("footer.legal_terms")}</Link>
+              <button type="button" onClick={() => navigate("/terms")} className="hover:text-primary transition-colors bg-transparent border-none p-0 cursor-pointer text-gray-400 dark:text-gray-500 text-sm">{t("footer.legal_terms")}</button>
               <span aria-hidden="true">·</span>
-              <Link to="/cookies" className="hover:text-primary transition-colors">{t("footer.legal_cookies")}</Link>
+              <button type="button" onClick={() => navigate("/cookies")} className="hover:text-primary transition-colors bg-transparent border-none p-0 cursor-pointer text-gray-400 dark:text-gray-500 text-sm">{t("footer.legal_cookies")}</button>
             </nav>
           </div>
         </div>
