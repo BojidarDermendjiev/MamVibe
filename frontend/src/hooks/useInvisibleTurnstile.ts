@@ -2,6 +2,10 @@ import { useEffect, useRef, useCallback } from 'react';
 
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA';
 
+// The bundled Turnstile type omits invisible-mode options — extend via any.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TurnstileAny = any;
+
 /**
  * Mounts an invisible Cloudflare Turnstile widget into a hidden div.
  * Call `execute()` just before form submission to get a one-time token silently.
@@ -20,8 +24,9 @@ export function useInvisibleTurnstile() {
     let intervalId: ReturnType<typeof setInterval> | null = null;
 
     const mount = () => {
-      if (!window.turnstile || !containerRef.current || widgetIdRef.current) return;
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+      const ts: TurnstileAny = window.turnstile;
+      if (!ts || !containerRef.current || widgetIdRef.current) return;
+      widgetIdRef.current = ts.render(containerRef.current, {
         sitekey: SITE_KEY,
         size: 'invisible',
         execution: 'execute',
@@ -50,8 +55,9 @@ export function useInvisibleTurnstile() {
 
     return () => {
       if (intervalId) clearInterval(intervalId);
-      if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current);
+      const ts: TurnstileAny = window.turnstile;
+      if (widgetIdRef.current && ts) {
+        ts.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
       container.remove();
@@ -61,16 +67,16 @@ export function useInvisibleTurnstile() {
 
   const execute = useCallback((): Promise<string> => {
     return new Promise((resolve) => {
-      if (!window.turnstile || !widgetIdRef.current) { resolve(''); return; }
+      const ts: TurnstileAny = window.turnstile;
+      if (!ts || !widgetIdRef.current) { resolve(''); return; }
       resolveRef.current = resolve;
-      window.turnstile.execute(widgetIdRef.current);
+      ts.execute(widgetIdRef.current);
     });
   }, []);
 
   const reset = useCallback(() => {
-    if (widgetIdRef.current && window.turnstile) {
-      window.turnstile.reset(widgetIdRef.current);
-    }
+    const ts: TurnstileAny = window.turnstile;
+    if (widgetIdRef.current && ts) ts.reset(widgetIdRef.current);
   }, []);
 
   return { execute, reset };
