@@ -180,16 +180,18 @@ describe('NotificationContext', () => {
     expect(screen.getByTestId('pending').textContent).toBe('0')
   })
 
-  it('markConversationRead calls markAsRead and re-fetches unread count', async () => {
+  it('markConversationRead calls markAsRead and optimistically decrements unread count', async () => {
     mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 2 }] } as never)
     mockGetAsSeller.mockResolvedValue({ data: [] } as never)
     mockMarkAsRead.mockResolvedValue({} as never)
     setup()
     await waitFor(() => expect(screen.getByTestId('unread').textContent).toBe('2'))
-    mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 0 }] } as never)
     await userEvent.click(screen.getByText('mark read'))
     expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
-    await waitFor(() => expect(screen.getByTestId('unread').textContent).toBe('0'))
+    // Optimistic decrement: 2 → 1 (no re-fetch of conversations)
+    expect(screen.getByTestId('unread').textContent).toBe('1')
+    // getConversations is only called on mount, not on markConversationRead
+    expect(mockGetConversations).toHaveBeenCalledTimes(1)
   })
 
   it('shows 0 counts when user is not authenticated', async () => {
@@ -310,18 +312,16 @@ describe('NotificationContext', () => {
     expect(screen.getByTestId('pending').textContent).toBe('0')
   })
 
-  it('handles markConversationRead when getConversations re-fetch fails', async () => {
+  it('handles markConversationRead: optimistic decrement regardless of network state', async () => {
     mockGetConversations.mockResolvedValue({ data: [{ unreadCount: 1 }] } as never)
     mockGetAsSeller.mockResolvedValue({ data: [] } as never)
     mockMarkAsRead.mockResolvedValue({} as never)
     setup()
     await waitFor(() => expect(screen.getByTestId('unread').textContent).toBe('1'))
-    mockGetConversations.mockRejectedValue(new Error('Network error'))
     await userEvent.click(screen.getByText('mark read'))
     expect(mockMarkAsRead).toHaveBeenCalledWith('u-2')
-    // catch handler runs without throwing; count stays at 1
-    await new Promise((r) => setTimeout(r, 50))
-    expect(screen.getByTestId('unread').textContent).toBe('1')
+    // Optimistic decrement: 1 → 0 (no re-fetch; network state doesn't affect the count)
+    expect(screen.getByTestId('unread').textContent).toBe('0')
   })
 
   it('skips setState when component unmounts before API calls resolve (cancelled guard)', async () => {
@@ -380,7 +380,8 @@ describe('NotificationContext', () => {
     }))
     const renderFn = mockToast.mock.calls[0][0] as (t: { id: string }) => React.ReactElement
     const { getByText } = render(renderFn({ id: 'price-drop-toast-id' }))
-    expect(getByText('Price dropped!')).toBeTruthy()
+    // i18n mock returns the raw key; the implementation calls translate('notifications.price_dropped')
+    expect(getByText('notifications.price_dropped')).toBeTruthy()
     await userEvent.click(getByText('View item →'))
     expect(vi.mocked(toast.dismiss)).toHaveBeenCalledWith('price-drop-toast-id')
   })
