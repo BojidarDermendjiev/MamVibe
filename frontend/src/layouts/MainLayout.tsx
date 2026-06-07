@@ -221,6 +221,9 @@ export default function MainLayout() {
   const { isAuthenticated } = useAuthStore();
   const { unreadCount, pendingRequestCount } = useNotification();
 
+  // Scroll to top on every route change
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+
   // Hide header on scroll-down, reveal on scroll-up
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
