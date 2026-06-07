@@ -67,17 +67,6 @@ export default function ForgotPasswordPage() {
           {loading ? t('common.loading') : t('auth.send_reset_link')}
         </button>
       </form>
-
-      <p style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-        <button
-          type="button"
-          onClick={() => navigate('/login')}
-          className="bg-transparent border-none p-0 cursor-pointer"
-          style={{ color: '#945c67', fontSize: '0.85rem', fontWeight: 600 }}
-        >
-          {t('nav.login')}
-        </button>
-      </p>
     </div>
   );
 }

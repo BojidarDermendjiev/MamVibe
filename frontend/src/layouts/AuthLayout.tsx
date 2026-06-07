@@ -153,12 +153,12 @@ export default function AuthLayout() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="absolute top-5 left-6 z-20 flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer"
+              className="fixed top-5 left-6 z-20 flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer"
             >
               <img src="/logo.png" alt="MamVibe" className="h-9 w-9 object-contain" />
               <span className="text-base font-bold text-[#3f4b7f] dark:text-[#c1c4e3]">MamVibe</span>
             </button>
-            <div className="absolute top-5 right-6 z-20 flex items-center gap-2">
+            <div className="fixed top-5 right-6 z-20 flex items-center gap-2">
               <LanguageSwitcher />
               <button
                 type="button"
