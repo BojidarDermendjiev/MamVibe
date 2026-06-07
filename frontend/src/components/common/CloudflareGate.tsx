@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { turnstileApi } from "../../api/turnstileApi";
 import LoadingSpinner from "./LoadingSpinner";
+
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 const TURNSTILE_SITE_KEY =
   import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
@@ -41,6 +44,7 @@ interface CloudflareGateProps {
 
 export default function CloudflareGate({ children }: CloudflareGateProps) {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const [verified, setVerified] = useState(() => isSessionVerified());
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState(false);
@@ -126,7 +130,7 @@ export default function CloudflareGate({ children }: CloudflareGateProps) {
     };
   }, [scriptLoaded, verified, handleToken]);
 
-  if (verified) {
+  if (verified || AUTH_ROUTES.some((r) => pathname.startsWith(r))) {
     return <>{children}</>;
   }
 
