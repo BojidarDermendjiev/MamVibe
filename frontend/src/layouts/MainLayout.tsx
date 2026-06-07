@@ -218,6 +218,7 @@ function AuthControls() {
 export default function MainLayout() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { unreadCount, pendingRequestCount } = useNotification();
 

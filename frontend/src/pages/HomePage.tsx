@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { usePageSEO } from "@/hooks/useSEO";
@@ -217,6 +217,7 @@ const WEBSITE_SCHEMA = {
 // ── Page component ──────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [titleNumber, setTitleNumber] = useState(0);
 
   // SEO: inject unique title, description, Open Graph, and structured data
@@ -449,9 +450,9 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-14">
             {AGE_GROUPS.map((group) => (
-              <Link
+              <button
                 key={group.labelKey}
-                to={`/browse?age=${group.query}`}
+                onClick={() => navigate(`/browse?age=${group.query}`)}
                 className="bg-section-b rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div
@@ -468,7 +469,7 @@ export default function HomePage() {
                     {t(group.rangeKey)}
                   </p>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -703,7 +704,6 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="max-w-2xl mx-auto text-center"
         >
-          {/* Animated heart */}
           <motion.div
             animate={{ scale: [1, 1.15, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -720,21 +720,21 @@ export default function HomePage() {
             {t("home.support_body")}
           </p>
 
-          <Link to="/donate">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-semibold text-base text-white transition-all duration-200 shadow-md hover:shadow-lg"
-              style={{ backgroundColor: "#945c67" }}
-            >
-              <Heart className="w-4 h-4 fill-white/30" />
-              {t("home.support_btn")}
-            </motion.button>
-          </Link>
+          <motion.button
+            onClick={() => navigate('/donate')}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-semibold text-base text-white transition-all duration-200 shadow-md hover:shadow-lg"
+            style={{ backgroundColor: "#945c67" }}
+          >
+            <Heart className="w-4 h-4 fill-white/30" />
+            {t("home.support_btn")}
+          </motion.button>
         </motion.div>
       </section>
 
       <WaveDivider from={CSS_SECTION_A} to={CSS_SECTION_B} />
+
     </div>
   );
 }
