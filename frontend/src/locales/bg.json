@@ -136,7 +136,9 @@
     "signing_in_google": "Влизане с Google…",
     "welcome_back": "Добре дошли отново!",
     "welcome": "Добре дошли!",
-    "google_login_failed": "Влизането с Google не успя. Моля, опитайте отново."
+    "google_login_failed": "Влизането с Google не успя. Моля, опитайте отново.",
+    "account_created": "Профилът е създаден!",
+    "google_not_configured": "Влизането с Google не е конфигурирано."
   },
   "browse": {
     "subtitle": "Употребявани бебешки артикули — разглеждай, филтрирай и намери точно това, което търсиш.",

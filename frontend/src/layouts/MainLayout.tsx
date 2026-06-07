@@ -38,6 +38,7 @@ interface NavPillProps {
 }
 
 function NavPill({ navItems, pathname, mobile = false }: NavPillProps) {
+  const navigate = useNavigate();
   return (
     <div className="flex items-center gap-3 bg-white/10 border border-white/20 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg">
       {navItems.map((item) => {
@@ -47,9 +48,10 @@ function NavPill({ navItems, pathname, mobile = false }: NavPillProps) {
           : pathname.startsWith(item.url);
 
         return (
-          <Link
+          <button
             key={item.url}
-            to={item.url}
+            type="button"
+            onClick={() => navigate(item.url)}
             className={clsx(
               "relative cursor-pointer text-sm font-semibold rounded-full transition-colors",
               mobile ? "px-4 py-2" : "px-3.5 py-2",
@@ -90,7 +92,7 @@ function NavPill({ navItems, pathname, mobile = false }: NavPillProps) {
                 </div>
               </motion.div>
             )}
-          </Link>
+          </button>
         );
       })}
     </div>

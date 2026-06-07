@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
+import { useTheme } from "@/contexts/ThemeContext";
 import toast from "react-hot-toast";
-import { User, Lock, Mail } from "lucide-react";
+import { User, Lock, Mail, Sun, Moon } from "lucide-react";
 
 // Inline Google logo SVG — keeps the brand colour without react-icons/fc
 function GoogleIcon({ size = 20 }: { size?: number }) {
@@ -24,6 +25,7 @@ import TurnstileWidget from "../components/common/TurnstileWidget";
 
 export default function ModernAuthPage() {
   const { t } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { setAuth } = useAuthStore();
@@ -42,8 +44,6 @@ export default function ModernAuthPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [loginToken, setLoginToken] = useState<string | null>(null);
-  const clearLoginToken = useCallback(() => setLoginToken(null), []);
 
   const [regForm, setRegForm] = useState({
     email: "",
@@ -71,14 +71,13 @@ export default function ModernAuthPage() {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const { data } = await authApi.login({ email: loginEmail, password: loginPassword, turnstileToken: loginToken ?? undefined });
+      const { data } = await authApi.login({ email: loginEmail, password: loginPassword });
       setAuth(data.user, data.accessToken);
-      toast.success("Welcome back!");
+      toast.success(t("auth.welcome_back"));
       navigate("/");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
-      clearLoginToken();
     } finally {
       setLoginLoading(false);
     }
@@ -96,16 +95,16 @@ export default function ModernAuthPage() {
       .then(({ data }) => {
         if (cancelled) return;
         setAuth(data.user, data.accessToken);
-        toast.success("Welcome!");
+        toast.success(t("auth.welcome"));
         navigate("/");
       })
-      .catch(() => { if (!cancelled) toast.error("Google login failed"); });
+      .catch(() => { if (!cancelled) toast.error(t("auth.google_login_failed")); });
     return () => { cancelled = true; };
   }, [navigate, setAuth]);
 
   const handleGoogleLogin = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) { toast.error("Google login is not configured"); return; }
+    if (!clientId) { toast.error(t("auth.google_not_configured")); return; }
     const nonce = crypto.randomUUID();
     sessionStorage.setItem("google_nonce", nonce);
     const params = new URLSearchParams({
@@ -139,7 +138,7 @@ export default function ModernAuthPage() {
     try {
       const { data } = await authApi.register({ ...regForm, turnstileToken: regToken ?? undefined });
       setAuth(data.user, data.accessToken);
-      toast.success("Account created!");
+      toast.success(t("auth.account_created"));
       navigate("/");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -153,10 +152,24 @@ export default function ModernAuthPage() {
   return (
     <div className="auth-page">
       {/* Logo */}
-      <Link to="/" className="absolute top-5 left-6 z-20 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="absolute top-5 left-6 z-20 flex items-center gap-2 bg-transparent border-none p-0 cursor-pointer"
+      >
         <img src="/logo.png" alt="MamVibe" className="h-9 w-9 object-contain" />
         <span className="text-base font-bold text-[#3f4b7f] dark:text-[#c1c4e3]">MamVibe</span>
-      </Link>
+      </button>
+
+      {/* Theme toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? t("common.switch_to_light", "Switch to light mode") : t("common.switch_to_dark", "Switch to dark mode")}
+        className="absolute top-5 right-6 z-20 p-2 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 transition-all duration-200 text-gray-700 dark:text-gray-200 border border-black/10 dark:border-white/20"
+      >
+        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
 
       {/* Card */}
       <div className={`auth-card${isSignUp ? " active" : ""}`}>
@@ -198,15 +211,15 @@ export default function ModernAuthPage() {
               </div>
             </div>
 
-            <Link to="/forgot-password" className="auth-forgot">
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              className="auth-forgot bg-transparent border-none p-0 cursor-pointer"
+            >
               {t("auth.forgot_password")}
-            </Link>
+            </button>
 
-            <div className="flex justify-center my-2">
-              <TurnstileWidget onToken={setLoginToken} onExpire={clearLoginToken} />
-            </div>
-
-            <button type="submit" disabled={loginLoading || !loginToken} className="auth-btn-fill">
+            <button type="submit" disabled={loginLoading} className="auth-btn-fill">
               {loginLoading ? t("common.loading") : t("auth.login_btn")}
             </button>
 
@@ -315,10 +328,8 @@ export default function ModernAuthPage() {
           <div className="auth-overlay-inner">
             {/* Left panel — visible when signup is active */}
             <div className="auth-overlay-panel auth-overlay-left">
-              <h1 className="auth-overlay-title">Welcome Back!</h1>
-              <p className="auth-overlay-text">
-                To keep connected with us please login with your personal info
-              </p>
+              <h1 className="auth-overlay-title">{t("auth.panel_one_of_us")}</h1>
+              <p className="auth-overlay-text">{t("auth.panel_one_of_us_desc")}</p>
               <button type="button" onClick={toggleToSignIn} className="auth-btn-ghost">
                 {t("auth.login_btn")}
               </button>
@@ -326,10 +337,8 @@ export default function ModernAuthPage() {
 
             {/* Right panel — visible when login is active */}
             <div className="auth-overlay-panel auth-overlay-right">
-              <h1 className="auth-overlay-title">Hello, Friend!</h1>
-              <p className="auth-overlay-text">
-                Enter your personal details and start your journey with us
-              </p>
+              <h1 className="auth-overlay-title">{t("auth.panel_new_here")}</h1>
+              <p className="auth-overlay-text">{t("auth.panel_new_here_desc")}</p>
               <button type="button" onClick={toggleToSignUp} className="auth-btn-ghost">
                 {t("auth.register_btn")}
               </button>

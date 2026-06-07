@@ -136,7 +136,9 @@
     "signing_in_google": "Signing in with Google…",
     "welcome_back": "Welcome back!",
     "welcome": "Welcome!",
-    "google_login_failed": "Google login failed. Please try again."
+    "google_login_failed": "Google login failed. Please try again.",
+    "account_created": "Account created!",
+    "google_not_configured": "Google login is not configured."
   },
   "browse": {
     "subtitle": "Second-hand baby items — browse, filter, and find exactly what you need.",
