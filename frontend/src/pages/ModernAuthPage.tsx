@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
 import { useTheme } from "@/contexts/ThemeContext";
 import toast from "react-hot-toast";
-import { User, Lock, Mail, Sun, Moon } from "lucide-react";
+import { User, Lock, Mail, Sun, Moon, Eye, EyeOff } from "lucide-react";
 
 // Inline Google logo SVG — keeps the brand colour without react-icons/fc
 function GoogleIcon({ size = 20 }: { size?: number }) {
@@ -44,6 +44,7 @@ export default function ModernAuthPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showLoginPw, setShowLoginPw] = useState(false);
 
   const [regForm, setRegForm] = useState({
     email: "",
@@ -54,6 +55,8 @@ export default function ModernAuthPage() {
   });
   const [regLoading, setRegLoading] = useState(false);
   const [regErrors, setRegErrors] = useState<Record<string, string>>({});
+  const [showRegPw, setShowRegPw] = useState(false);
+  const [showRegConfirmPw, setShowRegConfirmPw] = useState(false);
 
   const toggleToSignUp = () => {
     setIsSignUp(true);
@@ -201,13 +204,17 @@ export default function ModernAuthPage() {
               <div className="auth-field">
                 <Lock className="auth-field-icon" size={16} />
                 <input
-                  type="password"
+                  type={showLoginPw ? "text" : "password"}
                   placeholder={t("auth.password")}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className="auth-field-input"
+                  style={{ paddingRight: '2.5rem' }}
                   required
                 />
+                <button type="button" tabIndex={-1} onClick={() => setShowLoginPw(v => !v)} style={{ position: 'absolute', right: '0.75rem', color: '#6b6888', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
+                  {showLoginPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
 
@@ -274,26 +281,34 @@ export default function ModernAuthPage() {
               <div className="auth-field">
                 <Lock className="auth-field-icon" size={16} />
                 <input
-                  type="password"
+                  type={showRegPw ? "text" : "password"}
                   placeholder={t("auth.password")}
                   value={regForm.password}
                   onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
                   className="auth-field-input"
+                  style={{ paddingRight: '2.5rem' }}
                   required
                 />
+                <button type="button" tabIndex={-1} onClick={() => setShowRegPw(v => !v)} style={{ position: 'absolute', right: '0.75rem', color: '#6b6888', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
+                  {showRegPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
               {regErrors.password && <p className="auth-error">{regErrors.password}</p>}
 
               <div className="auth-field">
                 <Lock className="auth-field-icon" size={16} />
                 <input
-                  type="password"
+                  type={showRegConfirmPw ? "text" : "password"}
                   placeholder={t("auth.confirm_password")}
                   value={regForm.confirmPassword}
                   onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
                   className="auth-field-input"
+                  style={{ paddingRight: '2.5rem' }}
                   required
                 />
+                <button type="button" tabIndex={-1} onClick={() => setShowRegConfirmPw(v => !v)} style={{ position: 'absolute', right: '0.75rem', color: '#6b6888', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
+                  {showRegConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
               {regErrors.confirmPassword && <p className="auth-error">{regErrors.confirmPassword}</p>}
             </div>
