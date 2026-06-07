@@ -158,6 +158,13 @@ public class ItemService : IItemService
 
     public async Task<ItemDto?> GetByIdAsync(Guid id, string? currentUserId = null)
     {
+        // Anonymous requests are served from cache. Authenticated requests skip the item cache
+        // because IsLikedByCurrentUser is user-specific and ItemDto is a mutable class —
+        // caching and then mutating would corrupt the shared cached instance.
+        var cacheKey = $"item:{id}";
+        if (currentUserId == null && this._cache.TryGetValue(cacheKey, out ItemDto? cached) && cached != null)
+            return cached;
+
         var item = await this._context.Items
             .AsNoTracking()
             .Include(i => i.Photos)
@@ -176,6 +183,10 @@ public class ItemService : IItemService
         {
             dto.IsLikedByCurrentUser = await this._context.Likes
                 .AnyAsync(l => l.ItemId == id && l.UserId == currentUserId);
+        }
+        else
+        {
+            this._cache.Set(cacheKey, dto, CacheTtl);
         }
 
         return dto;
@@ -308,9 +319,8 @@ public class ItemService : IItemService
         }
 
         await this._context.SaveChangesAsync();
+        this._cache.Remove($"item:{id}");
 
-        // Price-drop fan-out to likers (with concurrency cap) lives in
-        // INotificationHandler<ItemPriceDroppedEvent>. We just publish the event here.
         if (dto.Price.HasValue && oldPrice.HasValue && dto.Price.Value < oldPrice.Value)
         {
             await this._publisher.Publish(new ItemPriceDroppedEvent(item.Id, oldPrice.Value, dto.Price.Value));
@@ -330,6 +340,7 @@ public class ItemService : IItemService
 
         this._context.Items.Remove(item);
         await this._context.SaveChangesAsync();
+        this._cache.Remove($"item:{id}");
     }
 
     public async Task IncrementViewCountAsync(Guid id)
@@ -358,6 +369,7 @@ public class ItemService : IItemService
                 item.LikeCount = Math.Max(0, item.LikeCount - 1);
                 await this._context.SaveChangesAsync();
                 await transaction.CommitAsync();
+                this._cache.Remove($"item:{itemId}");
                 return false;
             }
 
@@ -365,6 +377,7 @@ public class ItemService : IItemService
             item.LikeCount++;
             await this._context.SaveChangesAsync();
             await transaction.CommitAsync();
+            this._cache.Remove($"item:{itemId}");
             return true;
         }
         catch
@@ -516,6 +529,7 @@ public class ItemService : IItemService
 
         item.BumpedAt = now;
         await this._context.SaveChangesAsync();
+        this._cache.Remove($"item:{itemId}");
 
         return this._mapper.Map<ItemDto>(item);
     }
