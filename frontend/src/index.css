@@ -719,9 +719,9 @@ a:hover {
 .auth-page {
   min-height: 100dvh;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 3rem 1.5rem 2rem;
+  padding: 2rem 1.5rem;
   background: linear-gradient(135deg, #1a1525 0%, #0f0e1a 100%);
   position: relative;
 }
