@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePageSEO } from "@/hooks/useSEO";
 
-const LAST_UPDATED = "19 May 2026";
+const LAST_UPDATED = "8 June 2026";
 
 function Section({
   num, id, title, children,
@@ -277,6 +277,7 @@ export default function PrivacyPolicyPage() {
             <Li>{t("privacyPage.s9_stripe")}</Li>
             <Li>{t("privacyPage.s9_owasp")}</Li>
             <Li>{t("privacyPage.s9_rate")}</Li>
+            <Li>{t("privacyPage.s9_turnstile")}</Li>
           </ul>
           <p>
             {t("privacyPage.s9_disclose_pre")}{" "}
