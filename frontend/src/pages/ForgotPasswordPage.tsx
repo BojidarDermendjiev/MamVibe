@@ -41,13 +41,13 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div>
-      <h1 className="auth-title mb-1">{t('auth.forgot_password_title')}</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <h1 className="auth-title mb-1" style={{ textAlign: 'center' }}>{t('auth.forgot_password_title')}</h1>
       <p style={{ color: '#6b6888', fontSize: '0.8rem', textAlign: 'center', marginBottom: '1.25rem' }}>
         {t('auth.forgot_password_desc')}
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ width: '100%' }}>
         <div className="auth-fields" style={{ marginBottom: '1rem' }}>
           <div className="auth-field">
             <Mail className="auth-field-icon" size={16} />

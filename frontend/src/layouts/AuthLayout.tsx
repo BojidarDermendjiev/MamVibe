@@ -62,13 +62,15 @@ export default function AuthLayout() {
       />
 
       <div className="w-full max-w-[820px] relative">
-        <button
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? t('common.switch_to_light', 'Switch to light mode') : t('common.switch_to_dark', 'Switch to dark mode')}
-          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-200 text-gray-700 dark:text-gray-200"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        {showSwitch && (
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? t('common.switch_to_light', 'Switch to light mode') : t('common.switch_to_dark', 'Switch to dark mode')}
+            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-200 text-gray-700 dark:text-gray-200"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        )}
         {showSwitch ? (
           /* ═══════════════════════════════════════
              Auth-switch card
