@@ -21,6 +21,7 @@ import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/authStore";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
 
 export default function ModernAuthPage() {
   const { t } = useTranslation();
@@ -157,15 +158,18 @@ export default function ModernAuthPage() {
         <span className="text-base font-bold text-[#3f4b7f] dark:text-[#c1c4e3]">MamVibe</span>
       </button>
 
-      {/* Theme toggle */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        aria-label={theme === "dark" ? t("common.switch_to_light", "Switch to light mode") : t("common.switch_to_dark", "Switch to dark mode")}
-        className="absolute top-5 right-6 z-20 p-2 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 transition-all duration-200 text-gray-700 dark:text-gray-200 border border-black/10 dark:border-white/20"
-      >
-        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-      </button>
+      {/* Theme toggle + language switcher */}
+      <div className="absolute top-5 right-6 z-20 flex items-center gap-2">
+        <LanguageSwitcher />
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? t("common.switch_to_light", "Switch to light mode") : t("common.switch_to_dark", "Switch to dark mode")}
+          className="p-2 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 transition-all duration-200 text-gray-700 dark:text-gray-200 border border-black/10 dark:border-white/20"
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+      </div>
 
       {/* Card */}
       <div className={`auth-card${isSignUp ? " active" : ""}`}>

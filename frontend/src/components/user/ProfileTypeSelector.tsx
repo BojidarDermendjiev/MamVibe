@@ -34,14 +34,14 @@ export default function ProfileTypeSelector({ value, onChange }: ProfileTypeSele
             type="button"
             onClick={() => onChange(opt.type)}
             className={clsx(
-              'flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all duration-200',
+              'flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl border-2 transition-all duration-200',
               value === opt.type
                 ? `${opt.colorClass} shadow-sm scale-105`
                 : 'border-gray-200 hover:border-lavender bg-white'
             )}
           >
-            <span className="text-2xl">{opt.icon}</span>
-            <span className="text-xs font-medium">{labels[opt.type]}</span>
+            <span className="text-xl leading-tight">{opt.icon}</span>
+            <span className="text-xs font-medium leading-tight">{labels[opt.type]}</span>
           </button>
         ))}
       </div>
