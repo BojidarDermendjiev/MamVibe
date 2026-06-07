@@ -27,21 +27,21 @@ export default function ProfileTypeSelector({ value, onChange }: ProfileTypeSele
       <label className="block text-sm font-medium text-primary mb-2">
         {t('auth.profile_type')}
       </label>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {options.map((opt) => (
           <button
             key={opt.type}
             type="button"
             onClick={() => onChange(opt.type)}
             className={clsx(
-              'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200',
+              'flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all duration-200',
               value === opt.type
                 ? `${opt.colorClass} shadow-sm scale-105`
                 : 'border-gray-200 hover:border-lavender bg-white'
             )}
           >
-            <span className="text-3xl">{opt.icon}</span>
-            <span className="text-sm font-medium">{labels[opt.type]}</span>
+            <span className="text-2xl">{opt.icon}</span>
+            <span className="text-xs font-medium">{labels[opt.type]}</span>
           </button>
         ))}
       </div>

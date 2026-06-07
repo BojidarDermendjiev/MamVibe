@@ -735,7 +735,7 @@ a:hover {
   overflow: hidden;
   width: 860px;
   max-width: 100%;
-  min-height: 520px;
+  min-height: 540px;
 }
 
 /* ── Form panels ── */
@@ -763,7 +763,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2.5rem 2.75rem;
+  padding: 1.75rem 2.75rem;
   text-align: center;
   gap: 0;
 }
@@ -781,7 +781,7 @@ a:hover {
 .auth-social-row {
   display: flex;
   gap: 0.75rem;
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
 }
 
 .auth-social-icon {
@@ -807,7 +807,7 @@ a:hover {
 .auth-or {
   font-size: 0.75rem;
   color: #6b6888;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Input fields */
@@ -873,7 +873,7 @@ a:hover {
 /* Profile type selector wrapper — compact in auth context */
 .auth-profile-selector {
   width: 100%;
-  margin: 0.5rem 0 0.75rem;
+  margin: 0.4rem 0 0.5rem;
 }
 
 /* Filled gradient button */
