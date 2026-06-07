@@ -22,6 +22,7 @@ import { useAuthStore } from "../store/authStore";
 import { ProfileType } from "../types/auth";
 import ProfileTypeSelector from "../components/user/ProfileTypeSelector";
 import LanguageSwitcher from "../components/common/LanguageSwitcher";
+import { useInvisibleTurnstile } from "../hooks/useInvisibleTurnstile";
 
 export default function ModernAuthPage() {
   const { t } = useTranslation();
@@ -30,6 +31,7 @@ export default function ModernAuthPage() {
   const location = useLocation();
   const { setAuth } = useAuthStore();
   const [isSignUp, setIsSignUp] = useState(location.pathname === "/register");
+  const { execute: turnstileExecute, reset: turnstileReset } = useInvisibleTurnstile();
 
   // Auth pages: noindex to prevent thin/duplicate content in the index.
   usePageSEO({
@@ -72,11 +74,13 @@ export default function ModernAuthPage() {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const { data } = await authApi.login({ email: loginEmail, password: loginPassword });
+      const turnstileToken = await turnstileExecute();
+      const { data } = await authApi.login({ email: loginEmail, password: loginPassword, turnstileToken: turnstileToken || undefined });
       setAuth(data.user, data.accessToken);
       toast.success(t("auth.welcome_back"));
       navigate("/");
     } catch (err: unknown) {
+      turnstileReset();
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
     } finally {
@@ -137,11 +141,13 @@ export default function ModernAuthPage() {
     if (!validate()) return;
     setRegLoading(true);
     try {
-      const { data } = await authApi.register({ ...regForm });
+      const turnstileToken = await turnstileExecute();
+      const { data } = await authApi.register({ ...regForm, turnstileToken: turnstileToken || undefined });
       setAuth(data.user, data.accessToken);
       toast.success(t("auth.account_created"));
       navigate("/");
     } catch (err: unknown) {
+      turnstileReset();
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || t("common.error"));
     } finally {

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Mail } from 'lucide-react';
 import { authApi } from '../api/authApi';
 import { usePageSEO } from '@/hooks/useSEO';
+import { useInvisibleTurnstile } from '@/hooks/useInvisibleTurnstile';
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
@@ -14,12 +15,14 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const { execute: turnstileExecute } = useInvisibleTurnstile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await authApi.forgotPassword({ email });
+      const turnstileToken = await turnstileExecute();
+      await authApi.forgotPassword({ email, turnstileToken: turnstileToken || undefined });
     } catch {
       // Always show success to prevent email enumeration
     } finally {
