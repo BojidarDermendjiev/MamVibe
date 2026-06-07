@@ -30,6 +30,9 @@ public class TurnstileService : ITurnstileService
     /// <inheritdoc/>
     public async Task<bool> VerifyAsync(string token, string ip)
     {
+        if (this._secretKey.StartsWith("1x000000000000000000000000000000"))
+            return true;
+
         var form = new FormUrlEncodedContent(new[]
         {
             new KeyValuePair<string,string>("secret", this._secretKey),

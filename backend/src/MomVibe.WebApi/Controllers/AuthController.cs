@@ -54,6 +54,7 @@ public class AuthController : ControllerBase
 
     private async Task<bool> VerifyTurnstileAsync(string? token)
     {
+        if (this._env.IsDevelopment()) return true;
         if (string.IsNullOrWhiteSpace(token)) return false;
         var ip = this.ClientIp ?? string.Empty;
         return string.IsNullOrEmpty(ip)
