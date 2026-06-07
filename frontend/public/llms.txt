@@ -1,0 +1,50 @@
+# MamVibe
+
+> MamVibe (mamvibe.com) is Bulgaria's community marketplace for second-hand baby and children's items. Parents buy, sell, and donate clothing, shoes, strollers, car seats, toys, furniture, and feeding accessories. The platform also offers verified parent reviews of Bulgarian paediatricians and gynaecologists, and a directory of child-friendly places (parks, playgrounds, family restaurants) across Bulgaria.
+
+MamVibe is available in Bulgarian and English. Registration is free. Listings can be created in minutes by uploading photos; automatic AI content moderation approves most listings instantly. Payments are processed securely through Stripe or an internal wallet. Shipping is handled through integrated couriers Econt and Speedy, with options for office pickup, home delivery, or parcel lockers.
+
+## What MamVibe offers
+
+- **Marketplace**: buy, sell, or donate second-hand baby and children's items across Bulgaria
+- **Categories**: clothing, shoes, strollers, car seats, toys, furniture, feeding accessories, and more
+- **Age groups**: newborn through teen
+- **Payments**: card via Stripe, internal MamVibe Wallet, or cash on delivery
+- **Shipping**: Econt and Speedy couriers with tracking, office pickup, home delivery, and parcel lockers
+- **Community features**: real-time chat with sellers, saved searches with instant notifications, seller follow & feed, seller ratings
+- **Doctor reviews**: verified parent reviews of Bulgarian paediatricians and gynaecologists, filterable by city and specialisation
+- **Child-friendly places**: crowdsourced directory of parks, playgrounds, cafes, and family restaurants in Bulgaria
+- **Bundles**: group multiple items into a single listing for a combined price
+- **Safety**: automatic AI listing moderation, buyer reputation checks, purchase request flow, dispute resolution
+
+## Who it is for
+
+MamVibe is for Bulgarian parents, expectant mothers, grandparents, and anyone caring for babies or children who wants to buy quality second-hand items at lower prices, or pass on outgrown items to other families instead of throwing them away.
+
+## Frequently asked questions
+
+**Is MamVibe free to use?**
+Registration and browsing are completely free. Listing items is free. There are no monthly fees.
+
+**How does buying work?**
+Browse listings, send a purchase request, and pay once the seller accepts. Shipping is arranged through integrated couriers directly on the platform.
+
+**How does selling work?**
+Log in, click "Create", upload photos, fill in the details, and submit. Most listings go live within minutes after automatic moderation.
+
+**Can I donate items?**
+Yes. Set the listing type to "Donate" and the item is listed for free. Buyers can request it and arrange collection or shipping.
+
+**What couriers are supported?**
+Econt and Speedy. Cash on delivery is supported for both.
+
+**Is there a mobile app?**
+MamVibe is a progressive web application accessible from any mobile browser at mamvibe.com.
+
+**How do I contact support?**
+Email support@mamvibe.com
+
+## Contact
+
+Website: https://mamvibe.com
+Support: support@mamvibe.com

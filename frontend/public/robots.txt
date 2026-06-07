@@ -1,10 +1,8 @@
 # robots.txt for MamVibe (https://mamvibe.com)
-# Generated: 2026-05-10
 
+# ── Standard crawlers ─────────────────────────────────────────────────────────
 User-agent: *
 Allow: /
-
-# Disallow admin, authenticated-only, and API routes
 Disallow: /admin
 Disallow: /admin/
 Disallow: /dashboard
@@ -16,11 +14,169 @@ Disallow: /payment/
 Disallow: /shipments/
 Disallow: /feedback
 Disallow: /donate/card
-
-# Disallow backend API and upload proxy paths
 Disallow: /api/
 Disallow: /hubs/
 Disallow: /uploads/
 
-# Sitemap location
+# ── AI training crawlers — marketing surface only ─────────────────────────────
+# Allow only public information pages. Listing data, user data, and the
+# API surface are blocked to protect platform integrity.
+
+User-agent: GPTBot
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+User-agent: PerplexityBot
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+User-agent: ClaudeBot
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+User-agent: anthropic-ai
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+User-agent: Applebot-Extended
+Allow: /about
+Allow: /how-it-works
+Allow: /faq
+Allow: /categories
+Allow: /doctor-reviews
+Allow: /child-friendly-places
+Allow: /llms.txt
+Allow: /sitemap.xml
+Disallow: /browse
+Disallow: /listings/
+Disallow: /search
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /chat
+Disallow: /create
+Disallow: /payment/
+Disallow: /admin
+
+# ── Aggressive scrapers — block entirely ──────────────────────────────────────
+# No indexing benefit; known for rate-limit-ignoring bulk scraping.
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
+User-agent: omgilibot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Scrapy
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ── Sitemap ───────────────────────────────────────────────────────────────────
 Sitemap: https://mamvibe.com/sitemap.xml
