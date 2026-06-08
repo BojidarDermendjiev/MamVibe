@@ -1,7 +1,23 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Heart, ShoppingBag, MapPin, Star, Shield, Users, Recycle, MessageSquare } from 'lucide-react';
+import { Heart, ShoppingBag, MapPin, Star, Shield, Users, Recycle, MessageSquare, Mail } from 'lucide-react';
+
+function LinkedinIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    </svg>
+  );
+}
+
+function GithubIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+    </svg>
+  );
+}
 
 const ABOUT_SCHEMA = {
   "@context": "https://schema.org",
@@ -52,8 +68,89 @@ function StatBadge({ number, label }: { number: string; label: string }) {
   );
 }
 
+interface TeamMember {
+  name: string;
+  role: string;
+  bio: string;
+  photo: string;
+  linkedin?: string;
+  github?: string;
+  email?: string;
+}
+
+function TeamMemberCard({ name, role, bio, photo, linkedin, github, email }: TeamMember) {
+  return (
+    <div className="flex flex-col items-center text-center group">
+      <div className="relative w-52 sm:w-64 mb-5">
+        <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-white/10 aspect-[3/4]">
+          <img
+            src={photo}
+            alt={name}
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              const img = e.currentTarget;
+              img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=400&background=c4b5fd&color=fff&font-size=0.4`;
+            }}
+          />
+        </div>
+      </div>
+
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-0.5">{name}</h3>
+      <p className="text-sm font-medium text-primary mb-3">{role}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs mb-4">{bio}</p>
+
+      <div className="flex items-center gap-2">
+        {linkedin && (
+          <a
+            href={linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:text-blue-600 transition-all"
+          >
+            <LinkedinIcon size={16} />
+          </a>
+        )}
+        {github && (
+          <a
+            href={github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/20 hover:text-gray-900 dark:hover:text-white transition-all"
+          >
+            <GithubIcon size={16} />
+          </a>
+        )}
+        {email && (
+          <a
+            href={`mailto:${email}`}
+            aria-label="Gmail"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-500 transition-all"
+          >
+            <Mail size={16} />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 export default function AboutPage() {
   const { t } = useTranslation();
+
+  const team: TeamMember[] = [
+    {
+      name: "Bozhidar Dermendzhiev",
+      role: t('about.team_bozhidar_role', 'Founder & Full-Stack Developer'),
+      bio: t('about.team_bozhidar_bio', 'Software developer and father who built MamVibe from the ground up — combining a marketplace, community reviews, and local discovery into one platform for Bulgarian families.'),
+      photo: "https://avatars.githubusercontent.com/u/116583072?v=4",
+      linkedin: "https://www.linkedin.com/in/bozhidar-dermendzhiev-530441277/",
+      github: "https://github.com/BojidarDermendjiev",
+      email: "bozhidardermendjiew@gmail.com",
+    },
+  ];
 
   usePageSEO({
     title: "About MamVibe — Bulgaria's Baby Marketplace",
@@ -65,9 +162,9 @@ export default function AboutPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0e0c1a]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#201d30]">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary/8 via-transparent to-lavender/10 dark:from-primary/15 py-20 px-4">
+      <section className="bg-gradient-to-br from-primary/8 via-transparent to-lavender/10 dark:bg-none dark:bg-[#201d30] py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
             <Heart className="w-4 h-4" />
@@ -86,10 +183,10 @@ export default function AboutPage() {
 
         {/* Mission */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             {t('about.mission_title', 'Our mission')}
           </h2>
-          <div className="prose prose-gray dark:prose-invert max-w-none text-[15px] leading-relaxed text-gray-600 dark:text-gray-300 space-y-4">
+          <div className="prose prose-gray dark:prose-invert max-w-none text-[15px] leading-relaxed text-gray-600 dark:text-gray-300 space-y-4 text-center">
             <p>
               {t('about.mission_p1', 'Children grow fast — faster than parents can keep up with. The clothes, shoes, and gear that were perfect three months ago are already too small. MamVibe exists so that those items find a new home instead of a landfill.')}
             </p>
@@ -104,7 +201,7 @@ export default function AboutPage() {
 
         {/* Stats */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
             {t('about.community_title', 'A growing community')}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -117,7 +214,7 @@ export default function AboutPage() {
 
         {/* Values */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
             {t('about.values_title', 'What we stand for')}
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -144,12 +241,27 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Team */}
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 text-center">
+            {t('about.team_title', 'The team')}
+          </h2>
+          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-10 text-center">
+            {t('about.team_desc', 'MamVibe is a passion project built by a small team of parents who wanted to create something genuinely useful for Bulgarian families. We are early-stage, product-focused, and growing.')}
+          </p>
+          <div className="flex flex-wrap justify-center gap-12">
+            {team.map((member) => (
+              <TeamMemberCard key={member.name} {...member} />
+            ))}
+          </div>
+        </section>
+
         {/* Platform features */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             {t('about.features_title', 'Everything on one platform')}
           </h2>
-          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-6 text-center">
             {t('about.features_intro', 'MamVibe combines a marketplace, a community review platform, and a local directory into one app.')}
           </p>
           <div className="grid sm:grid-cols-3 gap-4">
@@ -196,13 +308,13 @@ export default function AboutPage() {
 
         {/* Item categories */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             {t('about.categories_title', 'What you can list')}
           </h2>
-          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-5">
+          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed mb-5 text-center">
             {t('about.categories_desc', 'MamVibe covers everything a growing child needs, from newborn to school age.')}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-center">
             {[
               t('about.cat_clothing', 'Clothing'),
               t('about.cat_shoes', 'Shoes'),
@@ -210,8 +322,6 @@ export default function AboutPage() {
               t('about.cat_car_seats', 'Car Seats'),
               t('about.cat_toys', 'Toys'),
               t('about.cat_furniture', 'Furniture'),
-              t('about.cat_feeding', 'Feeding'),
-              t('about.cat_other', 'Other'),
             ].map((cat) => (
               <span
                 key={cat}

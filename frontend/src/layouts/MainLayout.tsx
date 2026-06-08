@@ -15,6 +15,7 @@ import {
   Baby,
   Sun,
   Moon,
+  Info,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { authApi } from "../api/authApi";
@@ -274,7 +275,13 @@ export default function MainLayout() {
             icon: MessageSquare,
           },
         ]
-      : []),
+      : [
+          {
+            name: t("nav.about") || "About",
+            url: "/about",
+            icon: Info,
+          },
+        ]),
   ];
 
   return (

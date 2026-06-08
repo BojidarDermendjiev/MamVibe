@@ -15,7 +15,8 @@
     "cart": "Cart",
     "donate": "Donate",
     "doctors": "Doctors",
-    "places": "Places"
+    "places": "Places",
+    "about": "About"
   },
   "home": {
     "hero_title": "Give Baby Items a Second Life",
@@ -1272,7 +1273,11 @@
     "cat_other": "Other",
     "cta_title": "Ready to start?",
     "cta_desc": "Join thousands of Bulgarian families buying, selling, and donating baby items on MamVibe.",
-    "cta_support": "Questions? Email us at"
+    "cta_support": "Questions? Email us at",
+    "team_title": "The team",
+    "team_desc": "MamVibe is a passion project built by a small team of parents who wanted to create something genuinely useful for Bulgarian families. We are early-stage, product-focused, and growing.",
+    "team_bozhidar_role": "Founder & Full-Stack Developer",
+    "team_bozhidar_bio": "Software developer and father who built MamVibe from the ground up — combining a marketplace, community reviews, and local discovery into one platform for Bulgarian families."
   },
   "faq": {
     "page_title": "Frequently Asked Questions",
