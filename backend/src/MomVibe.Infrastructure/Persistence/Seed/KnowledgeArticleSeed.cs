@@ -28,16 +28,16 @@ public static class KnowledgeArticleSeed
         },
         new() {
             Id = 3, Language = "en",
-            Tags = ["payment", "wallet", "stripe", "card", "cod", "withdraw"],
-            Title = "Payments & MamVibe Wallet",
-            Content = "Pay with a MamVibe Wallet balance or directly by card via Stripe checkout. Top up the wallet from Settings → Wallet (minimum 5 BGN). Wallet balance never expires. Sellers receive funds only after the buyer confirms receipt. Withdraw earnings from Settings → Wallet → Withdraw (IBAN required, processed in 2 business days). Cash-on-delivery is available for Econt and Speedy.",
+            Tags = ["payment", "stripe", "card", "cod", "revolut"],
+            Title = "Payments on MamVibe",
+            Content = "Pay by card via Stripe checkout. Cash-on-delivery (COD) is available for Econt and Speedy shipments. Sellers list their Revolut Tag on their profile for peer-to-peer transfers. Sellers receive funds only after the buyer confirms receipt.",
             CreatedAt = SeedDate,
         },
         new() {
             Id = 4, Language = "bg",
-            Tags = ["плащане", "портфейл", "карта", "наложен платеж", "теглене"],
-            Title = "Плащания и Портфейл в MamVibe",
-            Content = "Платете с баланс в MamVibe Портфейл или директно с карта чрез Stripe. Портфейлът се зарежда от Настройки → Портфейл (минимум 5 лв.). Балансът не изтича. Продавачите получават пари след потвърждение от купувача. Тегленето е от Настройки → Портфейл → Теглене (необходим IBAN, обработен в 2 работни дни). Наложен платеж е наличен при Еконт и Спиди.",
+            Tags = ["плащане", "карта", "наложен платеж", "revolut"],
+            Title = "Плащания в MamVibe",
+            Content = "Платете с карта чрез Stripe. Наложен платеж е наличен при Еконт и Спиди. Продавачите могат да посочат Revolut Tag в профила си за директни преводи. Продавачите получават пари след потвърждение от купувача.",
             CreatedAt = SeedDate,
         },
         new() {
@@ -58,7 +58,7 @@ public static class KnowledgeArticleSeed
             Id = 7, Language = "en",
             Tags = ["buy", "purchase", "request", "order", "browse"],
             Title = "How to Buy on MamVibe",
-            Content = "To buy an item: go to /browse and filter by category, age group, price, or listing type. Click an item and press Send Purchase Request. The seller has 48 hours to accept — no response means the request is auto-cancelled. Once accepted, complete payment via Wallet or card. The seller ships within 3 business days. Confirm receipt in Dashboard → Purchases; it auto-confirms after 5 days.",
+            Content = "To buy an item: go to /browse and filter by category, age group, price, or listing type. Click an item and press Send Purchase Request. The seller has 48 hours to accept — no response means the request is auto-cancelled. Once accepted, complete payment by card via Stripe. The seller ships within 3 business days. Confirm receipt in Dashboard → Purchases; it auto-confirms after 5 days.",
             CreatedAt = SeedDate,
         },
         new() {

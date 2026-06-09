@@ -26,7 +26,6 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const MENU = [
-    { icon: '👜', label: t('profile.wallet'),    onPress: () => (navigation as any).navigate('Wallet') },
     { icon: '🗂️', label: t('profile.myOrders'), onPress: () => (navigation as any).navigate('Dashboard') },
     { icon: '📦', label: t('profile.myItems'),  onPress: () => (navigation as any).navigate('MyItems') },
     { icon: '🩺', label: t('doctorReviews.title'), onPress: () => (navigation as any).navigate('DoctorReviews') },

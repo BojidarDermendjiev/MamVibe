@@ -14,15 +14,14 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useStripe } from '@stripe/stripe-react-native';
 import { itemsApi } from '@/api/itemsApi';
 import { paymentsApi } from '@/api/paymentsApi';
-import { walletApi } from '@/api/walletApi';
-import { formatPrice, formatEur } from '@/utils/currency';
+import { formatPrice } from '@/utils/currency';
 import type { Item } from '@mamvibe/shared';
 import { ListingType, CourierProvider, DeliveryType } from '@mamvibe/shared';
 import type { PaymentDeliveryRequest } from '@mamvibe/shared';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Payment'>;
-type PayMethod = 'card' | 'onspot' | 'wallet';
+type PayMethod = 'card' | 'onspot';
 
 const COURIERS = [
   { label: 'Econt', value: CourierProvider.Econt },
@@ -96,8 +95,6 @@ export default function PaymentScreen({ route, navigation }: Props) {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
-
   // Delivery
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>(DeliveryType.Office);
@@ -113,12 +110,8 @@ export default function PaymentScreen({ route, navigation }: Props) {
   const isDonate = item?.listingType === ListingType.Donate;
 
   useEffect(() => {
-    Promise.all([
-      itemsApi.getById(itemId),
-      walletApi.getWallet().catch(() => null),
-    ]).then(([itemRes, walletRes]) => {
+    itemsApi.getById(itemId).then((itemRes) => {
       setItem(itemRes.data);
-      if (walletRes) setWalletBalance(walletRes.data.balance);
     }).catch(() => {
       Alert.alert('Error', 'Item not found');
       navigation.goBack();
@@ -159,13 +152,6 @@ export default function PaymentScreen({ route, navigation }: Props) {
       if (method === 'onspot') {
         await paymentsApi.createOnSpot(itemId, delivery);
         Alert.alert('Done!', 'On-spot payment registered.');
-        navigation.goBack();
-        return;
-      }
-
-      if (method === 'wallet') {
-        await walletApi.payForItem(itemId);
-        Alert.alert('Paid!', 'Payment made from your wallet.');
         navigation.goBack();
         return;
       }
@@ -239,7 +225,6 @@ export default function PaymentScreen({ route, navigation }: Props) {
             {(
               [
                 { key: 'card', icon: '💳', title: 'Credit / Debit Card', desc: 'Secure online payment' },
-                { key: 'wallet', icon: '👜', title: `Wallet${walletBalance !== null ? ` — ${formatEur(walletBalance)}` : ''}`, desc: 'Pay from your MamVibe balance' },
                 { key: 'onspot', icon: '📍', title: 'Pay On-Spot', desc: 'Pay cash when you meet' },
               ] as const
             ).map((opt) => (
@@ -274,8 +259,6 @@ export default function PaymentScreen({ route, navigation }: Props) {
                   ? 'Confirm Booking'
                   : method === 'card'
                   ? 'Pay with Card'
-                  : method === 'wallet'
-                  ? 'Pay from Wallet'
                   : 'Register On-Spot Payment'}
               </Text>}
         </TouchableOpacity>

@@ -67,7 +67,6 @@ const PAYMENT_METHOD_LABELS: Record<number, string> = {
   [PaymentMethod.Card]: 'Card',
   [PaymentMethod.OnSpot]: 'On Spot',
   [PaymentMethod.Booking]: 'Booking',
-  [PaymentMethod.Wallet]: 'Wallet',
 };
 
 function prStatusColor(s: number): string {

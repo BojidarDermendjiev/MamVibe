@@ -88,7 +88,7 @@ public class AssistantController : ControllerBase
         2. Click an item to view photos and full description
         3. Press "Send Purchase Request" on the item page
         4. Seller has 48 hours to accept; if no response the request is auto-cancelled
-        5. Once accepted, pay via MamVibe Wallet or card (Stripe checkout)
+        5. Once accepted, pay by card via Stripe checkout
         6. Choose shipping: Econt or Speedy — courier office, home delivery, or parcel locker
         7. Confirm receipt in Dashboard → Purchases once the item arrives
            (auto-confirmed after 5 days if you don't act)
@@ -107,12 +107,9 @@ public class AssistantController : ControllerBase
         Cash-on-delivery (COD) is supported for both couriers.
         Track shipments in Dashboard → Shipments.
 
-        ═══ PAYMENTS & WALLET ═══
-        • MamVibe Wallet — internal balance for fast purchases.
-          Top up: Settings → Wallet (minimum 5 BGN, paid by card via Stripe).
-          Wallet balance never expires.
-          Withdraw earnings: Settings → Wallet → Withdraw (IBAN required, processed in 2 business days).
-        • Stripe card checkout — pay directly by card without a wallet balance.
+        ═══ PAYMENTS ═══
+        • Stripe card checkout — pay securely by card.
+        • Sellers share their Revolut Tag for peer-to-peer transfers.
         • Sellers receive their funds only after the buyer confirms receipt.
 
         ═══ PURCHASE REQUESTS & ORDER FLOW ═══
@@ -174,7 +171,7 @@ public class AssistantController : ControllerBase
         /doctor-reviews — Parent reviews of Bulgarian doctors
         /child-friendly-places — Family-friendly places
         /profile       — Your public profile and ratings
-        /settings      — Account, wallet, language, theme (login required)
+        /settings      — Account, language, theme (login required)
         /register      — Create a new account
         /login         — Sign in (email/password or Google)
 

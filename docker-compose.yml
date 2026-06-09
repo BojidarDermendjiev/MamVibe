@@ -51,7 +51,6 @@ services:
       Stripe__SecretKey: "${STRIPE_SECRET_KEY:?STRIPE_SECRET_KEY must be set in .env}"
       Stripe__PublishableKey: "${STRIPE_PUBLISHABLE_KEY}"
       Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:?STRIPE_WEBHOOK_SECRET must be set in .env}"
-      Stripe__WalletWebhookSecret: "${STRIPE_WALLET_WEBHOOK_SECRET}"
 
       # ── AI providers ────────────────────────────────────────────────────────
       # Anthropic is used for vision tasks (listing suggest, moderation, price suggestion)

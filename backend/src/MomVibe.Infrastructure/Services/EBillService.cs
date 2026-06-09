@@ -182,7 +182,6 @@ public class EBillService : IEBillService
         var method  = bill.PaymentMethod switch
         {
             Domain.Enums.PaymentMethod.Card   => "Card / Карта",
-            Domain.Enums.PaymentMethod.Wallet => "Wallet / Портфейл",
             _                                 => bill.PaymentMethod.ToString()
         };
 
