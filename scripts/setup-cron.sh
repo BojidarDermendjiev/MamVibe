@@ -6,8 +6,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BACKUP_SCRIPT="$SCRIPT_DIR/backup.sh"
-LOG_FILE="/var/log/mamvibe-backup.log"
+LOG_FILE="$PROJECT_DIR/logs/backup.log"
 
 # Make all scripts executable
 chmod +x "$SCRIPT_DIR/backup.sh"
@@ -15,7 +16,8 @@ chmod +x "$SCRIPT_DIR/restore.sh"
 chmod +x "$SCRIPT_DIR/deploy.sh"
 echo "Scripts marked executable."
 
-# Create log file
+# Create log directory and file (no root required)
+mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
 echo "Log file: $LOG_FILE"
 

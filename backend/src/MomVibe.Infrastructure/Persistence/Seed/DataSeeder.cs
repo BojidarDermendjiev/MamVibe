@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Persistence.Seed;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 using MomVibe.Domain.Entities;
 using MomVibe.Domain.Constants;
@@ -21,7 +22,8 @@ public static class DataSeeder
 
     public static async Task SeedAdminAsync(
         UserManager<ApplicationUser> userManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger logger)
     {
         var enabled = configuration.GetValue<bool>("AdminSeed:Enabled");
         if (!enabled)
@@ -37,6 +39,10 @@ public static class DataSeeder
         if (password.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(
                 "AdminSeed:Password is a placeholder. Replace the CHANGE_ME value with a real password before enabling AdminSeed.");
+
+        if (password.Length < 12)
+            throw new InvalidOperationException(
+                "AdminSeed:Password must be at least 12 characters long.");
 
         var admin = await userManager.FindByEmailAsync(email);
 
@@ -58,6 +64,11 @@ public static class DataSeeder
 
         if (!await userManager.IsInRoleAsync(admin, "Admin"))
             await userManager.AddToRoleAsync(admin, "Admin");
+
+        // Remind the operator to disable the flag after the first successful seed.
+        logger.LogWarning(
+            "SECURITY: AdminSeed:Enabled is still true. " +
+            "Set ADMIN_SEED_ENABLED=false in .env and restart the container.");
     }
 
     public static async Task SeedAiBotAsync(UserManager<ApplicationUser> userManager)

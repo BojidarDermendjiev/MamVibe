@@ -451,7 +451,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await DataSeeder.SeedRolesAsync(roleManager);
-    await DataSeeder.SeedAdminAsync(userManager, app.Configuration);
+    await DataSeeder.SeedAdminAsync(userManager, app.Configuration, app.Logger);
     await DataSeeder.SeedAiBotAsync(userManager);
     await DataSeeder.SeedCategoriesAsync(dbContext);
 }
