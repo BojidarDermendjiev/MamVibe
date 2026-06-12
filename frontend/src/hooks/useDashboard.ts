@@ -18,7 +18,7 @@ import type { FollowUserDto } from '../types/follow';
 import type { SavedSearchDto } from '../types/savedSearch';
 import type { BundleDto } from '../types/bundle';
 
-export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests' | 'received-offers' | 'sent-offers' | 'shipments' | 'ebills' | 'following-feed' | 'following' | 'followers' | 'saved-searches' | 'bundles';
+export type DashboardTab = 'listings' | 'liked' | 'purchases' | 'incoming-requests' | 'my-requests' | 'received-offers' | 'sent-offers' | 'shipments' | 'ebills' | 'following-feed' | 'following' | 'followers' | 'saved-searches' | 'bundles' | 'payouts';
 
 interface UseDashboardReturn {
   tab: DashboardTab;
@@ -43,8 +43,19 @@ interface UseDashboardReturn {
   refreshTab: () => void;
 }
 
+// Initial tab selection — honour explicit deep links so we can route users
+// returning from Stripe Connect onboarding straight to the payouts panel,
+// and the legacy "#bank-payouts" hash used by the connect_required nudge.
+function pickInitialTab(): DashboardTab {
+  if (typeof window === 'undefined') return 'listings';
+  if (window.location.hash === '#bank-payouts') return 'payouts';
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('connect') === 'return' || params.get('connect') === 'refresh') return 'payouts';
+  return 'listings';
+}
+
 export function useDashboard(): UseDashboardReturn {
-  const [tab, setTab] = useState<DashboardTab>('listings');
+  const [tab, setTab] = useState<DashboardTab>(pickInitialTab);
   const [myItems, setMyItems] = useState<Item[]>([]);
   const [likedItems, setLikedItems] = useState<Item[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -116,6 +127,8 @@ export function useDashboard(): UseDashboardReturn {
           setBundles(bundlesRes.data);
           setMyItems(itemsRes.data);
         }
+        // 'payouts' tab — no parent-level data load; the BankPayoutsTab component
+        // manages its own Stripe Connect status fetch on mount.
       } catch {
         setError('load_failed');
       } finally {

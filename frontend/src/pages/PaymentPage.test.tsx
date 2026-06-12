@@ -8,7 +8,7 @@ import { paymentsApi } from '../api/paymentsApi'
 import { ListingType } from '../types/item'
 
 vi.mock('../api/itemsApi', () => ({ itemsApi: { getById: vi.fn() } }))
-vi.mock('../api/paymentsApi', () => ({ paymentsApi: { createBooking: vi.fn(), createCheckout: vi.fn(), createCod: vi.fn() } }))
+vi.mock('../api/paymentsApi', () => ({ paymentsApi: { createBooking: vi.fn(), createPaymentIntent: vi.fn(), createCod: vi.fn() } }))
 vi.mock('../utils/toast', () => ({ default: { error: vi.fn(), success: vi.fn() } }))
 
 // Avoid real HTTP calls from sub-components
@@ -19,6 +19,12 @@ vi.mock('../components/shipping/OfficePicker', () => ({
 }))
 vi.mock('../components/shipping/ShippingPricePreview', () => ({
   default: () => <div data-testid="price-preview" />,
+}))
+// Stub the embedded Stripe form so tests don't need to load Stripe.js.
+vi.mock('../components/payment/StripeCardForm', () => ({
+  default: ({ clientSecret }: { clientSecret: string }) => (
+    <div data-testid="stripe-card-form">embedded:{clientSecret}</div>
+  ),
 }))
 
 const sellItem = {
@@ -58,7 +64,6 @@ function setup(itemId: string) {
     <MemoryRouter initialEntries={[`/payment/${itemId}`]}>
       <Routes>
         <Route path="/payment/:itemId" element={<PaymentPage />} />
-        <Route path="/payment/:itemId/card" element={<div>CardPage</div>} />
         <Route path="/payment/success" element={<div>SuccessPage</div>} />
       </Routes>
     </MemoryRouter>
@@ -133,7 +138,11 @@ describe('PaymentPage', () => {
     ))
   })
 
-  it('navigates to card page when sell item submitted with valid details', async () => {
+  it('calls createPaymentIntent and renders embedded card form when sell item submitted with valid details', async () => {
+    vi.mocked(paymentsApi.createPaymentIntent).mockResolvedValue({
+      data: { clientSecret: 'pi_test_123_secret_abc' }
+    } as never)
+
     setup('item-sell')
 
     await waitFor(() => screen.getByText('payment.continue_to_card'))
@@ -145,7 +154,11 @@ describe('PaymentPage', () => {
 
     await userEvent.click(screen.getByText('payment.continue_to_card'))
 
-    await waitFor(() => expect(screen.getByText('CardPage')).toBeInTheDocument())
+    await waitFor(() => expect(paymentsApi.createPaymentIntent).toHaveBeenCalledWith(
+      'item-sell',
+      expect.objectContaining({ recipientName: 'Jane Doe', recipientPhone: '+359888111111' })
+    ))
+    await waitFor(() => expect(screen.getByTestId('stripe-card-form')).toHaveTextContent('embedded:pi_test_123_secret_abc'))
   })
 
   it('shows payment method selector for sell items', async () => {

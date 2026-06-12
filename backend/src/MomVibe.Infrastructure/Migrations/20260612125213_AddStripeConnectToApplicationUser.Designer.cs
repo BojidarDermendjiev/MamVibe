@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MomVibe.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace MomVibe.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612125213_AddStripeConnectToApplicationUser")]
+    partial class AddStripeConnectToApplicationUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2307,9 +2310,6 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<DateTime?>("HeldUntil")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("IdempotencyKey")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -2320,37 +2320,20 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("PlatformFeeAmount")
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<string>("ReceiptUrl")
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
-
-                    b.Property<DateTime?>("ReleaseScheduledAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SellerId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("SellerNetAmount")
-                        .HasColumnType("numeric(18,2)");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
-
-                    b.Property<string>("StripePaymentIntentId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("StripeSessionId")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<string>("StripeTransferId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -2373,17 +2356,9 @@ namespace MomVibe.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("StripePaymentIntentId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Payments_StripePaymentIntentId")
-                        .HasFilter("\"StripePaymentIntentId\" IS NOT NULL");
-
                     b.HasIndex("BuyerId", "Status");
 
                     b.HasIndex("SellerId", "Status");
-
-                    b.HasIndex("Status", "HeldUntil")
-                        .HasDatabaseName("IX_Payments_Status_HeldUntil");
 
                     b.ToTable("Payments");
                 });

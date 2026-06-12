@@ -1,6 +1,13 @@
 import { create } from 'zustand';
-import type { ModerationForbiddenEnvelope, UserModerationStatus } from '../types/moderation';
+import type { ModerationForbiddenEnvelope, ModerationLevel, UserModerationStatus } from '../types/moderation';
 import { moderationApi } from '../api/moderationApi';
+
+const LEVEL_NAMES: ModerationLevel[] = ['None', 'Warned', 'Restricted', 'Suspended', 'Banned'];
+
+function normalizeLevel(raw: ModerationLevel | number): ModerationLevel {
+  if (typeof raw === 'number') return LEVEL_NAMES[raw] ?? 'None';
+  return raw;
+}
 
 interface ModerationState {
   status: UserModerationStatus | null;
@@ -25,7 +32,7 @@ export const useModerationStore = create<ModerationState>((set) => ({
     set({ isLoading: true });
     try {
       const { data } = await moderationApi.getMyStatus();
-      set({ status: data, isLoading: false });
+      set({ status: { ...data, level: normalizeLevel(data.level as ModerationLevel | number) }, isLoading: false });
     } catch {
       // Unauthenticated or transient — leave any prior status in place rather than wiping it.
       set({ isLoading: false });

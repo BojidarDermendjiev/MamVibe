@@ -32,9 +32,12 @@ export const paymentsApi = {
   getMyPayments: () =>
     axiosClient.get<PagedResult<Payment>>('/payments/my-payments'),
 
-  createPaymentIntent: (itemId: string, idempotencyKey?: string) =>
-    axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`, null, idempotencyConfig(idempotencyKey)),
+  createPaymentIntent: (itemId: string, delivery?: PaymentDeliveryRequest, idempotencyKey?: string) =>
+    axiosClient.post<{ clientSecret: string }>(`/payments/create-intent/${itemId}`, delivery ?? null, idempotencyConfig(idempotencyKey)),
 
   createDonationCheckout: (amount: number, idempotencyKey?: string) =>
     axiosClient.post<{ sessionUrl: string }>('/payments/donation/checkout', { amount }, idempotencyConfig(idempotencyKey)),
+
+  createDonationIntent: (amount: number, idempotencyKey?: string) =>
+    axiosClient.post<{ clientSecret: string }>('/payments/donation/intent', { amount }, idempotencyConfig(idempotencyKey)),
 };

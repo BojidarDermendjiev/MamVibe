@@ -236,6 +236,18 @@ export default function ModernAuthPage() {
               {loginLoading ? t("common.loading") : t("auth.login_btn")}
             </button>
 
+            <p className="auth-partner-cta" style={{ fontSize: "0.75rem", textAlign: "center", marginTop: "0.75rem", color: "#6b6888" }}>
+              {t("partner.login.consumerCta")}{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/partner/login")}
+                className="auth-mobile-link-btn"
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#3f4b7f", fontWeight: 600 }}
+              >
+                {t("partner.login.consumerCtaLink")}
+              </button>
+            </p>
+
             {/* Mobile-only toggle */}
             <p className="auth-mobile-link">
               {t("auth.no_account")}{" "}

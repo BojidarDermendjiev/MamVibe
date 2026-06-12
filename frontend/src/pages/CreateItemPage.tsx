@@ -14,6 +14,7 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import PhotoUploader from "../components/items/PhotoUploader";
 import IbanModal from "../components/common/IbanModal";
+import ConnectRequiredModal from "../components/common/ConnectRequiredModal";
 import CategorySpecificSection from "../components/items/CategorySpecificSection";
 import ConditionPicker from "../components/items/ConditionPicker";
 
@@ -132,6 +133,7 @@ export default function CreateItemPage() {
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceSuggestion, setPriceSuggestion] = useState<PriceSuggestion | null>(null);
   const [showIbanModal, setShowIbanModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
   const [createdItem, setCreatedItem] = useState<Item | null>(null);
   const aiInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<{
@@ -245,12 +247,16 @@ export default function CreateItemPage() {
       });
       setCreatedItem(item);
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { error?: string; message?: string } } })
-          ?.response?.data?.error ||
-        (err as { response?: { data?: { error?: string; message?: string } } })
-          ?.response?.data?.message ||
-        t("common.error");
+      const data = (err as { response?: { data?: { error?: string; message?: string; code?: string } } })
+        ?.response?.data;
+      // Stripe Connect gate: backend rejected because seller has no verified payout
+      // account yet. Show the dedicated modal that takes them to the dashboard
+      // panel — a flat toast would lose them.
+      if (data?.code === "connect_required") {
+        setShowConnectModal(true);
+        return;
+      }
+      const message = data?.error || data?.message || t("common.error");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -493,6 +499,11 @@ export default function CreateItemPage() {
           setShowIbanModal(false);
           doSubmit();
         }}
+      />
+
+      <ConnectRequiredModal
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
       />
 
       {createdItem && (

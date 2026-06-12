@@ -17,6 +17,7 @@ import {
   Bookmark,
   Menu,
   X,
+  Wallet,
 } from 'lucide-react';
 import { usePageSEO } from '@/hooks/useSEO';
 import toast from '@/utils/toast';
@@ -45,6 +46,7 @@ import FollowingFeedTab from '../components/dashboard/FollowingFeedTab';
 import FollowingTab from '../components/dashboard/FollowingTab';
 import SavedSearchesTab from '../components/dashboard/SavedSearchesTab';
 import BundlesTab from '../components/dashboard/BundlesTab';
+import BankPayoutsTab from '../components/dashboard/BankPayoutsTab';
 
 interface NavItem {
   key: DashboardTab;
@@ -67,6 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
       { key: 'shipments', labelKey: 'dashboard.my_shipments', icon: Package },
       { key: 'ebills',    labelKey: 'dashboard.my_ebills',    icon: Receipt },
       { key: 'bundles',   labelKey: 'dashboard.my_bundles',   icon: Layers },
+      { key: 'payouts',   labelKey: 'dashboard.bank_payouts', icon: Wallet },
     ],
   },
   {
@@ -446,6 +449,7 @@ export default function DashboardPage() {
                   <BundlesTab bundles={bundles} error={error} onRetry={refreshTab} onDelete={handleDeleteBundle} onCreateBundle={() => setShowCreateBundle(true)} />
                 </div>
               )}
+              {tab === 'payouts' && <BankPayoutsTab />}
             </>
           )}
         </main>

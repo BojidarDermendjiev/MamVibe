@@ -27,9 +27,18 @@ export default function SuspensionBanner() {
     return () => clearInterval(handle);
   }, [status?.expiresAt]);
 
-  if (!status || status.level === 'None') return null;
+  if (!status) return null;
 
-  const palette = paletteFor(status.level);
+  // Guard against numeric enum values arriving before the backend emits strings
+  const LEVEL_NAMES = ['None', 'Warned', 'Restricted', 'Suspended', 'Banned'] as const;
+  const level: ModerationLevel =
+    typeof status.level === 'number'
+      ? (LEVEL_NAMES[(status.level as number)] ?? 'None')
+      : status.level;
+
+  if (level === 'None') return null;
+
+  const palette = paletteFor(level);
   let countdown: string | null = null;
   if (status.expiresAt) {
     const remaining = new Date(status.expiresAt).getTime() - nowMs;
@@ -39,7 +48,7 @@ export default function SuspensionBanner() {
   }
 
   const Icon = palette.icon;
-  const titleKey = `moderation.banner_${status.level.toLowerCase()}`;
+  const titleKey = `moderation.banner_${level.toLowerCase()}`;
 
   return (
     <div
@@ -50,7 +59,7 @@ export default function SuspensionBanner() {
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${palette.icoColor}`} aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className={`font-semibold ${palette.title}`}>{t(titleKey, defaultTitle(status.level))}</p>
+          <p className={`font-semibold ${palette.title}`}>{t(titleKey, defaultTitle(level))}</p>
           {status.publicReason ? (
             <p className={`mt-0.5 ${palette.body}`}>{status.publicReason}</p>
           ) : null}

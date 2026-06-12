@@ -13,7 +13,6 @@ Disallow: /create
 Disallow: /payment/
 Disallow: /shipments/
 Disallow: /feedback
-Disallow: /donate/card
 Disallow: /api/
 Disallow: /hubs/
 Disallow: /uploads/

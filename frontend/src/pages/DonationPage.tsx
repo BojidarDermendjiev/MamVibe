@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, ArrowLeft } from "lucide-react";
+import toast from "@/utils/toast";
 import { usePageSEO } from "@/hooks/useSEO";
 import { formatEur } from "@/utils/currency";
+import { paymentsApi } from "@/api/paymentsApi";
+import StripeCardForm from "@/components/payment/StripeCardForm";
 
 interface PresetTier {
   value: number;
@@ -51,6 +54,11 @@ export default function DonationPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<number>(10);
+  const [processing, setProcessing] = useState(false);
+  // Holds the Stripe PaymentIntent client secret once the amount has been
+  // confirmed. While set, we render the embedded <StripeCardForm /> instead of
+  // the amount-picker. Cleared on "back" so the user can change the amount.
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Noindex: transactional page — not a primary SEO landing target.
   usePageSEO({
@@ -70,14 +78,77 @@ export default function DonationPage() {
     if (!custom) setSelected(value);
   };
 
-  const handleDonate = () => {
+  const handleDonate = async () => {
     if (!canDonate) return;
-    navigate("/donate/card", { state: { amount: effectiveAmount } });
+    setProcessing(true);
+    try {
+      // Embedded Elements flow: ask the backend for a PaymentIntent client secret,
+      // then render <StripeCardForm /> inline so the user types card details inside
+      // Stripe's iframe (PCI SAQ A) without ever leaving the page.
+      const { data } = await paymentsApi.createDonationIntent(effectiveAmount);
+      if (!data.clientSecret) throw new Error("No client secret returned");
+      setClientSecret(data.clientSecret);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        || t("common.error");
+      toast.error(message);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const donateLabel = canDonate
     ? t("donate.donate_btn").replace("{amount}", formatEur(effectiveAmount))
     : t("donate.donate_btn_default");
+
+  if (clientSecret) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-lg"
+        >
+          <button
+            type="button"
+            onClick={() => setClientSecret(null)}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t("common.back")}
+          </button>
+
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-primary dark:text-white">{t("donate.card_title")}</h1>
+          </div>
+
+          {/* Amount summary card — mirrors the deleted DonationCardPage design */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-lavender/40 dark:border-gray-700 mb-6 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">💗</span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+                {t("donate.card_amount")}
+              </p>
+              <p className="text-2xl font-bold text-primary dark:text-white">{formatEur(effectiveAmount)}</p>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-lavender/40 dark:border-gray-700">
+            <StripeCardForm
+              clientSecret={clientSecret}
+              onSuccess={() => navigate("/payment/success?donation=1")}
+              onCancel={() => setClientSecret(null)}
+              submitLabel={t("donate.donate_btn").replace("{amount}", formatEur(effectiveAmount))}
+            />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16">
@@ -294,17 +365,17 @@ export default function DonationPage() {
               )}
 
               <motion.button
-                whileHover={canDonate ? { scale: 1.02 } : {}}
-                whileTap={canDonate ? { scale: 0.98 } : {}}
+                whileHover={canDonate && !processing ? { scale: 1.02 } : {}}
+                whileTap={canDonate && !processing ? { scale: 0.98 } : {}}
                 onClick={handleDonate}
-                disabled={!canDonate}
+                disabled={!canDonate || processing}
                 className={`w-full mt-4 py-3.5 rounded-xl font-semibold text-base transition-all duration-200 ${
-                  canDonate
+                  canDonate && !processing
                     ? "bg-primary text-white shadow-md hover:bg-primary-dark hover:shadow-lg cursor-pointer"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {donateLabel} {canDonate && "→"}
+                {processing ? t("common.loading") : donateLabel} {canDonate && !processing && "→"}
               </motion.button>
             </div>
 

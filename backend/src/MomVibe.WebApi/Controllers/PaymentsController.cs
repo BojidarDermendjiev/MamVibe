@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.DTOs.Payments;
 
@@ -24,17 +25,20 @@ public class PaymentsController : ControllerBase
     private readonly IStripePaymentService _stripePaymentService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
         IPaymentService paymentService,
         IStripePaymentService stripePaymentService,
         ICurrentUserService currentUserService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<PaymentsController> logger)
     {
         this._paymentService = paymentService;
         this._stripePaymentService = stripePaymentService;
         this._currentUserService = currentUserService;
         this._configuration = configuration;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -178,9 +182,12 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a Stripe PaymentIntent for inline card payment.
+    /// Creates a Stripe PaymentIntent for inline card payment via Stripe Elements.
     /// </summary>
     /// <param name="itemId">The GUID of the item to purchase.</param>
+    /// <param name="delivery">Optional delivery details. When present, shipping fee is added to
+    /// the intent amount and delivery metadata is stamped on the intent so the
+    /// payment_intent.succeeded webhook can auto-create the shipment.</param>
     /// <returns>
     /// 401 Unauthorized if the current user context is missing.<br/>
     /// 404 Not Found if the item does not exist.<br/>
@@ -189,14 +196,18 @@ public class PaymentsController : ControllerBase
     /// </returns>
     [Authorize]
     [HttpPost("create-intent/{itemId:guid}")]
-    public async Task<IActionResult> CreatePaymentIntent(Guid itemId)
+    public async Task<IActionResult> CreatePaymentIntent(Guid itemId, [FromBody] PaymentDeliveryRequest? delivery = null)
     {
         var userId = this._currentUserService.UserId;
         if (userId == null) return Unauthorized();
         try
         {
-            var clientSecret = await this._stripePaymentService.CreatePaymentIntentAsync(itemId, userId, this.IdempotencyKey());
+            var clientSecret = await this._stripePaymentService.CreatePaymentIntentAsync(itemId, userId, delivery, this.IdempotencyKey());
             return Ok(new { clientSecret });
+        }
+        catch (StripeNotConfiguredException)
+        {
+            return StatusCode(503, new { error = "Card payments are temporarily unavailable. Please try again later." });
         }
         catch (KeyNotFoundException ex)
         {
@@ -206,8 +217,9 @@ public class PaymentsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            this._logger.LogError(ex, "CreatePaymentIntent failed for item {ItemId}.", itemId);
             return StatusCode(500, new { error = "Payment service error. Please try again later." });
         }
     }
@@ -339,12 +351,17 @@ public class PaymentsController : ControllerBase
             var clientSecret = await this._stripePaymentService.CreateDonationIntentAsync(request.Amount, this.IdempotencyKey());
             return Ok(new { clientSecret });
         }
+        catch (StripeNotConfiguredException)
+        {
+            return StatusCode(503, new { error = "Card payments are temporarily unavailable. Please try again later." });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            this._logger.LogError(ex, "CreateDonationIntent failed for amount {Amount}.", request.Amount);
             return StatusCode(500, new { error = "Payment service error. Please try again later." });
         }
     }

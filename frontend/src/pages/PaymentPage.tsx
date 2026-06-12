@@ -14,6 +14,7 @@ import CourierSelector from '../components/shipping/CourierSelector';
 import DeliveryTypeSelector from '../components/shipping/DeliveryTypeSelector';
 import OfficePicker from '../components/shipping/OfficePicker';
 import ShippingPricePreview from '../components/shipping/ShippingPricePreview';
+import StripeCardForm from '../components/payment/StripeCardForm';
 
 export default function PaymentPage() {
   const { itemId } = useParams<{ itemId: string }>();
@@ -24,6 +25,10 @@ export default function PaymentPage() {
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
   const [shippingPrice, setShippingPrice] = useState(0);
+  // Holds the Stripe PaymentIntent client secret once delivery info has been
+  // submitted. While set, we render the embedded <StripeCardForm /> instead of
+  // the delivery form. Cleared on "back" so the user can edit delivery details.
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Delivery state
   const [courier, setCourier] = useState<CourierProvider>(CourierProvider.Econt);
@@ -132,13 +137,48 @@ export default function PaymentPage() {
         setProcessing(false);
       }
     } else {
-      // Paid item: go to card page (delivery details passed in router state)
-      navigate(`/payment/${itemId}/card`, { state: { delivery, shippingPrice } });
+      // Paid item, card method: create a PaymentIntent and switch the UI to the
+      // embedded <StripeCardForm />. Card data is collected by Stripe inside its
+      // own iframe (Stripe Elements) — our app never sees PAN/CVV/expiry, so PCI
+      // scope stays at SAQ A. The user stays on this page; on success Stripe.js
+      // resolves and we navigate to /payment/success ourselves.
+      setProcessing(true);
+      try {
+        const { data } = await paymentsApi.createPaymentIntent(itemId, delivery);
+        if (!data.clientSecret) throw new Error('No client secret returned');
+        setClientSecret(data.clientSecret);
+      } catch (err: unknown) {
+        const message = (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.error
+          || (err as { response?: { data?: { error?: string; details?: string } } })?.response?.data?.details
+          || t('common.error');
+        toast.error(message);
+      } finally {
+        setProcessing(false);
+      }
     }
   };
 
   if (loading) return <LoadingSpinner size="lg" className="py-20" />;
   if (!item) return null;
+
+  if (clientSecret) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">{t('payment.card_details')}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {t('payment.total')}: <span className="font-semibold text-mauve">{formatPrice((item.price ?? 0) + shippingPrice)}</span>
+        </p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-lavender/30 dark:border-gray-700">
+          <StripeCardForm
+            clientSecret={clientSecret}
+            onSuccess={() => navigate('/payment/success', { state: { itemId } })}
+            onCancel={() => setClientSecret(null)}
+            submitLabel={t('card.pay_now')}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">

@@ -83,6 +83,53 @@ public class Payment : BaseEntity
     [MaxLength(PaymentConstants.Lengths.IdempotencyKeyMax)]
     public string? IdempotencyKey { get; set; }
 
+    // ── Escrow / Stripe Connect fields (Phase B.2) ──────────────────────────
+    // Populated for online card sales that go through the destination-charge
+    // flow. Zero / null on legacy non-escrow rows and on OnSpot / Booking / Cod.
+
+    /// <summary>
+    /// Platform fee retained from <see cref="Amount"/> when the sale is released.
+    /// Computed as <c>Amount * Stripe:PlatformFeePercent / 100</c> at checkout.
+    /// </summary>
+    public decimal PlatformFeeAmount { get; set; }
+
+    /// <summary>
+    /// Net amount transferred to the seller's Connect account on release —
+    /// equals <c>Amount - PlatformFeeAmount</c>. Stored explicitly so refund
+    /// math doesn't depend on re-computing the fee percent at release time.
+    /// </summary>
+    public decimal SellerNetAmount { get; set; }
+
+    /// <summary>
+    /// UTC deadline at which an undisputed <see cref="Enums.PaymentStatus.HeldInEscrow"/>
+    /// payment is auto-released to the seller. Set to <c>delivered_at + 72h</c>
+    /// once the courier webhook reports the shipment as Delivered. Null until then.
+    /// </summary>
+    public DateTime? HeldUntil { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the escrow release was actually executed (Stripe Transfer
+    /// created). Null while the payment is still held or has been refunded.
+    /// </summary>
+    public DateTime? ReleaseScheduledAt { get; set; }
+
+    /// <summary>
+    /// Stripe PaymentIntent identifier (<c>pi_...</c>) for the destination charge.
+    /// Distinct from <see cref="StripeSessionId"/> because the same Checkout
+    /// Session can spawn multiple intents on retry, and the refund / transfer
+    /// APIs need the underlying intent id, not the session id.
+    /// </summary>
+    [MaxLength(PaymentConstants.Lengths.StripeSessionIdMax)]
+    public string? StripePaymentIntentId { get; set; }
+
+    /// <summary>
+    /// Stripe Transfer identifier (<c>tr_...</c>) created when funds were released
+    /// to the seller's Connect account. Null until the release fires. Used to
+    /// reverse the transfer on post-release disputes.
+    /// </summary>
+    [MaxLength(PaymentConstants.Lengths.StripeSessionIdMax)]
+    public string? StripeTransferId { get; set; }
+
     /// <summary>
     /// Navigation to the purchased item. Null for bundle payments.
     /// </summary>

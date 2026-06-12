@@ -106,6 +106,24 @@ public class ApplicationUser : IdentityUser
     /// <summary>When true, all listings by this user are hidden from browse and search results.</summary>
     public bool IsOnHoliday { get; set; }
 
+    /// <summary>
+    /// Stripe Connect Express account identifier (<c>acct_...</c>), populated when the user
+    /// starts onboarding. Required for receiving payouts on item sales. Null until first
+    /// onboarding attempt.
+    /// </summary>
+    [MaxLength(64)]
+    public string? StripeConnectAccountId { get; set; }
+
+    /// <summary>
+    /// Current lifecycle state of the user's Stripe Connect account. Authoritative for the
+    /// "can list paid items / receive payouts" gate. Updated by the <c>account.updated</c>
+    /// webhook and by explicit refresh calls.
+    /// </summary>
+    public StripeConnectStatus StripeConnectStatus { get; set; } = StripeConnectStatus.None;
+
+    /// <summary>UTC timestamp when <see cref="StripeConnectStatus"/> last transitioned (audit only).</summary>
+    public DateTime? StripeConnectStatusUpdatedAt { get; set; }
+
     /// <summary>Gets the collection of marketplace items listed by the user.</summary>
     public ICollection<Item> Items { get; set; } = [];
 

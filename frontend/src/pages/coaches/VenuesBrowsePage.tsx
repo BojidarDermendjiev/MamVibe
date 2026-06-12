@@ -6,6 +6,7 @@ import { MapPin, Search, Filter, ArrowRight, Building2 } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
 import ListingCard from "@/components/business/ListingCard";
 import { businessApi } from "@/api/businessApi";
+import { useAuthStore } from "@/store/authStore";
 import { BusinessCategory, type BrowseListingsResult } from "@/types/business";
 
 const PAGE_SIZE = 20;
@@ -17,6 +18,11 @@ const PAGE_SIZE = 20;
  */
 export default function VenuesBrowsePage() {
   const { t } = useTranslation();
+  // Unauthenticated visitors land on the partner signup (business-styled, public)
+  // instead of /business/register which is auth-protected and would bounce them
+  // to the consumer login page.
+  const { isAuthenticated } = useAuthStore();
+  const listVenuePath = isAuthenticated ? "/business/register" : "/partner/register";
 
   usePageSEO({
     title: t("venues.seoTitle") || "Family-friendly venues & attractions",
@@ -91,7 +97,7 @@ export default function VenuesBrowsePage() {
             </p>
           </motion.div>
           <Link
-            to="/business/register"
+            to={listVenuePath}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-md hover:bg-primary/90 transition-colors"
           >
             {t("venues.ctaListVenue")} <ArrowRight size={16} />

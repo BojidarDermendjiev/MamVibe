@@ -125,27 +125,30 @@ public class StripePaymentServiceTests
     }
 
     // =========================================================================
-    // Test 1 — CreatePaymentIntentAsync returns client secret for a valid item
+    // Test 1 — CreatePaymentIntentAsync surfaces a clear error when Stripe is unconfigured
+    //
+    // Unlike the Checkout flow (which can return a fake success URL in test mode),
+    // PaymentIntent is consumed by Stripe Elements on the frontend, which validates
+    // the client-secret format and rejects placeholders. Returning a sentinel string
+    // would crash Stripe.js with a confusing IntegrationError, so the service throws
+    // StripeNotConfiguredException — the controller maps it to HTTP 503.
     // =========================================================================
 
     [Fact]
-    public async Task CreatePaymentIntentAsync_Returns_ClientSecret_For_Valid_Item()
+    public async Task CreatePaymentIntentAsync_Throws_When_Stripe_Unconfigured()
     {
         // Arrange
         using var db      = CreateDb();
         var seller        = SeedUser(db, "seller-1");
         var item          = SeedSellItem(db, seller.Id, price: 49.99m);
-        var service       = CreateService(db); // no Stripe key → test mode
+        var service       = CreateService(db); // no Stripe key → unconfigured
 
         // Act
-        var clientSecret = await service.CreatePaymentIntentAsync(item.Id, "buyer-1");
+        var act = () => service.CreatePaymentIntentAsync(item.Id, "buyer-1");
 
         // Assert
-        clientSecret.Should().NotBeNullOrWhiteSpace(
-            because: "a non-empty client secret must always be returned so the frontend can proceed");
-
-        clientSecret.Should().Be("test_simulated_client_secret",
-            because: "when Stripe is unconfigured the service returns a well-known sentinel value");
+        await act.Should().ThrowAsync<MomVibe.Application.Exceptions.StripeNotConfiguredException>(
+            because: "Stripe Elements cannot accept a placeholder client secret");
     }
 
     // =========================================================================

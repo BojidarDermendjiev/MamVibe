@@ -173,3 +173,8 @@ frontend/playwright-report/
 CLAUDE.md
 DEPLOY.md
 *.patch
+
+# ──────────────────────────────────────────────────────────────
+# SonarQube analysis output (per-build artifact)
+# ──────────────────────────────────────────────────────────────
+backend/.sonarqube/

@@ -12,7 +12,7 @@ public interface IStripePaymentService
 
     Task HandleWebhookAsync(string json, string stripeSignature);
 
-    Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, string? idempotencyKey = null);
+    Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null, string? idempotencyKey = null);
 
     Task<string> CreateBulkCheckoutSessionAsync(List<Guid> itemIds, string buyerId, string successUrl, string cancelUrl, string? idempotencyKey = null);
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 using Domain.Enums;
 using Domain.Entities;
+using Domain.Exceptions;
 using Application.DTOs.Items;
 using Application.DTOs.Stats;
 using Application.Events;
@@ -197,6 +198,22 @@ public class ItemService : IItemService
 
     public async Task<ItemDto> CreateAsync(CreateItemDto dto, string userId)
     {
+        // Stripe Connect gate: paid listings (Sell) require the seller to have a verified
+        // Connect Express account — otherwise we'd take buyer money with no payout target.
+        // Donations / free items bypass the check since no money changes hands.
+        if (dto.ListingType == ListingType.Sell)
+        {
+            var sellerStatus = await this._context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => (StripeConnectStatus?)u.StripeConnectStatus)
+                .FirstOrDefaultAsync();
+            if (sellerStatus != StripeConnectStatus.Verified)
+                throw new BusinessConflictException(
+                    "connect_required",
+                    "You must complete Stripe payout setup before listing a paid item.");
+        }
+
         var item = new Item
         {
             Title = dto.Title,

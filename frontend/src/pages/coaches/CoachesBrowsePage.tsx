@@ -6,6 +6,7 @@ import { Sparkles, MapPin, Search, Filter, ArrowRight } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
 import ListingCard from "@/components/business/ListingCard";
 import { businessApi } from "@/api/businessApi";
+import { useAuthStore } from "@/store/authStore";
 import { ActivityType, BusinessCategory, type BrowseListingsResult } from "@/types/business";
 
 const ACTIVITY_FILTER_OPTIONS: { value: ActivityType; key: string }[] = [
@@ -25,6 +26,11 @@ const PAGE_SIZE = 20;
 
 export default function CoachesBrowsePage() {
   const { t } = useTranslation();
+  // Unauthenticated visitors land on the partner signup (business-styled, public)
+  // instead of /business/register which is auth-protected and would bounce them
+  // to the consumer login page.
+  const { isAuthenticated } = useAuthStore();
+  const startFreePath = isAuthenticated ? "/business/register" : "/partner/register";
 
   usePageSEO({
     title: t("coaches.seoTitle") || "Coaches & activities for kids",
@@ -109,7 +115,7 @@ export default function CoachesBrowsePage() {
             </p>
           </motion.div>
           <Link
-            to="/business/register"
+            to={startFreePath}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-md hover:bg-primary/90 transition-colors"
           >
             {t("coaches.ctaStartFree")} <ArrowRight size={16} />
@@ -217,7 +223,7 @@ export default function CoachesBrowsePage() {
                   {t("coaches.empty")}
                 </p>
                 <Link
-                  to="/business/register"
+                  to={startFreePath}
                   className="mt-3 inline-block text-sm text-primary hover:underline"
                 >
                   {t("coaches.ctaStartFree")} →

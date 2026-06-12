@@ -45,5 +45,15 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         // Index for the expiry hosted-service query: WHERE ModerationLevel IN (Restricted, Suspended) AND ModerationExpiresAt <= now.
         builder.HasIndex(u => new { u.ModerationLevel, u.ModerationExpiresAt })
             .HasDatabaseName("IX_AspNetUsers_ModerationLevel_ModerationExpiresAt");
+
+        // Stripe Connect — store enum as int and index account id (used by webhook lookups).
+        builder.Property(u => u.StripeConnectAccountId).HasMaxLength(64);
+        builder.Property(u => u.StripeConnectStatus)
+            .HasConversion<int>()
+            .HasDefaultValue(Domain.Enums.StripeConnectStatus.None);
+        builder.HasIndex(u => u.StripeConnectAccountId)
+            .IsUnique()
+            .HasFilter("\"StripeConnectAccountId\" IS NOT NULL")
+            .HasDatabaseName("UX_AspNetUsers_StripeConnectAccountId");
     }
 }

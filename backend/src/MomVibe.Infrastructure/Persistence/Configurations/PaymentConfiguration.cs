@@ -16,6 +16,14 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Amount).HasColumnType("numeric(18,2)");
         builder.Property(p => p.StripeSessionId).HasMaxLength(500);
 
+        // Escrow / Connect fields. Money columns share the amount column type so
+        // arithmetic across them stays exact; intent + transfer ids reuse the
+        // session-id max length convention.
+        builder.Property(p => p.PlatformFeeAmount).HasColumnType("numeric(18,2)");
+        builder.Property(p => p.SellerNetAmount).HasColumnType("numeric(18,2)");
+        builder.Property(p => p.StripePaymentIntentId).HasMaxLength(255);
+        builder.Property(p => p.StripeTransferId).HasMaxLength(255);
+
         builder.HasIndex(p => p.ItemId);
         builder.HasIndex(p => p.BundleId);
         builder.HasIndex(p => p.BuyerId);
@@ -25,6 +33,18 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasIndex(p => p.IdempotencyKey).IsUnique().HasFilter(@"""IdempotencyKey"" IS NOT NULL");
         builder.HasIndex(p => new { p.BuyerId, p.Status });
         builder.HasIndex(p => new { p.SellerId, p.Status });
+
+        // Index for the background release sweep:
+        //   WHERE Status = HeldInEscrow AND HeldUntil <= now()
+        builder.HasIndex(p => new { p.Status, p.HeldUntil })
+            .HasDatabaseName("IX_Payments_Status_HeldUntil");
+        // Unique partial index so webhooks can look up by PaymentIntent id without
+        // an explicit Stripe round-trip. Filter avoids constraint conflicts on rows
+        // that never went through the destination-charge flow.
+        builder.HasIndex(p => p.StripePaymentIntentId)
+            .IsUnique()
+            .HasFilter("\"StripePaymentIntentId\" IS NOT NULL")
+            .HasDatabaseName("UX_Payments_StripePaymentIntentId");
 
         builder.HasOne(p => p.Item)
             .WithMany()

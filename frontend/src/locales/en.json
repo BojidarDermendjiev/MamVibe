@@ -281,6 +281,7 @@
     "saved_searches_empty": "No saved searches yet.",
     "my_bundles": "My Bundles",
     "bundles_empty": "No bundles yet.",
+    "bank_payouts": "Bank Payouts",
     "nav_group_activity": "My Activity",
     "nav_group_requests": "Requests & Offers",
     "nav_group_community": "Community"
@@ -564,6 +565,18 @@
     "appeal_rate_limited": "Too many appeals submitted recently. Try again later."
   },
   "payment": {
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "heldInEscrow": "Held in escrow",
+      "released": "Paid to seller",
+      "refundedFull": "Refunded",
+      "refundedProduct": "Product refunded",
+      "disputed": "In dispute"
+    },
+    "heldUntilHint": "Auto-releases to the seller on {{date}} unless you raise a return.",
     "title": "Payment",
     "method": "Payment Method",
     "card": "Pay by Card",
@@ -596,18 +609,58 @@
     "cod_confirm": "Confirm Cash on Delivery Order",
     "cod_success": "Order confirmed! Pay the courier upon delivery.",
     "shipping_fee": "Shipping",
-    "order_total": "Total"
+    "order_total": "Total",
+    "card_details": "Card Details",
+    "total": "Total",
+    "pay_now": "Pay Now"
   },
   "card": {
-    "cardholder_name": "cardholder name",
     "card_number": "Card Number",
-    "card_number_text": "card number",
     "name": "Name",
+    "cardholder_name": "Cardholder name",
     "expiration": "Expiration (MM/YY)",
-    "expiration_text": "expiration",
-    "security_code": "security code",
     "cvv": "CVV",
     "pay_now": "Pay Now"
+  },
+  "connect": {
+    "heading": "Bank payouts",
+    "subtitle": "Stripe Express handles your seller payouts — bank details, tax forms, and KYC are managed on Stripe's side.",
+    "loadError": "Could not load your payout status.",
+    "onboardingError": "Could not start Stripe onboarding. Please retry.",
+    "dashboardLinkError": "Could not open your Stripe dashboard.",
+    "refreshHint": "If you just finished onboarding, refresh the page to pick up the latest status.",
+    "verifiedSince": "Verified since {{date}}",
+    "status": {
+      "none": "Not set up",
+      "pending": "In progress",
+      "verified": "Verified",
+      "restricted": "Action required"
+    },
+    "none": {
+      "title": "Set up payouts to start selling",
+      "body": "We use Stripe Express to handle seller payouts safely. You'll spend ~3 minutes adding your name, ID, and bank details — Stripe holds them, not us. After verification you can list paid items and receive money directly.",
+      "cta": "Set up payouts"
+    },
+    "pending": {
+      "title": "Stripe is still verifying you",
+      "body": "Your onboarding isn't finished. Stripe usually needs an extra detail like a document upload or address confirmation. Resume onboarding to finish.",
+      "cta": "Continue onboarding"
+    },
+    "verified": {
+      "title": "You're all set",
+      "body": "Stripe has verified your account. Sales of paid listings will be sent directly to your bank via Stripe. Open your Stripe dashboard to see balances, payouts, and tax forms.",
+      "cta": "Open Stripe dashboard"
+    },
+    "restricted": {
+      "title": "Stripe needs more information",
+      "body": "Your Stripe account has been restricted — usually because Stripe needs an updated document or bank detail. Open Stripe to see exactly what's required, then return here.",
+      "cta": "Resolve in Stripe"
+    },
+    "required": {
+      "title": "Set up payouts first",
+      "body": "Before listing a paid item, we need a verified Stripe payout account so the money has somewhere safe to go. It takes a few minutes on Stripe's side. Donation listings are unaffected.",
+      "cta": "Go to Bank payouts"
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -1741,7 +1794,10 @@
       "registerLink": "Create one",
       "parentLoginLink": "I'm a parent — go to main site",
       "invalidCredentials": "Invalid email or password.",
-      "welcome": "Welcome back, {{name}}!"
+      "welcome": "Welcome back, {{name}}!",
+      "consumerCta": "Are you a coach or venue?",
+      "consumerCtaLink": "Partner sign in",
+      "footerLink": "Partner sign in"
     },
     "register": {
       "seoTitle": "Create your partner account",

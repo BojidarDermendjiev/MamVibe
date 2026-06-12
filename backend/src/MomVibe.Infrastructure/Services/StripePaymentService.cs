@@ -10,6 +10,7 @@ using Stripe.Checkout;
 
 using Domain.Enums;
 using Application.Events;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.DTOs.Payments;
 using Application.DTOs.Shipping;
@@ -28,6 +29,7 @@ public class StripePaymentService : IStripePaymentService
     private readonly IShippingService _shippingService;
     private readonly IPublisher _publisher;
     private readonly IBusinessSubscriptionService _businessSubscriptions;
+    private readonly IStripeConnectService _stripeConnect;
     private readonly ILogger<StripePaymentService> _logger;
 
     public StripePaymentService(
@@ -36,6 +38,7 @@ public class StripePaymentService : IStripePaymentService
         IShippingService shippingService,
         IPublisher publisher,
         IBusinessSubscriptionService businessSubscriptions,
+        IStripeConnectService stripeConnect,
         ILogger<StripePaymentService> logger)
     {
         _context = context;
@@ -43,6 +46,7 @@ public class StripePaymentService : IStripePaymentService
         _shippingService = shippingService;
         _publisher = publisher;
         _businessSubscriptions = businessSubscriptions;
+        _stripeConnect = stripeConnect;
         _logger = logger;
     }
 
@@ -64,6 +68,29 @@ public class StripePaymentService : IStripePaymentService
             .Include(p => p.Item)
             .Where(p => p.IdempotencyKey == key && p.CreatedAt > cutoff)
             .FirstOrDefaultAsync();
+    }
+
+    /// <summary>
+    /// Reads the escrow metadata stamped on a Stripe session / intent at checkout time
+    /// and applies it to the Payment row. Sets <see cref="PaymentStatus.HeldInEscrow"/>
+    /// when the metadata indicates a Connect-routed sale; leaves the legacy
+    /// <see cref="PaymentStatus.Completed"/> path untouched otherwise.
+    /// </summary>
+    private static void ApplyEscrowMetadata(PaymentEntity payment, IDictionary<string, string> meta, string? paymentIntentId)
+    {
+        if (!meta.TryGetValue("escrow", out var escrowFlag) || escrowFlag != "true") return;
+
+        var feeStr = meta.TryGetValue("platform_fee_amount", out var f) ? f : "0";
+        var netStr = meta.TryGetValue("seller_net_amount", out var n) ? n : "0";
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        var platformFee = decimal.TryParse(feeStr, System.Globalization.NumberStyles.Number, invariant, out var pf) ? pf : 0m;
+        var sellerNet = decimal.TryParse(netStr, System.Globalization.NumberStyles.Number, invariant, out var sn) ? sn : 0m;
+
+        payment.Status = PaymentStatus.HeldInEscrow;
+        payment.PlatformFeeAmount = platformFee;
+        payment.SellerNetAmount = sellerNet;
+        if (!string.IsNullOrEmpty(paymentIntentId))
+            payment.StripePaymentIntentId = paymentIntentId;
     }
 
     private async Task<List<PaymentEntity>> FindBulkByIdempotencyKeyAsync(string? key)
@@ -94,6 +121,20 @@ public class StripePaymentService : IStripePaymentService
             throw new InvalidOperationException("This item is not for sale.");
         if (item.UserId == buyerId)
             throw new InvalidOperationException("You cannot purchase your own item.");
+
+        // Seller's Connect snapshot — decides whether the payment goes through the
+        // escrow flow (verified Connect → HeldInEscrow + deferred transfer) or the
+        // legacy non-escrow flow (Completed immediately, platform retains funds).
+        // Legacy fallback keeps existing un-onboarded sellers working while B.1's
+        // listing gate is rolled out.
+        var sellerConnect = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == item.UserId)
+            .Select(u => new { u.StripeConnectAccountId, u.StripeConnectStatus })
+            .FirstOrDefaultAsync();
+        var useEscrow = sellerConnect != null
+            && sellerConnect.StripeConnectStatus == StripeConnectStatus.Verified
+            && !string.IsNullOrEmpty(sellerConnect.StripeConnectAccountId);
 
         if (!IsStripeConfigured())
         {
@@ -216,6 +257,23 @@ public class StripePaymentService : IStripePaymentService
             metadata["delivery_shipping_fee"] = shippingFee.ToString("F2");
         }
 
+        // Escrow metadata: when the seller has Connect verified, stamp the platform fee
+        // and seller net amounts so the webhook can persist them. We deliberately use
+        // the "separate charges and transfers" Stripe pattern (no TransferData on the
+        // PaymentIntent) — funds capture to the platform balance and stay there until
+        // B.4's release service moves them to the seller's Connect account on delivery.
+        if (useEscrow)
+        {
+            var gross = (item.Price ?? 0m) + shippingFee;
+            var platformFeePercent = _configuration.GetValue("Stripe:PlatformFeePercent", 5.0m);
+            var platformFeeAmount = Math.Round(gross * platformFeePercent / 100m, 2, MidpointRounding.AwayFromZero);
+            var sellerNetAmount = gross - platformFeeAmount;
+            metadata["escrow"] = "true";
+            metadata["connect_account_id"] = sellerConnect!.StripeConnectAccountId!;
+            metadata["platform_fee_amount"] = platformFeeAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            metadata["seller_net_amount"] = sellerNetAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = ["card"],
@@ -262,6 +320,21 @@ public class StripePaymentService : IStripePaymentService
             || stripeEvent.Type == EventTypes.InvoicePaymentFailed)
         {
             await _businessSubscriptions.HandleStripeEventAsync(stripeEvent);
+            return;
+        }
+
+        // Connect account lifecycle — mirror Stripe's charges_enabled / payouts_enabled /
+        // requirements.disabled_reason into ApplicationUser.StripeConnectStatus so the
+        // "can list paid items" gate stays accurate without us polling.
+        if (stripeEvent.Type == EventTypes.AccountUpdated)
+        {
+            if (stripeEvent.Data.Object is not Account account) return;
+            var hasDisabledReason = account.Requirements?.DisabledReason != null;
+            await _stripeConnect.ApplyAccountUpdateAsync(
+                account.Id,
+                account.ChargesEnabled,
+                account.PayoutsEnabled,
+                hasDisabledReason);
             return;
         }
     }
@@ -341,6 +414,7 @@ public class StripePaymentService : IStripePaymentService
                 StripeSessionId = intent.Id,
                 Status          = PaymentStatus.Completed
             };
+            ApplyEscrowMetadata(payment, intent.Metadata, intent.Id);
             _context.Payments.Add(payment);
 
             item.IsActive   = false;
@@ -355,6 +429,14 @@ public class StripePaymentService : IStripePaymentService
         {
             await tx.RollbackAsync();
             throw;
+        }
+
+        // Embedded Elements flow stamps delivery_* metadata on the PaymentIntent the same
+        // way the Checkout flow does on the Session, so we can reuse the shipment creator.
+        if (intent.Metadata.TryGetValue("delivery_name", out var deliveryName) && !string.IsNullOrEmpty(deliveryName))
+        {
+            try { await CreateShipmentFromMetadataAsync(paymentId, new Dictionary<string, string>(intent.Metadata)); }
+            catch (Exception ex) { _logger.LogError(ex, "Auto-shipment creation failed for PaymentIntent {IntentId}.", intent.Id); }
         }
 
         await _publisher.Publish(new PaymentCompletedEvent(paymentId));
@@ -517,6 +599,7 @@ public class StripePaymentService : IStripePaymentService
                 StripeSessionId = session.Id,
                 Status          = PaymentStatus.Completed
             };
+            ApplyEscrowMetadata(payment, session.Metadata, session.PaymentIntentId);
             _context.Payments.Add(payment);
 
             item.IsActive   = false;
@@ -638,7 +721,7 @@ public class StripePaymentService : IStripePaymentService
         return session.Url!;
     }
 
-    public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, string? idempotencyKey = null)
+    public async Task<string> CreatePaymentIntentAsync(Guid itemId, string buyerId, PaymentDeliveryRequest? delivery = null, string? idempotencyKey = null)
     {
         var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == itemId);
         if (item == null) throw new KeyNotFoundException("Item not found.");
@@ -647,18 +730,81 @@ public class StripePaymentService : IStripePaymentService
         if (item.UserId == buyerId)
             throw new InvalidOperationException("You cannot purchase your own item.");
 
-        if (!IsStripeConfigured()) return "test_simulated_client_secret";
+        // Stripe Elements rejects any client secret that doesn't match the
+        // `${id}_secret_${secret}` format, so unlike the Checkout flow we cannot
+        // hand back a placeholder string — let the controller turn this into 503.
+        if (!IsStripeConfigured()) throw new StripeNotConfiguredException();
+
+        // Mirror the Checkout flow: resolve seller's Connect status so escrow metadata
+        // can be stamped identically. The PaymentIntentSucceeded webhook reads this
+        // metadata to set PaymentStatus and PlatformFee/SellerNet amounts.
+        var sellerConnect = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == item.UserId)
+            .Select(u => new { u.StripeConnectAccountId, u.StripeConnectStatus })
+            .FirstOrDefaultAsync();
+        var useEscrow = sellerConnect != null
+            && sellerConnect.StripeConnectStatus == StripeConnectStatus.Verified
+            && !string.IsNullOrEmpty(sellerConnect.StripeConnectAccountId);
+
+        var metadata = new Dictionary<string, string>
+        {
+            { "itemId",   item.Id.ToString() },
+            { "buyerId",  buyerId },
+            { "sellerId", item.UserId }
+        };
+
+        if (delivery != null)
+        {
+            metadata["delivery_courier"]     = delivery.CourierProvider.ToString();
+            metadata["delivery_type"]        = delivery.DeliveryType.ToString();
+            metadata["delivery_name"]        = delivery.RecipientName;
+            metadata["delivery_phone"]       = delivery.RecipientPhone;
+            metadata["delivery_city"]        = delivery.City ?? "";
+            metadata["delivery_address"]     = delivery.Address ?? "";
+            metadata["delivery_office_id"]   = delivery.OfficeId ?? "";
+            metadata["delivery_office_name"] = delivery.OfficeName ?? "";
+            metadata["delivery_weight"]      = delivery.Weight.ToString();
+        }
+
+        decimal shippingFee = 0;
+        if (delivery != null)
+        {
+            try
+            {
+                var calc = await _shippingService.CalculatePriceAsync(new CalculateShippingDto
+                {
+                    CourierProvider = delivery.CourierProvider,
+                    DeliveryType    = delivery.DeliveryType,
+                    ToCity          = delivery.City,
+                    OfficeId        = delivery.OfficeId,
+                    Weight          = delivery.Weight,
+                    IsCod = false, CodAmount = 0, IsInsured = false, InsuredAmount = 0
+                });
+                shippingFee = calc.Price;
+                metadata["delivery_shipping_fee"] = shippingFee.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch (Exception ex) { _logger.LogError(ex, "Shipping price calculation failed for item {ItemId}.", itemId); }
+        }
+
+        if (useEscrow)
+        {
+            var gross = (item.Price ?? 0m) + shippingFee;
+            var platformFeePercent = _configuration.GetValue("Stripe:PlatformFeePercent", 5.0m);
+            var platformFeeAmount  = Math.Round(gross * platformFeePercent / 100m, 2, MidpointRounding.AwayFromZero);
+            var sellerNetAmount    = gross - platformFeeAmount;
+            metadata["escrow"]              = "true";
+            metadata["connect_account_id"]  = sellerConnect!.StripeConnectAccountId!;
+            metadata["platform_fee_amount"] = platformFeeAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            metadata["seller_net_amount"]   = sellerNetAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        }
 
         var options = new PaymentIntentCreateOptions
         {
-            Amount   = (long)(item.Price!.Value * 100),
-            Currency = "eur",
-            Metadata = new Dictionary<string, string>
-            {
-                { "itemId",   item.Id.ToString() },
-                { "buyerId",  buyerId },
-                { "sellerId", item.UserId }
-            }
+            Amount             = (long)(((item.Price ?? 0m) + shippingFee) * 100),
+            Currency           = "eur",
+            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions { Enabled = true },
+            Metadata           = metadata
         };
 
         var service = new PaymentIntentService();
@@ -714,12 +860,18 @@ public class StripePaymentService : IStripePaymentService
         if (amount < 1.00m || amount > 10000.00m)
             throw new InvalidOperationException("Donation amount must be between 1.00 and 10,000.00 EUR.");
 
-        if (!IsStripeConfigured()) return "test_simulated_donation_client_secret";
+        // Same reason as CreatePaymentIntentAsync: Stripe Elements can't accept
+        // a placeholder client secret, so we surface 503 rather than return junk.
+        if (!IsStripeConfigured()) throw new StripeNotConfiguredException();
 
         var options = new PaymentIntentCreateOptions
         {
             Amount   = (long)(amount * 100),
             Currency = "eur",
+            // Required by current Stripe API versions when using Elements/PaymentElement:
+            // either AutomaticPaymentMethods OR an explicit PaymentMethodTypes list must
+            // be set, otherwise the create call returns an InvalidRequestError.
+            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions { Enabled = true },
             Metadata = new Dictionary<string, string>
             {
                 { "type",   "donation" },

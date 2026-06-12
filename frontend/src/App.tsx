@@ -29,7 +29,6 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
-const PaymentItemCardPage = lazy(() => import("./pages/PaymentItemCardPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const PaymentCancelPage = lazy(() => import("./pages/PaymentCancelPage"));
 const AdminDashboardPage = lazy(
@@ -54,7 +53,6 @@ const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetailPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const DonationPage = lazy(() => import("./pages/DonationPage"));
-const DonationCardPage = lazy(() => import("./pages/DonationCardPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
@@ -169,7 +167,6 @@ function AppRoutes() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/cookies" element={<CookiePolicyPage />} />
           <Route path="/donate" element={<DonationPage />} />
-          <Route path="/donate/card" element={<DonationCardPage />} />
           <Route path="/doctor-reviews" element={<DoctorReviewsPage />} />
           <Route path="/child-friendly-places" element={<ChildFriendlyPlacesPage />} />
           <Route path="/coaches" element={<CoachesBrowsePage />} />
@@ -195,10 +192,6 @@ function AppRoutes() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:userId" element={<ChatPage />} />
             <Route path="/payment/:itemId" element={<PaymentPage />} />
-            <Route
-              path="/payment/:itemId/card"
-              element={<PaymentItemCardPage />}
-            />
             <Route path="/payment/bundle/:bundleId" element={<BundlePaymentPage />} />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
             <Route path="/payment/cancel" element={<PaymentCancelPage />} />

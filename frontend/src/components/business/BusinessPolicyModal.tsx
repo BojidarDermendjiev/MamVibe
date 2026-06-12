@@ -72,17 +72,20 @@ export default function BusinessPolicyModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[70] overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="business-policy-title"
     >
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-white dark:bg-[#2d2a42] rounded-2xl shadow-2xl border border-lavender/30 dark:border-white/10">
+      {/* min-h-full guarantees the flex container fills the scroll viewport so items-center works */}
+      <div className="relative flex min-h-full items-center justify-center p-4">
+      <div className="relative w-full max-w-2xl flex flex-col bg-white dark:bg-[#2d2a42] rounded-2xl shadow-2xl border border-lavender/30 dark:border-white/10" style={{maxHeight: 'calc(100vh - 2rem)'}}>
         {/* Header */}
         <div className="flex items-start justify-between gap-4 p-6 border-b border-lavender/20 dark:border-white/10">
           <div className="flex items-start gap-3">
@@ -177,9 +180,11 @@ export default function BusinessPolicyModal({
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
+
 
 // Minimal markdown renderer — supports `## headings`, `**bold**`, numbered lists,
 // and blank-line paragraphs. Sufficient for the seeded policy body; deliberately not

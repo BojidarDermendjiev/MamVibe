@@ -377,7 +377,7 @@ export default function MainLayout() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="bg-[#201d30] py-10 mt-auto transition-colors duration-300">
+      <footer className="bg-[#f5f0e8] dark:bg-[#201d30] py-10 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand / About — E-E-A-T: brand statement establishes trustworthiness */}
@@ -421,6 +421,11 @@ export default function MainLayout() {
                     </button>
                   </li>
                 )}
+                <li>
+                  <button type="button" onClick={() => navigate("/partner/login")} className="block text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-gray-100 transition-colors bg-transparent border-none p-0 cursor-pointer">
+                    {t("partner.login.footerLink")}
+                  </button>
+                </li>
               </ul>
             </nav>
 
