@@ -27,6 +27,7 @@ public class StripePaymentService : IStripePaymentService
     private readonly IConfiguration _configuration;
     private readonly IShippingService _shippingService;
     private readonly IPublisher _publisher;
+    private readonly IBusinessSubscriptionService _businessSubscriptions;
     private readonly ILogger<StripePaymentService> _logger;
 
     public StripePaymentService(
@@ -34,12 +35,14 @@ public class StripePaymentService : IStripePaymentService
         IConfiguration configuration,
         IShippingService shippingService,
         IPublisher publisher,
+        IBusinessSubscriptionService businessSubscriptions,
         ILogger<StripePaymentService> logger)
     {
         _context = context;
         _configuration = configuration;
         _shippingService = shippingService;
         _publisher = publisher;
+        _businessSubscriptions = businessSubscriptions;
         _logger = logger;
     }
 
@@ -236,11 +239,35 @@ public class StripePaymentService : IStripePaymentService
 
         var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
 
-        if (stripeEvent.Type != EventTypes.CheckoutSessionCompleted) return;
+        if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
+        {
+            if (stripeEvent.Data.Object is not Session session) return;
+            await HandleCheckoutSessionAsync(session);
+            return;
+        }
 
-        var session = stripeEvent.Data.Object as Session;
-        if (session == null) return;
+        if (stripeEvent.Type == EventTypes.PaymentIntentSucceeded)
+        {
+            if (stripeEvent.Data.Object is not PaymentIntent intent) return;
+            await HandlePaymentIntentSucceededAsync(intent);
+            return;
+        }
 
+        // Business-vertical subscription lifecycle events — route to BusinessSubscriptionService,
+        // which writes the dedup ledger row and reconciles the local subscription state.
+        if (stripeEvent.Type == EventTypes.CustomerSubscriptionCreated
+            || stripeEvent.Type == EventTypes.CustomerSubscriptionUpdated
+            || stripeEvent.Type == EventTypes.CustomerSubscriptionDeleted
+            || stripeEvent.Type == EventTypes.InvoicePaymentSucceeded
+            || stripeEvent.Type == EventTypes.InvoicePaymentFailed)
+        {
+            await _businessSubscriptions.HandleStripeEventAsync(stripeEvent);
+            return;
+        }
+    }
+
+    private async Task HandleCheckoutSessionAsync(Session session)
+    {
         if (await _context.Payments.AnyAsync(p => p.StripeSessionId == session.Id))
         {
             _logger.LogInformation("Duplicate Stripe webhook for session {SessionId} — skipping.", session.Id);
@@ -262,6 +289,75 @@ public class StripePaymentService : IStripePaymentService
         {
             await HandleSingleWebhookAsync(session);
         }
+    }
+
+    private async Task HandlePaymentIntentSucceededAsync(PaymentIntent intent)
+    {
+        if (intent.Metadata is null
+            || !intent.Metadata.TryGetValue("itemId", out var itemIdRaw)
+            || !Guid.TryParse(itemIdRaw, out var itemId))
+        {
+            _logger.LogWarning("PaymentIntent {IntentId} missing or malformed itemId metadata — ignoring.", intent.Id);
+            return;
+        }
+
+        // Idempotency on the PaymentIntent identifier — Stripe will retry on transient failures.
+        if (await _context.Payments.AnyAsync(p => p.StripeSessionId == intent.Id))
+        {
+            _logger.LogInformation("Duplicate PaymentIntent webhook {IntentId} — skipping.", intent.Id);
+            return;
+        }
+
+        var buyerId  = intent.Metadata.GetValueOrDefault("buyerId")  ?? string.Empty;
+        var sellerId = intent.Metadata.GetValueOrDefault("sellerId") ?? string.Empty;
+        if (string.IsNullOrEmpty(buyerId) || string.IsNullOrEmpty(sellerId))
+        {
+            _logger.LogWarning("PaymentIntent {IntentId} missing buyerId/sellerId metadata — ignoring.", intent.Id);
+            return;
+        }
+
+        Guid paymentId;
+        await using var tx = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        try
+        {
+            // Double-sell guard: re-check item is still available inside the serializable tx.
+            var item = await _context.Items
+                .Where(i => i.Id == itemId && !i.IsSold)
+                .FirstOrDefaultAsync();
+            if (item is null)
+            {
+                _logger.LogWarning("PaymentIntent {IntentId} resolved an already-sold item {ItemId} — refund required.", intent.Id, itemId);
+                await tx.RollbackAsync();
+                return;
+            }
+
+            var payment = new PaymentEntity
+            {
+                ItemId          = itemId,
+                BuyerId         = buyerId,
+                SellerId        = sellerId,
+                Amount          = intent.AmountReceived / 100m,
+                PaymentMethod   = Domain.Enums.PaymentMethod.Card,
+                StripeSessionId = intent.Id,
+                Status          = PaymentStatus.Completed
+            };
+            _context.Payments.Add(payment);
+
+            item.IsActive   = false;
+            item.IsReserved = false;
+            item.IsSold     = true;
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+            paymentId = payment.Id;
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+
+        await _publisher.Publish(new PaymentCompletedEvent(paymentId));
     }
 
     private async Task HandleBundleWebhookAsync(Session session)
@@ -336,31 +432,56 @@ public class StripePaymentService : IStripePaymentService
 
     private async Task HandleBulkWebhookAsync(Session session)
     {
-        var itemIds     = session.Metadata["itemIds"].Split(',').Select(Guid.Parse).ToList();
-        var sellerIds   = session.Metadata["sellerIds"].Split(',');
-        var buyerId     = session.Metadata["buyerId"];
-        var items       = await _context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
-        var payments    = new List<PaymentEntity>();
+        var itemIds   = session.Metadata["itemIds"].Split(',').Select(Guid.Parse).ToList();
+        var sellerIds = session.Metadata["sellerIds"].Split(',');
+        var buyerId   = session.Metadata["buyerId"];
+        var payments  = new List<PaymentEntity>();
 
-        for (var idx = 0; idx < itemIds.Count; idx++)
+        // Single serializable transaction: payment rows + item sold-marking commit together.
+        // A failure mid-loop rolls everything back; Stripe's retry will land here again
+        // and the idempotency guard at the caller short-circuits on the second pass.
+        await using var tx = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        try
         {
-            var currentItem = items.FirstOrDefault(i => i.Id == itemIds[idx]);
-            if (currentItem == null) continue;
-            var payment = new PaymentEntity
-            {
-                ItemId = itemIds[idx],
-                BuyerId = buyerId,
-                SellerId = idx < sellerIds.Length ? sellerIds[idx] : currentItem.UserId,
-                Amount = currentItem.Price ?? 0,
-                PaymentMethod = Domain.Enums.PaymentMethod.Card,
-                StripeSessionId = session.Id,
-                Status = PaymentStatus.Completed
-            };
-            _context.Payments.Add(payment);
-            payments.Add(payment);
-        }
+            var items = await _context.Items.Where(i => itemIds.Contains(i.Id)).ToListAsync();
 
-        await _context.SaveChangesAsync();
+            for (var idx = 0; idx < itemIds.Count; idx++)
+            {
+                var currentItem = items.FirstOrDefault(i => i.Id == itemIds[idx]);
+                if (currentItem == null) continue;
+                if (currentItem.IsSold)
+                {
+                    _logger.LogWarning("Bulk webhook for already-sold item {ItemId} in session {SessionId} — refund required.", currentItem.Id, session.Id);
+                    continue;
+                }
+
+                var payment = new PaymentEntity
+                {
+                    ItemId          = itemIds[idx],
+                    BuyerId         = buyerId,
+                    SellerId        = idx < sellerIds.Length ? sellerIds[idx] : currentItem.UserId,
+                    Amount          = currentItem.Price ?? 0,
+                    PaymentMethod   = Domain.Enums.PaymentMethod.Card,
+                    StripeSessionId = session.Id,
+                    Status          = PaymentStatus.Completed
+                };
+                _context.Payments.Add(payment);
+                payments.Add(payment);
+
+                currentItem.IsActive   = false;
+                currentItem.IsReserved = false;
+                currentItem.IsSold     = true;
+            }
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await tx.RollbackAsync();
+            _logger.LogError(ex, "Bulk webhook transaction rolled back for session {SessionId} — Stripe will retry.", session.Id);
+            throw;
+        }
 
         foreach (var payment in payments)
             await _publisher.Publish(new PaymentCompletedEvent(payment.Id));
@@ -368,27 +489,58 @@ public class StripePaymentService : IStripePaymentService
 
     private async Task HandleSingleWebhookAsync(Session session)
     {
-        var payment = new PaymentEntity
-        {
-            ItemId   = Guid.Parse(session.Metadata["itemId"]),
-            BuyerId  = session.Metadata["buyerId"],
-            SellerId = session.Metadata["sellerId"],
-            Amount   = session.AmountTotal!.Value / 100m,
-            PaymentMethod   = Domain.Enums.PaymentMethod.Card,
-            StripeSessionId = session.Id,
-            Status   = PaymentStatus.Completed
-        };
+        var itemId = Guid.Parse(session.Metadata["itemId"]);
 
-        _context.Payments.Add(payment);
-        await _context.SaveChangesAsync();
+        Guid paymentId;
+        await using var tx = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        try
+        {
+            // Double-sell guard inside the serializable tx: re-check IsSold to defeat the race
+            // where two checkout flows both reached Stripe for the same item.
+            var item = await _context.Items
+                .Where(i => i.Id == itemId && !i.IsSold)
+                .FirstOrDefaultAsync();
+            if (item is null)
+            {
+                _logger.LogWarning("Single webhook resolved already-sold item {ItemId} for session {SessionId} — refund required.", itemId, session.Id);
+                await tx.RollbackAsync();
+                return;
+            }
+
+            var payment = new PaymentEntity
+            {
+                ItemId          = itemId,
+                BuyerId         = session.Metadata["buyerId"],
+                SellerId        = session.Metadata["sellerId"],
+                Amount          = session.AmountTotal!.Value / 100m,
+                PaymentMethod   = Domain.Enums.PaymentMethod.Card,
+                StripeSessionId = session.Id,
+                Status          = PaymentStatus.Completed
+            };
+            _context.Payments.Add(payment);
+
+            item.IsActive   = false;
+            item.IsReserved = false;
+            item.IsSold     = true;
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+            paymentId = payment.Id;
+        }
+        catch (Exception ex)
+        {
+            await tx.RollbackAsync();
+            _logger.LogError(ex, "Single webhook transaction rolled back for session {SessionId} — Stripe will retry.", session.Id);
+            throw;
+        }
 
         if (session.Metadata.ContainsKey("delivery_name") && !string.IsNullOrEmpty(session.Metadata["delivery_name"]))
         {
-            try { await CreateShipmentFromMetadataAsync(payment.Id, session.Metadata); }
+            try { await CreateShipmentFromMetadataAsync(paymentId, session.Metadata); }
             catch (Exception ex) { _logger.LogError(ex, "Auto-shipment creation failed for session {SessionId}.", session.Id); }
         }
 
-        await _publisher.Publish(new PaymentCompletedEvent(payment.Id));
+        await _publisher.Publish(new PaymentCompletedEvent(paymentId));
     }
 
     private async Task CreateShipmentFromMetadataAsync(Guid paymentId, Dictionary<string, string> meta)

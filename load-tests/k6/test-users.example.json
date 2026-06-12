@@ -1,0 +1,7 @@
+[
+  { "email": "loadtest1@test.com", "password": "LoadTest@123" },
+  { "email": "loadtest2@test.com", "password": "LoadTest@123" },
+  { "email": "loadtest3@test.com", "password": "LoadTest@123" },
+  { "email": "loadtest4@test.com", "password": "LoadTest@123" },
+  { "email": "loadtest5@test.com", "password": "LoadTest@123" }
+]

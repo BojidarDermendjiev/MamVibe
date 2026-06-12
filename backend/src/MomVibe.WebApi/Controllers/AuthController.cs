@@ -284,6 +284,7 @@ public class AuthController : ControllerBase
     /// 200 OK with a confirmation message regardless of whether the email exists.
     /// </returns>
     [HttpPost("forgot-password")]
+    [EnableRateLimiting(RateLimitPolicies.ForgotPassword)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
         if (!await this.VerifyTurnstileAsync(dto.TurnstileToken))
@@ -309,6 +310,7 @@ public class AuthController : ControllerBase
     /// 200 OK with a success message on completion.
     /// </returns>
     [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitPolicies.ForgotPassword)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
         try

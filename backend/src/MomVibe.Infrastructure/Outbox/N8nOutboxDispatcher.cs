@@ -21,6 +21,19 @@ public sealed class N8nOutboxDispatcher : IOutboxMessageDispatcher
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    // SSRF guard: only known webhook paths configured via N8nSettings may be dispatched.
+    // Without this, a tampered OutboxMessage.Payload could redirect a request to any
+    // internal Docker-network host (Redis, Grafana, n8n admin API, etc.).
+    private static readonly HashSet<string> AllowedPaths = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "payment-completed", "payment-failed",
+        "shipment-created", "shipment-delivered", "shipment-stuck", "shipment-out-for-delivery",
+        "user-registered", "user-blocked", "user-moderated",
+        "item-sold", "item-pending-approval",
+        "new-chat-message", "stale-items", "daily-summary", "feedback-prompt",
+        "abuse-signal-raised", "appeal-submitted"
+    };
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly N8nSettings _settings;
 
@@ -41,8 +54,13 @@ public sealed class N8nOutboxDispatcher : IOutboxMessageDispatcher
         // accept the enqueue (so callers don't branch) but skip the network call here.
         if (!this._settings.Enabled) return;
 
+        var normalisedPath = payload.Path.Trim().Trim('/');
+        if (string.IsNullOrEmpty(normalisedPath) || !AllowedPaths.Contains(normalisedPath))
+            throw new InvalidOperationException(
+                $"N8n outbox path '{payload.Path}' is not in the static allowlist. Rejecting to prevent SSRF.");
+
         var client = this._httpClientFactory.CreateClient("N8n");
-        var url = this._settings.BaseUrl.TrimEnd('/') + "/" + payload.Path.TrimStart('/');
+        var url = this._settings.BaseUrl.TrimEnd('/') + "/" + normalisedPath;
         using var content = new StringContent(payload.PayloadJson, Encoding.UTF8, "application/json");
 
         var response = await client.PostAsync(url, content, cancellationToken);

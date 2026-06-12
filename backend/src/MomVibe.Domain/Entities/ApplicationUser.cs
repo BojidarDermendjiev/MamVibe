@@ -29,9 +29,55 @@ public class ApplicationUser : IdentityUser
 
     public string? AvatarUrl { get; set; }
 
-    /// <summary>Gets or sets a value indicating whether the user has been blocked by an administrator.</summary>
+    /// <summary>
+    /// Legacy flag retained for backwards compatibility — true when the user is currently
+    /// Suspended or Banned. Reads compute from <see cref="ModerationLevel"/>; writes shim to
+    /// <see cref="ModerationLevel"/> for legacy admin block/unblock callers. Not mapped to the
+    /// database; the physical column was removed once <see cref="ModerationLevel"/> took over.
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public bool IsBlocked
+    {
+        get => this.ModerationLevel == Enums.UserModerationLevel.Suspended
+            || this.ModerationLevel == Enums.UserModerationLevel.Banned;
+        set
+        {
+            if (value && this.ModerationLevel == Enums.UserModerationLevel.None)
+            {
+                this.ModerationLevel = Enums.UserModerationLevel.Banned;
+                this.ModerationReason = Enums.ModerationReason.Other;
+                this.ModerationStartedAt = DateTime.UtcNow;
+            }
+            else if (!value)
+            {
+                this.ModerationLevel = Enums.UserModerationLevel.None;
+                this.ModerationReason = Enums.ModerationReason.Unspecified;
+                this.ModerationStartedAt = null;
+                this.ModerationExpiresAt = null;
+                this.ModerationPublicReason = null;
+                this.ActiveModerationLogId = null;
+            }
+        }
+    }
 
-    public bool IsBlocked { get; set; }
+    /// <summary>Current graded moderation level. Authoritative source for all enforcement decisions.</summary>
+    public Enums.UserModerationLevel ModerationLevel { get; set; } = Enums.UserModerationLevel.None;
+
+    /// <summary>Categorised reason for the current moderation state.</summary>
+    public Enums.ModerationReason ModerationReason { get; set; } = Enums.ModerationReason.Unspecified;
+
+    /// <summary>UTC timestamp when the current moderation level was applied.</summary>
+    public DateTime? ModerationStartedAt { get; set; }
+
+    /// <summary>UTC expiry for a temporary <see cref="Enums.UserModerationLevel.Suspended"/> level; null for indefinite/permanent levels.</summary>
+    public DateTime? ModerationExpiresAt { get; set; }
+
+    /// <summary>User-facing reason shown in the suspension banner and notification email.</summary>
+    [MaxLength(500)]
+    public string? ModerationPublicReason { get; set; }
+
+    /// <summary>Pointer to the <c>UserModerationLog</c> entry that produced the current state.</summary>
+    public Guid? ActiveModerationLogId { get; set; }
 
     /// <summary>Gets or sets a short biography or description written by the user.</summary>
     [MaxLength(ApplicationUserConstants.Lengths.BioMax)]

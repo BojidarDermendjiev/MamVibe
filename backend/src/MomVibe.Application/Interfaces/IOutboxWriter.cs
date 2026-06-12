@@ -33,6 +33,9 @@ public static class OutboxMessageTypes
 {
     /// <summary>Payload <see cref="N8nWebhookOutboxPayload"/> — POSTed to an n8n webhook path.</summary>
     public const string N8nWebhook = "N8nWebhook";
+
+    /// <summary>Payload <see cref="UserModerationEmailOutboxPayload"/> — sent via <c>IEmailService</c> by the moderation email dispatcher.</summary>
+    public const string UserModerationEmail = "UserModerationEmail";
 }
 
 /// <summary>
@@ -44,3 +47,17 @@ public static class OutboxMessageTypes
 /// payload state and removes any dependency on the originating service's types at dispatch.
 /// </param>
 public sealed record N8nWebhookOutboxPayload(string Path, string PayloadJson);
+
+/// <summary>
+/// Wire format for a moderation-related transactional email (warn / restrict / suspend /
+/// ban / appeal-approved / appeal-rejected). Locale is the user's <c>LanguagePreference</c>.
+/// </summary>
+public sealed record UserModerationEmailOutboxPayload(
+    string ToEmail,
+    string DisplayName,
+    string Locale,
+    string TemplateKey,
+    string Level,
+    string Reason,
+    string PublicReason,
+    DateTime? ExpiresAtUtc);

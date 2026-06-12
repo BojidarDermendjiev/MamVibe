@@ -5,12 +5,14 @@ import { adminApi, type AdminUser } from '../../api/adminApi';
 import Avatar from '../../components/common/Avatar';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ModerationActionModal from '../../components/moderation/ModerationActionModal';
 
 export default function AdminUsersPage() {
   const { t } = useTranslation();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [moderationTarget, setModerationTarget] = useState<AdminUser | null>(null);
 
   const fetchUsers = async (query?: string) => {
     setLoading(true);
@@ -103,19 +105,40 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <Button
-                      size="sm"
-                      variant={u.isBlocked ? 'secondary' : 'danger'}
-                      onClick={() => toggleBlock(u.id, u.isBlocked)}
-                    >
-                      {u.isBlocked ? t('admin.unblock_user') : t('admin.block_user')}
-                    </Button>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setModerationTarget(u)}
+                      >
+                        {t('admin.moderate_user', 'Moderate')}
+                      </Button>
+                      {u.isBlocked && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => toggleBlock(u.id, true)}
+                        >
+                          {t('admin.unblock_user')}
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {moderationTarget && (
+        <ModerationActionModal
+          isOpen
+          onClose={() => setModerationTarget(null)}
+          userId={moderationTarget.id}
+          userDisplayName={moderationTarget.displayName}
+          onActionApplied={() => fetchUsers(search || undefined)}
+        />
       )}
     </div>
   );

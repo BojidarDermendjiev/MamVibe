@@ -3,11 +3,13 @@ namespace MomVibe.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 using FluentValidation;
 
 using Domain.Entities;
 using Application.DTOs.Users;
+using Application.DTOs.Moderation;
 using Application.Interfaces;
 
 /// <summary>
@@ -28,6 +30,8 @@ public class UsersController : ControllerBase
     private readonly IItemService _itemService;
     private readonly IUserRatingService _ratingService;
     private readonly IGdprService _gdprService;
+    private readonly IUserModerationService _moderation;
+    private readonly IModerationAppealService _appeals;
     private readonly IValidator<UpdateProfileDto> _profileValidator;
 
     public UsersController(
@@ -36,6 +40,8 @@ public class UsersController : ControllerBase
         IItemService itemService,
         IUserRatingService ratingService,
         IGdprService gdprService,
+        IUserModerationService moderation,
+        IModerationAppealService appeals,
         IValidator<UpdateProfileDto> profileValidator)
     {
         this._userManager = userManager;
@@ -43,7 +49,52 @@ public class UsersController : ControllerBase
         this._itemService = itemService;
         this._ratingService = ratingService;
         this._gdprService = gdprService;
+        this._moderation = moderation;
+        this._appeals = appeals;
         this._profileValidator = profileValidator;
+    }
+
+    /// <summary>
+    /// Returns the current user's own moderation state — used by the frontend to render the
+    /// suspension banner and to decide whether the appeal CTA should be shown.
+    /// </summary>
+    [Authorize]
+    [HttpGet("me/moderation-status")]
+    public async Task<IActionResult> GetMyModerationStatus()
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId is null) return Unauthorized();
+        var status = await this._moderation.GetStatusAsync(userId);
+        return Ok(status);
+    }
+
+    /// <summary>Returns the list of appeals the current user has submitted.</summary>
+    [Authorize]
+    [HttpGet("me/appeals")]
+    public async Task<IActionResult> GetMyAppeals()
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId is null) return Unauthorized();
+        var list = await this._appeals.GetMyAppealsAsync(userId);
+        return Ok(list);
+    }
+
+    /// <summary>Submits a new appeal against a prior moderation log entry. Rate-limited.</summary>
+    [Authorize]
+    [EnableRateLimiting(RateLimitPolicies.AppealSubmit)]
+    [HttpPost("me/appeals")]
+    public async Task<IActionResult> SubmitAppeal([FromBody] SubmitAppealRequest request)
+    {
+        var userId = this._currentUserService.UserId;
+        if (userId is null) return Unauthorized();
+        try
+        {
+            var id = await this._appeals.SubmitAsync(userId, request);
+            return CreatedAtAction(nameof(SubmitAppeal), new { id }, new { id });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
     /// <summary>

@@ -1,12 +1,16 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BarChart2, Users, LayoutGrid, ArrowLeft, Truck, Heart, ClipboardList } from 'lucide-react';
+import { BarChart2, Users, LayoutGrid, ArrowLeft, Truck, Heart, ClipboardList, Flag, Siren, Gavel, Briefcase } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navItems = [
   { path: '/admin', icon: BarChart2, labelKey: 'admin.dashboard', exact: true },
   { path: '/admin/users', icon: Users, labelKey: 'admin.users', exact: false },
   { path: '/admin/items', icon: LayoutGrid, labelKey: 'admin.items', exact: false },
+  { path: '/admin/business/profiles', icon: Briefcase, labelKey: 'admin.business.heading', exact: false },
+  { path: '/admin/reports', icon: Flag, labelKey: 'admin.reports', exact: false },
+  { path: '/admin/appeals', icon: Gavel, labelKey: 'admin.appeals', exact: false },
+  { path: '/admin/abuse-signals', icon: Siren, labelKey: 'admin.abuse_signals', exact: false },
   { path: '/admin/shipping', icon: Truck, labelKey: 'shipping.admin_title', exact: false },
   { path: '/admin/community', icon: Heart, labelKey: 'admin.community', exact: false },
   { path: '/admin/audit-logs', icon: ClipboardList, labelKey: 'admin.audit_log', exact: false },

@@ -27,8 +27,23 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(u => u.Bio).HasMaxLength(500);
         builder.Property(u => u.AvatarUrl).HasMaxLength(500);
         builder.Property(u => u.LanguagePreference).HasMaxLength(10).HasDefaultValue("en");
-        builder.Property(u => u.IsBlocked).HasDefaultValue(false);
+        // IsBlocked is now a NotMapped computed shim over ModerationLevel — do not map.
+        builder.Ignore(u => u.IsBlocked);
         builder.Property(u => u.IsOnHoliday).HasDefaultValue(false);
         builder.Property(u => u.CreatedAt).HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+        // Moderation fields — stored as int for the enums so PostgreSQL queries by level
+        // remain index-friendly.
+        builder.Property(u => u.ModerationLevel)
+            .HasConversion<int>()
+            .HasDefaultValue(Domain.Enums.UserModerationLevel.None);
+        builder.Property(u => u.ModerationReason)
+            .HasConversion<int>()
+            .HasDefaultValue(Domain.Enums.ModerationReason.Unspecified);
+        builder.Property(u => u.ModerationPublicReason).HasMaxLength(500);
+
+        // Index for the expiry hosted-service query: WHERE ModerationLevel IN (Restricted, Suspended) AND ModerationExpiresAt <= now.
+        builder.HasIndex(u => new { u.ModerationLevel, u.ModerationExpiresAt })
+            .HasDatabaseName("IX_AspNetUsers_ModerationLevel_ModerationExpiresAt");
     }
 }

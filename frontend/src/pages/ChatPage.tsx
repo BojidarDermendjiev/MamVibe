@@ -12,6 +12,7 @@ import type { Message, Conversation } from '../types/message';
 import Avatar from '../components/common/Avatar';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import PrivacyWarningModal from '../components/chat/PrivacyWarningModal';
+import ReportButton from '../components/moderation/ReportButton';
 import { detectSensitiveData } from '../utils/sensitiveDataDetector';
 import type { SensitiveMatch } from '../utils/sensitiveDataDetector';
 
@@ -435,6 +436,14 @@ export default function ChatPage() {
                     )}
                   </div>
                 </div>
+                {activeChat && (
+                  <ReportButton
+                    targetType="User"
+                    targetId={activeChat}
+                    targetLabel={activePeerName}
+                    ownerUserId={activeChat}
+                  />
+                )}
               </div>
 
               {/* Messages */}

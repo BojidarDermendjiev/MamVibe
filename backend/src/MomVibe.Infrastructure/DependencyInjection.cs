@@ -82,6 +82,27 @@ public static class DependencyInjection
         services.AddScoped<IBundleService, BundleService>();
         services.AddScoped<IGdprService, GdprService>();
 
+        // Business vertical — Phase 2: policy, profile, device fingerprint.
+        services.AddScoped<IDeviceFingerprintService, Services.Business.DeviceFingerprintService>();
+        services.AddScoped<IBusinessPolicyService, Services.Business.BusinessPolicyService>();
+        services.AddScoped<IBusinessProfileService, Services.Business.BusinessProfileService>();
+
+        // Business vertical — Phase 3: listing CRUD + browse.
+        services.AddScoped<IBusinessListingService, Services.Business.BusinessListingService>();
+
+        // Business vertical — Phase 4: likes + comments + reports.
+        services.AddScoped<IBusinessListingInteractionsService, Services.Business.BusinessListingInteractionsService>();
+
+        // Business vertical — subscriptions (Stripe billing).
+        services.AddScoped<IBusinessSubscriptionService, Services.Business.BusinessSubscriptionService>();
+
+        // Business vertical — Phase 7: promoter accounts + coach referrals.
+        services.AddScoped<IPromoterService, Services.Business.PromoterService>();
+        services.AddScoped<ICoachReferralService, Services.Business.CoachReferralService>();
+
+        // Business vertical — Phase 8: admin business slice (profiles + listings + revenue).
+        services.AddScoped<IBusinessAdminService, Services.Business.BusinessAdminService>();
+
         // Email
         services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
         services.AddScoped<IEmailService, EmailService>();
@@ -120,7 +141,13 @@ public static class DependencyInjection
 
         // n8n Webhook integration
         services.Configure<N8nSettings>(configuration.GetSection("N8n"));
-        var n8nSecret = configuration["N8n:WebhookSecret"] ?? string.Empty;
+        var n8nEnabled = configuration.GetValue<bool>("N8n:Enabled");
+        var n8nSecret  = configuration["N8n:WebhookSecret"] ?? string.Empty;
+        // Fail-fast: enabling n8n without an HMAC secret silently sends unsigned
+        // webhooks to a live external service. Require an explicit secret.
+        if (n8nEnabled && string.IsNullOrWhiteSpace(n8nSecret))
+            throw new InvalidOperationException(
+                "N8n:WebhookSecret must be configured when N8n:Enabled is true. Set it via environment variable or appsettings override.");
         services.AddTransient(_ => new N8nHmacHandler(n8nSecret));
         services.AddHttpClient("N8n", client =>
         {
@@ -134,7 +161,16 @@ public static class DependencyInjection
         // dispatchers route by MessageType, OutboxProcessor drains pending rows with retry.
         services.AddScoped<IOutboxWriter, Outbox.OutboxWriter>();
         services.AddScoped<IOutboxMessageDispatcher, Outbox.N8nOutboxDispatcher>();
+        services.AddScoped<IOutboxMessageDispatcher, Outbox.UserModerationEmailDispatcher>();
         services.AddHostedService<Outbox.OutboxProcessor>();
+
+        // User moderation: graded-action service + auto-expiry background sweep.
+        services.AddScoped<IUserModerationService, UserModerationService>();
+        services.AddScoped<IAbuseReportService, AbuseReportService>();
+        services.Configure<AbuseDetectionSettings>(configuration.GetSection("AbuseDetection"));
+        services.AddScoped<IAbuseDetectionService, AbuseDetectionService>();
+        services.AddScoped<IModerationAppealService, ModerationAppealService>();
+        services.AddHostedService<HostedServices.ModerationExpiryService>();
 
         // Distributed cache — Redis when available, in-memory fallback for local dev
         var redisUrl = configuration["Redis:Url"];

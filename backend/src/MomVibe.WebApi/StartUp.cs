@@ -79,6 +79,7 @@ builder.Services.AddScoped<IOfferNotifier, SignalROfferNotifier>();
 builder.Services.AddScoped<IFollowNotifier, SignalRFollowNotifier>();
 builder.Services.AddScoped<ISavedSearchNotifier, SignalRSavedSearchNotifier>();
 builder.Services.AddScoped<IPriceDropNotifier, SignalRPriceDropNotifier>();
+builder.Services.AddScoped<IBusinessRealtimeNotifier, SignalRBusinessRealtimeNotifier>();
 
 // Register IHttpClientFactory
 builder.Services.AddHttpClient();
@@ -88,6 +89,21 @@ builder.Services.AddHttpClient("CloudflareTurnstile", client =>
     client.BaseAddress = new Uri("https://challenges.cloudflare.com/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+
+// Fail-fast in non-dev environments if Turnstile is still configured with the documented
+// test secret key. The test key always returns success: true regardless of token, which
+// silently disables all bot protection on registration, login, and forgot-password.
+const string TurnstileTestSecretKey = "1x0000000000000000000000000000000AA";
+if (!builder.Environment.IsDevelopment())
+{
+    var turnstileSecret = builder.Configuration["Cloudflare:TurnstileSecretKey"] ?? string.Empty;
+    if (turnstileSecret == TurnstileTestSecretKey)
+        throw new InvalidOperationException(
+            "Cloudflare:TurnstileSecretKey is set to the documented test key in a non-development environment. Configure a real secret key.");
+    if (string.IsNullOrWhiteSpace(turnstileSecret)) 
+        throw new InvalidOperationException(
+            "Cloudflare:TurnstileSecretKey must be configured in non-development environments.");
+}
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -162,7 +178,19 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser()
               .RequireAssertion(context =>
                   !context.User.HasClaim("IsBlocked", "true")));
+    // WritePermitted: blocks Restricted / Suspended / Banned users from write actions.
+    // Reads the same distributed cache key UserModerationMiddleware populates, so the worst-case
+    // staleness window is 60 seconds — not the JWT lifetime.
+    options.AddPolicy(AuthorizationPolicies.WritePermitted, policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new MomVibe.WebApi.Authorization.WritePermittedRequirement()));
+    options.AddPolicy(AuthorizationPolicies.BusinessOnly, policy => policy.RequireRole("Business"));
+    options.AddPolicy(AuthorizationPolicies.PromoterOnly, policy => policy.RequireRole("Promoter"));
 });
+
+// Scoped: depends on UserManager + IDistributedCache (both scoped/transient).
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler,
+    MomVibe.WebApi.Authorization.WritePermittedHandler>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -288,6 +316,63 @@ builder.Services.AddRateLimiter(options =>
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 5,
+                Window = TimeSpan.FromHours(1),
+                QueueLimit = 0
+            }));
+
+    // ForgotPassword: 3 attempts per 10 minutes per IP.
+    // Separates password-reset abuse from the broader Auth bucket so that a reset-spam
+    // attack from many IPs cannot consume the login rate limit for real users.
+    options.AddPolicy(RateLimitPolicies.ForgotPassword, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0
+            }));
+
+    // ReportSubmit: 10 reports per authenticated user per day.
+    // Allows good-faith reporting while blocking brigading and report-spam abuse.
+    options.AddPolicy(RateLimitPolicies.ReportSubmit, context =>
+    {
+        var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     ?? context.Connection.RemoteIpAddress?.ToString()
+                     ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(userId,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromDays(1),
+                QueueLimit = 0
+            });
+    });
+
+    // AppealSubmit: 3 appeals per authenticated user per week (coarse fallback;
+    // service-level enforcement adds the per-moderation-event cap of 1/week).
+    options.AddPolicy(RateLimitPolicies.AppealSubmit, context =>
+    {
+        var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     ?? context.Connection.RemoteIpAddress?.ToString()
+                     ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(userId,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromDays(7),
+                QueueLimit = 0
+            });
+    });
+
+    // CoachReferralSubmit: anonymous-allowed public form — 3 submissions per IP per hour
+    // prevents spam farms while letting genuine recommenders submit a few in a row.
+    options.AddPolicy(RateLimitPolicies.CoachReferralSubmit, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
                 Window = TimeSpan.FromHours(1),
                 QueueLimit = 0
             }));
@@ -454,6 +539,8 @@ using (var scope = app.Services.CreateScope())
     await DataSeeder.SeedAdminAsync(userManager, app.Configuration, app.Logger);
     await DataSeeder.SeedAiBotAsync(userManager);
     await DataSeeder.SeedCategoriesAsync(dbContext);
+    await DataSeeder.SeedSubscriptionPlansAsync(dbContext);
+    await DataSeeder.SeedBusinessPolicyAsync(dbContext);
 }
 
 // Middleware pipeline
@@ -513,10 +600,12 @@ app.UseCors(CorsPolicy.MamVibe);
 
 app.UseAuthentication();
 
-// BlockedUserMiddleware MUST run after UseAuthentication (needs User identity) but BEFORE
-// UseAuthorization so that blocked users are denied before policy evaluation grants access
-// to admin or other protected endpoints.
-app.UseMiddleware<BlockedUserMiddleware>();
+// UserModerationMiddleware MUST run after UseAuthentication (needs User identity) but BEFORE
+// UseAuthorization so that Restricted/Suspended/Banned users are denied before policy
+// evaluation grants access to admin or other protected endpoints. Reads the per-user
+// moderation snapshot from IDistributedCache (60s TTL) — see the middleware for verb-aware
+// behavior on each level.
+app.UseMiddleware<UserModerationMiddleware>();
 
 app.UseAuthorization();
 
@@ -536,7 +625,8 @@ app.MapHealthChecks("/health");
 app.MapMetrics("/metrics");
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization(AuthorizationPolicies.ActiveUser);
-    
+app.MapHub<BusinessHub>("/hubs/business").RequireAuthorization(AuthorizationPolicies.ActiveUser);
+
 app.Run();
 
 // Make StartUp accessible for integration tests

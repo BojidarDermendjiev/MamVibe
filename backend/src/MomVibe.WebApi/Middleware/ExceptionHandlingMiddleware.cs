@@ -56,6 +56,20 @@ public class ExceptionHandlingMiddleware
     /// <returns>A task representing the asynchronous operation.</returns>
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        // Coded exceptions (BusinessConflict / DeviceConflict) carry a stable client-facing
+        // string code in addition to the human message — handled first so the code lands in
+        // the response body. Plain DomainException continues to map to a code-less 400.
+        if (exception is DeviceConflictException dce)
+        {
+            await WriteCodedAsync(context, HttpStatusCode.Forbidden, dce.Code, dce.Message);
+            return;
+        }
+        if (exception is BusinessConflictException bce)
+        {
+            await WriteCodedAsync(context, HttpStatusCode.Conflict, bce.Code, bce.Message);
+            return;
+        }
+
         var (statusCode, message) = exception switch
         {
             ValidationException ve => (HttpStatusCode.BadRequest,
@@ -73,6 +87,15 @@ public class ExceptionHandlingMiddleware
 
         var response = new { error = message, statusCode = (int)statusCode };
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        await context.Response.WriteAsync(json);
+    }
+
+    private static async Task WriteCodedAsync(HttpContext context, HttpStatusCode statusCode, string code, string message)
+    {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)statusCode;
+        var body = new { error = message, code, statusCode = (int)statusCode };
+        var json = JsonSerializer.Serialize(body, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         await context.Response.WriteAsync(json);
     }
 }

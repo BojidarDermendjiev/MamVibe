@@ -1,5 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { useModerationStore } from '../store/moderationStore';
+import type { ModerationForbiddenEnvelope } from '../types/moderation';
+
+function isModerationEnvelope(data: unknown): data is ModerationForbiddenEnvelope {
+  if (typeof data !== 'object' || data === null) return false;
+  const candidate = data as { moderation?: { level?: unknown } };
+  return typeof candidate.moderation === 'object'
+    && candidate.moderation !== null
+    && typeof candidate.moderation.level === 'string';
+}
 
 const axiosClient = axios.create({
   // Versioned at /api/v1; the Vite proxy still matches the /api prefix so this is purely
@@ -51,6 +61,13 @@ axiosClient.interceptors.response.use(
     // so server implementation details are never exposed in UI toasts/alerts.
     if (error.response?.status >= 500) {
       error.response.data = { error: 'A server error occurred. Please try again later.' };
+    }
+
+    // 403 with a moderation envelope means the server's UserModerationMiddleware
+    // short-circuited the request. Hydrate the store so the suspension banner renders
+    // immediately and the rejected call's caller sees the canonical moderation reason.
+    if (error.response?.status === 403 && isModerationEnvelope(error.response.data)) {
+      useModerationStore.getState().setFromEnvelope(error.response.data);
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {

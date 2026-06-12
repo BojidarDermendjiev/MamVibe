@@ -38,4 +38,11 @@ public interface IMessageService
     /// Returns null if the AI call fails (must never throw).
     /// </summary>
     Task<MessageDto?> SendAiResponseAsync(string userId, string userMessage);
+
+    /// <summary>
+    /// Returns the distinct user IDs of all users who share at least one message thread with the
+    /// specified user. Used by the chat hub to scope online/offline presence notifications so that
+    /// presence is not leaked to every connected client.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetConversationPartnerIdsAsync(string userId);
 }

@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<title>MomVibe — Правен брифинг за консултация с адвокат</title>
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 18mm 22mm 18mm;
+    @bottom-right {
+      content: counter(page) " / " counter(pages);
+      font-family: 'Inter', sans-serif;
+      font-size: 9pt;
+      color: #6b7280;
+    }
+    @bottom-left {
+      content: "MomVibe — Правен брифинг";
+      font-family: 'Inter', sans-serif;
+      font-size: 9pt;
+      color: #6b7280;
+    }
+  }
+  @page :first {
+    margin: 0;
+    @bottom-right { content: ""; }
+    @bottom-left { content: ""; }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color: #111827;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.25;
+  }
+  h1 { font-size: 22pt; margin: 0 0 0.4em 0; }
+  h2 {
+    font-size: 16pt;
+    margin: 2.4em 0 0.6em 0;
+    padding-bottom: 0.3em;
+    border-bottom: 2px solid #0f172a;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12.5pt;
+    margin: 1.6em 0 0.4em 0;
+    color: #1e293b;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 11pt;
+    margin: 1.2em 0 0.3em 0;
+    color: #334155;
+  }
+  p { margin: 0.5em 0; }
+  ul, ol { margin: 0.4em 0 0.8em 1.4em; padding: 0; }
+  li { margin: 0.25em 0; }
+  strong { color: #0f172a; }
+  code {
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 9.5pt;
+    color: #0f172a;
+  }
+  a { color: #0369a1; text-decoration: none; }
+
+  /* ---------- COVER ---------- */
+  .cover {
+    height: 100vh;
+    width: 100%;
+    padding: 0;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0e7490 100%);
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56,189,248,0.35), transparent 70%);
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    bottom: -160px; left: -160px;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,114,182,0.22), transparent 70%);
+  }
+  .cover-top {
+    padding: 36mm 18mm 0 18mm;
+    position: relative; z-index: 2;
+  }
+  .cover-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    font-size: 10pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .cover-brand-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #f472b6;
+    box-shadow: 0 0 0 4px rgba(244,114,182,0.25);
+  }
+  .cover h1 {
+    color: #f8fafc;
+    font-size: 38pt;
+    line-height: 1.08;
+    margin-top: 1.4em;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .cover .subtitle {
+    margin-top: 0.6em;
+    font-size: 14pt;
+    color: #cbd5e1;
+    font-weight: 400;
+    max-width: 620px;
+  }
+  .cover-bottom {
+    padding: 0 18mm 30mm 18mm;
+    position: relative; z-index: 2;
+  }
+  .cover-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 1em;
+  }
+  .meta-card {
+    flex: 1 1 200px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .meta-card .label {
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+  .meta-card .value {
+    font-size: 11pt;
+    color: #f1f5f9;
+    font-weight: 500;
+  }
+  .cover-disclaimer {
+    margin-top: 26px;
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.45);
+    border-left: 3px solid #f472b6;
+    border-radius: 6px;
+    font-size: 9pt;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+
+  /* ---------- TABLE OF CONTENTS ---------- */
+  .toc {
+    page-break-after: always;
+  }
+  .toc-header {
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+  .toc h1 { font-size: 24pt; margin-bottom: 1.2em; }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    margin: 0;
+    padding: 0;
+  }
+  .toc ol li {
+    counter-increment: toc;
+    margin: 0.35em 0;
+    padding-left: 2.6em;
+    position: relative;
+    font-size: 11pt;
+  }
+  .toc ol li::before {
+    content: counter(toc, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-variant-numeric: tabular-nums;
+    color: #f472b6;
+    font-weight: 600;
+    font-size: 10pt;
+    letter-spacing: 0.05em;
+  }
+  .toc-sub {
+    color: #6b7280;
+    font-size: 9.5pt;
+    margin-left: 2.6em;
+    margin-bottom: 0.5em;
+  }
+
+  /* ---------- SECTION INTRO ---------- */
+  section {
+    page-break-inside: auto;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 2em;
+  }
+  .section-number {
+    flex: 0 0 auto;
+    font-size: 11pt;
+    color: #f472b6;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+  .section-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #ecfeff;
+    color: #0e7490;
+    border-radius: 999px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout {
+    margin: 14px 0;
+    padding: 14px 16px 14px 18px;
+    border-radius: 8px;
+    border-left: 4px solid #94a3b8;
+    background: #f8fafc;
+    page-break-inside: avoid;
+  }
+  .callout.warning { border-left-color: #dc2626; background: #fef2f2; }
+  .callout.warning .callout-title { color: #991b1b; }
+  .callout.tip { border-left-color: #0e7490; background: #ecfeff; }
+  .callout.tip .callout-title { color: #0e7490; }
+  .callout.key { border-left-color: #7c3aed; background: #f5f3ff; }
+  .callout.key .callout-title { color: #6d28d9; }
+  .callout.law { border-left-color: #ca8a04; background: #fefce8; }
+  .callout.law .callout-title { color: #854d0e; }
+  .callout-title {
+    font-weight: 700;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  /* ---------- TABLES ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    padding: 9px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  th {
+    background: #0f172a;
+    color: #f8fafc;
+    font-weight: 600;
+    font-size: 9pt;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: none;
+  }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  table.compact td, table.compact th { padding: 6px 9px; font-size: 9.5pt; }
+  td.muted { color: #64748b; font-size: 9pt; }
+
+  /* ---------- DIAGRAM WRAPPERS ---------- */
+  .diagram {
+    margin: 18px 0 22px 0;
+    padding: 18px;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    page-break-inside: avoid;
+  }
+  .diagram-title {
+    font-size: 10pt;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .diagram-caption {
+    font-size: 8.5pt;
+    color: #64748b;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .diagram svg { width: 100%; height: auto; display: block; }
+
+  /* ---------- QUESTIONS LIST ---------- */
+  .question-block {
+    margin: 12px 0;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #f472b6;
+    border-radius: 8px;
+    page-break-inside: avoid;
+  }
+  .question-block .q-num {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #f472b6;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .question-block .q-text {
+    font-size: 10.5pt;
+    color: #0f172a;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .question-block .q-context {
+    margin-top: 6px;
+    font-size: 9.5pt;
+    color: #475569;
+    line-height: 1.45;
+  }
+
+  /* ---------- TWO COLUMN ---------- */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 12px 0;
+  }
+  .col-card {
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+  }
+  .col-card h4 { margin-top: 0; color: #0f172a; }
+
+  /* ---------- BADGES ---------- */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    margin-right: 5px;
+  }
+  .badge.eu { background: #dbeafe; color: #1e40af; }
+  .badge.bg { background: #fce7f3; color: #9d174d; }
+  .badge.high { background: #fee2e2; color: #991b1b; }
+  .badge.med { background: #fef3c7; color: #92400e; }
+  .badge.low { background: #d1fae5; color: #065f46; }
+
+  /* Avoid awkward breaks */
+  h2, h3, h4 { page-break-after: avoid; }
+  table, .diagram, .callout, .question-block { page-break-inside: avoid; }
+
+  /* Page break helpers */
+  .page-break { page-break-before: always; }
+
+  /* Footnote */
+  .footnote {
+    font-size: 8.5pt;
+    color: #6b7280;
+    margin-top: 1em;
+    padding-top: 0.6em;
+    border-top: 1px dashed #cbd5e1;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-brand">
+      <span class="cover-brand-dot"></span>
+      <span>MomVibe · Поверителна работна версия</span>
+    </div>
+    <h1>Правен брифинг<br>и регистър на въпросите<br>към адвоката</h1>
+    <div class="subtitle">
+      Платформа за продажба и дарение на детски стоки между потребители
+      — преглед на приложимата българска и европейска правна рамка,
+      разпределение на отговорността и работен план за консултация.
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="cover-meta">
+      <div class="meta-card">
+        <div class="label">Изготвен за</div>
+        <div class="value">Среща с правен консултант / адвокат</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Юрисдикция</div>
+        <div class="value">Република България · ЕС</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Версия</div>
+        <div class="value">v1.0 — 11.06.2026 г.</div>
+      </div>
+    </div>
+    <div class="cover-disclaimer">
+      <strong style="color:#fda4af;">ВАЖНО:</strong>
+      Този документ представлява вътрешен работен материал, изготвен от
+      екипа на MomVibe, и НЕ съставлява правен съвет. Целта е да послужи
+      като структурирана основа за обсъждане с правоспособен адвокат.
+      Окончателните решения, договорната документация и стратегията
+      за съответствие следва да бъдат потвърдени от квалифициран юрист
+      след индивидуален анализ.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TOC ===================== -->
+<section class="toc">
+  <div class="toc-header">Съдържание</div>
+  <h1>Карта на документа</h1>
+  <ol>
+    <li>Резюме на консултацията — какво искаме да постигнем</li>
+    <div class="toc-sub">Цел на срещата, очаквани резултати, контролен списък.</div>
+    <li>Профил на платформата MomVibe</li>
+    <div class="toc-sub">Бизнес модел, потоци на данни, обработвани категории информация.</div>
+    <li>Приложима правна рамка</li>
+    <div class="toc-sub">Български закони, регламенти на ЕС, секторни актове.</div>
+    <li>Лични данни — GDPR, ЗЗЛД и роли</li>
+    <div class="toc-sub">Контрольор, обработващ, основания, специални категории, права на субектите.</div>
+    <li>Защита на потребителя при онлайн продажби</li>
+    <div class="toc-sub">Договори от разстояние, право на отказ, рекламации, нелоялни практики.</div>
+    <li>Отговорност на оператора на платформата</li>
+    <div class="toc-sub">Посредник vs. продавач, DSA, потребителско съдържание (UGC).</div>
+    <li>Отговорност при доставка — куриерски процес</li>
+    <div class="toc-sub">Еконт, Спийди, Box Now, наложен платеж, повреди, загуби, връщания.</div>
+    <li>Отговорност при изтичане на лични данни (Data Breach)</li>
+    <div class="toc-sub">Уведомяване на КЗЛД, на субектите, имуществени щети, глоби.</div>
+    <li>Плащания, Stripe и фискални задължения</li>
+    <div class="toc-sub">PCI DSS, chargebacks, ескроу, TakeANap, ДДС.</div>
+    <li>Съдържание, генерирано от потребители (UGC)</li>
+    <div class="toc-sub">Авторски права, опасни стоки, фалшификати, нотификация и сваляне.</div>
+    <li>Малолетни и непълнолетни лица</li>
+    <div class="toc-sub">Снимки на деца, регистрация, маркетинг към семейства.</div>
+    <li>Бизнес профили и абонаменти</li>
+    <div class="toc-sub">B2B договори, автоматично подновяване, ЗЗП за търговци.</div>
+    <li>Препоръчителен пакет от вътрешни документи</li>
+    <div class="toc-sub">Какво трябва да съществува, преди публична експлоатация.</div>
+    <li>Регистър на въпросите към адвоката</li>
+    <div class="toc-sub">Подредени по теми, готови за работна сесия.</div>
+    <li>Диаграми и приложения</li>
+    <div class="toc-sub">Визуални карти на отговорността и процесите.</div>
+  </ol>
+</section>
+
+<!-- ===================== 1. EXEC SUMMARY ===================== -->
+<section>
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <span class="section-tag">Резюме</span>
+  </div>
+  <h2>Резюме на консултацията</h2>
+
+  <p>
+    MomVibe е дигитална платформа от тип <em>peer-to-peer marketplace</em>,
+    която позволява на родители (предимно майки) да продават или даряват
+    употребявани детски стоки — дрехи, играчки, колички и подобни.
+    Платформата интегрира електронни плащания, куриерски услуги,
+    обмен на съобщения в реално време, потребителски рейтинги и
+    бизнес профили с абонаментен модел.
+  </p>
+
+  <p>
+    Преди публично пускане в експлоатация е необходимо да бъдат
+    изяснени и документирани правните отношения, отговорността между
+    участниците и техническите и организационни мерки за защита
+    на личните данни. Този документ обобщава известните области
+    на риск и поставя въпросите, на които очакваме отговори от
+    адвоката, за да изградим устойчива и проверима юридическа
+    позиция.
+  </p>
+
+  <h3>Цели на консултацията</h3>
+  <ol>
+    <li><strong>Установяване на правния статут на платформата</strong> — посредник, продавач, доставчик на услуги на информационното общество, или хибридна позиция за различните функционалности.</li>
+    <li><strong>Разпределение на отговорността</strong> — между MomVibe, продавачите-потребители, купувачите, куриерските партньори и платежния процесор Stripe.</li>
+    <li><strong>Стратегия за съответствие с GDPR / ЗЗЛД</strong> — включително процедури при инциденти и регистър по чл. 30.</li>
+    <li><strong>Договорна документация</strong> — Общи условия, Политика за поверителност, DPA с обработващите, бизнес условия.</li>
+    <li><strong>План за реакция при течове</strong> — структуриран отговор в първите 72 часа и след това.</li>
+    <li><strong>Регулаторна готовност за DSA и евентуално DMA</strong> — според оборота и потребителската база.</li>
+  </ol>
+
+  <div class="callout key">
+    <div class="callout-title">Ключово очакване</div>
+    След срещата следва да разполагаме с приоритизиран списък от
+    действия с указани срокове, отговорници и приблизителна оценка
+    на правния риск (висок / среден / нисък) за всяка препоръка.
+  </div>
+</section>
+
+<!-- ===================== 2. PROFILE ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <span class="section-tag">Контекст</span>
+  </div>
+  <h2>Профил на платформата MomVibe</h2>
+
+  <h3>2.1 Бизнес модел и потребителски групи</h3>
+  <p>
+    Платформата обслужва три ясно разграничени потребителски сегмента,
+    всеки от които поражда отделни правни задължения за оператора.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Сегмент</th><th>Тип отношения</th><th>Ключови правни регулации</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Физически лица — продавачи</strong></td>
+        <td>C2C продажби, дарения, размяна</td>
+        <td>ЗЗД, ЗДДФЛ (при значителен оборот), GDPR</td>
+      </tr>
+      <tr>
+        <td><strong>Физически лица — купувачи</strong></td>
+        <td>Договор от разстояние с друго ФЛ чрез платформа</td>
+        <td>ЗЗП (ограничено приложение при C2C), ЗЗД</td>
+      </tr>
+      <tr>
+        <td><strong>Бизнес профили</strong></td>
+        <td>B2C продажби, абонамент за листване</td>
+        <td>ЗЗП, ЗДДС, ЗЕТ, Регламент за гео-блокиране</td>
+      </tr>
+      <tr>
+        <td><strong>Допълнителни роли</strong></td>
+        <td>Лекари (отзиви), детски-приятелски обекти, промоутъри</td>
+        <td>Защита на репутацията, GDPR — специални категории</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 Технологична карта и интеграции</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 1 · Архитектура и потоци на лични данни</div>
+    <svg viewBox="0 0 820 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1e3a8a"/>
+          <stop offset="100%" stop-color="#0e7490"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f472b6"/>
+          <stop offset="100%" stop-color="#a855f7"/>
+        </linearGradient>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+        </marker>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+        </filter>
+      </defs>
+
+      <!-- Center: MomVibe core -->
+      <rect x="320" y="160" width="180" height="100" rx="14" fill="url(#g1)" filter="url(#sh)"/>
+      <text x="410" y="195" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700" font-family="Inter,sans-serif">MomVibe</text>
+      <text x="410" y="215" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="Inter,sans-serif">ASP.NET Core · PostgreSQL</text>
+      <text x="410" y="232" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="Inter,sans-serif">Контрольор на данните</text>
+
+      <!-- Users -->
+      <rect x="40" y="50" width="170" height="68" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh)"/>
+      <text x="125" y="75" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">Потребители</text>
+      <text x="125" y="93" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Майки · Купувачи</text>
+      <text x="125" y="107" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Бизнес профили</text>
+
+      <!-- Stripe -->
+      <rect x="610" y="50" width="170" height="68" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh)"/>
+      <text x="695" y="75" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">Stripe</text>
+      <text x="695" y="93" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Платежен процесор</text>
+      <text x="695" y="107" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">PCI-DSS контрольор</text>
+
+      <!-- Couriers -->
+      <rect x="40" y="310" width="170" height="68" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh)"/>
+      <text x="125" y="335" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">Куриери</text>
+      <text x="125" y="353" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Еконт · Спийди · Box Now</text>
+      <text x="125" y="367" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Самостоятелни контрольори</text>
+
+      <!-- TakeANap -->
+      <rect x="610" y="310" width="170" height="68" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh)"/>
+      <text x="695" y="335" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">TakeANap</text>
+      <text x="695" y="353" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Фискални бонове</text>
+      <text x="695" y="367" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Обработващ</text>
+
+      <!-- n8n / Email / SignalR -->
+      <rect x="320" y="50" width="180" height="58" rx="12" fill="url(#g2)" filter="url(#sh)"/>
+      <text x="410" y="75" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">Автоматизации</text>
+      <text x="410" y="93" text-anchor="middle" fill="#fdf2f8" font-size="9" font-family="Inter,sans-serif">n8n · SMTP · SignalR · Cloudflare</text>
+
+      <!-- Data store -->
+      <rect x="320" y="320" width="180" height="58" rx="12" fill="#0f172a" filter="url(#sh)"/>
+      <text x="410" y="345" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700" font-family="Inter,sans-serif">Бази данни / Логове</text>
+      <text x="410" y="363" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="Inter,sans-serif">PostgreSQL · Redis · Loki</text>
+
+      <!-- arrows -->
+      <line x1="210" y1="84"  x2="320" y2="180" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="500" y1="180" x2="610" y2="84"  stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="210" y1="344" x2="320" y2="240" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="500" y1="240" x2="610" y2="344" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="410" y1="160" x2="410" y2="108" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="410" y1="260" x2="410" y2="320" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+    </svg>
+    <div class="diagram-caption">
+      Потоци на данни: всяка стрелка отбелязва преминаване на лични данни
+      през граница на отговорност. Куриерите и Stripe действат като самостоятелни
+      контрольори за част от данните, докато TakeANap и n8n са обработващи (processors).
+    </div>
+  </div>
+
+  <h3>2.3 Категории обработвани данни</h3>
+  <table class="compact">
+    <thead>
+      <tr><th>Категория</th><th>Примери</th><th>Чувствителност</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Идентификационни</td><td>Имена, e-mail, телефон, аватар</td><td><span class="badge med">Средна</span></td></tr>
+      <tr><td>Адресни</td><td>Адреси за доставка, офиси на куриер</td><td><span class="badge med">Средна</span></td></tr>
+      <tr><td>Финансови</td><td>Стойност на транзакции, история на плащания (картови данни се обработват от Stripe)</td><td><span class="badge high">Висока</span></td></tr>
+      <tr><td>Поведенчески</td><td>Лайкове, follows, разглеждани обяви, sessions</td><td><span class="badge low">Ниска</span></td></tr>
+      <tr><td>Комуникационни</td><td>Чат съобщения между потребители (1:1)</td><td><span class="badge high">Висока</span></td></tr>
+      <tr><td>Технически</td><td>IP, device fingerprint, browser, лог-файлове</td><td><span class="badge med">Средна</span></td></tr>
+      <tr><td>UGC / снимки</td><td>Снимки на стоки, евентуални снимки на деца</td><td><span class="badge high">Висока</span></td></tr>
+      <tr><td>Здравна (косвена)</td><td>Бебешки храни, лекарствени помощни средства, отзиви за лекари</td><td><span class="badge high">Висока</span></td></tr>
+      <tr><td>Документи (KYC при бизнес)</td><td>Бизнес профили — БУЛСТАТ / удостоверения</td><td><span class="badge med">Средна</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <div class="callout-title">Внимание — специални категории</div>
+    Отзивите за лекари и темите около бебешки храни могат да попаднат в обхвата
+    на чл. 9 GDPR (здравни данни). Дори при анонимизация съществува риск от
+    реидентификация. Това трябва изрично да се обсъди с адвоката.
+  </div>
+</section>
+
+<!-- ===================== 3. LEGAL FRAMEWORK ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <span class="section-tag">Норми</span>
+  </div>
+  <h2>Приложима правна рамка</h2>
+
+  <p>
+    Платформата работи под няколко припокриващи се правни режима.
+    Идентифицирането на приложимата норма за всеки конкретен процес е
+    основна задача за консултацията.
+  </p>
+
+  <h3>3.1 Европейско право</h3>
+  <table>
+    <thead>
+      <tr><th>Акт</th><th>Кратко описание</th><th>Релевантност</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge eu">EU</span> Регламент (ЕС) 2016/679 (<strong>GDPR</strong>)</td>
+        <td>Общ регламент относно защитата на данните</td>
+        <td>Целостен обхват — всички обработки на лични данни</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Регламент (ЕС) 2022/2065 (<strong>DSA</strong>)</td>
+        <td>Регламент за дигиталните услуги</td>
+        <td>Hosting / онлайн платформа с потребителско съдържание</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Регламент (ЕС) 2022/1925 (<strong>DMA</strong>)</td>
+        <td>Регламент за дигиталните пазари</td>
+        <td>Само ако се достигнат прагове на &bdquo;gatekeeper&ldquo; — индикативно нисък риск</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Директива 2011/83/ЕС</td>
+        <td>Права на потребителите при дистанционни договори</td>
+        <td>Транспонирана чрез ЗЗП — приложима при B2C сделки</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Директива (ЕС) 2019/770 и 2019/771</td>
+        <td>Цифрово съдържание / стоки</td>
+        <td>Приложима за бизнес продавачи, по-малко за C2C</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> ePrivacy Директива 2002/58/ЕО</td>
+        <td>Бисквитки, електронни съобщения, маркетинг</td>
+        <td>Изисква cookie banner и opt-in за маркетинг по e-mail</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Регламент (ЕС) 2018/302</td>
+        <td>Гео-блокиране в ЕС</td>
+        <td>Ако се таргетират пазари извън България</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> PSD2 (Директива 2015/2366)</td>
+        <td>Платежни услуги</td>
+        <td>В обхвата на Stripe; MomVibe е освободен при изключение за &bdquo;търговски агент&ldquo; или подобно</td>
+      </tr>
+      <tr>
+        <td><span class="badge eu">EU</span> Регламент (ЕС) 2024/1689 (<strong>AI Act</strong>)</td>
+        <td>Изкуствен интелект</td>
+        <td>Минимална релевантност, освен ако се внедри AI assistant с висок риск</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 Българско законодателство</h3>
+  <table>
+    <thead>
+      <tr><th>Акт</th><th>Релевантност за MomVibe</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="badge bg">BG</span> Закон за защита на личните данни (<strong>ЗЗЛД</strong>)</td><td>Допълва GDPR, регулира КЗЛД</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за защита на потребителите (<strong>ЗЗП</strong>)</td><td>Договори от разстояние, нелоялни практики, рекламации</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за електронната търговия (<strong>ЗЕТ</strong>)</td><td>Информационни услуги, отговорност на посредници (чл. 13–17)</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за задълженията и договорите (<strong>ЗЗД</strong>)</td><td>Договорно право, отговорност, неустойки</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за електронния документ и електронните удостоверителни услуги</td><td>Електронни договори, подписи</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за платежните услуги и платежните системи (<strong>ЗПУПС</strong>)</td><td>Релевантен непряко чрез Stripe</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за данък върху добавената стойност (<strong>ЗДДС</strong>)</td><td>За бизнес профили и собствените услуги на MomVibe</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за данъците върху доходите на физическите лица (<strong>ЗДДФЛ</strong>)</td><td>За продавачи-ФЛ при определени прагове</td></tr>
+      <tr><td><span class="badge bg">BG</span> Наредба № Н-18 (фискални устройства)</td><td>Връзка с TakeANap за издаване на касови бонове</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за пощенските услуги</td><td>Връзка с куриерските партньори</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за марките и географските означения</td><td>Защита от продажба на фалшификати</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за авторското право и сродните му права (<strong>ЗАПСП</strong>)</td><td>Снимки и описания, генерирани от потребители</td></tr>
+      <tr><td><span class="badge bg">BG</span> Закон за здравето / Закон за лекарствените продукти</td><td>Ако се препродават храни/добавки за бебета</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout law">
+    <div class="callout-title">Регулаторни органи</div>
+    Основни надзорни институции, с които може да се очаква контакт:
+    <strong>КЗЛД</strong> (лични данни), <strong>КЗП</strong> (защита на потребителите),
+    <strong>НАП</strong> (фиск), <strong>ГД &bdquo;Защита на потребителите&ldquo;</strong>,
+    <strong>МВР / Прокуратура</strong> (при нарушения от потребители),
+    <strong>Европейска комисия</strong> (за DSA при значителен размер).
+  </div>
+</section>
+
+<!-- ===================== 4. GDPR ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <span class="section-tag">Лични данни</span>
+  </div>
+  <h2>Лични данни — GDPR, ЗЗЛД и роли</h2>
+
+  <h3>4.1 Роли на участниците</h3>
+  <table>
+    <thead>
+      <tr><th>Участник</th><th>Роля по GDPR</th><th>Обосновка</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>MomVibe</td><td><strong>Администратор</strong> (controller)</td><td>Определя цели и средства за обработка на профили, обяви, чат</td></tr>
+      <tr><td>Куриери</td><td><strong>Самостоятелен администратор</strong></td><td>Куриерската услуга се извършва по тяхна отговорност</td></tr>
+      <tr><td>Stripe</td><td><strong>Самостоятелен администратор</strong></td><td>Платежен процесор; PCI-DSS отговаря пред субектите за картови данни</td></tr>
+      <tr><td>TakeANap</td><td><strong>Обработващ</strong> (processor)</td><td>Издава фискални бонове по поръчка на MomVibe</td></tr>
+      <tr><td>n8n self-hosted</td><td>Част от инфраструктурата на MomVibe</td><td>Не е отделен обработващ, ако се хоства локално</td></tr>
+      <tr><td>Cloudflare</td><td><strong>Обработващ</strong></td><td>WAF / Turnstile, преминава IP, headers</td></tr>
+      <tr><td>SMTP доставчик</td><td><strong>Обработващ</strong></td><td>e-mail транспорт</td></tr>
+      <tr><td>Хостинг доставчик</td><td><strong>Обработващ</strong></td><td>Съхранение на инфраструктура и бази</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Основания за обработка (чл. 6 GDPR)</h3>
+  <ul>
+    <li><strong>Изпълнение на договор (чл. 6, ал. 1, б. &bdquo;б&ldquo;)</strong> — създаване на акаунт, изпълнение на покупка, чат относно сделка.</li>
+    <li><strong>Законово задължение (б. &bdquo;в&ldquo;)</strong> — фискални бонове, счетоводна архива, отговор пред КЗЛД/КЗП/НАП.</li>
+    <li><strong>Жизненоважни интереси (б. &bdquo;г&ldquo;)</strong> — много ограничено, например при сигнал за опасност от потребител.</li>
+    <li><strong>Легитимни интереси (б. &bdquo;е&ldquo;)</strong> — превенция на измами, модерация, сигурност, basic analytics; изисква баланс-тест (LIA).</li>
+    <li><strong>Съгласие (б. &bdquo;а&ldquo;)</strong> — маркетинг по e-mail, незадължителни бисквитки, push нотификации.</li>
+  </ul>
+
+  <h3>4.3 Права на субектите (чл. 12–22 GDPR)</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 2 · Карта на правата на потребителите</div>
+    <svg viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="sh2" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+      <circle cx="410" cy="180" r="80" fill="url(#g1)" filter="url(#sh2)"/>
+      <text x="410" y="178" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700" font-family="Inter,sans-serif">Субект</text>
+      <text x="410" y="196" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="Inter,sans-serif">на данните</text>
+
+      <!-- 8 rights around -->
+      <g font-family="Inter,sans-serif">
+        <!-- top-left -->
+        <rect x="60" y="40" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="150" y="62" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Достъп · чл. 15</text>
+        <text x="150" y="78" text-anchor="middle" fill="#475569" font-size="9">Копие на данните в 30 дни</text>
+
+        <rect x="60" y="155" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="150" y="177" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Корекция · чл. 16</text>
+        <text x="150" y="193" text-anchor="middle" fill="#475569" font-size="9">Поправяне на неточности</text>
+
+        <rect x="60" y="270" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="150" y="292" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Изтриване · чл. 17</text>
+        <text x="150" y="308" text-anchor="middle" fill="#475569" font-size="9">&bdquo;Право да бъдеш забравен&ldquo;</text>
+
+        <rect x="580" y="40" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="670" y="62" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Ограничаване · чл. 18</text>
+        <text x="670" y="78" text-anchor="middle" fill="#475569" font-size="9">Замразяване на обработката</text>
+
+        <rect x="580" y="155" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="670" y="177" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Преносимост · чл. 20</text>
+        <text x="670" y="193" text-anchor="middle" fill="#475569" font-size="9">Експорт в машинен формат</text>
+
+        <rect x="580" y="270" width="180" height="50" rx="10" fill="#fff" stroke="#cbd5e1"/>
+        <text x="670" y="292" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Възражение · чл. 21</text>
+        <text x="670" y="308" text-anchor="middle" fill="#475569" font-size="9">Особено за маркетинг и LIA</text>
+      </g>
+
+      <line x1="240" y1="65"  x2="335" y2="140" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+      <line x1="240" y1="180" x2="330" y2="180" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+      <line x1="240" y1="295" x2="335" y2="225" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+      <line x1="580" y1="65"  x2="490" y2="140" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+      <line x1="580" y1="180" x2="490" y2="180" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+      <line x1="580" y1="295" x2="490" y2="225" stroke="#94a3b8" stroke-width="1.4" marker-end="url(#arrow)"/>
+    </svg>
+    <div class="diagram-caption">
+      Срок за отговор: до 30 дни (възможно удължаване с 60 дни при сложни случаи).
+      Отговорът се предоставя безплатно, освен при явно неоснователни или прекомерни искания.
+    </div>
+  </div>
+
+  <h3>4.4 Трансфер на данни извън ЕС/ЕИП</h3>
+  <p>
+    Stripe и евентуални инфраструктурни доставчици могат да изпращат данни
+    към САЩ или други държави. Прилагане на <strong>Standard Contractual Clauses (SCC)</strong>
+    и/или <strong>EU-US Data Privacy Framework</strong> е задължително. Необходимо е да
+    бъде направена оценка <strong>Transfer Impact Assessment (TIA)</strong>.
+  </p>
+
+  <h3>4.5 Технически и организационни мерки (чл. 32)</h3>
+  <ul>
+    <li>JWT + refresh token ротация, ASP.NET Core Identity;</li>
+    <li>Криптиране в трафика (TLS) и за чувствителни колони (предложение: pgcrypto за чат);</li>
+    <li>Cloudflare Turnstile срещу автоматизирани атаки;</li>
+    <li>Rate limiting, CSP, security headers, blocked-user middleware;</li>
+    <li>Outbox pattern за надеждна доставка на събития;</li>
+    <li>Loki за журнали с 31-дневна ретенция;</li>
+    <li>Резервни копия (трябва да се документират политика и тестване на възстановяване).</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="callout-title">Препоръка</div>
+    Изготвяне на формална <strong>DPIA</strong> (Data Protection Impact Assessment)
+    за поне три процеса: чат комуникация, модерация на UGC и обработка на снимки
+    с възможни деца.
+  </div>
+</section>
+
+<!-- ===================== 5. CONSUMER ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <span class="section-tag">Потребители</span>
+  </div>
+  <h2>Защита на потребителя при онлайн продажби</h2>
+
+  <h3>5.1 Различия C2C vs. B2C</h3>
+  <p>
+    Когато продавачът е <strong>физическо лице, което не извършва търговска дейност</strong>,
+    ЗЗП и Директивата за дистанционните договори не се прилагат пряко. Между двете ФЛ
+    действа общата уредба на ЗЗД. Когато продавачът е <strong>бизнес профил</strong>
+    или физическо лице, извършващо системна и възмездна дейност, режимът на ЗЗП е приложим.
+  </p>
+
+  <h3>5.2 Право на отказ (B2C)</h3>
+  <ul>
+    <li>14-дневен срок без посочване на причина (чл. 50 ЗЗП);</li>
+    <li>Изключения: персонализирани стоки, бързо разваляеми, разпечатани хигиенни (важно за бебешки стоки), и др.;</li>
+    <li>Информацията за упражняване на правото трябва да се предоставя <strong>преди сключването</strong> на договора, включително формуляр.</li>
+  </ul>
+
+  <h3>5.3 Гаранции и рекламации</h3>
+  <ul>
+    <li>Законова гаранция за съответствие — 2 години за нови потребителски стоки от търговец;</li>
+    <li>За употребявани стоки между ФЛ — само договорна отговорност и общи правила на ЗЗД (скрити недостатъци, чл. 193 и сл.);</li>
+    <li>Процедура за подаване на рекламация в MomVibe — необходим е ясен flow.</li>
+  </ul>
+
+  <h3>5.4 Нелоялни практики и прозрачност на цените</h3>
+  <ul>
+    <li>Забрана за подвеждаща реклама (ЗЗП, чл. 68г и сл.);</li>
+    <li>Прозрачно показване на крайна цена, такси за доставка и допълнителни такси преди финализиране;</li>
+    <li>Забрана на &bdquo;dark patterns&ldquo; — изрично в обхвата на DSA.</li>
+  </ul>
+
+  <h3>5.5 ОРС / ADR — алтернативно решаване на спорове</h3>
+  <p>
+    Платформата трябва да предоставя линк към платформата
+    <strong>ODR на Европейската комисия</strong> и да информира за достъп до помирителни комисии
+    към КЗП. Контактна точка за спорове е задължителна.
+  </p>
+</section>
+
+<!-- ===================== 6. PLATFORM LIABILITY ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <span class="section-tag">Платформа</span>
+  </div>
+  <h2>Отговорност на оператора на платформата</h2>
+
+  <h3>6.1 Hosting / посредническа отговорност</h3>
+  <p>
+    По чл. 16 ЗЕТ и чл. 6 DSA операторът на &bdquo;hosting&ldquo; услуга не отговаря за
+    съдържанието, освен ако: (а) има <strong>фактическо знание</strong> за незаконна
+    дейност, или (б) след узнаване <strong>не действа експедитивно</strong> за премахване
+    или блокиране.
+  </p>
+  <p>
+    Този режим обаче <strong>не покрива</strong> ситуации, в които платформата сама
+    се представя като продавач или поема активна редакторска роля. Необходимо е
+    тестване на всеки flow дали запазва &bdquo;неутралност&ldquo;.
+  </p>
+
+  <h3>6.2 Задължения по DSA</h3>
+  <table class="compact">
+    <thead>
+      <tr><th>Задължение</th><th>Член</th><th>Текущ статус MomVibe</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Notice &amp; Action механизъм</td><td>чл. 16 DSA</td><td>Частично — система AbuseReport</td></tr>
+      <tr><td>Statement of Reasons при модерация</td><td>чл. 17 DSA</td><td>Частично — ModerationLog</td></tr>
+      <tr><td>Вътрешна жалба срещу решения</td><td>чл. 20 DSA</td><td>Частично — ModerationAppeal</td></tr>
+      <tr><td>Извън-съдебно решаване на спорове</td><td>чл. 21 DSA</td><td>Нужно описание в Общи условия</td></tr>
+      <tr><td>Trader traceability (KYC)</td><td>чл. 30 DSA</td><td>Изисква се за бизнес профили</td></tr>
+      <tr><td>Прозрачност на препоръчвания</td><td>чл. 27 DSA</td><td>Зависи от наличието на алгоритъм</td></tr>
+      <tr><td>Защита на ненавършилите пълнолетие</td><td>чл. 28 DSA</td><td>Изрични мерки и забрана на профилирана реклама</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 Активна или пасивна роля</h3>
+  <p>
+    Включване на функции като &bdquo;препоръчани обяви&ldquo;, бундели, ценови предложения
+    от системата, рейтинги от модератор и др. може да отслаби защитата по чл. 16 ЗЕТ
+    и да доведе до пряка отговорност за съдържанието.
+  </p>
+
+  <div class="callout warning">
+    <div class="callout-title">Риск</div>
+    Системата за <strong>ItemModerationLog</strong> и автоматичното свалене при сигнал
+    е добре, но всеки случай на <strong>намеса в съдържанието</strong> (редакция, превод,
+    автоматично озаглавяване) изисква правен анализ за пасивност.
+  </div>
+</section>
+
+<!-- ===================== 7. SHIPMENT LIABILITY ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">07</span>
+    <span class="section-tag">Доставка</span>
+  </div>
+  <h2>Отговорност при доставка</h2>
+
+  <h3>7.1 Договорна верига и преминаване на риска</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 3 · Верига на отговорност при доставка</div>
+    <svg viewBox="0 0 820 250" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="sh3" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+
+      <rect x="20"  y="90" width="140" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh3)"/>
+      <text x="90" y="118" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">Купувач</text>
+      <text x="90" y="135" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Поръчка · Адрес</text>
+      <text x="90" y="149" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Получаване</text>
+
+      <rect x="190" y="90" width="160" height="70" rx="12" fill="url(#g2)" filter="url(#sh3)"/>
+      <text x="270" y="118" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Inter,sans-serif">MomVibe</text>
+      <text x="270" y="135" text-anchor="middle" fill="#fdf2f8" font-size="9" font-family="Inter,sans-serif">Свързваща услуга</text>
+      <text x="270" y="149" text-anchor="middle" fill="#fdf2f8" font-size="9" font-family="Inter,sans-serif">Чат · Плащане · ескроу</text>
+
+      <rect x="380" y="90" width="140" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh3)"/>
+      <text x="450" y="118" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700" font-family="Inter,sans-serif">Продавач</text>
+      <text x="450" y="135" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Опаковка</text>
+      <text x="450" y="149" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Предаване на куриер</text>
+
+      <rect x="550" y="90" width="160" height="70" rx="12" fill="url(#g1)" filter="url(#sh3)"/>
+      <text x="630" y="118" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="700" font-family="Inter,sans-serif">Куриер</text>
+      <text x="630" y="135" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="Inter,sans-serif">Транспорт · Тракинг</text>
+      <text x="630" y="149" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="Inter,sans-serif">COD сметка</text>
+
+      <line x1="160" y1="125" x2="190" y2="125" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="350" y1="125" x2="380" y2="125" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="520" y1="125" x2="550" y2="125" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <text x="175" y="80" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700" font-family="Inter,sans-serif">UGC + плащане</text>
+      <text x="365" y="80" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700" font-family="Inter,sans-serif">Уговорена сделка</text>
+      <text x="535" y="80" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700" font-family="Inter,sans-serif">Договор за превоз</text>
+
+      <text x="90"  y="195" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Риск при получаване</text>
+      <text x="270" y="195" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Без титул върху стоката</text>
+      <text x="450" y="195" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Предава стоката за превоз</text>
+      <text x="630" y="195" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter,sans-serif">Носи отговорност за пратка</text>
+
+      <text x="410" y="230" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700" font-family="Inter,sans-serif">Кой носи риска от случайно погиване между предаване и получаване?</text>
+    </svg>
+    <div class="diagram-caption">
+      По чл. 24, ал. 2 от Конвенцията CMR и съответните национални правила, превозвачът
+      носи отговорност за пратката. Спрямо потребителя обаче приложение намира и чл. 50
+      ЗЗП при B2C — рискът преминава при фактическо получаване.
+    </div>
+  </div>
+
+  <h3>7.2 Стандартни проблеми</h3>
+  <ul>
+    <li><strong>Загубена пратка</strong> — кой възстановява сумата на купувача? Платформата (от ескроу), продавачът или куриерът?</li>
+    <li><strong>Повредена пратка</strong> — необходима е процедура за документиране (снимков протокол при получаване).</li>
+    <li><strong>Несъответствие на стоката</strong> — снимки на обявата vs. реална стока. Кога MomVibe удържа ескроу плащане?</li>
+    <li><strong>Наложен платеж (COD)</strong> — кой носи риска при отказ на купувача да получи пратката? Кой плаща обратната доставка?</li>
+    <li><strong>Връщания</strong> — за B2C задължително 14-дневният прозорец; за C2C — само по уговорка.</li>
+    <li><strong>Грешен получател / адрес</strong> — отговорност при подаване на грешни данни от потребител.</li>
+  </ul>
+
+  <h3>7.3 Договори с куриерите</h3>
+  <p>
+    С Еконт, Спийди и Box Now следва да съществуват подписани:
+  </p>
+  <ul>
+    <li>Рамков договор за услуги, в който е ясно дефинирано кой е <em>подател</em>;</li>
+    <li>Споразумение за обработка на лични данни (DPA) при необходимост;</li>
+    <li>Условия за &bdquo;ескпресно&ldquo; обработване на загуби / щети;</li>
+    <li>Лимити на отговорността на куриера (обикновено по теглова единица).</li>
+  </ul>
+
+  <div class="callout key">
+    <div class="callout-title">Дискусия</div>
+    Необходимо е изричен модел &bdquo;кой е подател на пратката пред куриера&ldquo; — MomVibe,
+    продавачът или хибридна схема? Този избор променя цялата верига на отговорност.
+  </div>
+</section>
+
+<!-- ===================== 8. DATA BREACH ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">08</span>
+    <span class="section-tag">Инциденти</span>
+  </div>
+  <h2>Отговорност при изтичане на лични данни</h2>
+
+  <h3>8.1 Дефиниция и обхват</h3>
+  <p>
+    Под &bdquo;нарушение на сигурността на личните данни&ldquo; (чл. 4, т. 12 GDPR)
+    се разбира всяко нарушение, водещо до случайно или незаконно унищожаване,
+    загуба, изменение, неоторизирано разкриване или достъп до лични данни.
+  </p>
+
+  <h3>8.2 Хронология на действията</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 4 · Хронология на реакция при инцидент</div>
+    <svg viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="sh4" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+
+      <!-- timeline -->
+      <line x1="60" y1="140" x2="760" y2="140" stroke="#cbd5e1" stroke-width="3"/>
+
+      <!-- nodes -->
+      <g font-family="Inter,sans-serif">
+        <circle cx="100" cy="140" r="16" fill="#dc2626" filter="url(#sh4)"/>
+        <text x="100" y="145" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">T0</text>
+        <text x="100" y="90"  text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700">Откриване</text>
+        <text x="100" y="105" text-anchor="middle" fill="#475569" font-size="8.5">Алерт / сигнал</text>
+        <text x="100" y="180" text-anchor="middle" fill="#475569" font-size="8.5">Изолация на системи</text>
+        <text x="100" y="195" text-anchor="middle" fill="#475569" font-size="8.5">Активиране на план</text>
+
+        <circle cx="240" cy="140" r="16" fill="#f59e0b" filter="url(#sh4)"/>
+        <text x="240" y="145" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">&lt;24ч</text>
+        <text x="240" y="90"  text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700">Триаж</text>
+        <text x="240" y="105" text-anchor="middle" fill="#475569" font-size="8.5">Обхват и риск</text>
+        <text x="240" y="180" text-anchor="middle" fill="#475569" font-size="8.5">Лог-анализ</text>
+        <text x="240" y="195" text-anchor="middle" fill="#475569" font-size="8.5">Идентификация на засегнати</text>
+
+        <circle cx="400" cy="140" r="20" fill="#7c3aed" filter="url(#sh4)"/>
+        <text x="400" y="146" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">72ч</text>
+        <text x="400" y="90"  text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700">Уведомяване КЗЛД</text>
+        <text x="400" y="105" text-anchor="middle" fill="#475569" font-size="8.5">чл. 33 GDPR</text>
+        <text x="400" y="185" text-anchor="middle" fill="#475569" font-size="8.5">Подаване чрез e-form</text>
+        <text x="400" y="200" text-anchor="middle" fill="#475569" font-size="8.5">или писмен формуляр</text>
+
+        <circle cx="560" cy="140" r="18" fill="#0e7490" filter="url(#sh4)"/>
+        <text x="560" y="145" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">&lt;7д</text>
+        <text x="560" y="90"  text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700">Уведомяване субекти</text>
+        <text x="560" y="105" text-anchor="middle" fill="#475569" font-size="8.5">чл. 34 GDPR</text>
+        <text x="560" y="185" text-anchor="middle" fill="#475569" font-size="8.5">Само ако &bdquo;висок риск&ldquo;</text>
+        <text x="560" y="200" text-anchor="middle" fill="#475569" font-size="8.5">Ясни и достъпни съобщения</text>
+
+        <circle cx="720" cy="140" r="16" fill="#16a34a" filter="url(#sh4)"/>
+        <text x="720" y="145" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">&gt;7д</text>
+        <text x="720" y="90"  text-anchor="middle" fill="#0f172a" font-size="10" font-weight="700">Пост-инцидент</text>
+        <text x="720" y="105" text-anchor="middle" fill="#475569" font-size="8.5">Анализ &amp; мерки</text>
+        <text x="720" y="185" text-anchor="middle" fill="#475569" font-size="8.5">Регистър на инциденти</text>
+        <text x="720" y="200" text-anchor="middle" fill="#475569" font-size="8.5">Lessons learned · DPIA update</text>
+      </g>
+
+      <text x="410" y="248" text-anchor="middle" fill="#475569" font-size="9.5" font-family="Inter,sans-serif">Целият процес следва да бъде документиран — съществуването на регистър не подлежи на договаряне.</text>
+    </svg>
+    <div class="diagram-caption">
+      Часовникът от 72 часа започва от <strong>фактическото узнаване</strong> на нарушението,
+      независимо от потвърждението на обхвата. Закъснението изисква мотивиране пред КЗЛД.
+    </div>
+  </div>
+
+  <h3>8.3 Сценарии и разпределение на отговорността</h3>
+  <table>
+    <thead>
+      <tr><th>Сценарий</th><th>Първична отговорност</th><th>Възможна солидарност</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Външна атака с пробив в нашата БД</td>
+        <td>MomVibe (като контрольор)</td>
+        <td>Хостинг при доказан пропуск; разработчици при груба небрежност</td>
+      </tr>
+      <tr>
+        <td>Изтичане през SMTP / e-mail</td>
+        <td>MomVibe споделено със SMTP доставчика</td>
+        <td>Доставчикът — ако е нарушил DPA</td>
+      </tr>
+      <tr>
+        <td>Изтичане от куриер</td>
+        <td>Куриерът като самостоятелен контрольор</td>
+        <td>MomVibe — ако е предал данни без основание</td>
+      </tr>
+      <tr>
+        <td>Изтичане от Stripe</td>
+        <td>Stripe</td>
+        <td>MomVibe — само за частта от данни в нашия портал</td>
+      </tr>
+      <tr>
+        <td>Грешка на служител / разработчик</td>
+        <td>MomVibe</td>
+        <td>Регрес към служителя при умишлено или грубо небрежно деяние</td>
+      </tr>
+      <tr>
+        <td>Изтичане през чат (1:1 между потребители)</td>
+        <td>MomVibe — за съхранение; потребителите — за съдържание</td>
+        <td>Възможен регрес</td>
+      </tr>
+      <tr>
+        <td>Експозиция през API без auth</td>
+        <td>MomVibe (high impact bug)</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>8.4 Парични последици</h3>
+  <ul>
+    <li><strong>Административни санкции (чл. 83 GDPR)</strong> — до 10 / 20 млн. EUR или 2% / 4% от световния годишен оборот, която сума е по-голяма.</li>
+    <li><strong>Имуществени и неимуществени вреди</strong> по чл. 82 GDPR (вкл. колективни искове по Директива (ЕС) 2020/1828).</li>
+    <li><strong>Регрес</strong> между съвместни администратори или администратор-обработващ съгласно чл. 82, ал. 5 GDPR.</li>
+    <li><strong>Репутационни щети</strong> — необходима е готова комуникационна стратегия.</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Високорискови данни в MomVibe</div>
+    Чат съобщенията между потребители, адресите за доставка, поведенческият
+    профил и евентуалните снимки на деца са най-чувствителните активи.
+    Те трябва да получат най-високо ниво на криптиране и достъп.
+  </div>
+
+  <h3>8.5 Реакция към субектите</h3>
+  <ul>
+    <li>Уведомление с ясен език без правен жаргон;</li>
+    <li>Описание на естеството на нарушението, последиците, мерките;</li>
+    <li>Препоръки за самозащита (смяна на парола, наблюдение на банкови сметки);</li>
+    <li>Контактна точка (DPO или специален e-mail);</li>
+    <li>Канал за безплатна юридическа консултация — добра практика, не задължение.</li>
+  </ul>
+</section>
+
+<!-- ===================== 9. PAYMENTS ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">09</span>
+    <span class="section-tag">Плащания</span>
+  </div>
+  <h2>Плащания, Stripe и фискални задължения</h2>
+
+  <h3>9.1 Платежен модел</h3>
+  <p>
+    Платформата използва <strong>Stripe Checkout</strong> като основен метод, &bdquo;Wallet&ldquo;
+    като форма на временно държане на средства (escrow) до потвърждаване на сделката
+    и &bdquo;Pay on spot&ldquo; (наложен платеж или предаване &bdquo;на ръка&ldquo;).
+  </p>
+
+  <h3>9.2 PCI-DSS</h3>
+  <p>
+    Стандартът PCI-DSS изисква, че при пренасочване към Stripe Checkout MomVibe попада
+    в <strong>SAQ-A</strong> категория (минимални изисквания), доколкото няма пряк
+    контакт с картови данни. Това е възможно най-добрата позиция и трябва да бъде
+    запазена. Всеки fronted iframe / Stripe Elements преминава към <strong>SAQ-A-EP</strong>,
+    което изисква допълнителна документация.
+  </p>
+
+  <h3>9.3 Ескроу-подобен механизъм и регулация</h3>
+  <p>
+    Държането на средства за смета на потребители (Wallet) може да породи въпрос
+    дали MomVibe не извършва <strong>платежна услуга</strong> по смисъла на PSD2 / ЗПУПС.
+    Възможни изключения:
+  </p>
+  <ul>
+    <li>&bdquo;Търговски агент&ldquo; (чл. 3, б. &bdquo;б&ldquo; PSD2);</li>
+    <li>&bdquo;Ограничена мрежа&ldquo; (чл. 3, б. &bdquo;к&ldquo;);</li>
+    <li>Използване на Stripe Connect / Stripe Treasury като лицензиран оператор.</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Регулаторен риск</div>
+    Държането на потребителски средства <strong>в собствена сметка</strong> на MomVibe
+    без лиценз или ясно изключение е значителен риск (изисква се лиценз от БНБ).
+    Препоръчително решение е делегиране изцяло на Stripe Connect.
+  </div>
+
+  <h3>9.4 Chargebacks и спорни плащания</h3>
+  <ul>
+    <li>Цикъл от 60–120 дни в зависимост от картовата мрежа;</li>
+    <li>MomVibe носи разходите за обработка (~15–25 EUR) дори при отхвърлен chargeback;</li>
+    <li>Необходим е процес за документиране на сделката (чат, снимки, тракинг номер) с цел доказване;</li>
+    <li>Срокът за съхранение на доказателствата трябва да отговаря на изискванията на картовите мрежи и ЗДДС.</li>
+  </ul>
+
+  <h3>9.5 Фискални бонове и счетоводство</h3>
+  <ul>
+    <li>За продажби от бизнес профили: задължителен е фискален бон по Наредба Н-18 (издаване чрез TakeANap);</li>
+    <li>За продажби между ФЛ: липсва изискване за фискален бон, но при системна дейност потребителят може да попадне под ЗДДФЛ;</li>
+    <li>MomVibe следва да публикува ясно <strong>предупреждение</strong> към продавачите, че собствените им данъчни задължения остават тяхна отговорност.</li>
+  </ul>
+
+  <h3>9.6 ДДС и пакет за е-търговия</h3>
+  <p>
+    При значителен оборот и продажби в ЕС е приложим режимът на
+    <strong>OSS (One Stop Shop)</strong> по реформата от 2021 г. Необходимо е
+    регистрационно решение по ЗДДС, дори когато оборотът е под прага в България.
+  </p>
+</section>
+
+<!-- ===================== 10. UGC ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">10</span>
+    <span class="section-tag">Съдържание</span>
+  </div>
+  <h2>Съдържание, генерирано от потребители (UGC)</h2>
+
+  <h3>10.1 Принципи</h3>
+  <p>
+    Потребителите запазват авторски права върху своите снимки и описания, но
+    предоставят на MomVibe неизключителен, безвъзмезден лиценз за хостинг,
+    показване и преразпространение в рамките на услугата. Това трябва да е
+    изрично уредено в Общите условия.
+  </p>
+
+  <h3>10.2 Забранени категории</h3>
+  <ul>
+    <li>Бебешки храни, добавки и лекарства, които изискват специален режим;</li>
+    <li>Стоки без сертификат за безопасност (играчки без CE);</li>
+    <li>Реплики и фалшификати (марково оборудване, дизайнерски маркови дрехи);</li>
+    <li>Електрически уреди без декларация за съответствие;</li>
+    <li>Стоки, които са втора употреба, но влизат в забранителни списъци (определени седалки за кола след катастрофа).</li>
+  </ul>
+
+  <h3>10.3 Снимки с деца</h3>
+  <div class="callout warning">
+    <div class="callout-title">Висок риск</div>
+    Снимки на бебешки колички или дрехи често съдържат образ на дете.
+    Това поражда:
+    <ul>
+      <li>Обработка на &bdquo;биометрични данни в широк смисъл&ldquo;;</li>
+      <li>Изискване за съгласие от двамата родители;</li>
+      <li>Право на изтриване, преимуществено пред интереса на платформата.</li>
+    </ul>
+    Препоръка: автоматичен blur на лица или категорична забрана за публикуване
+    на снимки с разпознаваеми деца.
+  </div>
+
+  <h3>10.4 Авторски права</h3>
+  <ul>
+    <li>Notice and Takedown процедура (DSA чл. 16);</li>
+    <li>Контактна точка за носители на права;</li>
+    <li>Срок за реакция — обикновено 24 часа за очевидни случаи.</li>
+  </ul>
+</section>
+
+<!-- ===================== 11. MINORS ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">11</span>
+    <span class="section-tag">Деца</span>
+  </div>
+  <h2>Малолетни и непълнолетни лица</h2>
+
+  <p>
+    По чл. 8 GDPR съгласие за услуги на информационното общество се счита за
+    валидно, когато детето е навършило 14 години (по българско право; ЕС
+    дава възможност 13–16). За по-малки деца съгласие предоставя носителят
+    на родителската отговорност.
+  </p>
+
+  <ul>
+    <li>MomVibe не следва да позволява регистрация под 18 г. (търговски действия);</li>
+    <li>Маркетинговите кампании към семейства не са същото като маркетинг към деца;</li>
+    <li>Профилираните препоръки към деца са забранени по DSA — не е приложимо тук.</li>
+  </ul>
+</section>
+
+<!-- ===================== 12. BUSINESS ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">12</span>
+    <span class="section-tag">B2B</span>
+  </div>
+  <h2>Бизнес профили и абонаменти</h2>
+
+  <ul>
+    <li>Абонаментни планове изискват ясно описание на услугата, цена, период, ред за прекратяване;</li>
+    <li>Автоматично подновяване — позволено, но при изрично потвърдено информирано съгласие;</li>
+    <li>Бизнес профилът не се ползва от потребителския режим на ЗЗП; приложими са общите правила на ТЗ и ЗЗД;</li>
+    <li>Необходим KYC процес — БУЛСТАТ, представляващ, контакти, верификация;</li>
+    <li>В договорите с бизнес профили да се предвиди регрес при некачествени стоки и потребителски жалби.</li>
+  </ul>
+</section>
+
+<!-- ===================== 13. INTERNAL DOCS ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">13</span>
+    <span class="section-tag">Документи</span>
+  </div>
+  <h2>Препоръчителен пакет от вътрешни документи</h2>
+
+  <div class="two-col">
+    <div class="col-card">
+      <h4>Към потребителите (публични)</h4>
+      <ul>
+        <li>Общи условия за ползване</li>
+        <li>Политика за поверителност</li>
+        <li>Политика за бисквитките и проследяващите технологии</li>
+        <li>Политика за връщания и рекламации</li>
+        <li>Политика за модерация и забранени стоки</li>
+        <li>Условия за бизнес профили</li>
+        <li>Изявление за съответствие с DSA</li>
+        <li>Помощни &bdquo;FAQ&ldquo; за процедури при спор</li>
+      </ul>
+    </div>
+    <div class="col-card">
+      <h4>Вътрешни (към регулатор / одит)</h4>
+      <ul>
+        <li>Регистър на дейностите по обработка (чл. 30 GDPR)</li>
+        <li>DPIA за чат, UGC снимки, модерация</li>
+        <li>План за реакция при инцидент (Incident Response Plan)</li>
+        <li>Политика за достъп и роли (RBAC)</li>
+        <li>Политика за резервни копия и възстановяване</li>
+        <li>DPA с куриерите, SMTP, хостинг, TakeANap</li>
+        <li>SCC за трансфери извън ЕС</li>
+        <li>Регистър на оплакванията на субекти</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>13.1 Минимални секции в Общи условия</h3>
+  <ol>
+    <li>Дефиниции, страни, обхват;</li>
+    <li>Регистрация и закриване на акаунт;</li>
+    <li>Описание на услугата (включително граници на отговорността като посредник);</li>
+    <li>Правила за обяви — забранени стоки, модерация;</li>
+    <li>Сделки — оферти, плащане, доставка, ескроу;</li>
+    <li>Връщания, рекламации, спорове;</li>
+    <li>Авторски права и лиценз върху UGC;</li>
+    <li>Поведение на потребителите и санкции;</li>
+    <li>Отговорност и нейните ограничения;</li>
+    <li>Промени в Общите условия (нотификация и срок);</li>
+    <li>Приложимо право и подсъдност;</li>
+    <li>Информация за ОРС и контактна точка.</li>
+  </ol>
+</section>
+
+<!-- ===================== 14. LAWYER QUESTIONS — CORE ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">14</span>
+    <span class="section-tag">Въпроси</span>
+  </div>
+  <h2>Регистър на въпросите към адвоката</h2>
+  <p>
+    Долните въпроси са организирани по тематика. Препоръчваме да се
+    обсъждат в посочения ред, започвайки от структурните и правни въпроси
+    и приключвайки с оперативните детайли.
+  </p>
+
+  <h3>14.1 Структура и правен статут</h3>
+  <div class="question-block">
+    <div class="q-num">Q-01</div>
+    <div class="q-text">Каква правно-организационна форма е оптимална за MomVibe — ООД, ЕООД, АД, или клонова структура за ЕС?</div>
+    <div class="q-context">Контекст: множество роли (посредник, продавач на собствени услуги — абонаменти), очаквана международна експанзия.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-02</div>
+    <div class="q-text">Какъв е правният статут на платформата — &bdquo;услуга на информационното общество&ldquo;, hosting, онлайн пазар по DSA, или хибрид?</div>
+    <div class="q-context">Контекст: чл. 16 ЗЕТ и чл. 4–6 DSA — пасивен vs. активен посредник.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-03</div>
+    <div class="q-text">Кога MomVibe губи защитата като посредник и започва да отговаря като продавач?</div>
+    <div class="q-context">Контекст: фичъри като автоматични bundles, AI assistant, препоръки, цени &bdquo;от платформата&ldquo;.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-04</div>
+    <div class="q-text">Какви са минималните изисквания към официалния адрес, представителя, контактната точка и публичните данни на дружеството?</div>
+    <div class="q-context">Контекст: ЗЕТ, DSA, ЗЗП.</div>
+  </div>
+
+  <h3>14.2 Лични данни (GDPR / ЗЗЛД)</h3>
+  <div class="question-block">
+    <div class="q-num">Q-05</div>
+    <div class="q-text">Подлежи ли MomVibe на задължителна регистрация / нотификация пред КЗЛД, и при какъв обем се изисква DPO?</div>
+    <div class="q-context">Контекст: чл. 37 GDPR — основната дейност е мониторинг на потребители в голям мащаб?</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-06</div>
+    <div class="q-text">Кои наши обработки изискват DPIA и от какъв формат? Може ли да предложите структура и доказателствена база?</div>
+    <div class="q-context">Контекст: чат, UGC, модерация, профилиране за препоръки.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-07</div>
+    <div class="q-text">Кои данни могат да се квалифицират като &bdquo;специални категории&ldquo; (чл. 9) — например здравни данни от отзиви за лекари?</div>
+    <div class="q-context">Контекст: евентуално премахване на отзивите за лекари ако рискът е твърде висок.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-08</div>
+    <div class="q-text">Какви минимални срокове за съхранение трябва да приложим към различните категории данни?</div>
+    <div class="q-context">Контекст: ЗДДС (10 г.), ЗСч (5 г.), ЗЗД (5 г. погасителна давност), GDPR минимизация.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-09</div>
+    <div class="q-text">Кои наши настоящи практики НЕ съответстват на GDPR и трябва незабавно да бъдат коригирани?</div>
+    <div class="q-context">Контекст: проверка на cookie banner, e-mail маркетинг, IP логване, retention.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-10</div>
+    <div class="q-text">Каква е официалната процедура за упражняване на правата на субектите — формуляр, срок, ескалация?</div>
+    <div class="q-context">Контекст: 30 + 60 дни, отказ при прекомерни искания.</div>
+  </div>
+
+  <h3>14.3 Отговорност при изтичане на данни</h3>
+  <div class="question-block">
+    <div class="q-num">Q-11</div>
+    <div class="q-text">Каква е оптималната структура на план за реакция при инцидент с данни и кои външни специалисти трябва да бъдат вече ангажирани (адвокат, киберсигурност, PR)?</div>
+    <div class="q-context">Контекст: цел — 72 часа от откриване до уведомяване на КЗЛД.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-12</div>
+    <div class="q-text">Кога нарушението поражда задължение за уведомяване на субектите (чл. 34), и как се преценява &bdquo;висок риск&ldquo;?</div>
+    <div class="q-context">Контекст: изтичане на телефони vs. изтичане на чат логове.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-13</div>
+    <div class="q-text">Каква е персоналната отговорност на собствениците, мениджмънта и DPO при инцидент?</div>
+    <div class="q-context">Контекст: гражданска / административнонаказателна / наказателна.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-14</div>
+    <div class="q-text">Какви ограничения на отговорността са приемливи в Общите условия спрямо потребители-ФЛ и спрямо бизнес профили?</div>
+    <div class="q-context">Контекст: чл. 143 ЗЗП — нелоялни клаузи.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-15</div>
+    <div class="q-text">Препоръчвате ли застрахователно покритие &bdquo;Cyber Liability&ldquo; и в какъв обхват за нашия размер?</div>
+    <div class="q-context">Контекст: българския пазар за подобни полици.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-16</div>
+    <div class="q-text">Какво е експозицията ни при колективен иск по Директива (ЕС) 2020/1828?</div>
+    <div class="q-context">Контекст: транспонирана от Закона за изменение на ГПК (2023).</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-17</div>
+    <div class="q-text">При изтичане на чат съобщения, които могат да съдържат особено лични разкази (майчинско здраве), какви допълнителни мерки за репарация се очакват?</div>
+    <div class="q-context">Контекст: неимуществени вреди — практика на ВКС.</div>
+  </div>
+
+  <h3>14.4 Отговорност при доставка</h3>
+  <div class="question-block">
+    <div class="q-num">Q-18</div>
+    <div class="q-text">Кой следва да бъде &bdquo;подател&ldquo; пред куриера — продавачът, MomVibe, или има хибриден модел?</div>
+    <div class="q-context">Контекст: пряко влияе върху отговорността за щети.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-19</div>
+    <div class="q-text">Каква е отговорността ни при наложен платеж (COD), ако купувачът откаже да получи пратката?</div>
+    <div class="q-context">Контекст: разходи за обратна доставка, разпределение между страните.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-20</div>
+    <div class="q-text">Кога рискът от случайно погиване на стоката преминава от продавача към купувача?</div>
+    <div class="q-context">Контекст: при C2C vs. B2C; чл. 103 ЗЗП.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-21</div>
+    <div class="q-text">Какъв е срокът и редът за рекламация при повредена пратка пред куриера, и как се отразява в нашите Общи условия?</div>
+    <div class="q-context">Контекст: преглед при получаване, протокол за щета.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-22</div>
+    <div class="q-text">Имаме ли право да удържаме сума от продавача при доказана неточност на обявата (грешен размер, скрит дефект)?</div>
+    <div class="q-context">Контекст: ескроу, връщане на средствата от Wallet.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-23</div>
+    <div class="q-text">При спор между купувач и продавач, кога е оправдано MomVibe да играе роля на &bdquo;арбитър&ldquo;, и какво е правното значение на нашето решение?</div>
+    <div class="q-context">Контекст: dispute resolution, &bdquo;Resolution Center&ldquo;.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-24</div>
+    <div class="q-text">Как трябва да изглеждат договорите ни с Еконт, Спийди и Box Now, за да защитим максимално платформата?</div>
+    <div class="q-context">Контекст: SLA, отговорност при щета, обработка на лични данни.</div>
+  </div>
+
+  <h3>14.5 Плащания и финансови задължения</h3>
+  <div class="question-block">
+    <div class="q-num">Q-25</div>
+    <div class="q-text">Поражда ли &bdquo;Wallet&ldquo; функционалността изискване за лиценз от БНБ като платежна институция?</div>
+    <div class="q-context">Контекст: PSD2, чл. 3 ЗПУПС; ползване на Stripe Connect.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-26</div>
+    <div class="q-text">Какъв е оптималният модел за издаване на фискални бонове и кога възниква задължение за касов апарат от страна на MomVibe?</div>
+    <div class="q-context">Контекст: Наредба Н-18, интеграция с TakeANap.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-27</div>
+    <div class="q-text">Кога физическо лице, продаващо чрез платформата, се квалифицира като &bdquo;търговец&ldquo; за целите на ЗЗП и ЗДДФЛ?</div>
+    <div class="q-context">Контекст: брой сделки, оборот, систематичност.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-28</div>
+    <div class="q-text">Имаме ли задължение да отчитаме продавачи пред НАП (DAC7)?</div>
+    <div class="q-context">Контекст: Закон за изменение на ДОПК (2023).</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-29</div>
+    <div class="q-text">Каква е политиката ни за chargebacks — преразпределение към продавача и срок за оспорване?</div>
+    <div class="q-context">Контекст: документация на сделката за защита.</div>
+  </div>
+
+  <h3>14.6 Съдържание и потребителски действия</h3>
+  <div class="question-block">
+    <div class="q-num">Q-30</div>
+    <div class="q-text">Каква е процедурата за &bdquo;Notice &amp; Action&ldquo; по DSA и кой може да бъде сертифициран &bdquo;Trusted Flagger&ldquo;?</div>
+    <div class="q-context">Контекст: чл. 16 и чл. 22 DSA.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-31</div>
+    <div class="q-text">Какъв е рискът ни от продажба на стоки, които изискват CE сертификати или специален режим (играчки, бебешки шапки със звуци, столчета за кола)?</div>
+    <div class="q-context">Контекст: Закон за защита от вредното въздействие на химичните вещества.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-32</div>
+    <div class="q-text">Как да процедираме при сигнал за фалшиви маркови стоки?</div>
+    <div class="q-context">Контекст: ЗМГО, отговорност при бездействие.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-33</div>
+    <div class="q-text">Какви мерки трябва да приложим при поява на снимки с разпознаваеми деца в обявите?</div>
+    <div class="q-context">Контекст: чл. 8 GDPR, blurring, забрана.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-34</div>
+    <div class="q-text">Какъв е лицензионният обем, който можем да изискваме върху потребителските снимки и описания?</div>
+    <div class="q-context">Контекст: ЗАПСП — изключителен / неизключителен лиценз.</div>
+  </div>
+
+  <h3>14.7 Договорна работа и общи условия</h3>
+  <div class="question-block">
+    <div class="q-num">Q-35</div>
+    <div class="q-text">Може ли да поемете изготвянето или ревизирането на пакета от вътрешни и публични документи, в какъв срок и с каква ангажираност?</div>
+    <div class="q-context">Контекст: списък от секция 13.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-36</div>
+    <div class="q-text">Какво е препоръчителното приложимо право и подсъдност в Общите условия?</div>
+    <div class="q-context">Контекст: български съд за вътрешни сделки; защита на потребителя по неговото правило.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-37</div>
+    <div class="q-text">Как да уредим уведомяване на потребителите за промени в Общите условия и кой срок предлагате?</div>
+    <div class="q-context">Контекст: 30 дни — стандарт; възможност за отказ.</div>
+  </div>
+
+  <h3>14.8 Деца и чувствителни случаи</h3>
+  <div class="question-block">
+    <div class="q-num">Q-38</div>
+    <div class="q-text">Каква е минималната възраст за регистрация в MomVibe и какъв процес ще ползваме за проверка?</div>
+    <div class="q-context">Контекст: ЗЛС, GDPR чл. 8.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-39</div>
+    <div class="q-text">Имаме ли задължения, ако чрез чат стане известно за заплаха за дете или насилие в семейство?</div>
+    <div class="q-context">Контекст: задължение за уведомяване, Закон за закрила на детето.</div>
+  </div>
+
+  <h3>14.9 Експанзия и допълнителни юрисдикции</h3>
+  <div class="question-block">
+    <div class="q-num">Q-40</div>
+    <div class="q-text">Какви правни промени са необходими при таргетиране на Румъния, Гърция, Германия?</div>
+    <div class="q-context">Контекст: гео-блокиране, локални особености на потребителското право.</div>
+  </div>
+  <div class="question-block">
+    <div class="q-num">Q-41</div>
+    <div class="q-text">Какъв е смисленият подход при евентуални продажби извън ЕС (Великобритания)?</div>
+    <div class="q-context">Контекст: UK GDPR, separate cookie regime.</div>
+  </div>
+</section>
+
+<!-- ===================== 15. APPENDICES ===================== -->
+<section class="page-break">
+  <div class="section-header">
+    <span class="section-number">15</span>
+    <span class="section-tag">Приложения</span>
+  </div>
+  <h2>Диаграми и приложения</h2>
+
+  <h3>15.1 Стратегическа матрица &bdquo;Риск × Спешност&ldquo;</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 5 · Приоритизация на работата</div>
+    <svg viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bgmat" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f8fafc"/>
+          <stop offset="100%" stop-color="#e0f2fe"/>
+        </linearGradient>
+        <filter id="sh5" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+
+      <rect x="80" y="40" width="700" height="280" rx="14" fill="url(#bgmat)" stroke="#cbd5e1"/>
+
+      <!-- axis labels -->
+      <text x="430" y="345" text-anchor="middle" fill="#475569" font-size="11" font-weight="700" font-family="Inter,sans-serif">Спешност →</text>
+      <text x="55" y="180" text-anchor="middle" fill="#475569" font-size="11" font-weight="700" font-family="Inter,sans-serif" transform="rotate(-90 55 180)">Риск →</text>
+
+      <!-- grid -->
+      <line x1="430" y1="40" x2="430" y2="320" stroke="#cbd5e1" stroke-dasharray="3 4"/>
+      <line x1="80"  y1="180" x2="780" y2="180" stroke="#cbd5e1" stroke-dasharray="3 4"/>
+
+      <!-- quadrant labels -->
+      <text x="255" y="65"  text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif">Висок риск · Ниска спешност</text>
+      <text x="605" y="65"  text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif">Висок риск · Висока спешност</text>
+      <text x="255" y="310" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif">Нисък риск · Ниска спешност</text>
+      <text x="605" y="310" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif">Нисък риск · Висока спешност</text>
+
+      <!-- points -->
+      <g font-family="Inter,sans-serif" font-size="9">
+        <circle cx="640" cy="100" r="11" fill="#dc2626" filter="url(#sh5)"/>
+        <text x="660" y="103" fill="#0f172a" font-weight="700">Data breach план</text>
+
+        <circle cx="600" cy="135" r="11" fill="#dc2626" filter="url(#sh5)"/>
+        <text x="620" y="138" fill="#0f172a" font-weight="700">DPA с куриери / Stripe / TakeANap</text>
+
+        <circle cx="560" cy="160" r="11" fill="#f59e0b" filter="url(#sh5)"/>
+        <text x="580" y="163" fill="#0f172a" font-weight="700">Общи условия v1</text>
+
+        <circle cx="500" cy="195" r="11" fill="#f59e0b" filter="url(#sh5)"/>
+        <text x="520" y="198" fill="#0f172a" font-weight="700">Политика за поверителност</text>
+
+        <circle cx="460" cy="225" r="11" fill="#f59e0b" filter="url(#sh5)"/>
+        <text x="480" y="228" fill="#0f172a" font-weight="700">Cookie banner</text>
+
+        <circle cx="250" cy="120" r="11" fill="#7c3aed" filter="url(#sh5)"/>
+        <text x="115" y="123" fill="#0f172a" font-weight="700">DPIA (чат · UGC · модерация)</text>
+
+        <circle cx="200" cy="160" r="11" fill="#7c3aed" filter="url(#sh5)"/>
+        <text x="105" y="163" fill="#0f172a" font-weight="700">Регистър чл. 30 GDPR</text>
+
+        <circle cx="280" cy="250" r="11" fill="#16a34a" filter="url(#sh5)"/>
+        <text x="115" y="253" fill="#0f172a" font-weight="700">DSA годишен отчет</text>
+
+        <circle cx="650" cy="275" r="11" fill="#16a34a" filter="url(#sh5)"/>
+        <text x="670" y="278" fill="#0f172a" font-weight="700">FAQ за потребители</text>
+      </g>
+    </svg>
+    <div class="diagram-caption">
+      Визуална карта за приоритизация. Червените точки изискват незабавна работа,
+      оранжевите — в първите 30 дни, лилавите — в първото тримесечие, зелените — текущо.
+    </div>
+  </div>
+
+  <h3>15.2 Договорна карта на отношенията</h3>
+  <div class="diagram">
+    <div class="diagram-title">Диаграма 6 · Договорни взаимоотношения и видове договори</div>
+    <svg viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="sh6" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+      <rect x="340" y="160" width="160" height="80" rx="14" fill="url(#g2)" filter="url(#sh6)"/>
+      <text x="420" y="195" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="Inter,sans-serif">MomVibe</text>
+      <text x="420" y="215" text-anchor="middle" fill="#fdf2f8" font-size="9" font-family="Inter,sans-serif">Платформа / Контрольор</text>
+
+      <!-- surrounding parties -->
+      <g font-family="Inter,sans-serif">
+        <rect x="40" y="50" width="180" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="130" y="78" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Потребители · ФЛ</text>
+        <text x="130" y="96" text-anchor="middle" fill="#475569" font-size="9">Общи условия + Privacy</text>
+        <text x="130" y="108" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Договор за услуга</text>
+
+        <rect x="40" y="260" width="180" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="130" y="288" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Бизнес профили</text>
+        <text x="130" y="306" text-anchor="middle" fill="#475569" font-size="9">B2B договор + абонамент</text>
+        <text x="130" y="318" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Marketplace agreement</text>
+
+        <rect x="620" y="50" width="180" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="710" y="78" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Куриери</text>
+        <text x="710" y="96" text-anchor="middle" fill="#475569" font-size="9">Рамков + DPA</text>
+        <text x="710" y="108" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Превозен договор</text>
+
+        <rect x="620" y="160" width="180" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="710" y="188" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Stripe</text>
+        <text x="710" y="206" text-anchor="middle" fill="#475569" font-size="9">Терms of Service + DPA</text>
+        <text x="710" y="218" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Платежно посредничество</text>
+
+        <rect x="620" y="270" width="180" height="70" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="710" y="298" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">TakeANap / SMTP</text>
+        <text x="710" y="316" text-anchor="middle" fill="#475569" font-size="9">DPA + SLA</text>
+        <text x="710" y="328" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Обработващ</text>
+
+        <rect x="320" y="40" width="200" height="60" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="420" y="65" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Регулатори</text>
+        <text x="420" y="83" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">КЗЛД · КЗП · НАП</text>
+
+        <rect x="320" y="295" width="200" height="60" rx="12" fill="#fff" stroke="#cbd5e1" filter="url(#sh6)"/>
+        <text x="420" y="320" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">Хостинг / Cloudflare</text>
+        <text x="420" y="338" text-anchor="middle" fill="#9d174d" font-size="9" font-weight="700">Обработващ + DPA</text>
+      </g>
+
+      <line x1="220" y1="85"  x2="340" y2="180" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="220" y1="295" x2="340" y2="225" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="620" y1="85"  x2="500" y2="180" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="620" y1="195" x2="500" y2="200" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="620" y1="295" x2="500" y2="220" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="420" y1="100" x2="420" y2="160" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="420" y1="240" x2="420" y2="295" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+    </svg>
+    <div class="diagram-caption">
+      Цялостен поглед върху страните, договорите и характера на отношенията.
+      Документите в червен курсив са приоритетни за изготвяне.
+    </div>
+  </div>
+
+  <h3>15.3 Бърз чек-лист преди срещата с адвоката</h3>
+  <div class="two-col">
+    <div class="col-card">
+      <h4>Документи за подготовка</h4>
+      <ul>
+        <li>Този брифинг (печатен + електронен);</li>
+        <li>Архитектурна диаграма на платформата;</li>
+        <li>Списък на интеграциите с трети страни;</li>
+        <li>Текущи Общи условия (драфт) — ако има;</li>
+        <li>Списък на категории събирани данни;</li>
+        <li>Скрийншоти на основните потребителски потоци (регистрация, обява, плащане).</li>
+      </ul>
+    </div>
+    <div class="col-card">
+      <h4>Цели и резултати</h4>
+      <ul>
+        <li>План за действие с приоритети и срокове;</li>
+        <li>Оферта за изготвяне на необходимите документи;</li>
+        <li>Препоръка за вътрешен / външен DPO;</li>
+        <li>Препоръка за застраховка;</li>
+        <li>График на следващи срещи (примерно месечни);</li>
+        <li>Списък на въпроси, изискващи допълнителен анализ.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footnote">
+    Документ изготвен на 11.06.2026 г. за вътрешна употреба от екипа на MomVibe.
+    Версия 1.0. Авторите запазват всички права. Този материал не съдържа правен
+    съвет и не може да замести индивидуална консултация с правоспособен адвокат.
+  </div>
+</section>
+
+</body>
+</html>

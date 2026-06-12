@@ -2,6 +2,7 @@ namespace MomVibe.Infrastructure.Services;
 
 using AutoMapper;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
@@ -35,6 +36,8 @@ public class AuthService : IAuthService
     private readonly JwtSettings _jwt;
     private readonly IAuditLogService _audit;
     private readonly IPublisher _publisher;
+    private readonly IAbuseDetectionService _detection;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -47,6 +50,8 @@ public class AuthService : IAuthService
         IOptions<JwtSettings> jwt,
         IAuditLogService audit,
         IPublisher publisher,
+        IAbuseDetectionService detection,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<AuthService> logger)
     {
         this._userManager = userManager;
@@ -58,6 +63,8 @@ public class AuthService : IAuthService
         this._jwt = jwt.Value;
         this._audit = audit;
         this._publisher = publisher;
+        this._detection = detection;
+        this._httpContextAccessor = httpContextAccessor;
         this._logger = logger;
     }
 
@@ -83,6 +90,12 @@ public class AuthService : IAuthService
 
         await this._userManager.AddToRoleAsync(user, "User");
 
+        // Record successful registration in the audit log with the originating IP so the
+        // multi-account heuristic can detect a single IP creating many accounts.
+        var registrationIp = GetClientIp();
+        await this._audit.LogAsync(user.Id, "Auth.Register", success: true, ipAddress: registrationIp);
+        await this._detection.EvaluateMultiAccountAsync(user.Id, registrationIp);
+
         // n8n user.registered webhook now lives in INotificationHandler<UserRegisteredEvent>.
         await this._publisher.Publish(new UserRegisteredEvent(user.Id));
 
@@ -91,30 +104,36 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
     {
+        var ipAddress = GetClientIp();
         var user = await this._userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            await this._audit.LogAsync("anonymous", "Auth.Login", success: false, details: "User not found");
+            await this._audit.LogAsync("anonymous", "Auth.Login", success: false, ipAddress: ipAddress, details: "User not found");
+            await this._detection.RecordFailedLoginAsync(request.Email, ipAddress);
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
         if (user.IsBlocked)
         {
-            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, details: "Account blocked");
+            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, ipAddress: ipAddress, details: "Account blocked");
             throw new UnauthorizedAccessException("Your account has been blocked.");
         }
 
         var isValid = await this._userManager.CheckPasswordAsync(user, request.Password);
         if (!isValid)
         {
-            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, details: "Invalid password");
+            await this._audit.LogAsync(user.Id, "Auth.Login", success: false, ipAddress: ipAddress, details: "Invalid password");
+            await this._detection.RecordFailedLoginAsync(user.Id, ipAddress);
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
         var response = await GenerateAuthResponseAsync(user);
-        await this._audit.LogAsync(user.Id, "Auth.Login", success: true);
+        await this._audit.LogAsync(user.Id, "Auth.Login", success: true, ipAddress: ipAddress);
         return response;
     }
+
+    private string? GetClientIp() =>
+        this._httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
     {

@@ -23,6 +23,7 @@ import Modal from '../components/common/Modal';
 import MakeOfferModal from '../components/items/MakeOfferModal';
 import FollowButton from '../components/users/FollowButton';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import ReportButton from '../components/moderation/ReportButton';
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -335,6 +336,12 @@ export default function ItemDetailPage() {
               isLiked={item.isLikedByCurrentUser}
               onToggle={user ? handleLikeToggle : undefined}
               onRequireAuth={!user ? () => setShowLoginModal(true) : undefined}
+            />
+            <ReportButton
+              targetType="Item"
+              targetId={item.id}
+              targetLabel={item.title}
+              ownerUserId={item.userId}
             />
           </div>
 

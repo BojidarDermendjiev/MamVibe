@@ -10,6 +10,7 @@ import { useAuth } from "./hooks/useAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CategoriesProvider } from "./contexts/CategoriesContext";
 import { SignalRProvider } from "./contexts/SignalRContext";
+import { BusinessHubProvider } from "./contexts/BusinessHubContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
@@ -40,6 +41,13 @@ const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
 const AdminShippingPage = lazy(() => import("./pages/admin/AdminShippingPage"));
 const AdminCommunityPage = lazy(() => import("./pages/admin/AdminCommunityPage"));
 const AdminAuditLogPage = lazy(() => import("./pages/admin/AdminAuditLogPage"));
+const AdminReportsPage = lazy(() => import("./pages/admin/AdminReportsPage"));
+const AdminAbuseSignalsPage = lazy(() => import("./pages/admin/AdminAbuseSignalsPage"));
+const AdminAppealsPage = lazy(() => import("./pages/admin/AdminAppealsPage"));
+const AdminBusinessProfilesPage = lazy(() => import("./pages/admin/AdminBusinessProfilesPage"));
+const AdminBusinessListingsPage = lazy(() => import("./pages/admin/AdminBusinessListingsPage"));
+const AdminBusinessReferralsPage = lazy(() => import("./pages/admin/AdminBusinessReferralsPage"));
+const AdminBusinessRevenuePage = lazy(() => import("./pages/admin/AdminBusinessRevenuePage"));
 const DoctorReviewsPage = lazy(() => import("./pages/DoctorReviewsPage"));
 const ChildFriendlyPlacesPage = lazy(() => import("./pages/ChildFriendlyPlacesPage"));
 const ShipmentDetailPage = lazy(() => import("./pages/ShipmentDetailPage"));
@@ -56,6 +64,18 @@ const BundlePaymentPage = lazy(() => import("./pages/BundlePaymentPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const FaqPage = lazy(() => import("./pages/FaqPage"));
 const HowItWorksPage = lazy(() => import("./pages/HowItWorksPage"));
+const CoachesBrowsePage = lazy(() => import("./pages/coaches/CoachesBrowsePage"));
+const CoachDetailPage = lazy(() => import("./pages/coaches/CoachDetailPage"));
+const VenuesBrowsePage = lazy(() => import("./pages/coaches/VenuesBrowsePage"));
+const BusinessRegisterPage = lazy(() => import("./pages/business/BusinessRegisterPage"));
+const BusinessListingFormPage = lazy(() => import("./pages/business/BusinessListingFormPage"));
+const BusinessPlanPage = lazy(() => import("./pages/business/BusinessPlanPage"));
+const BusinessDashboardPage = lazy(() => import("./pages/business/BusinessDashboardPage"));
+const SubscriptionSuccessPage = lazy(() => import("./pages/business/SubscriptionSuccessPage"));
+const PartnerLoginPage = lazy(() => import("./pages/PartnerLoginPage"));
+const PartnerRegisterPage = lazy(() => import("./pages/PartnerRegisterPage"));
+const RecommendCoachPage = lazy(() => import("./pages/coaches/RecommendCoachPage"));
+const PromoterDashboardPage = lazy(() => import("./pages/promoter/PromoterDashboardPage"));
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -108,6 +128,10 @@ function AppRoutes() {
         {/* Auth routes */}
         <Route path="/login" element={<ModernAuthPage />} />
         <Route path="/register" element={<ModernAuthPage />} />
+
+        {/* Partner (business) auth — dedicated visual track, same backend identity */}
+        <Route path="/partner/login" element={<PartnerLoginPage />} />
+        <Route path="/partner/register" element={<PartnerRegisterPage />} />
         <Route element={<AuthLayout />}>
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -122,6 +146,13 @@ function AppRoutes() {
             <Route path="/admin/shipping" element={<AdminShippingPage />} />
             <Route path="/admin/community" element={<AdminCommunityPage />} />
             <Route path="/admin/audit-logs" element={<AdminAuditLogPage />} />
+            <Route path="/admin/reports" element={<AdminReportsPage />} />
+            <Route path="/admin/abuse-signals" element={<AdminAbuseSignalsPage />} />
+            <Route path="/admin/appeals" element={<AdminAppealsPage />} />
+            <Route path="/admin/business/profiles" element={<AdminBusinessProfilesPage />} />
+            <Route path="/admin/business/listings" element={<AdminBusinessListingsPage />} />
+            <Route path="/admin/business/referrals" element={<AdminBusinessReferralsPage />} />
+            <Route path="/admin/business/revenue" element={<AdminBusinessRevenuePage />} />
           </Route>
         </Route>
 
@@ -141,9 +172,21 @@ function AppRoutes() {
           <Route path="/donate/card" element={<DonationCardPage />} />
           <Route path="/doctor-reviews" element={<DoctorReviewsPage />} />
           <Route path="/child-friendly-places" element={<ChildFriendlyPlacesPage />} />
+          <Route path="/coaches" element={<CoachesBrowsePage />} />
+          <Route path="/coaches/:id" element={<CoachDetailPage />} />
+          <Route path="/coaches/recommend" element={<RecommendCoachPage />} />
+          <Route path="/venues" element={<VenuesBrowsePage />} />
+          <Route path="/venues/:id" element={<CoachDetailPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/business/register" element={<BusinessRegisterPage />} />
+            <Route path="/business/listing/new" element={<BusinessListingFormPage />} />
+            <Route path="/business/listing/edit" element={<BusinessListingFormPage />} />
+            <Route path="/business/plan" element={<BusinessPlanPage />} />
+            <Route path="/business/dashboard" element={<BusinessDashboardPage />} />
+            <Route path="/business/subscription/success" element={<SubscriptionSuccessPage />} />
+            <Route path="/promoter/dashboard" element={<PromoterDashboardPage />} />
             <Route path="/create" element={<CreateItemPage />} />
             <Route path="/items/:id/edit" element={<EditItemPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -179,9 +222,11 @@ export default function App() {
       <ThemeProvider>
         <CategoriesProvider>
           <SignalRProvider>
-            <NotificationProvider>
-              <AppRoutes />
-            </NotificationProvider>
+            <BusinessHubProvider>
+              <NotificationProvider>
+                <AppRoutes />
+              </NotificationProvider>
+            </BusinessHubProvider>
           </SignalRProvider>
         </CategoriesProvider>
       </ThemeProvider>

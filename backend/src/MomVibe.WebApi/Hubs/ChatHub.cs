@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
+using MomVibe.WebApi;
 using Application.Interfaces;
 using Application.DTOs.Messages;
 using Application.DTOs.Follows;
@@ -48,6 +49,7 @@ public class ChatHub : Hub<IChatClient>
     /// <param name="receiverId">The identifier of the message recipient.</param>
     /// <param name="content">The message text (max 2000 characters).</param>
     /// <returns>The persisted <see cref="MessageDto"/>.</returns>
+    [Authorize(Policy = AuthorizationPolicies.WritePermitted)]
     public async Task<MessageDto> SendMessage(string receiverId, string content)
     {
         if (string.IsNullOrWhiteSpace(receiverId))
@@ -100,7 +102,7 @@ public class ChatHub : Hub<IChatClient>
         await Clients.Group($"user_{receiverId}").UserTyping(userId);
     }
 
-    /// <summary>Registers the connection in the presence tracker, joins the user's group, and broadcasts an online notification to other clients.</summary>
+    /// <summary>Registers the connection in the presence tracker, joins the user's group, and broadcasts an online notification only to users who already share a conversation with this user.</summary>
     public override async Task OnConnectedAsync()
     {
         var userId = Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value;
@@ -108,11 +110,11 @@ public class ChatHub : Hub<IChatClient>
         await this._presenceTracker.AddConnectionAsync(userId, Context.ConnectionId);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
-        await Clients.Others.UserOnline(userId);
+        await this.NotifyConversationPartnersAsync(userId, online: true);
         await base.OnConnectedAsync();
     }
 
-    /// <summary>Removes the connection from the presence tracker and, if it was the user's last connection, broadcasts an offline notification.</summary>
+    /// <summary>Removes the connection from the presence tracker and, if it was the user's last connection, broadcasts an offline notification to conversation partners only.</summary>
     /// <param name="exception">The exception that caused the disconnect, if any.</param>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
@@ -121,10 +123,32 @@ public class ChatHub : Hub<IChatClient>
         var wentOffline = await this._presenceTracker.RemoveConnectionAsync(userId, Context.ConnectionId);
         if (wentOffline)
         {
-            await Clients.Others.UserOffline(userId);
+            await this.NotifyConversationPartnersAsync(userId, online: false);
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private async Task NotifyConversationPartnersAsync(string userId, bool online)
+    {
+        // Presence is only revealed to users who already share a message thread with this user.
+        // Broadcasting to Clients.Others would let any authenticated client harvest the full
+        // active-user list over time by observing online/offline notifications.
+        try
+        {
+            var partnerIds = await this._messageService.GetConversationPartnerIdsAsync(userId);
+            if (partnerIds.Count == 0) return;
+
+            var partnerGroups = partnerIds.Select(id => $"user_{id}").ToArray();
+            if (online)
+                await Clients.Groups(partnerGroups).UserOnline(userId);
+            else
+                await Clients.Groups(partnerGroups).UserOffline(userId);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogWarning(ex, "Failed to scope presence notification for user {UserId}", userId);
+        }
     }
 }
 

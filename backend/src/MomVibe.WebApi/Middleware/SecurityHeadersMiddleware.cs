@@ -41,7 +41,7 @@ public class SecurityHeadersMiddleware
             "style-src 'self'; " +
             "img-src 'self' data: blob: https:; " +
             "font-src 'self'; " +
-            "connect-src 'self' https://api.stripe.com https://challenges.cloudflare.com; " +
+            "connect-src 'self' wss: https://api.stripe.com https://challenges.cloudflare.com; " +
             "frame-src https://challenges.cloudflare.com https://js.stripe.com https://accounts.google.com; " +
             "object-src 'none'; " +
             "base-uri 'self'; " +

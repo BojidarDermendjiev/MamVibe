@@ -139,6 +139,15 @@ $RECYCLE.BIN/
 **/lcov.info
 
 # ──────────────────────────────────────────────────────────────
+# Load Tests
+# ──────────────────────────────────────────────────────────────
+load-tests/k6/test-users.json
+load-tests/reports/
+load-tests/nbomber/reports/
+load-tests/nbomber/bin/
+load-tests/nbomber/obj/
+
+# ──────────────────────────────────────────────────────────────
 # Misc
 # ──────────────────────────────────────────────────────────────
 *.swp

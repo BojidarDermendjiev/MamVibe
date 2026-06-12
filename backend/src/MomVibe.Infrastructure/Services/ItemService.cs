@@ -29,6 +29,7 @@ public class ItemService : IItemService
     private readonly INekorektenService _nekorekten;
     private readonly IMemoryCache _cache;
     private readonly IPublisher _publisher;
+    private readonly IAbuseDetectionService _detection;
     private readonly ILogger<ItemService> _logger;
 
     private const double AutoApproveThreshold = 0.85;
@@ -45,6 +46,7 @@ public class ItemService : IItemService
         INekorektenService nekorekten,
         IMemoryCache cache,
         IPublisher publisher,
+        IAbuseDetectionService detection,
         ILogger<ItemService> logger)
     {
         this._context = context;
@@ -54,6 +56,7 @@ public class ItemService : IItemService
         this._nekorekten = nekorekten;
         this._cache = cache;
         this._publisher = publisher;
+        this._detection = detection;
         this._logger = logger;
     }
 
@@ -215,6 +218,10 @@ public class ItemService : IItemService
 
         this._context.Items.Add(item);
         await this._context.SaveChangesAsync();
+
+        // Fire-and-forget abuse heuristic: flag a user who creates many listings in a short
+        // window (raises an AbuseSignal for admin review, never auto-enforces).
+        await this._detection.EvaluateListingBurstAsync(userId);
 
         // Load navigation properties (needed for moderation context + webhook payload)
         var createdItem = await this._context.Items

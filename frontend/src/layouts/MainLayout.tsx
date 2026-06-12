@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { authApi } from "../api/authApi";
@@ -28,6 +29,7 @@ import Button from "../components/common/Button";
 import CookieConsent from "../components/common/CookieConsent";
 import ScrollToTop from "../components/common/ScrollToTop";
 import MamVibeAssistantWidget from "../components/common/MamVibeAssistantWidget";
+import SuspensionBanner from "../components/moderation/SuspensionBanner";
 import toast from "../utils/toast";
 
 /* ─── NavPill ─────────────────────────────────────────────────────────────── */
@@ -250,6 +252,7 @@ export default function MainLayout() {
     { name: t("nav.browse") || "Browse", url: "/browse", icon: Search },
     { name: t("nav.doctors") || "Doctors", url: "/doctor-reviews", icon: Stethoscope },
     { name: t("nav.places") || "Places", url: "/child-friendly-places", icon: Baby },
+    { name: t("nav.coaches") || "Coaches", url: "/coaches", icon: Sparkles },
     ...(isAuthenticated
       ? [
           {
@@ -369,6 +372,7 @@ export default function MainLayout() {
         Mobile:  pt-16 clears the solid top bar; pb-24 clears the bottom pill
       */}
       <main id="main-content" className="flex-1 animate-fade-in pt-14 pb-24 md:pt-20 md:pb-0">
+        <SuspensionBanner />
         <Outlet />
       </main>
 

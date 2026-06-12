@@ -25,6 +25,7 @@ public class MessageService : IMessageService
     private readonly UserPresenceTracker _presenceTracker;
     private readonly IAiService _aiService;
     private readonly IKnowledgeService _knowledge;
+    private readonly IAbuseDetectionService _detection;
     private readonly ILogger<MessageService> _logger;
 
     public MessageService(
@@ -35,6 +36,7 @@ public class MessageService : IMessageService
         UserPresenceTracker presenceTracker,
         IAiService aiService,
         IKnowledgeService knowledge,
+        IAbuseDetectionService detection,
         ILogger<MessageService> logger)
     {
         this._context = context;
@@ -44,6 +46,7 @@ public class MessageService : IMessageService
         this._presenceTracker = presenceTracker;
         this._aiService = aiService;
         this._knowledge = knowledge;
+        this._detection = detection;
         this._logger = logger;
     }
 
@@ -166,6 +169,10 @@ public class MessageService : IMessageService
             .Include(m => m.Receiver)
             .FirstAsync(m => m.Id == message.Id);
 
+        // Fire-and-forget abuse heuristic — scans the message for spam/scam keywords and
+        // raises an AbuseSignal if a pattern matches. Never throws by contract.
+        await this._detection.EvaluateMessageAsync(senderId, content);
+
         // If receiver is offline (and not the AI bot), queue an offline-notification webhook
         // through the transactional outbox. The processor will deliver it with retry + backoff.
         try
@@ -285,5 +292,20 @@ public class MessageService : IMessageService
         {
             return null; // DB save failure (e.g. bot user not yet seeded) must not crash the hub
         }
+    }
+
+    public async Task<IReadOnlyList<string>> GetConversationPartnerIdsAsync(string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return Array.Empty<string>();
+
+        var partners = await this._context.Messages
+            .AsNoTracking()
+            .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+            .Select(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+            .Where(id => id != userId)
+            .Distinct()
+            .ToListAsync();
+
+        return partners;
     }
 }

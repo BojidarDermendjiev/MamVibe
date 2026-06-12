@@ -38,7 +38,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ConnectionStrings__DefaultConnection: "Host=pgbouncer;Port=6432;Database=${POSTGRES_DB:-MamVibeDb};Username=${POSTGRES_USER:-mamvibe};Password=${POSTGRES_PASSWORD:-changeme};No Reset On Close=true"
-      Redis__Url: "redis:6379"
+      Redis__Url: "redis:6379,password=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}"
       FrontendUrl: "${FRONTEND_URL:-http://localhost}"
       AllowedHosts: "${ALLOWED_HOSTS:-localhost;api;api:8080}"
 
@@ -134,7 +134,14 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1
+    # requirepass: closes the in-network anonymous-auth gap. All callers (API, future
+    # workers) must supply the password via the StackExchange.Redis connection string.
+    command:
+      - "sh"
+      - "-c"
+      - "redis-server --requirepass \"$$REDIS_PASSWORD\" --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
     volumes:
       - redis_data:/data
     networks:
@@ -146,7 +153,7 @@ services:
           memory: 300M
 
   pgbouncer:
-    image: edoburu/pgbouncer:latest
+    image: edoburu/pgbouncer:1.23.1
     restart: unless-stopped
     environment:
       DB_HOST: postgres
@@ -166,7 +173,7 @@ services:
       - db-net
 
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:1.71.3
     restart: unless-stopped
     environment:
       # N8N_ENCRYPTION_KEY MUST be set in .env — the default is insecure and must not be used in production.

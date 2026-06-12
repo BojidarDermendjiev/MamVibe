@@ -110,7 +110,11 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = true;
         await this._userManager.UpdateAsync(user);
+        // Evict both the legacy "blocked:{id}" key (still referenced by deprecated
+        // BlockedUserMiddleware test seams) and the new "moderation:{id}" key used by
+        // UserModerationMiddleware/WritePermittedHandler.
         await this._distributedCache.RemoveAsync($"blocked:{userId}");
+        await this._distributedCache.RemoveAsync($"moderation:{userId}");
         await this._audit.LogAsync("admin", "Admin.BlockUser", success: true, targetId: userId);
 
         try
@@ -145,7 +149,11 @@ public class AdminService : IAdminService
         if (user == null) throw new KeyNotFoundException("User not found.");
         user.IsBlocked = false;
         await this._userManager.UpdateAsync(user);
+        // Evict both the legacy "blocked:{id}" key (still referenced by deprecated
+        // BlockedUserMiddleware test seams) and the new "moderation:{id}" key used by
+        // UserModerationMiddleware/WritePermittedHandler.
         await this._distributedCache.RemoveAsync($"blocked:{userId}");
+        await this._distributedCache.RemoveAsync($"moderation:{userId}");
         await this._audit.LogAsync("admin", "Admin.UnblockUser", success: true, targetId: userId);
     }
 

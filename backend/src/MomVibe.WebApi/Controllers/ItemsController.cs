@@ -193,7 +193,7 @@ public class ItemsController : ControllerBase
     /// 401 Unauthorized if the current user context is missing.<br/>
     /// 201 Created with the created item resource and location.
     /// </returns>
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.WritePermitted)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateItemDto dto)
     {

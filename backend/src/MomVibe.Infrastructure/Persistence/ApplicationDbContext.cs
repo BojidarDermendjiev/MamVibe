@@ -74,6 +74,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<ItemModerationLog> ItemModerationLogs => Set<ItemModerationLog>();
 
     /// <inheritdoc/>
+    public DbSet<UserModerationLog> UserModerationLogs => Set<UserModerationLog>();
+
+    /// <inheritdoc/>
+    public DbSet<AbuseReport> AbuseReports => Set<AbuseReport>();
+
+    /// <inheritdoc/>
+    public DbSet<AbuseSignal> AbuseSignals => Set<AbuseSignal>();
+
+    /// <inheritdoc/>
+    public DbSet<ModerationAppeal> ModerationAppeals => Set<ModerationAppeal>();
+
+    /// <inheritdoc/>
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     /// <inheritdoc/>
@@ -90,6 +102,54 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     /// <inheritdoc/>
     public DbSet<KnowledgeArticle> KnowledgeArticles => Set<KnowledgeArticle>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessProfile> BusinessProfiles => Set<BusinessProfile>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListing> BusinessListings => Set<BusinessListing>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListingPhoto> BusinessListingPhotos => Set<BusinessListingPhoto>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListingLike> BusinessListingLikes => Set<BusinessListingLike>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListingComment> BusinessListingComments => Set<BusinessListingComment>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListingViewEvent> BusinessListingViewEvents => Set<BusinessListingViewEvent>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessListingDailyStat> BusinessListingDailyStats => Set<BusinessListingDailyStat>();
+
+    /// <inheritdoc/>
+    public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessSubscription> BusinessSubscriptions => Set<BusinessSubscription>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessSubscriptionEvent> BusinessSubscriptionEvents => Set<BusinessSubscriptionEvent>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessPolicyVersion> BusinessPolicyVersions => Set<BusinessPolicyVersion>();
+
+    /// <inheritdoc/>
+    public DbSet<BusinessPolicyAcceptance> BusinessPolicyAcceptances => Set<BusinessPolicyAcceptance>();
+
+    /// <inheritdoc/>
+    public DbSet<DeviceFingerprint> DeviceFingerprints => Set<DeviceFingerprint>();
+
+    /// <inheritdoc/>
+    public DbSet<DeviceFingerprintUser> DeviceFingerprintUsers => Set<DeviceFingerprintUser>();
+
+    /// <inheritdoc/>
+    public DbSet<PromoterProfile> PromoterProfiles => Set<PromoterProfile>();
+
+    /// <inheritdoc/>
+    public DbSet<CoachReferral> CoachReferrals => Set<CoachReferral>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder builder)

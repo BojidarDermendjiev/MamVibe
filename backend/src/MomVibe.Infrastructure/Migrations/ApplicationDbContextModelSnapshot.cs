@@ -18,7 +18,7 @@ namespace MomVibe.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.27")
+                .HasAnnotation("ProductVersion", "8.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -155,6 +155,144 @@ namespace MomVibe.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.AbuseReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReporterId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResolvedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid?>("ResultingModerationLogId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("TargetId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TargetUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReporterId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_AbuseReports_Reporter_CreatedAt");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_AbuseReports_Status_CreatedAt");
+
+                    b.HasIndex("TargetUserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_AbuseReports_TargetUser_CreatedAt");
+
+                    b.HasIndex("ReporterId", "TargetType", "TargetId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_AbuseReports_Reporter_Target_Pending")
+                        .HasFilter("\"Status\" = 0");
+
+                    b.ToTable("AbuseReports");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.AbuseSignal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Acknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AcknowledgedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("EvidenceTargetId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SubjectUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Acknowledged", "CreatedAt")
+                        .HasDatabaseName("IX_AbuseSignals_Acknowledged_CreatedAt");
+
+                    b.HasIndex("SubjectUserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_AbuseSignals_Subject_CreatedAt");
+
+                    b.HasIndex("Type", "CreatedAt")
+                        .HasDatabaseName("IX_AbuseSignals_Type_CreatedAt");
+
+                    b.ToTable("AbuseSignals");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.AppSetting", b =>
                 {
                     b.Property<string>("Key")
@@ -180,15 +318,16 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("ActiveModerationLogId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Absolute URL to the user's avatar image.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Bio")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("User-provided short biography.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -197,14 +336,12 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'")
-                        .HasComment("UTC timestamp when the user account was created.");
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasComment("Public display name shown to other users.");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -217,12 +354,6 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<bool>("IsBlocked")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasComment("Indicates whether the account is blocked from interacting.");
-
                     b.Property<bool>("IsOnHoliday")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -233,13 +364,32 @@ namespace MomVibe.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
-                        .HasDefaultValue("en")
-                        .HasComment("Preferred language or locale (e.g., en or en-US).");
+                        .HasDefaultValue("en");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ModerationExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ModerationLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ModerationPublicReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("ModerationReason")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("ModerationStartedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
@@ -260,13 +410,11 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<int>("ProfileType")
-                        .HasColumnType("integer")
-                        .HasComment("Type/category of the user's profile.");
+                        .HasColumnType("integer");
 
                     b.Property<string>("RevolutTag")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasComment("Revolut username or tag for peer-to-peer payments via the Revolut app.");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -286,6 +434,9 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("ModerationLevel", "ModerationExpiresAt")
+                        .HasDatabaseName("IX_AspNetUsers_ModerationLevel_ModerationExpiresAt");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -358,7 +509,6 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("SellerId")
@@ -407,6 +557,605 @@ namespace MomVibe.Infrastructure.Migrations
                     b.ToTable("BundleItems");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActivityType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AddressLine")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<short?>("AgeFromMonths")
+                        .HasColumnType("smallint");
+
+                    b.Property<short?>("AgeToMonths")
+                        .HasColumnType("smallint");
+
+                    b.Property<Guid>("BusinessProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("CommentCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("numeric(10,7)");
+
+                    b.Property<long>("LikeCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("numeric(10,7)");
+
+                    b.Property<decimal?>("PriceFromEur")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<int>("RankBoost")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Schedule")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("ViewCount")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityType")
+                        .HasDatabaseName("IX_BusinessListings_ActivityType");
+
+                    b.HasIndex("BusinessProfileId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessListings_BusinessProfileId");
+
+                    b.HasIndex("City")
+                        .HasDatabaseName("IX_BusinessListings_City");
+
+                    b.HasIndex("IsApproved")
+                        .HasDatabaseName("IX_BusinessListings_IsApproved");
+
+                    b.HasIndex("IsActive", "IsApproved", "RankBoost", "CreatedAt")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("IX_BusinessListings_BrowseSort");
+
+                    b.ToTable("BusinessListings");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HiddenReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentCommentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("IX_BusinessListingComments_ListingId");
+
+                    b.HasIndex("ParentCommentId")
+                        .HasDatabaseName("IX_BusinessListingComments_ParentCommentId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_BusinessListingComments_UserId");
+
+                    b.HasIndex("ListingId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_BusinessListingComments_Listing_CreatedAt");
+
+                    b.ToTable("BusinessListingComments");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingDailyStat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Comments")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<long>("Likes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("UniqueViewers")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Views")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessListingDailyStats_Listing_Date");
+
+                    b.ToTable("BusinessListingDailyStats");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingLike", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("IX_BusinessListingLikes_ListingId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_BusinessListingLikes_UserId");
+
+                    b.HasIndex("UserId", "ListingId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessListingLikes_User_Listing");
+
+                    b.ToTable("BusinessListingLikes");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsCover")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId")
+                        .HasDatabaseName("IX_BusinessListingPhotos_ListingId");
+
+                    b.HasIndex("ListingId", "DisplayOrder")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessListingPhotos_Listing_Order");
+
+                    b.ToTable("BusinessListingPhotos");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingViewEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ViewerHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListingId", "OccurredAt")
+                        .HasDatabaseName("IX_BusinessListingViewEvents_Listing_OccurredAt");
+
+                    b.ToTable("BusinessListingViewEvents");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessPolicyAcceptance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("BusinessProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<Guid>("PolicyVersionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PolicyVersionId");
+
+                    b.HasIndex("BusinessProfileId", "PolicyVersionId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessPolicyAcceptances_Profile_Version");
+
+                    b.ToTable("BusinessPolicyAcceptances");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessPolicyVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BodyMarkdown")
+                        .IsRequired()
+                        .HasMaxLength(32000)
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Language", "IsCurrent")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessPolicyVersions_Language_Current")
+                        .HasFilter("\"IsCurrent\" = true");
+
+                    b.HasIndex("Language", "Version")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessPolicyVersions_Language_Version");
+
+                    b.ToTable("BusinessPolicyVersions");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContactEmail")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceCheckBypassReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("DeviceCheckBypassedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("DeviceFingerprintHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IpAtRegistration")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("PolicyVersionAcceptedId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ProfileKind")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("StripeCustomerId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserAgentAtRegistration")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("City")
+                        .HasDatabaseName("IX_BusinessProfiles_City");
+
+                    b.HasIndex("DeviceFingerprintHash")
+                        .HasDatabaseName("IX_BusinessProfiles_DeviceFingerprintHash");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_BusinessProfiles_Status");
+
+                    b.HasIndex("StripeCustomerId")
+                        .HasDatabaseName("IX_BusinessProfiles_StripeCustomerId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessProfiles_UserId");
+
+                    b.ToTable("BusinessProfiles");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BusinessProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CanceledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CurrentPeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CurrentPeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("GracePeriodEndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PlanCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("TrialEndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessProfileId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessSubscriptions_BusinessProfileId");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .HasDatabaseName("IX_BusinessSubscriptions_StripeSubscriptionId");
+
+                    b.HasIndex("Status", "GracePeriodEndsAt")
+                        .HasDatabaseName("IX_BusinessSubscriptions_Status_GraceEndsAt");
+
+                    b.HasIndex("Status", "TrialEndsAt")
+                        .HasDatabaseName("IX_BusinessSubscriptions_Status_TrialEndsAt");
+
+                    b.ToTable("BusinessSubscriptions");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessSubscriptionEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasMaxLength(32000)
+                        .HasColumnType("text");
+
+                    b.Property<string>("RawType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StripeEventId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("SubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StripeEventId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BusinessSubscriptionEvents_StripeEventId");
+
+                    b.HasIndex("SubscriptionId", "OccurredAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_BusinessSubscriptionEvents_Subscription_OccurredAt");
+
+                    b.ToTable("BusinessSubscriptionEvents");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -418,20 +1167,17 @@ namespace MomVibe.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Optional description of the category.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasComment("Human-readable category name.");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasComment("URL-friendly unique identifier for the category.");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -582,6 +1328,151 @@ namespace MomVibe.Infrastructure.Migrations
                     b.ToTable("ChildFriendlyPlaces");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.CoachReferral", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ActionedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ActionedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("ActivityType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ReferralCode")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("ReferrerUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactEmail")
+                        .HasDatabaseName("IX_CoachReferrals_ContactEmail");
+
+                    b.HasIndex("ContactPhone")
+                        .HasDatabaseName("IX_CoachReferrals_ContactPhone");
+
+                    b.HasIndex("ReferralCode")
+                        .HasDatabaseName("IX_CoachReferrals_ReferralCode");
+
+                    b.HasIndex("ReferrerUserId")
+                        .HasDatabaseName("IX_CoachReferrals_ReferrerUserId");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_CoachReferrals_Status_CreatedAt");
+
+                    b.ToTable("CoachReferrals");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.DeviceFingerprint", b =>
+                {
+                    b.Property<string>("Hash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LinkedUserCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ReviewedByAdmin")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Hash");
+
+                    b.ToTable("DeviceFingerprints");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.DeviceFingerprintUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FingerprintHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_DeviceFingerprintUsers_UserId");
+
+                    b.HasIndex("FingerprintHash", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_DeviceFingerprintUsers_Hash_User");
+
+                    b.ToTable("DeviceFingerprintUsers");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.DoctorReview", b =>
                 {
                     b.Property<Guid>("Id")
@@ -655,33 +1546,28 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("Category")
-                        .HasColumnType("integer")
-                        .HasComment("Category/type of the feedback (e.g., bug, feature request, general).");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasComment("Textual content of the feedback.");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsContactable")
-                        .HasColumnType("boolean")
-                        .HasComment("Whether the user consents to being contacted regarding this feedback.");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Rating")
-                        .HasColumnType("integer")
-                        .HasComment("Feedback rating from 1 (lowest) to 5 (highest).");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the user who submitted the feedback (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -749,8 +1635,7 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CategoryId")
-                        .HasColumnType("uuid")
-                        .HasComment("Foreign key referencing the item's category.");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("ClothingSize")
                         .HasColumnType("integer");
@@ -764,14 +1649,12 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)")
-                        .HasComment("Detailed description of the item.");
+                        .HasColumnType("character varying(5000)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasComment("Indicates whether the listing is active/visible.");
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsReserved")
                         .HasColumnType("boolean");
@@ -782,17 +1665,13 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<int>("LikeCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasComment("Total number of likes for this item.");
+                        .HasDefaultValue(0);
 
                     b.Property<int>("ListingType")
-                        .HasColumnType("integer")
-                        .HasComment("Listing type (domain-specific enumeration).");
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasComment("Item price in currency units; null if not applicable.");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int?>("ShoeSize")
                         .HasColumnType("integer");
@@ -800,22 +1679,19 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasComment("Human-readable item title.");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Foreign key referencing the owning user's identifier.");
+                        .HasColumnType("text");
 
                     b.Property<int>("ViewCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasComment("Total number of views for this item.");
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -905,12 +1781,10 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasComment("Zero-based display order among the item's photos.");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid")
-                        .HasComment("Foreign key referencing the owning item.");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -918,8 +1792,7 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Absolute URL to the photo resource.");
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
 
@@ -1003,20 +1876,20 @@ namespace MomVibe.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            Content = "Pay with a MamVibe Wallet balance or directly by card via Stripe checkout. Top up the wallet from Settings → Wallet (minimum 5 BGN). Wallet balance never expires. Sellers receive funds only after the buyer confirms receipt. Withdraw earnings from Settings → Wallet → Withdraw (IBAN required, processed in 2 business days). Cash-on-delivery is available for Econt and Speedy.",
+                            Content = "Pay by card via Stripe checkout. Cash-on-delivery (COD) is available for Econt and Speedy shipments. Sellers list their Revolut Tag on their profile for peer-to-peer transfers. Sellers receive funds only after the buyer confirms receipt.",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Language = "en",
-                            Tags = new[] { "payment", "wallet", "stripe", "card", "cod", "withdraw" },
-                            Title = "Payments & MamVibe Wallet"
+                            Tags = new[] { "payment", "stripe", "card", "cod", "revolut" },
+                            Title = "Payments on MamVibe"
                         },
                         new
                         {
                             Id = 4,
-                            Content = "Платете с баланс в MamVibe Портфейл или директно с карта чрез Stripe. Портфейлът се зарежда от Настройки → Портфейл (минимум 5 лв.). Балансът не изтича. Продавачите получават пари след потвърждение от купувача. Тегленето е от Настройки → Портфейл → Теглене (необходим IBAN, обработен в 2 работни дни). Наложен платеж е наличен при Еконт и Спиди.",
+                            Content = "Платете с карта чрез Stripe. Наложен платеж е наличен при Еконт и Спиди. Продавачите могат да посочат Revolut Tag в профила си за директни преводи. Продавачите получават пари след потвърждение от купувача.",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Language = "bg",
-                            Tags = new[] { "плащане", "портфейл", "карта", "наложен платеж", "теглене" },
-                            Title = "Плащания и Портфейл в MamVibe"
+                            Tags = new[] { "плащане", "карта", "наложен платеж", "revolut" },
+                            Title = "Плащания в MamVibe"
                         },
                         new
                         {
@@ -1039,7 +1912,7 @@ namespace MomVibe.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            Content = "To buy an item: go to /browse and filter by category, age group, price, or listing type. Click an item and press Send Purchase Request. The seller has 48 hours to accept — no response means the request is auto-cancelled. Once accepted, complete payment via Wallet or card. The seller ships within 3 business days. Confirm receipt in Dashboard → Purchases; it auto-confirms after 5 days.",
+                            Content = "To buy an item: go to /browse and filter by category, age group, price, or listing type. Click an item and press Send Purchase Request. The seller has 48 hours to accept — no response means the request is auto-cancelled. Once accepted, complete payment by card via Stripe. The seller ships within 3 business days. Confirm receipt in Dashboard → Purchases; it auto-confirms after 5 days.",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Language = "en",
                             Tags = new[] { "buy", "purchase", "request", "order", "browse" },
@@ -1174,16 +2047,14 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid")
-                        .HasComment("Foreign key referencing the liked item.");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the user who liked the item (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -1206,8 +2077,7 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasComment("Textual content of the message.");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1215,18 +2085,15 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasComment("Indicates whether the message has been read by the receiver.");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("ReceiverId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the receiving user (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.Property<string>("SenderId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the sending user (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1246,6 +2113,66 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("SenderId", "ReceiverId", "CreatedAt");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.ModerationAppeal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AdminDecisionNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("AdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ModerationLogId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("UserStatement")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModerationLogId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ModerationAppeals_OpenPerEvent")
+                        .HasFilter("\"Status\" IN (0, 1)");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_ModerationAppeals_Status_CreatedAt");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_ModerationAppeals_User_CreatedAt");
+
+                    b.ToTable("ModerationAppeals");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.Offer", b =>
@@ -1339,57 +2266,46 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasComment("Monetary amount for the payment.");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid?>("BundleId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("BuyerId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the buying user (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("EBillNumber")
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasComment("Human-readable e-bill number assigned when a purchase is completed (e.g. MV-2026-A1B2C3D4).");
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("IdempotencyKey")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasComment("Client-supplied idempotency key used to dedupe duplicate payment-creation requests.");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<Guid?>("ItemId")
-                        .HasColumnType("uuid")
-                        .HasComment("Foreign key referencing the purchased item.");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer")
-                        .HasComment("Payment method (domain-specific enumeration).");
+                        .HasColumnType("integer");
 
                     b.Property<string>("ReceiptUrl")
                         .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)")
-                        .HasComment("URL to the digital receipt from Take a NAP.");
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("SellerId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the selling user (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasComment("Current payment status (e.g., Pending, Succeeded, Failed).");
+                        .HasColumnType("integer");
 
                     b.Property<string>("StripeSessionId")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Stripe checkout session identifier, if applicable.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1403,7 +2319,8 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("IdempotencyKey")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"IdempotencyKey\" IS NOT NULL");
 
                     b.HasIndex("ItemId");
 
@@ -1416,6 +2333,50 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("SellerId", "Status");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.PromoterProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ReferralCode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int>("TotalActivations")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalReferrals")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PromoterProfiles_ReferralCode");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PromoterProfiles_UserId");
+
+                    b.ToTable("PromoterProfiles");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.PurchaseRequest", b =>
@@ -1474,31 +2435,26 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasComment("UTC timestamp when the token expires.");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReplacedByToken")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Token that replaced this one in a rotation flow; null if not replaced.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasComment("UTC timestamp when the token was revoked; null if still valid.");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Raw or hashed refresh token string.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasComment("Identifier of the user to whom the token belongs (FK to ApplicationUser.Id).");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -1577,100 +2533,77 @@ namespace MomVibe.Infrastructure.Migrations
 
                     b.Property<string>("City")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasComment("City name for delivery destination.");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<decimal>("CodAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasComment("Cash on delivery amount to collect from recipient.");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("CourierProvider")
-                        .HasColumnType("integer")
-                        .HasComment("Courier provider used for this shipment (Econt, Speedy).");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeliveryAddress")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasComment("Street address for address-based delivery.");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("DeliveryType")
-                        .HasColumnType("integer")
-                        .HasComment("Delivery type (Office, Address, Locker).");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("InsuredAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasComment("Declared value for shipment insurance.");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<bool>("IsCod")
-                        .HasColumnType("boolean")
-                        .HasComment("Whether cash on delivery is enabled.");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsInsured")
-                        .HasColumnType("boolean")
-                        .HasComment("Whether the shipment has additional insurance.");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LabelUrl")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasComment("URL or path to the generated shipping label PDF.");
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("OfficeId")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasComment("Courier office or locker identifier.");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("OfficeName")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasComment("Courier office or locker display name.");
+                        .HasColumnType("character varying(300)");
 
                     b.Property<Guid>("PaymentId")
-                        .HasColumnType("uuid")
-                        .HasComment("Foreign key referencing the associated payment.");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("RecipientName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasComment("Full name of the shipment recipient.");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("RecipientPhone")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasComment("Phone number of the shipment recipient.");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<decimal>("ShippingPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasComment("Shipping price charged for this shipment.");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasComment("Current shipment lifecycle status.");
+                        .HasColumnType("integer");
 
                     b.Property<string>("TrackingNumber")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasComment("Courier tracking number for package lookup.");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("WaybillId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasComment("Courier waybill identifier for API operations.");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<decimal>("Weight")
-                        .HasPrecision(10, 3)
-                        .HasColumnType("numeric(10,3)")
-                        .HasComment("Package weight in kilograms.");
+                        .HasColumnType("numeric(10,3)");
 
                     b.HasKey("Id");
 
@@ -1685,6 +2618,134 @@ namespace MomVibe.Infrastructure.Migrations
                     b.HasIndex("TrackingNumber");
 
                     b.ToTable("Shipments");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.SubscriptionPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FeaturesJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("MonthlyPriceEur")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<int>("RankBoost")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StripePriceId")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("TrialDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_SubscriptionPlans_Code");
+
+                    b.HasIndex("SortOrder")
+                        .HasDatabaseName("IX_SubscriptionPlans_SortOrder");
+
+                    b.ToTable("SubscriptionPlans");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.UserModerationLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AdminDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("AdminId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InternalNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("NewLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PreviousLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PublicReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("RelatedAppealId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RelatedReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NewLevel")
+                        .HasDatabaseName("IX_UserModerationLogs_NewLevel");
+
+                    b.HasIndex("RelatedReportId")
+                        .HasDatabaseName("IX_UserModerationLogs_RelatedReportId");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_UserModerationLogs_User_CreatedAt");
+
+                    b.ToTable("UserModerationLogs");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.UserRating", b =>
@@ -1810,6 +2871,147 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Navigation("Item");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListing", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessProfile", "BusinessProfile")
+                        .WithOne("Listing")
+                        .HasForeignKey("MomVibe.Domain.Entities.BusinessListing", "BusinessProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BusinessProfile");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingComment", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListing", "Listing")
+                        .WithMany("Comments")
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListingComment", "ParentComment")
+                        .WithMany()
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingDailyStat", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingLike", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListing", "Listing")
+                        .WithMany("Likes")
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingPhoto", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListing", "Listing")
+                        .WithMany("Photos")
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListingViewEvent", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessListing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessPolicyAcceptance", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessProfile", "BusinessProfile")
+                        .WithMany("PolicyAcceptances")
+                        .HasForeignKey("BusinessProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.BusinessPolicyVersion", "PolicyVersion")
+                        .WithMany()
+                        .HasForeignKey("PolicyVersionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("BusinessProfile");
+
+                    b.Navigation("PolicyVersion");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessProfile", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("MomVibe.Domain.Entities.BusinessProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessSubscription", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessProfile", "BusinessProfile")
+                        .WithOne("Subscription")
+                        .HasForeignKey("MomVibe.Domain.Entities.BusinessSubscription", "BusinessProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BusinessProfile");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessSubscriptionEvent", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.BusinessSubscription", "Subscription")
+                        .WithMany("Events")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.ChildFriendlyPlace", b =>
                 {
                     b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
@@ -1817,6 +3019,35 @@ namespace MomVibe.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.CoachReferral", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "Referrer")
+                        .WithMany()
+                        .HasForeignKey("ReferrerUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Referrer");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.DeviceFingerprintUser", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.DeviceFingerprint", "Fingerprint")
+                        .WithMany("LinkedUsers")
+                        .HasForeignKey("FingerprintHash")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Fingerprint");
 
                     b.Navigation("User");
                 });
@@ -1990,6 +3221,17 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Navigation("Seller");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.PromoterProfile", b =>
+                {
+                    b.HasOne("MomVibe.Domain.Entities.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("MomVibe.Domain.Entities.PromoterProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.PurchaseRequest", b =>
                 {
                     b.HasOne("MomVibe.Domain.Entities.Bundle", "Bundle")
@@ -2124,9 +3366,37 @@ namespace MomVibe.Infrastructure.Migrations
                     b.Navigation("BundleItems");
                 });
 
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessListing", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+
+                    b.Navigation("Photos");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessProfile", b =>
+                {
+                    b.Navigation("Listing");
+
+                    b.Navigation("PolicyAcceptances");
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.BusinessSubscription", b =>
+                {
+                    b.Navigation("Events");
+                });
+
             modelBuilder.Entity("MomVibe.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("MomVibe.Domain.Entities.DeviceFingerprint", b =>
+                {
+                    b.Navigation("LinkedUsers");
                 });
 
             modelBuilder.Entity("MomVibe.Domain.Entities.Item", b =>
